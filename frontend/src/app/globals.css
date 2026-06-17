@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #020617;
+  --color-card: #0f172a;
+  --color-input: #020617;
+  --color-brand-blue: #b4c6fc;
+  --color-foreground: #f8fafc;
+}
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Inter", sans-serif;
+}
+
+.auth-gradient {
+  background: radial-gradient(circle at top left, #1e293b 0%, #020617 100%);
+}
