@@ -27,17 +27,17 @@ export const LoginForm = () => {
   });
 
   return (
-    <div className="bg-card border border-slate-800 p-10 rounded-2xl shadow-2xl">
+    <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-lg">
       <div className="mb-8 text-left">
-        <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-        <p className="text-gray-400 mt-2 text-sm">
-          Sign in to continue to JEM.
+        <h2 className="text-3xl font-bold text-slate-900">Welcome Back</h2>
+        <p className="text-slate-500 mt-2 text-sm">
+          Sign in to continue to JEM Soft.
         </p>
       </div>
 
       <form onSubmit={handleSubmit(login)} className="space-y-5">
         <Input
-          label="Email or Username"
+          label="Email Address"
           placeholder="name@company.com"
           icon={<Mail size={18} />}
           error={errors.email?.message}
@@ -55,7 +55,7 @@ export const LoginForm = () => {
           />
           <button
             type="button"
-            className="absolute right-3 top-9.5 text-gray-500 hover:text-white"
+            className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 transition-colors"
           >
             <Eye size={18} />
           </button>
@@ -65,11 +65,11 @@ export const LoginForm = () => {
           Sign In
         </Button>
 
-        <p className="text-sm text-center text-gray-400 pt-4">
+        <p className="text-sm text-center text-slate-500 pt-4">
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="text-white hover:text-brand-blue font-semibold"
+            className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
           >
             Create Account
           </Link>
