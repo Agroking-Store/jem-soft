@@ -1,16 +1,14 @@
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import { globalErrorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
-
-dotenv.config();
+import { config } from "./config/env.js";
 
 const app: Application = express();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: config.clientUrl || "*",
     credentials: true,
   })
 );
