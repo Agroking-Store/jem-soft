@@ -2,11 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/AppError.js";
 import { catchAsync } from "../utils/catchAsync.js";
-import { User } from "../models/User.js";
+import { prisma } from "../config/database.js";
 import { IJwtPayload, IUser } from "../types/index.js";
 
 export const protect = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     let token: string | undefined;
 
     // Get token from header
@@ -27,7 +27,7 @@ export const protect = catchAsync(
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as IJwtPayload;
 
       // Check if user still exists
-      const currentUser = await User.findById(decoded.id);
+      const currentUser = await prisma.user.findUnique({ where: { id: decoded.id } });
       if (!currentUser) {
         return next(
           new AppError("The user belonging to this token no longer exists.", 401)
@@ -50,7 +50,7 @@ export const protect = catchAsync(
 );
 
 export const restrictTo = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const user = req.user as IUser;
     
     if (!user) {
