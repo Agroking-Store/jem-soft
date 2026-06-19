@@ -12,4 +12,4 @@ export const connectDB = async (): Promise<void> => {
   }
 };
 
-export default prisma;
+export default prisma;
