@@ -38,48 +38,50 @@ export const RegisterForm = () => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-4 w-full"
-      noValidate
-    >
-      <Input
-        label="Full Name"
-        type="text"
-        placeholder="John Doe"
-        error={errors.name?.message}
-        {...register("name")}
-      />
+    <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-lg">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 w-full"
+        noValidate
+      >
+        <Input
+          label="Full Name"
+          type="text"
+          placeholder="John Doe"
+          error={errors.name?.message}
+          {...register("name")}
+        />
 
-      <Input
-        label="Email"
-        type="email"
-        placeholder="you@example.com"
-        error={errors.email?.message}
-        {...register("email")}
-      />
+        <Input
+          label="Email Address"
+          type="email"
+          placeholder="you@example.com"
+          error={errors.email?.message}
+          {...register("email")}
+        />
 
-      <Input
-        label="Password"
-        type="password"
-        placeholder="••••••••"
-        error={errors.password?.message}
-        {...register("password")}
-      />
+        <Input
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          error={errors.password?.message}
+          {...register("password")}
+        />
 
-      <Button type="submit" isLoading={isLoading} className="mt-2">
-        Create Account
-      </Button>
+        <Button type="submit" isLoading={isLoading} className="mt-2">
+          Create Account
+        </Button>
 
-      <p className="text-sm text-center text-gray-600">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="text-blue-600 hover:underline font-medium"
-        >
-          Sign In
-        </Link>
-      </p>
-    </form>
+        <p className="text-sm text-center text-slate-500 pt-4">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          >
+            Sign In
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 };

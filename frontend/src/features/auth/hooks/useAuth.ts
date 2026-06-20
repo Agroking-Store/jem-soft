@@ -17,11 +17,20 @@ export const useAuth = () => {
 
   const isAuthenticated = !!token;
 
+  const redirectBasedOnRole = (userRole: string) => {
+    if (userRole === "CLIENT") {
+      router.push("/client-dashboard");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   const login = async (payload: LoginPayload) => {
     const result = await dispatch(loginUser(payload));
     if (loginUser.fulfilled.match(result)) {
-      toast.success(`Welcome back, ${result.payload.data.user.name}!`);
-      router.push("/dashboard");
+      const user = result.payload.data.user;
+      toast.success(`Welcome back, ${user.name}!`);
+      redirectBasedOnRole(user.role);
     } else {
       toast.error(result.payload as string);
     }
@@ -30,8 +39,9 @@ export const useAuth = () => {
   const register = async (payload: RegisterPayload) => {
     const result = await dispatch(registerUser(payload));
     if (registerUser.fulfilled.match(result)) {
+      const user = result.payload.data.user;
       toast.success("Account created successfully!");
-      router.push("/dashboard");
+      redirectBasedOnRole(user.role);
     } else {
       toast.error(result.payload as string);
     }

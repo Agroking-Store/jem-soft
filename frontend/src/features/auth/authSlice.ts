@@ -6,12 +6,14 @@ const persistAuth = (token: string, user: User) => {
   localStorage.setItem("token", token);
   localStorage.setItem("user", JSON.stringify(user));
   document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+  document.cookie = `user=${JSON.stringify(user)}; path=/; max-age=${60 * 60 * 24 * 7}`;
 };
 
 const clearPersistedAuth = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   document.cookie = "token=; path=/; max-age=0";
+  document.cookie = "user=; path=/; max-age=0";
 };
 
 const initialState: AuthState = {
