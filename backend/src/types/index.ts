@@ -1,15 +1,13 @@
 import { Request } from "express";
-import { Document, Types } from "mongoose"; 
 
-export interface IUser extends Document {
-  _id: Types.ObjectId;  
+export interface IUser {
+  id: string;  
   name: string;
   email: string;
-  password: string;
-  role: "ADMIN" | "ADVISOR" | "CLIENT";
+  password?: string;
+  role: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 export interface IUserInput {

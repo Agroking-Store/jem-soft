@@ -3,9 +3,9 @@ import { IAppError, IErrorResponse } from "../types/index.js";
 
 export const globalErrorHandler = (
   err: IAppError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
