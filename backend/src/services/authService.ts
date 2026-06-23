@@ -21,7 +21,7 @@ export const registerUser = async (userData: IUserInput): Promise<IUser> => {
       name,
       email,
       password: hashedPassword,
-      role: userData.role || "CLIENT",
+      role: userData.role || "VIEWER",
     },
   });
 

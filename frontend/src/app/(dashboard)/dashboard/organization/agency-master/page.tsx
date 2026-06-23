@@ -2,8 +2,11 @@
 
 import { Building2, Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export default function AgencyMasterPage() {
+  const { user } = useAuth();
+  const isViewer = user?.role === "VIEWER";
   // Mock data - will be replaced with real data
   const agencies = [
     { id: 1, name: "Agency One", code: "AG001", email: "agency1@email.com", phone: "+1 234 567 8900", status: "Active" },
@@ -26,10 +29,12 @@ export default function AgencyMasterPage() {
           <h1 className="text-2xl font-bold text-slate-900">Agency Master</h1>
           <p className="text-slate-500">Manage all agencies and their details</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          <Plus size={18} />
-          Add Agency
-        </button>
+        {!isViewer && (
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <Plus size={18} />
+            Add Agency
+          </button>
+        )}
       </div>
 
       {/* Search and Filter */}
@@ -62,7 +67,9 @@ export default function AgencyMasterPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Phone</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                {!isViewer && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -86,16 +93,18 @@ export default function AgencyMasterPage() {
                       {agency.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                        <Edit size={16} />
-                      </button>
-                      <button className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+                  {!isViewer && (
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                          <Edit size={16} />
+                        </button>
+                        <button className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

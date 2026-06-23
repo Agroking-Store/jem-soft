@@ -128,15 +128,11 @@ export const Sidebar = () => {
     setIsMounted(true);
   }, []);
 
-  const isClient = user?.role === "CLIENT";
   const isAdmin = user?.role === "ADMIN";
+  const isAdvisor = user?.role === "ADVISOR";
+  const isViewer = user?.role === "VIEWER";
 
-  // If user is CLIENT, don't show sidebar at all
-  if (isClient) {
-    return null;
-  }
-
-  // Navigation items for ADMIN and ADVISOR
+  // Navigation items for ADMIN, ADVISOR, and VIEWER
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   ];

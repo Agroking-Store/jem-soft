@@ -2,8 +2,11 @@
 
 import { Users, Plus, Search, Edit, Trash2, Mail, Phone } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export default function EmployeesPage() {
+  const { user } = useAuth();
+  const isViewer = user?.role === "VIEWER";
   const employees = [
     { id: 1, name: "John Doe", email: "john@email.com", phone: "+1 234 567 8900", role: "Manager", department: "Sales", status: "Active" },
     { id: 2, name: "Jane Smith", email: "jane@email.com", phone: "+1 234 567 8901", role: "Advisor", department: "Service", status: "Active" },
@@ -24,10 +27,12 @@ export default function EmployeesPage() {
           <h1 className="text-2xl font-bold text-slate-900">Employees</h1>
           <p className="text-slate-500">Manage employee records and details</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          <Plus size={18} />
-          Add Employee
-        </button>
+        {!isViewer && (
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <Plus size={18} />
+            Add Employee
+          </button>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
@@ -65,7 +70,9 @@ export default function EmployeesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Department</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                {!isViewer && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -100,16 +107,18 @@ export default function EmployeesPage() {
                       {employee.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                        <Edit size={16} />
-                      </button>
-                      <button className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+                  {!isViewer && (
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                          <Edit size={16} />
+                        </button>
+                        <button className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

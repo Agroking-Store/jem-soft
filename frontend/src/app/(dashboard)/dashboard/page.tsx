@@ -22,12 +22,7 @@ export default function DashboardPage() {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    // If user is CLIENT, redirect to client dashboard
-    if (!isLoading && user && user.role === "CLIENT") {
-      router.push("/client-dashboard");
-    }
-  }, [user, isLoading, router]);
+
 
   if (isLoading) {
     return (
@@ -131,7 +126,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {isMounted && user?.role === "ADVISOR" && (
+        {isMounted && (user?.role === "ADVISOR" || user?.role === "VIEWER") && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <Briefcase className="w-6 h-6 text-green-600" />

@@ -18,11 +18,7 @@ export const useAuth = () => {
   const isAuthenticated = !!token;
 
   const redirectBasedOnRole = (userRole: string) => {
-    if (userRole === "CLIENT") {
-      router.push("/client-dashboard");
-    } else {
-      router.push("/dashboard");
-    }
+    router.push("/dashboard");
   };
 
   const login = async (payload: LoginPayload) => {
