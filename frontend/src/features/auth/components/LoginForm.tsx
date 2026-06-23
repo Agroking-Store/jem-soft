@@ -7,17 +7,27 @@ import Link from "next/link";
 import { Mail, Lock, Eye } from "lucide-react";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/store/store";
+import { loginPortalClient } from "@/features/clients/clientSlice";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useState } from "react";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
   const { login, isLoading } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -25,6 +35,36 @@ export const LoginForm = () => {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
+
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
+    try {
+      // Try system user login first
+      const result = await dispatch(
+        (await import("@/features/auth/authSlice")).loginUser(data)
+      );
+      if ((await import("@/features/auth/authSlice")).loginUser.fulfilled.match(result)) {
+        const user = (result.payload as any).data.user;
+        toast.success(`Welcome back, ${user.name}!`);
+        router.push("/dashboard");
+        return;
+      }
+
+      // If system login fails, try client portal login
+      const clientResult = await dispatch(loginPortalClient({ email: data.email, password: data.password }));
+      if (loginPortalClient.fulfilled.match(clientResult)) {
+        const client = (clientResult.payload as any).data.client;
+        toast.success(`Welcome, ${client.name}!`);
+        router.push("/client-portal");
+        return;
+      }
+
+      // Both failed
+      toast.error("Invalid email or password");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-lg">
@@ -35,7 +75,7 @@ export const LoginForm = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(login)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <Input
           label="Email Address"
           placeholder="name@company.com"
@@ -61,7 +101,7 @@ export const LoginForm = () => {
           </button>
         </div>
 
-        <Button type="submit" isLoading={isLoading} className="mt-4 text-lg">
+        <Button type="submit" isLoading={isLoading || isSubmitting} className="mt-4 text-lg">
           Sign In
         </Button>
 

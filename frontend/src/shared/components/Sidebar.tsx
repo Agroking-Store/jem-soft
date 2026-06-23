@@ -132,9 +132,10 @@ export const Sidebar = () => {
   const isAdvisor = user?.role === "ADVISOR";
   const isViewer = user?.role === "VIEWER";
 
-  // Navigation items for ADMIN, ADVISOR, and VIEWER
+  // Navigation items for all logged-in users
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Clients", href: "/dashboard/clients", icon: Users },
   ];
 
   return (
@@ -152,7 +153,9 @@ export const Sidebar = () => {
 
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.href === "/dashboard"
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
