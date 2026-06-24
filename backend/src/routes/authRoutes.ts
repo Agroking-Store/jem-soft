@@ -24,7 +24,7 @@ router.get("/admin-only", protect, restrictTo("ADMIN"), (req, res) => {
 });
 
 // Advisor routes
-router.get("/advisor-only", protect, restrictTo("ADVISOR", "ADMIN"), (req, res) => {
+router.get("/advisor-only", protect, restrictTo("ADVISOR", "ADMIN", "VIEWER"), (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Welcome Advisor!",

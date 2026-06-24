@@ -1,54 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = ["/login", "/register"];
-const ADMIN_ROUTES = ["/dashboard"];
-const CLIENT_ROUTES = ["/client-dashboard"];
+const CLIENT_PORTAL_ROUTES = ["/client-portal"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const token = request.cookies.get("token")?.value;
-  const userCookie = request.cookies.get("user")?.value;
-  
-  let userRole = null;
-  if (userCookie) {
-    try {
-      const user = JSON.parse(userCookie);
-      userRole = user.role;
-    } catch (e) {
-      // Invalid JSON
-    }
-  }
+  const clientPortalToken = request.cookies.get("clientPortalToken")?.value;
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
-  const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
-  const isClientRoute = CLIENT_ROUTES.some(route => pathname.startsWith(route));
+  const isClientPortalRoute = CLIENT_PORTAL_ROUTES.some((r) => pathname.startsWith(r));
 
-  // If no token and not on public route -> redirect to login
+  // Client portal route protection
+  if (isClientPortalRoute) {
+    if (!clientPortalToken) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // If logged in client portal user tries to access /login, send to portal
+  if (isPublicRoute && clientPortalToken && !token) {
+    return NextResponse.redirect(new URL("/client-portal", request.url));
+  }
+
+  // If no system token and not on public route -> redirect to login
   if (!token && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If token and on public route -> redirect based on role
+  // If system token and on public route -> redirect to dashboard
   if (token && isPublicRoute) {
-    if (userRole === "CLIENT") {
-      return NextResponse.redirect(new URL("/client-dashboard", request.url));
-    } else {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-  }
-
-  // Role-based access control for protected routes
-  if (token && !isPublicRoute) {
-    // Client trying to access admin routes
-    if (userRole === "CLIENT" && isAdminRoute) {
-      return NextResponse.redirect(new URL("/client-dashboard", request.url));
-    }
-    
-    // Admin/Advisor trying to access client routes
-    if (userRole !== "CLIENT" && isClientRoute) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
@@ -56,4 +40,4 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
-};
+};

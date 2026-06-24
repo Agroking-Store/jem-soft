@@ -14,7 +14,7 @@ export interface IUserInput {
   name: string;
   email: string;
   password: string;
-  role?: "ADMIN" | "ADVISOR" | "CLIENT";
+  role?: "ADMIN" | "ADVISOR" | "VIEWER";
 }
 
 export interface ILoginInput {

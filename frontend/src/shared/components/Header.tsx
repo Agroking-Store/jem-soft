@@ -38,13 +38,11 @@ export const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isClient = user?.role === "CLIENT";
   const isAdmin = user?.role === "ADMIN";
 
   // Determine page title based on role and path
   const getPageTitle = () => {
     if (!isMounted) return "Loading...";
-    if (isClient) return "Client Portal";
     if (isAdmin) return "Admin Dashboard";
     return "Dashboard";
   };
@@ -217,16 +215,7 @@ export const Header = () => {
             </div>
           )}
 
-          {/* Client Logout Button (only visible for client) */}
-          {isMounted && isClient && (
-            <button
-              onClick={logout}
-              className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-red-600 transition-colors duration-200 px-3 py-1.5 hover:bg-red-50 rounded-lg"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          )}
+
         </div>
       </div>
     </header>

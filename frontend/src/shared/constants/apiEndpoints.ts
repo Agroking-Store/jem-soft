@@ -5,4 +5,9 @@ export const API_ENDPOINTS = {
     register: `${BASE}/auth/register`,
     login: `${BASE}/auth/login`,
   },
+  clients: {
+    base: `${BASE}/clients`,
+    login: `${BASE}/clients/login`,
+    byId: (id: string) => `${BASE}/clients/${id}`,
+  },
 } as const;
