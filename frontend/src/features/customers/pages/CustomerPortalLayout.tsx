@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
-import { logoutPortalClient } from "@/features/clients/clientSlice";
+import { logoutPortalCustomer } from "@/features/customers/customerSlice";
 import { LogOut, User } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function ClientPortalLayout({ children }: { children: React.ReactNode }) {
+export default function CustomerPortalLayout({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { portalClient, portalToken } = useSelector((s: RootState) => s.clients);
+  const { portalCustomer, portalToken } = useSelector((s: RootState) => s.customers);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -23,7 +23,7 @@ export default function ClientPortalLayout({ children }: { children: React.React
   }, [isMounted, portalToken, router]);
 
   const handleLogout = () => {
-    dispatch(logoutPortalClient());
+    dispatch(logoutPortalCustomer());
     toast.success("Logged out successfully");
     router.push("/login");
   };
@@ -42,7 +42,7 @@ export default function ClientPortalLayout({ children }: { children: React.React
             Jem Soft
           </span>
           <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-            Client Portal
+            Customer Portal
           </span>
         </div>
 
@@ -53,8 +53,8 @@ export default function ClientPortalLayout({ children }: { children: React.React
             </div>
             {isMounted && (
               <div className="hidden sm:flex flex-col">
-                <span className="text-sm font-medium text-slate-900">{portalClient?.name}</span>
-                <span className="text-xs text-slate-500">{portalClient?.email}</span>
+                <span className="text-sm font-medium text-slate-900">{portalCustomer?.name}</span>
+                <span className="text-xs text-slate-500">{portalCustomer?.email}</span>
               </div>
             )}
           </div>

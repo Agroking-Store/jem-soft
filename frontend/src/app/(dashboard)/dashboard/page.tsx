@@ -133,11 +133,11 @@ export default function DashboardPage() {
               <h3 className="text-lg font-semibold text-slate-900">Advisor Panel</h3>
             </div>
             <p className="text-slate-600 text-sm mb-4">
-              Manage your clients, appointments, and track your performance.
+              Manage your customers, appointments, and track your performance.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-slate-50 rounded-lg">
-                <p className="text-xs text-slate-500">Active Clients</p>
+                <p className="text-xs text-slate-500">Active Customers</p>
                 <p className="text-lg font-semibold text-slate-900">12</p>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg">

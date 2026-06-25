@@ -5,8 +5,8 @@ import type { RootState } from "@/store/store";
 import { useState, useEffect } from "react";
 import { User, Phone, Mail, Building2, Calendar } from "lucide-react";
 
-export default function ClientPortalPage() {
-  const { portalClient } = useSelector((s: RootState) => s.clients);
+export default function CustomerPortalPage() {
+  const { portalCustomer } = useSelector((s: RootState) => s.customers);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -19,8 +19,8 @@ export default function ClientPortalPage() {
     );
   }
 
-  const joinedDate = portalClient?.createdAt
-    ? new Date(portalClient.createdAt).toLocaleDateString("en-IN", {
+  const joinedDate = portalCustomer?.createdAt
+    ? new Date(portalCustomer.createdAt).toLocaleDateString("en-IN", {
         day: "2-digit", month: "long", year: "numeric",
       })
     : "—";
@@ -35,9 +35,9 @@ export default function ClientPortalPage() {
           </div>
           <div>
             <p className="text-blue-100 text-sm font-medium mb-1">Welcome back 👋</p>
-            <h1 className="text-3xl font-bold">{portalClient?.name}</h1>
-            {portalClient?.companyName && (
-              <p className="text-blue-200 mt-1 text-sm">{portalClient.companyName}</p>
+            <h1 className="text-3xl font-bold">{portalCustomer?.name}</h1>
+            {portalCustomer?.companyName && (
+              <p className="text-blue-200 mt-1 text-sm">{portalCustomer.companyName}</p>
             )}
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function ClientPortalPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Your Profile</h2>
-          <p className="text-sm text-slate-500">Your account information</p>
+          <p className="text-sm text-slate-505">Your account information</p>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="flex items-start gap-4">
@@ -56,18 +56,18 @@ export default function ClientPortalPage() {
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Full Name</p>
-              <p className="text-slate-900 font-semibold">{portalClient?.name || "—"}</p>
+              <p className="text-slate-900 font-semibold">{portalCustomer?.name || "—"}</p>
             </div>
           </div>
 
-          {portalClient?.companyName && (
+          {portalCustomer?.companyName && (
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
                 <Building2 size={18} className="text-purple-600" />
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Company</p>
-                <p className="text-slate-900 font-semibold">{portalClient.companyName}</p>
+                <p className="text-slate-900 font-semibold">{portalCustomer.companyName}</p>
               </div>
             </div>
           )}
@@ -78,7 +78,7 @@ export default function ClientPortalPage() {
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Email</p>
-              <p className="text-slate-900 font-semibold">{portalClient?.email || "—"}</p>
+              <p className="text-slate-900 font-semibold">{portalCustomer?.email || "—"}</p>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export default function ClientPortalPage() {
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Phone</p>
-              <p className="text-slate-900 font-semibold">{portalClient?.phone || "—"}</p>
+              <p className="text-slate-900 font-semibold">{portalCustomer?.phone || "—"}</p>
             </div>
           </div>
 

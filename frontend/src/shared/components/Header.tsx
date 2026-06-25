@@ -72,7 +72,7 @@ export const Header = () => {
       </h1>
 
       <div className="flex items-center gap-4">
-        {/* Notification Bell - Always rendered but hidden for clients */}
+        {/* Notification Bell - Always rendered but hidden for customers */}
         <div className={isMounted && isAdmin ? 'block' : 'hidden'}>
           <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition relative">
             <Bell size={20} />

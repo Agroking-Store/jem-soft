@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { createClient } from "@/features/clients/clientSlice";
+import { fetchCustomer, updateCustomer } from "@/features/customers/customerSlice";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
 import { ArrowLeft, User, Building2, Mail, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-const clientFormSchema = z.object({
+const editCustomerSchema = z.object({
   name: z
     .string()
     .min(2, "Name must be at least 2 characters")
@@ -29,26 +29,31 @@ const clientFormSchema = z.object({
     .string()
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number must be less than 15 digits"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().optional().or(z.literal("")),
 });
 
-type ClientFormValues = z.infer<typeof clientFormSchema>;
+type EditCustomerValues = z.infer<typeof editCustomerSchema>;
 
-export default function ClientCreatePage() {
+export default function CustomerEditPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
   const { user, isLoading: authLoading } = useAuth();
-  const { isLoading: isSubmitting } = useSelector((s: RootState) => s.clients);
+  const { currentCustomer, isLoading: customerLoading, error } = useSelector((s: RootState) => s.customers);
 
   const [showPassword, setShowPassword] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
+  } = useForm<EditCustomerValues>({
+    resolver: zodResolver(editCustomerSchema),
     defaultValues: {
       name: "",
       companyName: "",
@@ -60,36 +65,54 @@ export default function ClientCreatePage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (id) {
+      dispatch(fetchCustomer(id));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (currentCustomer && isMounted) {
+      setValue("name", currentCustomer.name);
+      setValue("companyName", currentCustomer.companyName || "");
+      setValue("email", currentCustomer.email);
+      setValue("phone", currentCustomer.phone);
+    }
+  }, [currentCustomer, setValue, isMounted]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission to access this page.");
-        router.replace("/dashboard/clients");
+        router.replace("/dashboard/customers");
       }
     }
   }, [isMounted, authLoading, user, router]);
 
-  const onSubmit = async (data: ClientFormValues) => {
+  const onSubmit = async (data: EditCustomerValues) => {
+    setIsSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         name: data.name,
-        companyName: data.companyName || undefined,
+        companyName: data.companyName || null,
         email: data.email,
         phone: data.phone,
-        password: data.password,
       };
 
-      await dispatch(createClient(payload)).unwrap();
-      toast.success("Client added successfully");
-      router.push("/dashboard/clients");
+      if (data.password && data.password.trim().length >= 6) {
+        payload.password = data.password;
+      }
+
+      await dispatch(updateCustomer({ id, payload })).unwrap();
+      toast.success("Customer updated successfully");
+      router.push("/dashboard/customers");
     } catch (err: any) {
-      toast.error(err || "Failed to create client");
+      toast.error(err || "Failed to update customer");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (!isMounted || authLoading) {
+  if (!isMounted || authLoading || (customerLoading && !currentCustomer)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -101,24 +124,39 @@ export default function ClientCreatePage() {
     return null;
   }
 
+  if (error && !currentCustomer) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-16 px-4">
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
+        <p className="text-slate-500 mb-6">{error}</p>
+        <Link
+          href="/dashboard/customers"
+          className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+        >
+          Back to Customers
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Back button */}
       <div>
         <Link
-          href="/dashboard/clients"
+          href="/dashboard/customers"
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Back to Clients</span>
+          <span>Back to Customers</span>
         </Link>
       </div>
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Add New Client</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Edit Customer</h1>
         <p className="text-slate-500 text-sm mt-1">
-          Create a new client profile. Clients can use these credentials to log in to the Client Portal.
+          Modify details for customer <span className="font-semibold text-slate-800">{currentCustomer?.name}</span>.
         </p>
       </div>
 
@@ -166,9 +204,9 @@ export default function ClientCreatePage() {
           <div className="border-t border-slate-100 pt-6">
             <div className="relative">
               <Input
-                label="Portal Password"
+                label="New Portal Password (Optional)"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="Leave blank to keep unchanged"
                 icon={<Lock size={18} />}
                 error={errors.password?.message}
                 {...register("password")}
@@ -182,13 +220,13 @@ export default function ClientCreatePage() {
               </button>
             </div>
             <p className="text-xs text-slate-400 mt-2">
-              Set a secure password for the client. They will use this password alongside their email address to access the portal.
+              Only enter a password if you wish to reset or change the customer's current portal login password.
             </p>
           </div>
 
           <div className="flex items-center justify-end gap-4 border-t border-slate-100 pt-6">
             <Link
-              href="/dashboard/clients"
+              href="/dashboard/customers"
               className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
             >
               Cancel
@@ -198,7 +236,7 @@ export default function ClientCreatePage() {
               isLoading={isSubmitting}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 w-auto"
             >
-              Create Client
+              Save Changes
             </Button>
           </div>
         </form>

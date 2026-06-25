@@ -1,4 +1,4 @@
-export interface Client {
+export interface Customer {
   id: string;
   name: string;
   companyName?: string | null;
@@ -8,7 +8,7 @@ export interface Client {
   updatedAt: string;
 }
 
-export interface ClientPayload {
+export interface CustomerPayload {
   name: string;
   companyName?: string;
   email: string;
@@ -16,7 +16,7 @@ export interface ClientPayload {
   password: string;
 }
 
-export interface ClientUpdatePayload {
+export interface CustomerUpdatePayload {
   name?: string;
   companyName?: string;
   email?: string;
@@ -24,27 +24,27 @@ export interface ClientUpdatePayload {
   password?: string;
 }
 
-export interface ClientState {
-  clients: Client[];
-  currentClient: Client | null;
-  portalClient: Client | null;
+export interface CustomerState {
+  customers: Customer[];
+  currentCustomer: Customer | null;
+  portalCustomer: Customer | null;
   portalToken: string | null;
   isLoading: boolean;
   error: string | null;
 }
 
-export interface ClientApiResponse {
+export interface CustomerApiResponse {
   status: string;
-  data: { client: Client };
+  data: { customer: Customer };
 }
 
-export interface ClientsApiResponse {
+export interface CustomersApiResponse {
   status: string;
-  data: { clients: Client[] };
+  data: { customers: Customer[] };
 }
 
-export interface ClientLoginApiResponse {
+export interface CustomerLoginApiResponse {
   status: string;
   token: string;
-  data: { client: Client };
+  data: { customer: Customer };
 }

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { fetchClient, deleteClient } from "@/features/clients/clientSlice";
+import { fetchCustomer, deleteCustomer } from "@/features/customers/customerSlice";
 import {
   ArrowLeft,
   User,
@@ -21,14 +21,14 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-export default function ClientDetailsPage() {
+export default function CustomerDetailsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
   const { user } = useAuth();
-  const { currentClient, isLoading, error } = useSelector((s: RootState) => s.clients);
+  const { currentCustomer, isLoading, error } = useSelector((s: RootState) => s.customers);
 
   const [isMounted, setIsMounted] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -37,7 +37,7 @@ export default function ClientDetailsPage() {
   useEffect(() => {
     setIsMounted(true);
     if (id) {
-      dispatch(fetchClient(id));
+      dispatch(fetchCustomer(id));
     }
   }, [dispatch, id]);
 
@@ -46,18 +46,18 @@ export default function ClientDetailsPage() {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await dispatch(deleteClient(id)).unwrap();
-      toast.success("Client deleted successfully");
-      router.push("/dashboard/clients");
+      await dispatch(deleteCustomer(id)).unwrap();
+      toast.success("Customer deleted successfully");
+      router.push("/dashboard/customers");
     } catch (err: any) {
-      toast.error(err || "Failed to delete client");
+      toast.error(err || "Failed to delete customer");
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
     }
   };
 
-  if (!isMounted || (isLoading && !currentClient)) {
+  if (!isMounted || (isLoading && !currentCustomer)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -65,23 +65,23 @@ export default function ClientDetailsPage() {
     );
   }
 
-  if (error && !currentClient) {
+  if (error && !currentCustomer) {
     return (
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Client</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
         <Link
-          href="/dashboard/clients"
+          href="/dashboard/customers"
           className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
         >
-          Back to Clients
+          Back to Customers
         </Link>
       </div>
     );
   }
 
-  const createdDate = currentClient?.createdAt
-    ? new Date(currentClient.createdAt).toLocaleDateString("en-IN", {
+  const createdDate = currentCustomer?.createdAt
+    ? new Date(currentCustomer.createdAt).toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -90,8 +90,8 @@ export default function ClientDetailsPage() {
       })
     : "—";
 
-  const updatedDate = currentClient?.updatedAt
-    ? new Date(currentClient.updatedAt).toLocaleDateString("en-IN", {
+  const updatedDate = currentCustomer?.updatedAt
+    ? new Date(currentCustomer.updatedAt).toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -105,17 +105,17 @@ export default function ClientDetailsPage() {
       {/* Back button & Action buttons */}
       <div className="flex items-center justify-between">
         <Link
-          href="/dashboard/clients"
+          href="/dashboard/customers"
           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Back to Clients</span>
+          <span>Back to Customers</span>
         </Link>
 
-        {canEdit && currentClient && (
+        {canEdit && currentCustomer && (
           <div className="flex items-center gap-2">
             <Link
-              href={`/dashboard/clients/${currentClient.id}/edit`}
+              href={`/dashboard/customers/${currentCustomer.id}/edit`}
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors shadow-sm"
             >
               <Edit size={15} />
@@ -133,20 +133,20 @@ export default function ClientDetailsPage() {
       </div>
 
       {/* Main Details Card */}
-      {currentClient && (
+      {currentCustomer && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 p-6 sm:p-8">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold shadow-sm">
-                {currentClient.name.charAt(0).toUpperCase()}
+                {currentCustomer.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">{currentClient.name}</h1>
-                {currentClient.companyName && (
+                <h1 className="text-2xl font-bold text-slate-900">{currentCustomer.name}</h1>
+                {currentCustomer.companyName && (
                   <p className="text-slate-500 font-medium mt-1 flex items-center gap-1.5">
                     <Building2 size={16} />
-                    <span>{currentClient.companyName}</span>
+                    <span>{currentCustomer.companyName}</span>
                   </p>
                 )}
               </div>
@@ -168,7 +168,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">Email Address</p>
-                    <p className="text-slate-900 font-medium mt-0.5">{currentClient.email}</p>
+                    <p className="text-slate-900 font-medium mt-0.5">{currentCustomer.email}</p>
                   </div>
                 </div>
 
@@ -178,7 +178,7 @@ export default function ClientDetailsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">Phone Number</p>
-                    <p className="text-slate-900 font-medium mt-0.5">{currentClient.phone}</p>
+                    <p className="text-slate-900 font-medium mt-0.5">{currentCustomer.phone}</p>
                   </div>
                 </div>
               </div>
@@ -222,10 +222,10 @@ export default function ClientDetailsPage() {
               <div className="p-2 bg-red-50 rounded-lg">
                 <AlertTriangle size={24} />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Delete Client</h3>
+              <h3 className="text-lg font-bold text-slate-900">Delete Customer</h3>
             </div>
             <p className="text-sm text-slate-505 mb-6 leading-relaxed">
-              Are you sure you want to delete this client? This action is permanent and will completely remove the client's access to the portal.
+              Are you sure you want to delete this customer? This action is permanent and will completely remove the customer's access to the portal.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button

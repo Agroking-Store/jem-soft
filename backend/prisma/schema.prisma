@@ -17,7 +17,7 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-model Client {
+model Customer {
   id          String   @id @default(uuid())
   name        String
   companyName String?
