@@ -13,7 +13,6 @@ export interface ICustomerInput {
   groupCode?: string;
   groupName?: string;
   category?: string;
-  rating?: string;
   relManager?: string;
 
   // Contact Info
@@ -59,7 +58,6 @@ export interface ICustomerUpdate {
   groupCode?: string;
   groupName?: string;
   category?: string;
-  rating?: string;
   relManager?: string;
 
   // Contact Info
@@ -103,7 +101,6 @@ const CUSTOMER_GROUP_SELECT = {
   groupCode: true,
   groupName: true,
   category: true,
-  rating: true,
   relManager: true,
   mobilePersonal: true,
   emailPersonal: true,
@@ -182,7 +179,6 @@ export const createCustomer = async (data: ICustomerInput) => {
       groupCode,
       groupName: data.groupName || data.name,
       category: data.category,
-      rating: data.rating,
       relManager: data.relManager,
       mobilePersonal: data.mobilePersonal,
       emailPersonal: data.emailPersonal,
@@ -258,3 +254,4 @@ export const loginCustomer = async (email: string, password: string) => {
     updatedAt: customer.updatedAt,
   };
 };
+

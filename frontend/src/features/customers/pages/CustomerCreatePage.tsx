@@ -32,7 +32,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 // ─── Constants ────────────────────────────────────────────────────
-const CATEGORIES = ["Client", "VIP", "Prospect", "Others"];
+const CATEGORIES = ["Client", "Personal", "Prospect", "Others"];
 const RATINGS = ["A", "B", "C", "D"];
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",

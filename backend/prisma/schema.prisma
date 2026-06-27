@@ -28,9 +28,10 @@ model Customer {
   // Customer Group fields
   groupCode       String?  @unique
   groupName       String?
-  category        String?  // Client, Others, VIP, etc.
-  rating          String?  // A, B, C, etc.
+  category        String?  // Client, Others, personal, etc.
   relManager      String?
+
+
 
   // Contact Info
   mobilePersonal  String?

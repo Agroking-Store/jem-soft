@@ -13,7 +13,7 @@ import {
   Users,
   AlertTriangle,
   Filter,
-  Star,
+
   Tag,
   Camera,
   ChevronRight,
@@ -24,17 +24,12 @@ import toast from "react-hot-toast";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Client: "bg-blue-100 text-blue-700",
-  VIP: "bg-amber-100 text-amber-700",
+  Personal: "bg-amber-100 text-amber-700",
   Others: "bg-slate-100 text-slate-600",
   Prospect: "bg-green-100 text-green-700",
 };
 
-const RATING_COLORS: Record<string, string> = {
-  A: "bg-emerald-100 text-emerald-700",
-  B: "bg-blue-100 text-blue-700",
-  C: "bg-amber-100 text-amber-700",
-  D: "bg-red-100 text-red-700",
-};
+
 
 type Tab = "group" | "master";
 
@@ -243,7 +238,7 @@ export default function CustomerListPage() {
                       <th className="py-3 px-4 whitespace-nowrap">Group Code</th>
                       <th className="py-3 px-4 whitespace-nowrap">Group Name</th>
                       <th className="py-3 px-4 whitespace-nowrap">Category</th>
-                      <th className="py-3 px-4 whitespace-nowrap">Rating</th>
+
                       <th className="py-3 px-4 whitespace-nowrap text-center">No. of Members</th>
                       <th className="py-3 px-4 text-center">Group</th>
                       <th className="py-3 px-4 text-center">Photo</th>
@@ -252,8 +247,9 @@ export default function CustomerListPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {filteredCustomers.map((customer, idx) => {
-                      const catColor = CATEGORY_COLORS[customer.category || ""] ?? "bg-slate-100 text-slate-600";
-                      const ratingColor = RATING_COLORS[customer.rating || ""] ?? "bg-slate-100 text-slate-500";
+                      const catColor =
+                        CATEGORY_COLORS[customer.category || ""] ??
+                        "bg-slate-100 text-slate-600";
                       const memberCount = customer._count?.policies ?? 0;
                       const isSelected = selectedIds.has(customer.id);
 
@@ -301,16 +297,7 @@ export default function CustomerListPage() {
                               <span className="text-slate-300 text-xs">—</span>
                             )}
                           </td>
-                          <td className="py-3 px-4">
-                            {customer.rating ? (
-                              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${ratingColor}`}>
-                                <Star size={10} />
-                                {customer.rating}
-                              </span>
-                            ) : (
-                              <span className="text-slate-300 text-xs">—</span>
-                            )}
-                          </td>
+
                           <td className="py-3 px-4 text-center">
                             <span className="text-blue-600 font-bold text-sm hover:underline cursor-pointer">
                               {memberCount}

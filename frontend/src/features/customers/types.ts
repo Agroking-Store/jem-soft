@@ -9,8 +9,9 @@ export interface Customer {
   groupCode?: string | null;
   groupName?: string | null;
   category?: string | null;
-  rating?: string | null;
+
   relManager?: string | null;
+
 
   // Contact Info
   mobilePersonal?: string | null;
@@ -58,7 +59,6 @@ export interface CustomerPayload {
   groupCode?: string;
   groupName?: string;
   category?: string;
-  rating?: string;
   relManager?: string;
   mobilePersonal?: string;
   emailPersonal?: string;
@@ -95,7 +95,6 @@ export interface CustomerUpdatePayload {
   groupCode?: string;
   groupName?: string;
   category?: string;
-  rating?: string;
   relManager?: string;
   mobilePersonal?: string;
   emailPersonal?: string;
@@ -146,3 +145,4 @@ export interface CustomerLoginApiResponse {
   token: string;
   data: { customer: Customer };
 }
+
