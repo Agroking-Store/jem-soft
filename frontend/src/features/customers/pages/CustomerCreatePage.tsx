@@ -14,8 +14,6 @@ import {
   ArrowLeft,
   Hash,
   User,
-  Tag,
-  Star,
   UserCog,
   Phone,
   Mail,
@@ -33,7 +31,7 @@ import toast from "react-hot-toast";
 
 // ─── Constants ────────────────────────────────────────────────────
 const CATEGORIES = ["Client", "Personal", "Prospect", "Others"];
-const RATINGS = ["A", "B", "C", "D"];
+
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
   "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra",
@@ -49,7 +47,7 @@ const schema = z.object({
   groupCode: z.string().optional().or(z.literal("")),
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
-  rating: z.string().optional().or(z.literal("")),
+
 
   // Contact
   mobilePersonal: z.string().optional().or(z.literal("")),
@@ -203,7 +201,6 @@ export default function CustomerCreatePage() {
       groupCode: "",
       groupName: "",
       category: "",
-      rating: "",
       mobilePersonal: "",
       emailPersonal: "",
       mobileBusiness: "",
@@ -241,7 +238,7 @@ export default function CustomerCreatePage() {
           groupCode: data.groupCode || undefined,
           groupName: data.groupName,
           category: data.category || undefined,
-          rating: data.rating || undefined,
+
           mobilePersonal: data.mobilePersonal || undefined,
           emailPersonal: data.emailPersonal || undefined,
           mobileBusiness: data.mobileBusiness || undefined,
