@@ -50,7 +50,6 @@ const schema = z.object({
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
   rating: z.string().optional().or(z.literal("")),
-  relManager: z.string().optional().or(z.literal("")),
 
   // Contact
   mobilePersonal: z.string().optional().or(z.literal("")),
@@ -205,7 +204,6 @@ export default function CustomerCreatePage() {
       groupName: "",
       category: "",
       rating: "",
-      relManager: "",
       mobilePersonal: "",
       emailPersonal: "",
       mobileBusiness: "",
@@ -244,7 +242,6 @@ export default function CustomerCreatePage() {
           groupName: data.groupName,
           category: data.category || undefined,
           rating: data.rating || undefined,
-          relManager: data.relManager || undefined,
           mobilePersonal: data.mobilePersonal || undefined,
           emailPersonal: data.emailPersonal || undefined,
           mobileBusiness: data.mobileBusiness || undefined,

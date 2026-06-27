@@ -29,9 +29,6 @@ model Customer {
   groupCode       String?  @unique
   groupName       String?
   category        String?  // Client, Others, personal, etc.
-  relManager      String?
-
-
 
   // Contact Info
   mobilePersonal  String?
