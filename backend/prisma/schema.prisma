@@ -26,4 +26,439 @@ model Customer {
   password    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  policies Policy[]
+}
+
+// ======================================================
+// Insurance Provider Master
+// Example: LIC, HDFC Life, SBI Life, ICICI Prudential
+// ======================================================
+
+model InsuranceProvider {
+  id          String  @id @default(uuid())
+  type        String // Insurance, Bank, Investment
+  name        String
+  code        String  @unique // LIC, HDFC_LIFE, SBI_LIFE
+  description String?
+  isActive    Boolean @default(true)
+
+  categories ProductCategory[]
+  products   ProductMaster[]
+
+  advisors Advisor[]
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Product Category Master
+// Example:
+// Life Insurance
+// Health Insurance
+// Motor Insurance
+// Mutual Fund
+// ======================================================
+
+model ProductCategory {
+  id         String @id @default(uuid())
+  providerId String
+
+  categoryName String
+  categoryCode String  @unique
+  description  String?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+
+  products ProductMaster[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Product Master
+// Example:
+// Jeevan Anand
+// Jeevan Labh
+// Click2Protect
+// ======================================================
+
+model ProductMaster {
+  id String @id @default(uuid())
+
+  providerId String
+  categoryId String
+
+  productName String
+  productCode String
+
+  productType String?
+  description String?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+  category ProductCategory   @relation(fields: [categoryId], references: [id])
+
+  attributes ProductAttributeValue[]
+  policies   Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, productCode])
+}
+
+// ======================================================
+// Product Attribute Master
+// Defines configurable product attributes
+// ======================================================
+
+model ProductAttributeMaster {
+  id String @id @default(uuid())
+
+  attributeName String
+  attributeCode String @unique
+
+  dataType String // Text, Number, Date, Boolean, Dropdown
+
+  isRequired Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  values           ProductAttributeValue[]
+  options          ProductAttributeOption[]
+  policyAttributes PolicyAttribute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Product Attribute Values
+// Stores values of attributes for each product
+// ======================================================
+
+model ProductAttributeValue {
+  id String @id @default(uuid())
+
+  productId   String
+  attributeId String
+
+  value String
+
+  product   ProductMaster          @relation(fields: [productId], references: [id])
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, attributeId])
+}
+
+model PolicyStatusMaster {
+  id          String  @id @default(uuid())
+  statusName  String
+  statusCode  String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumModeMaster {
+  id          String  @id @default(uuid())
+  modeName    String
+  modeCode    String  @unique
+  months      Int?
+  description String?
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RiderMaster {
+  id          String  @id @default(uuid())
+  riderName   String
+  riderCode   String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  policyRiders PolicyRider[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Policy {
+  id String @id @default(uuid())
+
+  clientId   String
+  providerId String
+  productId  String
+
+  statusId      String
+  premiumModeId String
+
+  advisorId String?
+
+  policyNumber   String  @unique
+  proposalNumber String?
+
+  issueDate        DateTime?
+  commencementDate DateTime
+  maturityDate     DateTime?
+
+  policyTerm        Int?
+  premiumPayingTerm Int?
+
+  nextPremiumDueDate DateTime?
+
+  agentCode  String?
+  branchCode String?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client      Client             @relation(fields: [clientId], references: [id])
+  provider    InsuranceProvider  @relation(fields: [providerId], references: [id])
+  product     ProductMaster      @relation(fields: [productId], references: [id])
+  status      PolicyStatusMaster @relation(fields: [statusId], references: [id])
+  premiumMode PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
+
+  advisor Advisor? @relation(fields: [advisorId], references: [id])
+
+  nominees     Nominee[]
+  policyRiders PolicyRider[]
+  documents    PolicyDocument[]
+  premium      PolicyPremiumCalculation?
+
+  policyAttributes PolicyAttribute[]
+  premiumPayments  PremiumPayment[]
+  loans            PolicyLoan[]
+}
+
+model PolicyAttribute {
+  id String @id @default(uuid())
+
+  policyId    String
+  attributeId String
+
+  value String
+
+  policy    Policy                 @relation(fields: [policyId], references: [id])
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+
+  @@unique([policyId, attributeId])
+}
+
+model PolicyRider {
+  id String @id @default(uuid())
+
+  policyId String
+  riderId  String
+
+  riderAmount  Decimal?
+  riderPremium Decimal?
+
+  policy Policy      @relation(fields: [policyId], references: [id])
+  rider  RiderMaster @relation(fields: [riderId], references: [id])
+
+  @@unique([policyId, riderId])
+}
+
+model Nominee {
+  id String @id @default(uuid())
+
+  policyId String
+
+  nomineeName  String
+  relationship String
+  dateOfBirth  DateTime?
+  percentage   Decimal?
+
+  phone   String?
+  email   String?
+  address String?
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumPayment {
+  id String @id @default(uuid())
+
+  policyId String
+
+  installmentNo Int?
+
+  dueDate  DateTime
+  paidDate DateTime?
+
+  premiumAmount Decimal
+  lateFee       Decimal?
+
+  paymentMode String?
+
+  receiptNumber String?
+
+  paymentStatusId String
+
+  paymentStatus PaymentStatusMaster @relation(fields: [paymentStatusId], references: [id])
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyLoan {
+  id String @id @default(uuid())
+
+  policyId String
+
+  loanNumber String?
+  loanAmount Decimal
+
+  interestRate Decimal?
+
+  loanDate DateTime
+
+  loanStatusId String
+
+  loanStatus LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyDocument {
+  id String @id @default(uuid())
+
+  policyId String
+
+  documentName String
+  documentType String
+
+  filePath String
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Advisor Master
+// Insurance Advisor / Agent
+// ======================================================
+
+model Advisor {
+  id String @id @default(uuid())
+
+  providerId String
+
+  advisorCode String
+  advisorName String
+
+  email String?
+  phone String?
+
+  licenseNumber String?
+  panNumber     String?
+
+  branchCode  String?
+  designation String?
+
+  joiningDate DateTime?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, advisorCode])
+}
+
+model PolicyPremiumCalculation {
+  id String @id @default(uuid())
+
+  policyId String @unique
+
+  sumAssured Decimal
+
+  basicYearlyPremium Decimal
+  totalYearlyPremium Decimal
+
+  installmentPremium Decimal
+
+  gst Decimal?
+
+  extraClass Decimal?
+
+  rebate Decimal?
+
+  totalInstallmentPremium Decimal
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentStatusMaster {
+  id String @id @default(uuid())
+
+  statusName String
+  statusCode String @unique
+
+  payments PremiumPayment[]
+}
+
+model LoanStatusMaster {
+  id String @id @default(uuid())
+
+  statusName String
+  statusCode String @unique
+
+  loans PolicyLoan[]
+}
+
+model ProductAttributeOption {
+  id String @id @default(uuid())
+
+  attributeId String
+
+  optionLabel String
+  optionValue String?
+
+  displayOrder Int?
+  isDefault    Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([attributeId, optionLabel])
 }
