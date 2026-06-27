@@ -31,7 +31,6 @@ import toast from "react-hot-toast";
 
 // ─── Constants ────────────────────────────────────────────────────
 const CATEGORIES = ["Client", "Personal", "Prospect", "Others"];
-const RATINGS = ["A", "B", "C", "D"];
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
   "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra",
@@ -46,8 +45,6 @@ const schema = z.object({
   groupCode: z.string().optional().or(z.literal("")),
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
-  rating: z.string().optional().or(z.literal("")),
-  relManager: z.string().optional().or(z.literal("")),
   mobilePersonal: z.string().optional().or(z.literal("")),
   emailPersonal: z.string().email("Invalid email").optional().or(z.literal("")),
   mobileBusiness: z.string().optional().or(z.literal("")),
@@ -155,7 +152,7 @@ export default function CustomerEditPage() {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      groupCode: "", groupName: "", category: "", rating: "", relManager: "",
+      groupCode: "", groupName: "", category: "",
       mobilePersonal: "", emailPersonal: "", mobileBusiness: "", emailBusiness: "",
       prefCommAddress: "Residence",
       resCountry: "India", offCountry: "India",
@@ -173,8 +170,6 @@ export default function CustomerEditPage() {
       setValue("groupCode", currentCustomer.groupCode || "");
       setValue("groupName", currentCustomer.groupName || currentCustomer.name);
       setValue("category", currentCustomer.category || "");
-      setValue("rating", currentCustomer.rating || "");
-      setValue("relManager", currentCustomer.relManager || "");
       setValue("mobilePersonal", currentCustomer.mobilePersonal || "");
       setValue("emailPersonal", currentCustomer.emailPersonal || "");
       setValue("mobileBusiness", currentCustomer.mobileBusiness || "");
@@ -222,8 +217,6 @@ export default function CustomerEditPage() {
         groupCode: data.groupCode || undefined,
         groupName: data.groupName,
         category: data.category || undefined,
-        rating: data.rating || undefined,
-        relManager: data.relManager || undefined,
         mobilePersonal: data.mobilePersonal || undefined,
         emailPersonal: data.emailPersonal || undefined,
         mobileBusiness: data.mobileBusiness || undefined,

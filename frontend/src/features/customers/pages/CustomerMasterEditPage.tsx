@@ -116,7 +116,8 @@ const schema = z.object({
   emailMarketing: z.boolean().default(true),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormInputValues = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>;
@@ -237,13 +238,13 @@ export default function CustomerMasterEditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
 
-  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", addresses: [], bankDetails: [] },
   });
 
-  const { fields: addrFields, append: appendAddr, remove: removeAddr, replace: replaceAddr } = useFieldArray({ control, name: "addresses" });
-  const { fields: bankFields, append: appendBank, remove: removeBank, replace: replaceBank } = useFieldArray({ control, name: "bankDetails" });
+  const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
+  const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
   useEffect(() => {
     setIsMounted(true);

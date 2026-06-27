@@ -7,9 +7,9 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
 import {
-  ArrowLeft, User, Phone, MapPin, CreditCard, Info, Settings,
+  ArrowLeft, Phone, MapPin, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
-  Mail, CheckCircle, XCircle, Calendar,
+  CheckCircle, XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";

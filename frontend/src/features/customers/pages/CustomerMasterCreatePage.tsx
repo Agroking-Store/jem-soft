@@ -12,7 +12,7 @@ import { createCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import {
   ArrowLeft, User, Phone, MapPin, Building, CreditCard, Info,
-  Settings, ChevronRight, Plus, Trash2, Star, Search, X, ExternalLink,
+  Settings, ChevronRight, Plus, Trash2, Star, Search, X,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -125,7 +125,8 @@ const schema = z.object({
   emailMarketing: z.boolean().default(true),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormInputValues = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 // ─── Reusable UI Components ───────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
@@ -256,7 +257,7 @@ export default function CustomerMasterCreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       isGroupHead: false, isMarried: false, isDead: false,
