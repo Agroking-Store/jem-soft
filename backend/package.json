@@ -8,7 +8,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [
     "backend",
