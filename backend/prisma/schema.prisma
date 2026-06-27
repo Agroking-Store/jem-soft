@@ -24,6 +24,45 @@ model Customer {
   email       String   @unique
   phone       String
   password    String
+
+  // Customer Group fields
+  groupCode       String?  @unique
+  groupName       String?
+  category        String?  // Client, Others, VIP, etc.
+  rating          String?  // A, B, C, etc.
+  relManager      String?
+
+  // Contact Info
+  mobilePersonal  String?
+  emailPersonal   String?
+  mobileBusiness  String?
+  emailBusiness   String?
+
+  // Preferred Communication Address
+  prefCommAddress String?  // "Residence" | "Office"
+
+  // Residence Address
+  resAddressLine1 String?
+  resAddressLine2 String?
+  resAddressLine3 String?
+  resAddressLine4 String?
+  resCity         String?
+  resPin          String?
+  resState        String?
+  resCountry      String?  @default("India")
+  resArea         String?
+
+  // Office Address
+  offAddressLine1 String?
+  offAddressLine2 String?
+  offAddressLine3 String?
+  offAddressLine4 String?
+  offCity         String?
+  offPin          String?
+  offState        String?
+  offCountry      String?  @default("India")
+  offArea         String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -231,7 +270,7 @@ model Policy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client      Client             @relation(fields: [clientId], references: [id])
+  client      Customer           @relation(fields: [clientId], references: [id])
   provider    InsuranceProvider  @relation(fields: [providerId], references: [id])
   product     ProductMaster      @relation(fields: [productId], references: [id])
   status      PolicyStatusMaster @relation(fields: [statusId], references: [id])
