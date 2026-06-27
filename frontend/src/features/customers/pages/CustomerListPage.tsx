@@ -226,7 +226,7 @@ export default function CustomerListPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-semibold uppercase tracking-wider">
+                    <tr className="bg-gradient-to-r from-blue-600 to-blue-600 text-white text-xs font-semibold uppercase tracking-wider">
                       <th className="py-3 px-4">
                         <input
                           type="checkbox"
