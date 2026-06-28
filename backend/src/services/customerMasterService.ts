@@ -66,8 +66,10 @@ export interface ICustomerMasterInput {
     motherName?: string;
     spouseName?: string;
     nationality?: string;
+    qualification?: string;
     occupationType?: string;
     occupation?: string;
+
     employer?: string;
     natureOfDuties?: string;
     referredBy?: string;
@@ -358,7 +360,9 @@ export const updateCustomerMaster = async (id: string, data: ICustomerMasterInpu
                 motherName: data.miscInfo.motherName || null,
                 spouseName: data.miscInfo.spouseName || null,
                 nationality: data.miscInfo.nationality || "Indian",
+                qualification: data.miscInfo.qualification || null,
                 occupationType: data.miscInfo.occupationType || null,
+
                 occupation: data.miscInfo.occupation || null,
                 employer: data.miscInfo.employer || null,
                 natureOfDuties: data.miscInfo.natureOfDuties || null,
@@ -384,7 +388,9 @@ export const updateCustomerMaster = async (id: string, data: ICustomerMasterInpu
                 motherName: data.miscInfo.motherName || null,
                 spouseName: data.miscInfo.spouseName || null,
                 nationality: data.miscInfo.nationality || "Indian",
+                qualification: data.miscInfo.qualification || null,
                 occupationType: data.miscInfo.occupationType || null,
+
                 occupation: data.miscInfo.occupation || null,
                 employer: data.miscInfo.employer || null,
                 natureOfDuties: data.miscInfo.natureOfDuties || null,

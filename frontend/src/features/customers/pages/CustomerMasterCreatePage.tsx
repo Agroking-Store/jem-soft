@@ -105,6 +105,7 @@ const schema = z.object({
   motherName: z.string().optional().or(z.literal("")),
   spouseName: z.string().optional().or(z.literal("")),
   nationality: z.string().optional().or(z.literal("")),
+  qualification: z.string().optional().or(z.literal("")),
   occupationType: z.string().optional().or(z.literal("")),
   occupation: z.string().optional().or(z.literal("")),
   employer: z.string().optional().or(z.literal("")),
@@ -263,6 +264,7 @@ export default function CustomerMasterCreatePage() {
       isGroupHead: false, isMarried: false, isDead: false,
       smsMarketing: true, emailMarketing: true,
       nationality: "Indian",
+      qualification: "" ,
       addresses: [{ addressType: "Residence", country: "India", useGroupAddress: false }],
       bankDetails: [],
     },
@@ -318,6 +320,7 @@ export default function CustomerMasterCreatePage() {
           demiseDate: data.demiseDate || undefined, isDead: data.isDead,
           fatherName: data.fatherName || undefined, motherName: data.motherName || undefined,
           spouseName: data.spouseName || undefined, nationality: data.nationality || "Indian",
+          qualification: data.qualification || undefined,
           occupationType: data.occupationType || undefined, occupation: data.occupation || undefined,
           employer: data.employer || undefined, natureOfDuties: data.natureOfDuties || undefined,
           referredBy: data.referredBy || undefined, heightFt: data.heightFt || undefined,
@@ -576,6 +579,22 @@ export default function CustomerMasterCreatePage() {
               </label>
             </div>
             <FormInput label="Nationality" placeholder="Indian" {...register("nationality")} />
+            <FormSelect label="Qualification" {...register("qualification")}>
+              <option value="">Select qualification</option>
+              {[
+                "Not Applicable",
+                "School",
+                "Diploma",
+                "Graduate",
+                "Post Graduate",
+                "Doctorate",
+                "Other",
+              ].map((q) => (
+                <option key={q} value={q}>
+                  {q}
+                </option>
+              ))}
+            </FormSelect>
             <FormInput label="Father Name" placeholder="Father's full name" {...register("fatherName")} />
             <FormInput label="Mother Name" placeholder="Mother's full name" {...register("motherName")} />
             <FormInput label="Spouse Name" placeholder="Spouse's full name" {...register("spouseName")} />

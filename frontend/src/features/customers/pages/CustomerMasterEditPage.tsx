@@ -97,6 +97,7 @@ const schema = z.object({
   motherName: z.string().optional().or(z.literal("")),
   spouseName: z.string().optional().or(z.literal("")),
   nationality: z.string().optional().or(z.literal("")),
+  qualification: z.string().optional().or(z.literal("")),
   occupationType: z.string().optional().or(z.literal("")),
   occupation: z.string().optional().or(z.literal("")),
   employer: z.string().optional().or(z.literal("")),
@@ -240,7 +241,7 @@ export default function CustomerMasterEditPage() {
 
   const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", addresses: [], bankDetails: [] },
+    defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", qualification: "", addresses: [], bankDetails: [] },
   });
 
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
@@ -298,7 +299,7 @@ export default function CustomerMasterEditPage() {
         demiseDate: formatDateForInput(misc?.demiseDate),
         isDead: misc?.isDead ?? false,
         fatherName: misc?.fatherName || "", motherName: misc?.motherName || "",
-        spouseName: misc?.spouseName || "", nationality: misc?.nationality || "Indian",
+        spouseName: misc?.spouseName || "", nationality: misc?.nationality || "Indian", qualification: misc?.qualification || "",
         occupationType: misc?.occupationType || "", occupation: misc?.occupation || "",
         employer: misc?.employer || "", natureOfDuties: misc?.natureOfDuties || "",
         referredBy: misc?.referredBy || "", heightFt: misc?.heightFt || "",
@@ -329,7 +330,7 @@ export default function CustomerMasterEditPage() {
           contactInfo: { mobile1: data.mobile1 || undefined, mobile2: data.mobile2 || undefined, landline1Std: data.landline1Std || undefined, landline1Number: data.landline1Number || undefined, landline2Std: data.landline2Std || undefined, landline2Number: data.landline2Number || undefined, faxStd: data.faxStd || undefined, faxNumber: data.faxNumber || undefined, emailPersonal: data.emailPersonal || undefined, emailBusiness: data.emailBusiness || undefined, skypeId: data.skypeId || undefined },
           addresses: data.addresses.map((a) => ({ ...a, country: a.country || "India" })),
           bankDetails: data.bankDetails.map((b) => ({ ...b })),
-          miscInfo: { relationToGroup: data.relationToGroup || undefined, dobForGreetings: data.dobForGreetings || undefined, marriageDate: data.marriageDate || undefined, isMarried: data.isMarried, demiseDate: data.demiseDate || undefined, isDead: data.isDead, fatherName: data.fatherName || undefined, motherName: data.motherName || undefined, spouseName: data.spouseName || undefined, nationality: data.nationality || "Indian", occupationType: data.occupationType || undefined, occupation: data.occupation || undefined, employer: data.employer || undefined, natureOfDuties: data.natureOfDuties || undefined, referredBy: data.referredBy || undefined, heightFt: data.heightFt || undefined, weightKg: data.weightKg || undefined, incomeSlab: data.incomeSlab || undefined, religion: data.religion || undefined, crmGroups: data.crmGroups || undefined, passportNumber: data.passportNumber || undefined, passportExpiryDate: data.passportExpiryDate || undefined, gstNumber: data.gstNumber || undefined, specialNote: data.specialNote || undefined },
+          miscInfo: { relationToGroup: data.relationToGroup || undefined, dobForGreetings: data.dobForGreetings || undefined, marriageDate: data.marriageDate || undefined, isMarried: data.isMarried, demiseDate: data.demiseDate || undefined, isDead: data.isDead, fatherName: data.fatherName || undefined, motherName: data.motherName || undefined, spouseName: data.spouseName || undefined, nationality: data.nationality || "Indian", qualification: data.qualification || undefined, occupationType: data.occupationType || undefined, occupation: data.occupation || undefined, employer: data.employer || undefined, natureOfDuties: data.natureOfDuties || undefined, referredBy: data.referredBy || undefined, heightFt: data.heightFt || undefined, weightKg: data.weightKg || undefined, incomeSlab: data.incomeSlab || undefined, religion: data.religion || undefined, crmGroups: data.crmGroups || undefined, passportNumber: data.passportNumber || undefined, passportExpiryDate: data.passportExpiryDate || undefined, gstNumber: data.gstNumber || undefined, specialNote: data.specialNote || undefined },
           preferences: { preferredCommAddress: data.preferredCommAddress || undefined, smsMarketing: data.smsMarketing, emailMarketing: data.emailMarketing },
         },
       })).unwrap();
@@ -503,6 +504,22 @@ export default function CustomerMasterEditPage() {
               <div className="space-y-2"><FormInput label="Marriage Date" type="date" {...register("marriageDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-blue-600" /> Is Married</label></div>
               <div className="space-y-2"><FormInput label="Demise Date" type="date" {...register("demiseDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-blue-600" /> Is Deceased</label></div>
               <FormInput label="Nationality" placeholder="Indian" {...register("nationality")} />
+              <FormSelect label="Qualification" {...register("qualification")}>
+                <option value="">Select qualification</option>
+                {[
+                  "Not Applicable",
+                  "School",
+                  "Diploma",
+                  "Graduate",
+                  "Post Graduate",
+                  "Doctorate",
+                  "Other",
+                ].map((q) => (
+                  <option key={q} value={q}>
+                    {q}
+                  </option>
+                ))}
+              </FormSelect>
               <FormInput label="Father Name" placeholder="Father's full name" {...register("fatherName")} />
               <FormInput label="Mother Name" placeholder="Mother's full name" {...register("motherName")} />
               <FormInput label="Spouse Name" placeholder="Spouse's full name" {...register("spouseName")} />
