@@ -29,7 +29,7 @@ const INDIAN_STATES = [
   "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry",
 ];
 const RELIGIONS = ["Hindu","Muslim","Christian","Sikh","Buddhist","Jain","Other"];
-const INCOME_SLABS = ["Below 1L","1L-2.5L","2.5L-5L","5L-10L","10L-25L","25L-50L","50L-1Cr","Above 1Cr"];
+// const INCOME_SLABS = ["Below 1L","1L-2.5L","2.5L-5L","5L-10L","10L-25L","25L-50L","50L-1Cr","Above 1Cr"];
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
 const ACCOUNT_TYPES = ["Saving Bank","Current Account","NRE Account","NRO Account","FCNR Account"];
@@ -526,7 +526,14 @@ export default function CustomerMasterEditPage() {
               <FormInput label="Employer" placeholder="Employer name" {...register("employer")} />
               <FormInput label="Nature of Duties" placeholder="Nature of duties" {...register("natureOfDuties")} />
               <div><FieldLabel label="Height / Weight" /><div className="flex gap-2"><input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white" /><input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white" /></div></div>
-              <FormSelect label="Income Slab" {...register("incomeSlab")}><option value="">Select</option>{INCOME_SLABS.map((s) => <option key={s}>{s}</option>)}</FormSelect>
+              <div>
+                <FieldLabel label="Income Slab" />
+                <input
+                  {...register("incomeSlab")}
+                  placeholder="Type income slab (e.g., 5L-10L)"
+                  className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white"
+                />
+              </div>
               <FormSelect label="Religion" {...register("religion")}><option value="">Select</option>{RELIGIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
               <FormInput label="CRM Groups" placeholder="Group tag" {...register("crmGroups")} />
               <FormInput label="Passport No." placeholder="Passport number" {...register("passportNumber")} />

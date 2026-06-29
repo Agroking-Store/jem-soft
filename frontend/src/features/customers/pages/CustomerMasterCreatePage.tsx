@@ -612,10 +612,14 @@ export default function CustomerMasterCreatePage() {
                 <input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white" />
               </div>
             </div>
-            <FormSelect label="Income Slab" {...register("incomeSlab")}>
-              <option value="">Select</option>
-              {INCOME_SLABS.map((s) => <option key={s}>{s}</option>)}
-            </FormSelect>
+            <div>
+              <FieldLabel label="Income Slab" />
+              <input
+                {...register("incomeSlab")}
+                placeholder="Type income slab (e.g., 5L-10L)"
+                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white"
+              />
+            </div>
             <FormSelect label="Religion" {...register("religion")}>
               <option value="">Select</option>
               {RELIGIONS.map((r) => <option key={r}>{r}</option>)}
