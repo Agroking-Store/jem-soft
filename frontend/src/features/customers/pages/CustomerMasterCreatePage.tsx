@@ -505,7 +505,7 @@ export default function CustomerMasterCreatePage() {
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gradient-to-r from-orange-500 to-orange-400 text-white">
+                    <tr className="bg-gradient-to-r from-blue-600 to-blue-600 text-white">
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">Default</th>
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">IFSC Code</th>
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">Bank Name</th>

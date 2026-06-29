@@ -209,7 +209,7 @@ export default function CustomerMasterDetailsPage() {
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gradient-to-r from-orange-500 to-orange-400 text-white">
+                <tr className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
                   {["Default","IFSC Code","Bank Name","Branch","City","A/C Type","A/C No.","MICR No."].map((h) => (
                     <th key={h} className="py-2.5 px-3 text-left font-semibold text-xs">{h}</th>
                   ))}
