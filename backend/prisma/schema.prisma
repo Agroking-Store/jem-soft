@@ -29,7 +29,6 @@ model Customer {
   groupCode       String?  @unique
   groupName       String?
   category        String?  // Client, Others, personal, etc.
-
   // Contact Info
   mobilePersonal  String?
   emailPersonal   String?
@@ -599,6 +598,7 @@ model CustomerMiscInfo {
   motherName         String?
   spouseName         String?
   nationality        String?  @default("Indian")
+  qualification      String?  
   occupationType     String?
   occupation         String?
   employer           String?
@@ -618,6 +618,7 @@ model CustomerMiscInfo {
 
   customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
+
 
 model CustomerServicePreferences {
   id                   String   @id @default(uuid())
