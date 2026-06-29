@@ -335,7 +335,7 @@ export default function CustomerMasterEditPage() {
         },
       })).unwrap();
       toast.success("Customer updated successfully!");
-      router.push(`/dashboard/customers/master/${id}`);
+      router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to update customer");
     } finally {
@@ -351,14 +351,12 @@ export default function CustomerMasterEditPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="flex items-center gap-4">
-        <Link href={`/dashboard/customers/master/${id}`} className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
           <ArrowLeft size={16} />
         </Link>
         <div>
           <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
             <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
-            <ChevronRight size={12} />
-            <Link href={`/dashboard/customers/master/${id}`} className="hover:text-slate-600">{currentCustomer ? `${currentCustomer.firstName} ${currentCustomer.lastName}` : "Customer"}</Link>
             <ChevronRight size={12} />
             <span className="text-slate-600 font-medium">Edit</span>
           </nav>
@@ -556,7 +554,7 @@ export default function CustomerMasterEditPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href={`/dashboard/customers/master/${id}`} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
+          <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
           <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>

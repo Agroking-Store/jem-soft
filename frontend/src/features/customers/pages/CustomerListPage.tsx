@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomers, deleteCustomer } from "@/features/customers/customerSlice";
@@ -68,10 +68,8 @@ export default function CustomerListPage() {
     error: masterError,
   } = useSelector((s: RootState) => s.customerMaster);
 
-  const [activeTab, setActiveTab] = useState<Tab>(() => {
-    if (typeof window === "undefined") return "group";
-    return new URLSearchParams(window.location.search).get("tab") === "master" ? "master" : "group";
-  });
+  const searchParams = useSearchParams();
+  const activeTab: Tab = searchParams.get("tab") === "master" ? "master" : "group";
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -116,7 +114,6 @@ export default function CustomerListPage() {
   });
 
   const switchTab = (tab: Tab) => {
-    setActiveTab(tab);
     setSelectedIds(new Set());
     setSearchTerm("");
     router.replace(tab === "master" ? "/dashboard/customers?tab=master" : "/dashboard/customers");
@@ -403,9 +400,10 @@ export default function CustomerListPage() {
                               <div className="flex items-center justify-end gap-1">
                                 <Link
                                   href={`/dashboard/customers/${customer.id}/edit`}
-                                  className="px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Edit"
                                 >
-                                  Edit
+                                  <Edit size={14} />
                                 </Link>
                                 <button
                                   onClick={() => setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name })}
