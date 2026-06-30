@@ -10,7 +10,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
-import { loginPortalClient } from "@/features/clients/clientSlice";
+import { loginPortalCustomer } from "@/features/customers/customerSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -50,12 +50,12 @@ export const LoginForm = () => {
         return;
       }
 
-      // If system login fails, try client portal login
-      const clientResult = await dispatch(loginPortalClient({ email: data.email, password: data.password }));
-      if (loginPortalClient.fulfilled.match(clientResult)) {
-        const client = (clientResult.payload as any).data.client;
-        toast.success(`Welcome, ${client.name}!`);
-        router.push("/client-portal");
+      // If system login fails, try customer portal login
+      const customerResult = await dispatch(loginPortalCustomer({ email: data.email, password: data.password }));
+      if (loginPortalCustomer.fulfilled.match(customerResult)) {
+        const customer = (customerResult.payload as any).data.customer;
+        toast.success(`Welcome, ${customer.name}!`);
+        router.push("/customer-portal");
         return;
       }
 

@@ -135,7 +135,7 @@ export const Sidebar = () => {
   // Navigation items for all logged-in users
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Clients", href: "/dashboard/clients", icon: Users },
+    { name: "Customers", href: "/dashboard/customers", icon: Users },
   ];
 
   return (

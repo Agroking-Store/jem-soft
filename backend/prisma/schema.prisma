@@ -17,17 +17,54 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-model Client {
+model Customer {
   id          String   @id @default(uuid())
   name        String
   companyName String?
   email       String   @unique
   phone       String
   password    String
+
+  // Customer Group fields
+  groupCode       String?  @unique
+  groupName       String?
+  category        String?  // Client, Others, personal, etc.
+  // Contact Info
+  mobilePersonal  String?
+  emailPersonal   String?
+  mobileBusiness  String?
+  emailBusiness   String?
+
+  // Preferred Communication Address
+  prefCommAddress String?  // "Residence" | "Office"
+
+  // Residence Address
+  resAddressLine1 String?
+  resAddressLine2 String?
+  resAddressLine3 String?
+  resAddressLine4 String?
+  resCity         String?
+  resPin          String?
+  resState        String?
+  resCountry      String?  @default("India")
+  resArea         String?
+
+  // Office Address
+  offAddressLine1 String?
+  offAddressLine2 String?
+  offAddressLine3 String?
+  offAddressLine4 String?
+  offCity         String?
+  offPin          String?
+  offState        String?
+  offCountry      String?  @default("India")
+  offArea         String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   policies Policy[]
+  members  CustomerMaster[]
 }
 
 // ======================================================
@@ -231,7 +268,7 @@ model Policy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client      Client             @relation(fields: [clientId], references: [id])
+  client      Customer           @relation(fields: [clientId], references: [id])
   provider    InsuranceProvider  @relation(fields: [providerId], references: [id])
   product     ProductMaster      @relation(fields: [productId], references: [id])
   status      PolicyStatusMaster @relation(fields: [statusId], references: [id])
@@ -462,3 +499,136 @@ model ProductAttributeOption {
 
   @@unique([attributeId, optionLabel])
 }
+
+model CustomerMaster {
+  id               String   @id @default(uuid())
+  groupId          String?
+  salutation       String?
+  firstName        String
+  middleName       String?
+  lastName         String
+  gender           String?
+  dob              DateTime?
+  isGroupHead      Boolean  @default(false)
+  customerType     String?  // INDIVIDUAL, CORPORATE, etc.
+  panNumber        String?
+  aadhaarNumber    String?
+  guardianId       String?
+  salutationLetter String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  group         Customer?                      @relation(fields: [groupId], references: [id])
+  guardian      CustomerMaster?                @relation("GuardianRelation", fields: [guardianId], references: [id])
+  dependents    CustomerMaster[]               @relation("GuardianRelation")
+  contactInfo   CustomerContactInfo?
+  addresses     CustomerAddress[]
+  bankDetails   CustomerBankDetails[]
+  miscInfo      CustomerMiscInfo?
+  preferences   CustomerServicePreferences?
+}
+
+model CustomerContactInfo {
+  id             String   @id @default(uuid())
+  customerId     String   @unique
+  mobile1        String?
+  mobile2        String?
+  landline1Std   String?
+  landline1Number String?
+  landline2Std   String?
+  landline2Number String?
+  faxStd         String?
+  faxNumber      String?
+  emailPersonal  String?
+  emailBusiness  String?
+  skypeId        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerAddress {
+  id              String   @id @default(uuid())
+  customerId      String
+  addressType     String   // "Residence" | "Office" | etc.
+  addressLine1    String?
+  addressLine2    String?
+  addressLine3    String?
+  addressLine4    String?
+  city            String?
+  pin             String?
+  country         String?  @default("India")
+  state           String?
+  area            String?
+  useGroupAddress Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerBankDetails {
+  id            String   @id @default(uuid())
+  customerId    String
+  isDefault     Boolean  @default(false)
+  ifscCode      String?
+  bankName      String?
+  bankBranch    String?
+  city          String?
+  accountType   String?
+  accountNumber String?
+  micrNumber    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerMiscInfo {
+  id                 String   @id @default(uuid())
+  customerId         String   @unique
+  relationToGroup    String?
+  dobForGreetings    DateTime?
+  marriageDate       DateTime?
+  isMarried          Boolean  @default(false)
+  demiseDate         DateTime?
+  isDead             Boolean  @default(false)
+  fatherName         String?
+  motherName         String?
+  spouseName         String?
+  nationality        String?  @default("Indian")
+  qualification      String?  
+  occupationType     String?
+  occupation         String?
+  employer           String?
+  natureOfDuties     String?
+  referredBy         String?
+  heightFt           String?
+  weightKg           String?
+  incomeSlab         String?
+  religion           String?
+  crmGroups          String?
+  passportNumber     String?
+  passportExpiryDate DateTime?
+  gstNumber          String?
+  specialNote        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+
+model CustomerServicePreferences {
+  id                   String   @id @default(uuid())
+  customerId           String   @unique
+  preferredCommAddress String?
+  smsMarketing         Boolean  @default(true)
+  emailMarketing       Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+

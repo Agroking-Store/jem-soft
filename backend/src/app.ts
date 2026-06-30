@@ -2,7 +2,8 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import { globalErrorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
-import clientRoutes from "./routes/clientRoutes.js";
+import customerRoutes from "./routes/customerRoutes.js";
+import customerMasterRoutes from "./routes/customerMasterRoutes.js";
 import { config } from "./config/env.js";
 
 const app: Application = express();
@@ -19,7 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use("/api/auth", authRoutes);
-app.use("/api/clients", clientRoutes);
+app.use("/api/customers", customerRoutes);
+app.use("/api/customer-master", customerMasterRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
