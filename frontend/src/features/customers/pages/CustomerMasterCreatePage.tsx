@@ -70,8 +70,8 @@ const schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional().or(z.literal("")),
   lastName: z.string().min(1, "Last name is required"),
-  gender: z.string().optional().or(z.literal("")),
-  dob: z.string().optional().or(z.literal("")),
+  gender: z.string().min(1, "Gender is required"),
+  dob: z.string().min(1, "Date of Birth is required"),
   isGroupHead: z.boolean().default(false),
   customerType: z.string().optional().or(z.literal("")),
   panNumber: z.string().optional().or(z.literal("")),
@@ -388,11 +388,11 @@ export default function CustomerMasterCreatePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormSelect label="Gender" {...register("gender")}>
+              <FormSelect label="Gender" required {...register("gender")} error={errors.gender?.message}>
                 <option value="">Select gender</option>
                 {GENDERS.map((g) => <option key={g}>{g}</option>)}
               </FormSelect>
-              <FormInput label="Date of Birth" type="date" {...register("dob")} />
+              <FormInput label="Date of Birth" type="date" required error={errors.dob?.message} {...register("dob")} />
               <FormSelect label="Customer Type" {...register("customerType")}>
                 <option value="">Select type</option>
                 {CUSTOMER_TYPES.map((t) => <option key={t}>{t}</option>)}
