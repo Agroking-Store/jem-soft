@@ -90,7 +90,7 @@ const AdminDropdown = () => {
       >
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} />
-          <span>Admin</span>
+          <span>User Management</span>
         </div>
         {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
       </button>
@@ -199,8 +199,8 @@ export const Sidebar = () => {
           );
         })()}
 
-        {/* Admin section - Only show for ADMIN users */}
-        {isMounted && isAdmin && <AdminDropdown />}
+        {/* User Management section - Only show for ADMIN users */}
+        {isMounted && isAdmin && <UserManagementDropdown />}
       </nav>
 
       <DynamicUserProfile />
