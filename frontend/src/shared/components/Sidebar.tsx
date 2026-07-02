@@ -200,7 +200,7 @@ export const Sidebar = () => {
         })()}
 
         {/* User Management section - Only show for ADMIN users */}
-        {isMounted && isAdmin && <UserManagementDropdown />}
+        {isMounted && isAdmin && <AdminDropdown />}
       </nav>
 
       <DynamicUserProfile />
