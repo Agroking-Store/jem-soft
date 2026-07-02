@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -23,115 +25,7 @@ import {
   Grid3x3,
   List,
 } from "lucide-react";
-
-// Mock data for policies
-const mockPolicies = [
-  {
-    id: 1,
-    policyNumber: "912-NAV JEEVAN SHREE",
-    groupName: "Alpha Corporation",
-    groupCode: "P024",
-    lifeAssured: "Rakesh Chahal",
-    plan: "NAV JEEVAN SHREE",
-    policyTerm: 15,
-    premiumPayingTerm: 10,
-    sumAssured: "₹ 7,40,000",
-    premiumAmount: "₹ 1,02,120",
-    commencementDate: "20/May/2026",
-    maturityDate: "2049-01-15",
-    status: "Active",
-    mode: "Yearly",
-    nextPremiumDue: "20/May/2027",
-    nominee: "Priya Chahal",
-    insurer: "LIC",
-    gst: "0",
-    fupDate: "20/May/2027",
-  },
-  {
-    id: 2,
-    policyNumber: "912-NAV JEEVAN SHREE",
-    groupName: "Beta Industries",
-    groupCode: "P024",
-    lifeAssured: "Neha Sharma",
-    plan: "NAV JEEVAN SHREE",
-    policyTerm: 20,
-    premiumPayingTerm: 10,
-    sumAssured: "₹ 16,00,000",
-    premiumAmount: "₹ 2,03,200",
-    commencementDate: "20/May/2026",
-    maturityDate: "2044-02-20",
-    status: "Active",
-    mode: "Yearly",
-    nextPremiumDue: "20/May/2027",
-    nominee: "Vikram Sharma",
-    insurer: "LIC",
-    gst: "0",
-    fupDate: "20/May/2027",
-  },
-  {
-    id: 3,
-    policyNumber: "912-NAV JEEVAN SHREE",
-    groupName: "Gamma Solutions",
-    groupCode: "P024",
-    lifeAssured: "Amit Patel",
-    plan: "NAV JEEVAN SHREE",
-    policyTerm: 20,
-    premiumPayingTerm: 15,
-    sumAssured: "₹ 18,90,000",
-    premiumAmount: "₹ 1,68,588",
-    commencementDate: "28/Apr/2026",
-    maturityDate: "2054-03-10",
-    status: "Pending",
-    mode: "Yearly",
-    nextPremiumDue: "28/Apr/2027",
-    nominee: "Sneha Patel",
-    insurer: "LIC",
-    gst: "0",
-    fupDate: "28/Apr/2027",
-  },
-  {
-    id: 4,
-    policyNumber: "771-Jeevan Utsav",
-    groupName: "Delta Enterprises",
-    groupCode: "T062",
-    lifeAssured: "Suresh Reddy",
-    plan: "Jeevan Utsav",
-    policyTerm: 89,
-    premiumPayingTerm: 15,
-    sumAssured: "₹ 80,00,000",
-    premiumAmount: "₹ 4,99,200",
-    commencementDate: "28/Apr/2026",
-    maturityDate: "2049-04-05",
-    status: "Active",
-    mode: "Yearly",
-    nextPremiumDue: "28/Apr/2027",
-    nominee: "Lakshmi Reddy",
-    insurer: "LIC",
-    gst: "0",
-    fupDate: "28/Apr/2027",
-  },
-  {
-    id: 5,
-    policyNumber: "771-Jeevan Utsav",
-    groupName: "Epsilon Corp",
-    groupCode: "J003",
-    lifeAssured: "Priya Singh",
-    plan: "Jeevan Utsav",
-    policyTerm: 71,
-    premiumPayingTerm: 5,
-    sumAssured: "₹ 11,25,000",
-    premiumAmount: "₹ 2,49,187",
-    commencementDate: "28/Apr/2026",
-    maturityDate: "2054-05-01",
-    status: "Active",
-    mode: "Yearly",
-    nextPremiumDue: "28/Apr/2027",
-    nominee: "Raj Singh",
-    insurer: "LIC",
-    gst: "0",
-    fupDate: "28/Apr/2027",
-  },
-];
+import { fetchPolicies } from "@/features/policy/policySlice";
 
 const getStatusBadge = (status: string) => {
   const statusMap = {
@@ -149,17 +43,36 @@ const getStatusBadge = (status: string) => {
 
 export default function LICPoliciesPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const [selectedPolicy, setSelectedPolicy] = useState<number | null>(null);
 
-  const filteredPolicies = mockPolicies.filter((policy) => {
+  const { policies, isLoading } = useSelector((state: RootState) => state.policies);
+
+  useEffect(() => {
+    dispatch(fetchPolicies());
+  }, [dispatch]);
+
+  const stats = useMemo(() => {
+    return {
+      total: policies.length,
+      active: policies.filter(p => p.status?.statusName === 'Active').length,
+      pending: policies.filter(p => p.status?.statusName === 'Pending').length,
+      lapsed: policies.filter(p => p.status?.statusName === 'Lapsed').length,
+    };
+  }, [policies]);
+
+  const filteredPolicies = policies.filter((policy) => {
+    const lifeAssured = policy.CustomerMaster;
     const matchesSearch = 
       policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.lifeAssured.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "All" || policy.status === filterStatus;
+      policy.product?.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lifeAssured && `${lifeAssured.firstName} ${lifeAssured.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (policy.client?.groupName && policy.client.groupName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus = filterStatus === "All" || policy.status?.statusName === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -188,23 +101,19 @@ export default function LICPoliciesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs text-slate-500 uppercase tracking-wider">Total Policies</p>
-          <p className="text-2xl font-bold text-slate-900">1,234</p>
-          <p className="text-xs text-green-600 mt-1">↑ 12% this month</p>
+          <p className="text-2xl font-bold text-slate-900">{isLoading ? '...' : stats.total}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs text-slate-500 uppercase tracking-wider">Active</p>
-          <p className="text-2xl font-bold text-green-600">892</p>
-          <p className="text-xs text-green-600 mt-1">↑ 8% this month</p>
+          <p className="text-2xl font-bold text-green-600">{isLoading ? '...' : stats.active}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs text-slate-500 uppercase tracking-wider">Pending</p>
-          <p className="text-2xl font-bold text-yellow-600">156</p>
-          <p className="text-xs text-yellow-600 mt-1">↑ 3% this month</p>
+          <p className="text-2xl font-bold text-yellow-600">{isLoading ? '...' : stats.pending}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs text-slate-500 uppercase tracking-wider">Lapsed</p>
-          <p className="text-2xl font-bold text-red-600">86</p>
-          <p className="text-xs text-red-600 mt-1">↓ 2% this month</p>
+          <p className="text-2xl font-bold text-red-600">{isLoading ? '...' : stats.lapsed}</p>
         </div>
       </div>
 
@@ -215,7 +124,7 @@ export default function LICPoliciesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               type="text"
-              placeholder="Search by policy number, group name, or life assured..."
+              placeholder="Search by policy #, group name, or life assured..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
@@ -270,72 +179,55 @@ export default function LICPoliciesPage() {
       {/* Card View */}
       {viewMode === "card" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredPolicies.map((policy) => {
+          {filteredPolicies.map((p) => {
+            const policy = { ...p, status: p.status?.statusName ?? 'Unknown' }; // Use local var for status
+            const lifeAssured = policy.CustomerMaster;
+            const holderName = lifeAssured ? `${lifeAssured.firstName} ${lifeAssured.lastName}` : '';
             const statusBadge = getStatusBadge(policy.status);
             const StatusIcon = statusBadge.icon;
             return (
               <div
                 key={policy.id}
-                className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow group"
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 group"
               >
                 {/* Policy Header */}
-                <div className="bg-linear-to-r from-blue-50 to-indigo-50 p-4 border-b border-slate-200">
+                <div className="p-4 border-b border-slate-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">
-                        {policy.policyNumber}
+                      <h3 className="text-base font-bold text-slate-900">
+                        {policy.policyNumber} <span className="font-medium text-slate-600">{holderName}</span>
                       </h3>
-                      <p className="text-sm text-slate-500">{policy.plan}</p>
                     </div>
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusBadge.className}`}>
-                      <StatusIcon size={12} />
-                      {policy.status}
-                    </span>
+                    <p className="text-sm font-medium text-slate-600">{policy.provider?.name}</p>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-sm text-slate-500">{policy.product?.planNumber ? `[${policy.product.planNumber}] ` : ''}{policy.product?.productName}</p>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge.className}`}>
+                      <StatusIcon size={13} />
+                      <span>{policy.status}</span>
+                    </span>                  
                   </div>
                 </div>
 
                 {/* Policy Details Grid */}
                 <div className="p-4">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Mode</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.mode}</p>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                    {/* Left Column */}
+                    <div className="space-y-3">
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Mode</p><p className="text-sm font-medium text-slate-900">{policy.premiumMode?.modeName || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Term</p><p className="text-sm font-medium text-slate-900">{policy.policyTerm || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Sum Assured</p><p className="text-sm font-medium text-blue-600">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN') || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Gr.code</p><p className="text-sm font-medium text-slate-900">{policy.client?.groupCode || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">GST</p><p className="text-sm font-medium text-slate-900">₹ {policy.premium?.gst?.toLocaleString('en-IN') || '0'}</p></div>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Fup Date</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.fupDate}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Term</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.policyTerm}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">PPT</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.premiumPayingTerm}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Sum Assured</p>
-                      <p className="text-sm font-medium text-blue-600">{policy.sumAssured}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Insurer</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.insurer}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Gr. Code</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.groupCode}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Comm. Date</p>
-                      <p className="text-sm font-medium text-slate-900">{policy.commencementDate}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">GST</p>
-                      <p className="text-sm font-medium text-slate-900">₹ {policy.gst}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 uppercase tracking-wider">Premium Amount</p>
-                      <p className="text-sm font-bold text-green-600">{policy.premiumAmount}</p>
+
+                    {/* Right Column */}
+                    <div className="space-y-3">
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">FUP Date</p><p className="text-sm font-medium text-slate-900">{policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString() : 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">PPT</p><p className="text-sm font-medium text-slate-900">{policy.premiumPayingTerm || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Provider</p><p className="text-sm font-medium text-slate-900">{policy.provider?.name || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Comm. Date</p><p className="text-sm font-medium text-slate-900">{new Date(policy.commencementDate).toLocaleDateString()}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Premium Amount</p><p className="text-sm font-bold text-green-600">₹ {policy.premium?.installmentPremium?.toLocaleString('en-IN') || 'N/A'}</p></div>
                     </div>
                   </div>
 
@@ -387,7 +279,8 @@ export default function LICPoliciesPage() {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {filteredPolicies.map((policy) => {
-                  const statusBadge = getStatusBadge(policy.status);
+                  const statusName = policy.status?.statusName || 'Unknown';
+                  const statusBadge = getStatusBadge(statusName);
                   const StatusIcon = statusBadge.icon;
                   return (
                     <tr key={policy.id} className="hover:bg-slate-50 transition group">
@@ -396,30 +289,30 @@ export default function LICPoliciesPage() {
                           <span className="font-mono text-sm font-medium text-slate-900">
                             {policy.policyNumber}
                           </span>
-                          <span className="text-xs text-slate-400">{policy.groupName}</span>
+                          <span className="text-xs text-slate-400">{policy.client?.groupName}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">{policy.plan}</span>
+                        <span className="text-sm text-slate-600">{policy.product?.productName}</span>
                         <div className="text-xs text-slate-400">
                           {policy.policyTerm}Y / {policy.premiumPayingTerm}Y PPT
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-slate-900">{policy.sumAssured}</span>
+                        <span className="text-sm font-medium text-slate-900">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN')}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">{policy.premiumAmount}</span>
-                        <div className="text-xs text-slate-400">{policy.mode}</div>
+                        <span className="text-sm text-slate-600">₹ {policy.premium?.installmentPremium?.toLocaleString('en-IN')}</span>
+                        <div className="text-xs text-slate-400">{policy.premiumMode?.modeName}</div>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusBadge.className}`}>
                           <StatusIcon size={12} />
-                          {policy.status}
+                          {statusName}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">{policy.fupDate}</span>
+                        <span className="text-sm text-slate-600">{policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString() : 'N/A'}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
@@ -455,7 +348,12 @@ export default function LICPoliciesPage() {
       )}
 
       {/* Empty State */}
-      {filteredPolicies.length === 0 && (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+          <p className="mt-4 text-sm text-slate-500">Loading policies...</p>
+        </div>
+      ) : filteredPolicies.length === 0 && (
         <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
           <FileText size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-lg font-semibold text-slate-900 mb-2">No Policies Found</h3>

@@ -62,74 +62,16 @@ const DynamicUserProfile = dynamic(() => Promise.resolve(UserProfile), {
   ),
 });
 
-// LIC Dropdown component
-const LICDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
-
-  const licItems = [
-    { name: "Policy Entry", href: "/dashboard/lic/policies", icon: FileSpreadsheet },
-    { name: "New Policy", href: "/dashboard/lic/policies/new", icon: PlusCircle },
-  ];
-
-  const isActive = licItems.some(item => pathname === item.href || pathname.startsWith(item.href));
-
-  return (
-    <div className="space-y-1">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all
-          ${isActive || isOpen
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          }
-        `}
-      >
-        <div className="flex items-center gap-3">
-          <FileText size={20} />
-          <span>LIC</span>
-        </div>
-        {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-      </button>
-
-      {isOpen && (
-        <div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-2">
-          {licItems.map((item) => {
-            const isActiveItem = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all
-                  ${isActiveItem
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  }
-                `}
-              >
-                <item.icon size={16} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// UserManagementDropdown component - Only for ADMIN users
-const UserManagementDropdown = () => {
+// AdminDropdown component - Only for ADMIN users
+const AdminDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
   const adminItems = [
-    { name: "Users & Permissions", href: "/dashboard/coming-soon/users-permissions", icon: Users },
-    { name: "Organization", href: "/dashboard/coming-soon/organization", icon: Building2 },
-    { name: "Settings", href: "/dashboard/coming-soon/settings", icon: Settings },
-    { name: "My Account", href: "/dashboard/coming-soon/my-account", icon: UserCog },
+    { name: "User Management", href: "/dashboard/users", icon: Users },
+    { name: "Organization", href: "/dashboard/organization", icon: Building2 },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings },
+    { name: "My Account", href: "/dashboard/account", icon: UserCog },
   ];
 
   const isAdminActive = adminItems.some(item => pathname === item.href);
@@ -186,6 +128,7 @@ export const Sidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -236,8 +179,25 @@ export const Sidebar = () => {
           );
         })}
 
-        {/* LIC Dropdown - Show for all users */}
-        {isMounted && (isAdmin || isAdvisor || isViewer) && <LICDropdown />}
+        {/* LIC Link - Show for all users */}
+        {isMounted && (isAdmin || isAdvisor || isViewer) && (() => {
+          const licPath = "/dashboard/lic/policies";
+          const isLicActive = pathname.startsWith(licPath);
+          return (
+            <Link
+              href={licPath}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                ${isLicActive
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+            >
+              <FileText size={20} />
+              LIC
+            </Link>
+          );
+        })()}
 
         {/* User Management section - Only show for ADMIN users */}
         {isMounted && isAdmin && <UserManagementDropdown />}
