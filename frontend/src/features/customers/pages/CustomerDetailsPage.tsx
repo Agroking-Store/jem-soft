@@ -72,8 +72,8 @@ function formatDate(dateStr?: string | null) {
   }
 }
 
-function formatAddress(parts: Array<string | null | undefined>) {
-  return parts.filter(Boolean).join(", ") || "-";
+function getAddressLines(parts: Array<string | null | undefined>) {
+  return parts.filter(Boolean);
 }
 
 function getFullName(customer: {
@@ -150,25 +150,19 @@ export default function CustomerDetailsPage() {
   if (!currentCustomer) return null;
 
   const groupName = currentCustomer.groupName || currentCustomer.name;
-  const residenceAddress = formatAddress([
+
+  const residenceAddress = getAddressLines([
     currentCustomer.resAddressLine1,
     currentCustomer.resAddressLine2,
     currentCustomer.resAddressLine3,
     currentCustomer.resAddressLine4,
-    currentCustomer.resCity,
-    currentCustomer.resState,
-    currentCustomer.resCountry,
-    currentCustomer.resPin,
   ]);
-  const officeAddress = formatAddress([
+
+  const officeAddress = getAddressLines([
     currentCustomer.offAddressLine1,
     currentCustomer.offAddressLine2,
     currentCustomer.offAddressLine3,
     currentCustomer.offAddressLine4,
-    currentCustomer.offCity,
-    currentCustomer.offState,
-    currentCustomer.offCountry,
-    currentCustomer.offPin,
   ]);
 
   return (
@@ -261,24 +255,69 @@ export default function CustomerDetailsPage() {
       </SectionCard>
 
       <SectionCard title="Addresses" icon={<MapPin size={16} />}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="space-y-5">
+          {/* Residence */}
           <div className="border border-slate-200 rounded-lg p-4">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
               <Home size={13} />
               Residence
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{residenceAddress}</p>
+
+            <div className="space-y-1 text-sm text-slate-700">
+              {residenceAddress.length ? (
+                residenceAddress.map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))
+              ) : (
+                <p>-</p>
+              )}
+
+              <p>
+                {[
+                  currentCustomer.resCity,
+                  currentCustomer.resState,
+                  currentCustomer.resCountry,
+                  currentCustomer.resPin,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 mt-4">
               <InfoRow label="City" value={currentCustomer.resCity} />
               <InfoRow label="Area" value={currentCustomer.resArea} />
             </div>
           </div>
+
+          {/* Office */}
           <div className="border border-slate-200 rounded-lg p-4">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
               <Briefcase size={13} />
               Office
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{officeAddress}</p>
+
+            <div className="space-y-1 text-sm text-slate-700">
+              {officeAddress.length ? (
+                officeAddress.map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))
+              ) : (
+                <p>-</p>
+              )}
+
+              <p>
+                {[
+                  currentCustomer.offCity,
+                  currentCustomer.offState,
+                  currentCustomer.offCountry,
+                  currentCustomer.offPin,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-3 mt-4">
               <InfoRow label="City" value={currentCustomer.offCity} />
               <InfoRow label="Area" value={currentCustomer.offArea} />
@@ -286,6 +325,7 @@ export default function CustomerDetailsPage() {
           </div>
         </div>
       </SectionCard>
+
 
       <SectionCard title="Group Members" icon={<Users size={16} />}>
         {groupMembers.length === 0 ? (
