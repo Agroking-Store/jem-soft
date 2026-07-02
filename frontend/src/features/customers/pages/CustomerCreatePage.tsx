@@ -421,29 +421,40 @@ export default function CustomerCreatePage() {
                 <h3 className="text-sm font-bold text-slate-700">Residence</h3>
               </div>
 
-              <FormInput label="Address Line 1" placeholder="House / Flat No." {...register("resAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Colony" {...register("resAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("resAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("resAddressLine4")} />
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" placeholder="House / Flat No." {...register("resAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Colony" {...register("resAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("resAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" {...register("resAddressLine4")} />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" placeholder="City" {...register("resCity")} />
                 <FormInput label="Pin Code" placeholder="400001" {...register("resPin")} />
               </div>
 
-              <FormSelect label="Country" {...register("resCountry")}>
-                <option>India</option>
-                <option>Other</option>
-              </FormSelect>
+              <div className="grid grid-cols-2 gap-3">
 
-              <FormSelect label="State" {...register("resState")}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </FormSelect>
+                <FormSelect label="State" {...register("resState")}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </FormSelect>
 
-              <FormInput label="Area" placeholder="Area / Zone" {...register("resArea")} />
+                <FormSelect label="Country" {...register("resCountry")}>
+                  <option>India</option>
+                  <option>Other</option>
+                </FormSelect>
+
+
+
+              </div>
+
+
             </div>
           )}
 
@@ -455,29 +466,38 @@ export default function CustomerCreatePage() {
                 <h3 className="text-sm font-bold text-slate-700">Office</h3>
               </div>
 
-              <FormInput label="Address Line 1" placeholder="Office / Building No." {...register("offAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Road" {...register("offAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("offAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("offAddressLine4")} />
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" placeholder="Office / Building No." {...register("offAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Road" {...register("offAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("offAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" {...register("offAddressLine4")} />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" placeholder="City" {...register("offCity")} />
                 <FormInput label="Pin Code" placeholder="400001" {...register("offPin")} />
               </div>
 
-              <FormSelect label="Country" {...register("offCountry")}>
-                <option>India</option>
-                <option>Other</option>
-              </FormSelect>
 
-              <FormSelect label="State" {...register("offState")}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </FormSelect>
+              <div className="grid grid-cols-2 gap-3">
+                <FormSelect label="State" {...register("offState")}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </FormSelect>
 
-              <FormInput label="Area" placeholder="Area / Zone" {...register("offArea")} />
+
+                <FormSelect label="Country" {...register("offCountry")}>
+                  <option>India</option>
+                  <option>Other</option>
+                </FormSelect>
+
+              </div>
+
             </div>
           )}
 
@@ -551,6 +571,6 @@ export default function CustomerCreatePage() {
           </Button>
         </div>
       </form>
-    </div>
+    </div >
   );
 }
