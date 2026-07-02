@@ -120,16 +120,16 @@ const LICDropdown = () => {
   );
 };
 
-// AdminDropdown component - Only for ADMIN users
-const AdminDropdown = () => {
+// UserManagementDropdown component - Only for ADMIN users
+const UserManagementDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
   const adminItems = [
-    { name: "User Management", href: "/dashboard/users", icon: Users },
-    { name: "Organization", href: "/dashboard/organization", icon: Building2 },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
-    { name: "My Account", href: "/dashboard/account", icon: UserCog },
+    { name: "Users & Permissions", href: "/dashboard/coming-soon/users-permissions", icon: Users },
+    { name: "Organization", href: "/dashboard/coming-soon/organization", icon: Building2 },
+    { name: "Settings", href: "/dashboard/coming-soon/settings", icon: Settings },
+    { name: "My Account", href: "/dashboard/coming-soon/my-account", icon: UserCog },
   ];
 
   const isAdminActive = adminItems.some(item => pathname === item.href);
@@ -148,7 +148,7 @@ const AdminDropdown = () => {
       >
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} />
-          <span>Admin</span>
+          <span>User Management</span>
         </div>
         {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
       </button>
@@ -239,8 +239,8 @@ export const Sidebar = () => {
         {/* LIC Dropdown - Show for all users */}
         {isMounted && (isAdmin || isAdvisor || isViewer) && <LICDropdown />}
 
-        {/* Admin section - Only show for ADMIN users */}
-        {isMounted && isAdmin && <AdminDropdown />}
+        {/* User Management section - Only show for ADMIN users */}
+        {isMounted && isAdmin && <UserManagementDropdown />}
       </nav>
 
       <DynamicUserProfile />
