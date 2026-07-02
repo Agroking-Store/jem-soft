@@ -214,20 +214,20 @@ export default function LICPoliciesPage() {
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                     {/* Left Column */}
                     <div className="space-y-3">
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Mode</p><p className="text-sm font-medium text-slate-900">{policy.premiumMode?.modeName || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Term</p><p className="text-sm font-medium text-slate-900">{policy.policyTerm || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Sum Assured</p><p className="text-sm font-medium text-blue-600">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN') || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Gr.code</p><p className="text-sm font-medium text-slate-900">{policy.client?.groupCode || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">GST</p><p className="text-sm font-medium text-slate-900">₹ {policy.premium?.gst?.toLocaleString('en-IN') || '0'}</p></div_>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Mode</p><p className="text-sm font-medium text-slate-900">{policy.premiumMode?.modeName || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Term</p><p className="text-sm font-medium text-slate-900">{policy.policyTerm || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Sum Assured</p><p className="text-sm font-medium text-blue-600">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN') || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Gr.code</p><p className="text-sm font-medium text-slate-900">{policy.client?.groupCode || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">GST</p><p className="text-sm font-medium text-slate-900">₹ {policy.premium?.gst?.toLocaleString('en-IN') || '0'}</p></div>
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-3">
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">FUP Date</p><p className="text-sm font-medium text-slate-900">{policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString() : 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">PPT</p><p className="text-sm font-medium text-slate-900">{policy.premiumPayingTerm || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Provider</p><p className="text-sm font-medium text-slate-900">{policy.provider?.name || 'N/A'}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Comm. Date</p><p className="text-sm font-medium text-slate-900">{new Date(policy.commencementDate).toLocaleDateString()}</p></div_>
-                      <div_><p className="text-xs text-slate-400 uppercase tracking-wider">Premium Amount</p><p className="text-sm font-bold text-green-600">₹ {policy.premium?.installmentPremium?.toLocaleString('en-IN') || 'N/A'}</p></div_>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">FUP Date</p><p className="text-sm font-medium text-slate-900">{policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString() : 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">PPT</p><p className="text-sm font-medium text-slate-900">{policy.premiumPayingTerm || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Provider</p><p className="text-sm font-medium text-slate-900">{policy.provider?.name || 'N/A'}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Comm. Date</p><p className="text-sm font-medium text-slate-900">{new Date(policy.commencementDate).toLocaleDateString()}</p></div>
+                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Premium Amount</p><p className="text-sm font-bold text-green-600">₹ {policy.premium?.installmentPremium?.toLocaleString('en-IN') || 'N/A'}</p></div>
                     </div>
                   </div>
 
