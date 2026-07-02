@@ -10,25 +10,37 @@ import type {
 } from "../types";
 
 export const getClientsApi = async (): Promise<ClientsApiResponse> => {
-  const res = await axiosInstance.get<ClientsApiResponse>(API_ENDPOINTS.clients.base);
+  const res = await axiosInstance.get<ClientsApiResponse>(
+    API_ENDPOINTS.clients.base,
+  );
   return res.data;
 };
 
 export const getClientApi = async (id: string): Promise<ClientApiResponse> => {
-  const res = await axiosInstance.get<ClientApiResponse>(API_ENDPOINTS.clients.byId(id));
+  const res = await axiosInstance.get<ClientApiResponse>(
+    API_ENDPOINTS.clients.byId(id),
+  );
   return res.data;
 };
 
-export const createClientApi = async (payload: ClientPayload): Promise<ClientApiResponse> => {
-  const res = await axiosInstance.post<ClientApiResponse>(API_ENDPOINTS.clients.base, payload);
+export const createClientApi = async (
+  payload: ClientPayload,
+): Promise<ClientApiResponse> => {
+  const res = await axiosInstance.post<ClientApiResponse>(
+    API_ENDPOINTS.clients.base,
+    payload,
+  );
   return res.data;
 };
 
 export const updateClientApi = async (
   id: string,
-  payload: ClientUpdatePayload
+  payload: ClientUpdatePayload,
 ): Promise<ClientApiResponse> => {
-  const res = await axiosInstance.put<ClientApiResponse>(API_ENDPOINTS.clients.byId(id), payload);
+  const res = await axiosInstance.put<ClientApiResponse>(
+    API_ENDPOINTS.clients.byId(id),
+    payload,
+  );
   return res.data;
 };
 
@@ -38,11 +50,14 @@ export const deleteClientApi = async (id: string): Promise<void> => {
 
 export const loginClientApi = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<ClientLoginApiResponse> => {
-  const res = await axios.post<ClientLoginApiResponse>(API_ENDPOINTS.clients.login, {
-    email,
-    password,
-  });
+  const res = await axiosInstance.post<ClientLoginApiResponse>(
+    API_ENDPOINTS.clients.login,
+    {
+      email,
+      password,
+    },
+  );
   return res.data;
 };

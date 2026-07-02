@@ -11,6 +11,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
 import { loginPortalClient } from "@/features/clients/clientSlice";
+import { loginUser } from "@/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -40,10 +41,8 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     try {
       // Try system user login first
-      const result = await dispatch(
-        (await import("@/features/auth/authSlice")).loginUser(data)
-      );
-      if ((await import("@/features/auth/authSlice")).loginUser.fulfilled.match(result)) {
+      const result = await dispatch(loginUser(data));
+      if (loginUser.fulfilled.match(result)) {
         const user = (result.payload as any).data.user;
         toast.success(`Welcome back, ${user.name}!`);
         router.push("/dashboard");
@@ -51,7 +50,9 @@ export const LoginForm = () => {
       }
 
       // If system login fails, try client portal login
-      const clientResult = await dispatch(loginPortalClient({ email: data.email, password: data.password }));
+      const clientResult = await dispatch(
+        loginPortalClient({ email: data.email, password: data.password }),
+      );
       if (loginPortalClient.fulfilled.match(clientResult)) {
         const client = (clientResult.payload as any).data.client;
         toast.success(`Welcome, ${client.name}!`);
@@ -101,7 +102,11 @@ export const LoginForm = () => {
           </button>
         </div>
 
-        <Button type="submit" isLoading={isLoading || isSubmitting} className="mt-4 text-lg">
+        <Button
+          type="submit"
+          isLoading={isLoading || isSubmitting}
+          className="mt-4 text-lg"
+        >
           Sign In
         </Button>
 
