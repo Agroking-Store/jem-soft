@@ -352,9 +352,21 @@ export default function EditLICPolicyPage() {
         return masterCustomers.filter(m => m.groupId === watchGroupId);
     }, [watchGroupId, masterCustomers]);
 
+    const previousGroupId = useRef<string | undefined>(undefined);
+
     useEffect(() => {
         setValue("groupCode", selectedGroup?.groupCode || "");
-        setValue("lifeAssuredId", "");
+
+        // Only clear Life Assured when the user changes the group,
+        // not during the initial form load.
+        if (
+            previousGroupId.current !== undefined &&
+            previousGroupId.current !== watchGroupId
+        ) {
+            setValue("lifeAssuredId", "");
+        }
+
+        previousGroupId.current = watchGroupId;
     }, [watchGroupId, selectedGroup, setValue]);
 
     useEffect(() => {
@@ -408,7 +420,7 @@ export default function EditLICPolicyPage() {
                 ...data,
 
                 advisorId: data.advisorId || null,
-                
+
                 policyTerm: data.term,
                 premiumPayingTerm: data.ppt,
             };
