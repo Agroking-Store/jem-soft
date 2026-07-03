@@ -97,6 +97,10 @@ export const getAdvisors = async () => {
   });
 };
 
+export const getAllAdvisors = async () => {
+  return getAdvisors();
+};
+
 export const getAdvisorById = async (id: string) => {
   const advisor = await prisma.advisor.findUnique({
     where: { id },

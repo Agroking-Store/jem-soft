@@ -62,64 +62,6 @@ const DynamicUserProfile = dynamic(() => Promise.resolve(UserProfile), {
   ),
 });
 
-// LIC Dropdown component
-const LICDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
-
-  const licItems = [
-    { name: "Policy Entry", href: "/dashboard/lic/policies", icon: FileSpreadsheet },
-    { name: "New Policy", href: "/dashboard/lic/policies/new", icon: PlusCircle },
-  ];
-
-  const isActive = licItems.some(item => pathname === item.href || pathname.startsWith(item.href));
-
-  return (
-    <div className="space-y-1">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all
-          ${isActive || isOpen
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          }
-        `}
-      >
-        <div className="flex items-center gap-3">
-          <FileText size={20} />
-          <span>LIC</span>
-        </div>
-        {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-      </button>
-
-      {isOpen && (
-        <div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-2">
-          {licItems.map((item) => {
-            const isActiveItem = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all
-                  ${isActiveItem
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  }
-                `}
-              >
-                <item.icon size={16} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
 // AdminDropdown component - Only for ADMIN users
 const AdminDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -148,7 +90,7 @@ const AdminDropdown = () => {
       >
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} />
-          <span>Admin</span>
+          <span>User Management</span>
         </div>
         {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
       </button>
@@ -186,6 +128,7 @@ export const Sidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -236,10 +179,27 @@ export const Sidebar = () => {
           );
         })}
 
-        {/* LIC Dropdown - Show for all users */}
-        {isMounted && (isAdmin || isAdvisor || isViewer) && <LICDropdown />}
+        {/* LIC Link - Show for all users */}
+        {isMounted && (isAdmin || isAdvisor || isViewer) && (() => {
+          const licPath = "/dashboard/lic/policies";
+          const isLicActive = pathname.startsWith(licPath);
+          return (
+            <Link
+              href={licPath}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                ${isLicActive
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+            >
+              <FileText size={20} />
+              LIC
+            </Link>
+          );
+        })()}
 
-        {/* Admin section - Only show for ADMIN users */}
+        {/* User Management section - Only show for ADMIN users */}
         {isMounted && isAdmin && <AdminDropdown />}
       </nav>
 

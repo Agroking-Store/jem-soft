@@ -4,7 +4,7 @@ import { catchAsync } from "../utils/catchAsync.js";
 
 export const getAllAdvisors = catchAsync(
   async (_req: Request, res: Response) => {
-    const advisors = await advisorService.getAdvisors();
+    const advisors = await advisorService.getAllAdvisors();
     res.status(200).json({ status: "success", data: { advisors } });
   },
 );

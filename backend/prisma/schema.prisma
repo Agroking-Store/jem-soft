@@ -18,25 +18,25 @@ model User {
 }
 
 model Customer {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   companyName String?
-  email       String   @unique
+  email       String  @unique
   phone       String
   password    String
 
   // Customer Group fields
-  groupCode       String?  @unique
-  groupName       String?
-  category        String?  // Client, Others, personal, etc.
+  groupCode      String? @unique
+  groupName      String?
+  category       String? // Client, Others, personal, etc.
   // Contact Info
-  mobilePersonal  String?
-  emailPersonal   String?
-  mobileBusiness  String?
-  emailBusiness   String?
+  mobilePersonal String?
+  emailPersonal  String?
+  mobileBusiness String?
+  emailBusiness  String?
 
   // Preferred Communication Address
-  prefCommAddress String?  // "Residence" | "Office"
+  prefCommAddress String? // "Residence" | "Office"
 
   // Residence Address
   resAddressLine1 String?
@@ -46,7 +46,7 @@ model Customer {
   resCity         String?
   resPin          String?
   resState        String?
-  resCountry      String?  @default("India")
+  resCountry      String? @default("India")
   resArea         String?
 
   // Office Address
@@ -57,14 +57,14 @@ model Customer {
   offCity         String?
   offPin          String?
   offState        String?
-  offCountry      String?  @default("India")
+  offCountry      String? @default("India")
   offArea         String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  policies Policy[]
   members  CustomerMaster[]
+  policies Policy[]
 }
 
 // ======================================================
@@ -133,6 +133,8 @@ model ProductMaster {
 
   productName String
   productCode String
+
+  planNumber String?
 
   productType String?
   description String?
@@ -239,9 +241,10 @@ model RiderMaster {
 model Policy {
   id String @id @default(uuid())
 
-  clientId   String
-  providerId String
-  productId  String
+  clientId         String
+  CustomerMasterId String
+  providerId       String
+  productId        String
 
   statusId      String
   premiumModeId String
@@ -268,11 +271,12 @@ model Policy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client      Customer           @relation(fields: [clientId], references: [id])
-  provider    InsuranceProvider  @relation(fields: [providerId], references: [id])
-  product     ProductMaster      @relation(fields: [productId], references: [id])
-  status      PolicyStatusMaster @relation(fields: [statusId], references: [id])
-  premiumMode PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
+  customer       Customer           @relation(fields: [clientId], references: [id])
+  CustomerMaster CustomerMaster     @relation(fields: [CustomerMasterId], references: [id])
+  provider       InsuranceProvider  @relation(fields: [providerId], references: [id])
+  product        ProductMaster      @relation(fields: [productId], references: [id])
+  status         PolicyStatusMaster @relation(fields: [statusId], references: [id])
+  premiumMode    PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
 
   advisor Advisor? @relation(fields: [advisorId], references: [id])
 
@@ -501,7 +505,7 @@ model ProductAttributeOption {
 }
 
 model CustomerMaster {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   groupId          String?
   salutation       String?
   firstName        String
@@ -509,41 +513,42 @@ model CustomerMaster {
   lastName         String
   gender           String?
   dob              DateTime?
-  isGroupHead      Boolean  @default(false)
-  customerType     String?  // INDIVIDUAL, CORPORATE, etc.
+  isGroupHead      Boolean   @default(false)
+  customerType     String? // INDIVIDUAL, CORPORATE, etc.
   panNumber        String?
   aadhaarNumber    String?
   guardianId       String?
   salutationLetter String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  group         Customer?                      @relation(fields: [groupId], references: [id])
-  guardian      CustomerMaster?                @relation("GuardianRelation", fields: [guardianId], references: [id])
-  dependents    CustomerMaster[]               @relation("GuardianRelation")
-  contactInfo   CustomerContactInfo?
-  addresses     CustomerAddress[]
-  bankDetails   CustomerBankDetails[]
-  miscInfo      CustomerMiscInfo?
-  preferences   CustomerServicePreferences?
+  group       Customer?                   @relation(fields: [groupId], references: [id])
+  guardian    CustomerMaster?             @relation("GuardianRelation", fields: [guardianId], references: [id])
+  dependents  CustomerMaster[]            @relation("GuardianRelation")
+  contactInfo CustomerContactInfo?
+  addresses   CustomerAddress[]
+  bankDetails CustomerBankDetails[]
+  miscInfo    CustomerMiscInfo?
+  preferences CustomerServicePreferences?
+  policies    Policy[]
 }
 
 model CustomerContactInfo {
-  id             String   @id @default(uuid())
-  customerId     String   @unique
-  mobile1        String?
-  mobile2        String?
-  landline1Std   String?
+  id              String   @id @default(uuid())
+  customerId      String   @unique
+  mobile1         String?
+  mobile2         String?
+  landline1Std    String?
   landline1Number String?
-  landline2Std   String?
+  landline2Std    String?
   landline2Number String?
-  faxStd         String?
-  faxNumber      String?
-  emailPersonal  String?
-  emailBusiness  String?
-  skypeId        String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  faxStd          String?
+  faxNumber       String?
+  emailPersonal   String?
+  emailBusiness   String?
+  skypeId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
@@ -551,7 +556,7 @@ model CustomerContactInfo {
 model CustomerAddress {
   id              String   @id @default(uuid())
   customerId      String
-  addressType     String   // "Residence" | "Office" | etc.
+  addressType     String // "Residence" | "Office" | etc.
   addressLine1    String?
   addressLine2    String?
   addressLine3    String?
@@ -586,19 +591,19 @@ model CustomerBankDetails {
 }
 
 model CustomerMiscInfo {
-  id                 String   @id @default(uuid())
-  customerId         String   @unique
+  id                 String    @id @default(uuid())
+  customerId         String    @unique
   relationToGroup    String?
   dobForGreetings    DateTime?
   marriageDate       DateTime?
-  isMarried          Boolean  @default(false)
+  isMarried          Boolean   @default(false)
   demiseDate         DateTime?
-  isDead             Boolean  @default(false)
+  isDead             Boolean   @default(false)
   fatherName         String?
   motherName         String?
   spouseName         String?
-  nationality        String?  @default("Indian")
-  qualification      String?  
+  nationality        String?   @default("Indian")
+  qualification      String?
   occupationType     String?
   occupation         String?
   employer           String?
@@ -613,12 +618,11 @@ model CustomerMiscInfo {
   passportExpiryDate DateTime?
   gstNumber          String?
   specialNote        String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
-
 
 model CustomerServicePreferences {
   id                   String   @id @default(uuid())
@@ -631,4 +635,3 @@ model CustomerServicePreferences {
 
   customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
-

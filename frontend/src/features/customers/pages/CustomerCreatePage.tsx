@@ -33,12 +33,12 @@ import toast from "react-hot-toast";
 const CATEGORIES = ["Client", "Personal", "Prospect", "Others"];
 
 const INDIAN_STATES = [
-  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
-  "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra",
-  "Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim",
-  "Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal",
-  "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry",
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra",
+  "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
 ];
 
 // ─── Schema ───────────────────────────────────────────────────────
@@ -213,6 +213,8 @@ export default function CustomerCreatePage() {
       password: "",
     },
   });
+
+  const preferredAddress = watch("prefCommAddress");
 
   useEffect(() => {
     setIsMounted(true);
@@ -392,11 +394,10 @@ export default function CustomerCreatePage() {
               {["Residence", "Office"].map((opt) => (
                 <label
                   key={opt}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
-                    watch("prefCommAddress") === opt
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${watch("prefCommAddress") === opt
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
                 >
                   <input
                     type="radio"
@@ -411,58 +412,96 @@ export default function CustomerCreatePage() {
             </div>
           </div>
 
-          {/* Two-column address layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Residence */}
+
+          {/* Residence */}
+          {preferredAddress === "Residence" && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Home size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Residence</h3>
               </div>
-              <FormInput label="Address Line 1" placeholder="House / Flat No." {...register("resAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Colony" {...register("resAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("resAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("resAddressLine4")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" placeholder="House / Flat No." {...register("resAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Colony" {...register("resAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("resAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" {...register("resAddressLine4")} />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" placeholder="City" {...register("resCity")} />
                 <FormInput label="Pin Code" placeholder="400001" {...register("resPin")} />
               </div>
-              <FormSelect label="Country" {...register("resCountry")}>
-                <option>India</option>
-                <option>Other</option>
-              </FormSelect>
-              <FormSelect label="State" {...register("resState")}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
-              </FormSelect>
-              <FormInput label="Area" placeholder="Area / Zone" {...register("resArea")} />
-            </div>
 
-            {/* Office */}
+              <div className="grid grid-cols-2 gap-3">
+
+                <FormSelect label="State" {...register("resState")}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </FormSelect>
+
+                <FormSelect label="Country" {...register("resCountry")}>
+                  <option>India</option>
+                  <option>Other</option>
+                </FormSelect>
+
+
+
+              </div>
+
+
+            </div>
+          )}
+
+          {/* Office */}
+          {preferredAddress === "Office" && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Building size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Office</h3>
               </div>
-              <FormInput label="Address Line 1" placeholder="Office / Building No." {...register("offAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Road" {...register("offAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("offAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("offAddressLine4")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" placeholder="Office / Building No." {...register("offAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Road" {...register("offAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("offAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" {...register("offAddressLine4")} />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" placeholder="City" {...register("offCity")} />
                 <FormInput label="Pin Code" placeholder="400001" {...register("offPin")} />
               </div>
-              <FormSelect label="Country" {...register("offCountry")}>
-                <option>India</option>
-                <option>Other</option>
-              </FormSelect>
-              <FormSelect label="State" {...register("offState")}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
-              </FormSelect>
-              <FormInput label="Area" placeholder="Area / Zone" {...register("offArea")} />
+
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormSelect label="State" {...register("offState")}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </FormSelect>
+
+
+                <FormSelect label="Country" {...register("offCountry")}>
+                  <option>India</option>
+                  <option>Other</option>
+                </FormSelect>
+
+              </div>
+
             </div>
-          </div>
+          )}
+
+
         </SectionCard>
 
         {/* ── Section 4: Portal Access ── */}
@@ -532,6 +571,6 @@ export default function CustomerCreatePage() {
           </Button>
         </div>
       </form>
-    </div>
+    </div >
   );
 }

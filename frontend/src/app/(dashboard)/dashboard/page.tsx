@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -141,7 +142,7 @@ export default function DashboardPage() {
                 <p className="text-lg font-semibold text-slate-900">12</p>
               </div>
               <div className="p-3 bg-slate-50 rounded-lg">
-                <p className="text-xs text-slate-500">Today's Appointments</p>
+                <p className="text-xs text-slate-500">Todays Appointments</p>
                 <p className="text-lg font-semibold text-slate-900">3</p>
               </div>
             </div>
