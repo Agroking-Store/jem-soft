@@ -30,6 +30,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import FamilyHistoryList from "./FamilyHistoryList";
+import FamilyHistoryView from "./FamilyHistoryView";
 import FamilyHistoryForm from "./FamilyHistoryForm";
 import { Heart, Activity } from "lucide-react";
 
@@ -85,7 +86,7 @@ export default function CustomerListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit"; recordId?: string }>({
+  const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit" | "view"; recordId?: string }>({
     type: "list",
   });
 
@@ -652,12 +653,21 @@ export default function CustomerListPage() {
 
         {activeTab === "family" && (
           <div className="p-6">
-            {historyView.type === "list" ? (
+            {historyView.type === "list" && (
               <FamilyHistoryList
                 onAdd={() => setHistoryView({ type: "add" })}
                 onEdit={(id) => setHistoryView({ type: "edit", recordId: id })}
+                onView={(id) => setHistoryView({ type: "view", recordId: id })}
               />
-            ) : (
+            )}
+            {historyView.type === "view" && (
+              <FamilyHistoryView
+                recordId={historyView.recordId || ""}
+                onClose={() => setHistoryView({ type: "list" })}
+                onEdit={(id) => setHistoryView({ type: "edit", recordId: id })}
+              />
+            )}
+            {(historyView.type === "add" || historyView.type === "edit") && (
               <FamilyHistoryForm
                 recordId={historyView.recordId}
                 onClose={() => setHistoryView({ type: "list" })}

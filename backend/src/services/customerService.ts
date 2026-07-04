@@ -127,19 +127,7 @@ const CUSTOMER_GROUP_SELECT = {
   _count: { select: { policies: true } },
 } as const;
 
-/** Auto-generate next group code like A001, A002 ... */
-async function generateGroupCode(): Promise<string> {
-  const last = await prisma.customer.findFirst({
-    where: { groupCode: { not: null } },
-    orderBy: { groupCode: "desc" },
-    select: { groupCode: true },
-  });
 
-  if (!last?.groupCode) return "A001";
-
-  const num = parseInt(last.groupCode.replace(/\D/g, ""), 10) + 1;
-  return `A${String(num).padStart(3, "0")}`;
-}
 
 export const getCustomers = async () => {
   return await prisma.customer.findMany({
@@ -151,7 +139,17 @@ export const getCustomers = async () => {
 export const getCustomerById = async (id: string) => {
   const customer = await prisma.customer.findUnique({
     where: { id },
-    select: CUSTOMER_GROUP_SELECT,
+    include: {
+      members: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          salutation: true,
+        },
+      },
+    },
   });
   if (!customer) throw new AppError("Customer not found", 404);
   return customer;
@@ -164,7 +162,13 @@ export const createCustomer = async (data: ICustomerInput) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(data.password, salt);
 
-  const groupCode = data.groupCode || (await generateGroupCode());
+  const groupCode = data.groupCode ? data.groupCode.trim() : null;
+  if (groupCode) {
+    const existingGroup = await prisma.customer.findUnique({ where: { groupCode } });
+    if (existingGroup) {
+      throw new AppError("already created group of this code", 400);
+    }
+  }
 
   const customer = await prisma.customer.create({
     data: {
@@ -216,6 +220,19 @@ export const updateCustomer = async (id: string, data: ICustomerUpdate) => {
     updateData.password = await bcrypt.hash(data.password, salt);
   } else {
     delete updateData.password;
+  }
+
+  if (data.groupCode) {
+    const groupCode = data.groupCode.trim();
+    if (groupCode !== existing.groupCode) {
+      const existingGroup = await prisma.customer.findUnique({ where: { groupCode } });
+      if (existingGroup) {
+        throw new AppError("already created group of this code", 400);
+      }
+    }
+    updateData.groupCode = groupCode;
+  } else if (data.hasOwnProperty("groupCode")) {
+    updateData.groupCode = null;
   }
 
   return await prisma.customer.update({

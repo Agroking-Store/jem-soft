@@ -121,7 +121,7 @@ function FormInput({
         )}
         <input
           {...props}
-          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all
+          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer
             focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
             ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
@@ -148,7 +148,7 @@ function FormSelect({
       <FieldLabel label={label} required={required} />
       <select
         {...props}
-        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white
+        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white cursor-pointer
           focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
           ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >
@@ -311,24 +311,11 @@ export default function CustomerCreatePage() {
             {/* Group Code */}
             <div>
               <FieldLabel label="Group Code" />
-              <div className="flex gap-2">
-                <input
-                  {...register("groupCode")}
-                  placeholder="e.g. A001"
-                  className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const ts = Date.now().toString().slice(-4);
-                    setValue("groupCode", `A${ts}`);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors whitespace-nowrap"
-                >
-                  <Wand2 size={12} />
-                  Auto Fill
-                </button>
-              </div>
+              <input
+                {...register("groupCode")}
+                placeholder="e.g. A001"
+                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all cursor-pointer"
+              />
             </div>
 
             <FormInput

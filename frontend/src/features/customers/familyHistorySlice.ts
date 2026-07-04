@@ -7,6 +7,7 @@ import {
   deleteFamilyHistoryApi,
   getCustomerByGroupCodeApi,
 } from "./services/familyHistoryApi";
+import { getCustomerApi } from "./services/customerApi";
 
 export interface FamilyHistoryRecordItem {
   id?: string;
@@ -144,6 +145,18 @@ export const fetchGroupByCode = createAsyncThunk(
   }
 );
 
+export const fetchGroupById = createAsyncThunk(
+  "familyHistory/fetchGroupById",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const data = await getCustomerApi(id);
+      return data.data.customer;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message ?? "Failed to find group");
+    }
+  }
+);
+
 const familyHistorySlice = createSlice({
   name: "familyHistory",
   initialState,
@@ -221,6 +234,20 @@ const familyHistorySlice = createSlice({
         state.currentGroup = action.payload;
       })
       .addCase(fetchGroupByCode.rejected, (state, action) => {
+        state.isGroupLoading = false;
+        state.groupError = action.payload as string;
+      })
+      // Fetch Group by ID
+      .addCase(fetchGroupById.pending, (state) => {
+        state.isGroupLoading = true;
+        state.groupError = null;
+        state.currentGroup = null;
+      })
+      .addCase(fetchGroupById.fulfilled, (state, action: PayloadAction<any>) => {
+        state.isGroupLoading = false;
+        state.currentGroup = action.payload;
+      })
+      .addCase(fetchGroupById.rejected, (state, action) => {
         state.isGroupLoading = false;
         state.groupError = action.payload as string;
       });

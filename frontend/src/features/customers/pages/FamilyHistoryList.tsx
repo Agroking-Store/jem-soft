@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 interface FamilyHistoryListProps {
   onAdd: () => void;
   onEdit: (id: string) => void;
+  onView: (id: string) => void;
 }
 
 export function formatFamilyHistoryDate(dateStr: string) {
@@ -26,7 +27,7 @@ export function formatFamilyHistoryDate(dateStr: string) {
   }
 }
 
-export default function FamilyHistoryList({ onAdd, onEdit }: FamilyHistoryListProps) {
+export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHistoryListProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { records, isLoading, error } = useSelector((s: RootState) => s.familyHistory);
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,14 +77,12 @@ export default function FamilyHistoryList({ onAdd, onEdit }: FamilyHistoryListPr
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/40">
         <h2 className="text-xl font-bold text-slate-800 tracking-tight">Family History Records</h2>
         <div className="flex items-center gap-3">
-          <button className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-            <Filter size={20} />
-          </button>
           <button
             onClick={onAdd}
-            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-all shadow-sm cursor-pointer"
           >
-            <Plus size={20} />
+            <Plus size={16} />
+            Add family history
           </button>
         </div>
       </div>
@@ -99,7 +98,7 @@ export default function FamilyHistoryList({ onAdd, onEdit }: FamilyHistoryListPr
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
           />
         </div>
       </div>
@@ -127,22 +126,29 @@ export default function FamilyHistoryList({ onAdd, onEdit }: FamilyHistoryListPr
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3.5 px-6 font-semibold">
-                    <button
-                      onClick={() => onEdit(record.id)}
-                      className="text-blue-600 hover:text-blue-800 underline font-mono text-left cursor-pointer"
-                    >
-                      {record.group?.groupCode || "—"}
-                    </button>
+                <tr key={record.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer">
+                  <td
+                    onClick={() => onView(record.id)}
+                    className="py-3.5 px-6 font-semibold text-blue-600 hover:text-blue-800"
+                  >
+                    {record.group?.groupCode || "—"}
                   </td>
-                  <td className="py-3.5 px-6 text-slate-700">
+                  <td
+                    onClick={() => onView(record.id)}
+                    className="py-3.5 px-6 text-slate-700"
+                  >
                     {record.group?.groupName || record.group?.name || "—"}
                   </td>
-                  <td className="py-3.5 px-6 text-slate-900 font-medium">
+                  <td
+                    onClick={() => onView(record.id)}
+                    className="py-3.5 px-6 text-slate-900 font-medium"
+                  >
                     {getFullName(record)}
                   </td>
-                  <td className="py-3.5 px-6 text-slate-600">
+                  <td
+                    onClick={() => onView(record.id)}
+                    className="py-3.5 px-6 text-slate-600"
+                  >
                     {formatFamilyHistoryDate(record.date)}
                   </td>
                   <td className="py-3.5 px-6 text-right flex items-center justify-end gap-2">
@@ -155,7 +161,7 @@ export default function FamilyHistoryList({ onAdd, onEdit }: FamilyHistoryListPr
                     </button>
                     <button
                       onClick={() => handleDelete(record.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
                       title="Delete Record"
                     >
                       <Trash2 size={16} />

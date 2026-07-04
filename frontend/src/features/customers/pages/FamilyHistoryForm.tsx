@@ -7,11 +7,12 @@ import {
   createFamilyHistory,
   updateFamilyHistory,
   fetchFamilyHistory,
-  fetchGroupByCode,
+  fetchGroupById,
   clearCurrentRecord,
   clearCurrentGroup,
   FamilyHistoryRecordItem,
 } from "../familyHistorySlice";
+import { fetchCustomers } from "@/features/customers/customerSlice";
 import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatFamilyHistoryDate } from "./FamilyHistoryList";
@@ -22,6 +23,7 @@ interface FamilyHistoryFormProps {
 }
 
 const RELATIONS = [
+  "Self",
   "Father",
   "Mother",
   "Brother",
@@ -71,6 +73,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
 
   // Global Redux State
   const { currentRecord, isLoading, currentGroup } = useSelector((s: RootState) => s.familyHistory);
+  const { customers: allGroups } = useSelector((s: RootState) => s.customers);
 
   // Form states - Basic Details
   const [groupCode, setGroupCode] = useState("");
@@ -82,6 +85,10 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   });
   const [memberId, setMemberId] = useState("");
   const [membersList, setMembersList] = useState<any[]>([]);
+
+  // Search dropdown states
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form states - Relation detail input
   const [relation, setRelation] = useState("");
@@ -99,8 +106,9 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load record details for editing
+  // Load record details and fetch customers for dropdown
   useEffect(() => {
+    dispatch(fetchCustomers());
     if (isEditMode && recordId) {
       dispatch(fetchFamilyHistory(recordId));
     }
@@ -115,15 +123,17 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     if (isEditMode && currentRecord) {
       setGroupId(currentRecord.groupId);
       setGroupCode(currentRecord.group?.groupCode || "");
-      setGroupName(currentRecord.group?.groupName || currentRecord.group?.name || "");
+      const name = currentRecord.group?.groupName || currentRecord.group?.name || "";
+      setGroupName(name);
+      setSearchQuery(name);
       setFamilyHistoryDate(currentRecord.date.substring(0, 10));
       setMemberId(currentRecord.memberId);
       if (currentRecord.records) {
         setTempRecords(currentRecord.records);
       }
       // Trigger member list fetch
-      if (currentRecord.group?.groupCode) {
-        dispatch(fetchGroupByCode(currentRecord.group.groupCode));
+      if (currentRecord.groupId) {
+        dispatch(fetchGroupById(currentRecord.groupId));
       }
     }
   }, [currentRecord, isEditMode, dispatch]);
@@ -131,42 +141,52 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   // Sync members list when looked up group changes
   useEffect(() => {
     if (currentGroup) {
-      setGroupName(currentGroup.groupName || currentGroup.name || "");
+      const name = currentGroup.groupName || currentGroup.name || "";
+      setGroupName(name);
       setGroupId(currentGroup.id);
       setMembersList(currentGroup.members || []);
-    }
-  }, [currentGroup]);
-
-  // Lookup customer details when group code is entered
-  const handleGroupCodeChange = async (val: string) => {
-    setGroupCode(val);
-    setBasicErrors((prev) => ({ ...prev, groupCode: "" }));
-    
-    if (val.trim().length >= 3) {
-      try {
-        const actionResult = await dispatch(fetchGroupByCode(val.trim()));
-        if (fetchGroupByCode.fulfilled.match(actionResult)) {
-          // Found and auto-filled
-        } else {
-          // Reset auto-filled values if not found
-          setGroupName("");
-          setGroupId("");
-          setMembersList([]);
-          setMemberId("");
-        }
-      } catch {
-        setGroupName("");
-        setGroupId("");
-        setMembersList([]);
+      // If we are editing, keep the memberId. Otherwise, reset memberId if it's not in the new group.
+      if (!isEditMode) {
         setMemberId("");
       }
-    } else {
-      setGroupName("");
-      setGroupId("");
-      setMembersList([]);
-      setMemberId("");
     }
+  }, [currentGroup, isEditMode]);
+
+  // Handle typing in Group Name input
+  const handleGroupNameChange = (val: string) => {
+    setGroupName(val);
+    setSearchQuery(val);
+    setIsDropdownOpen(true);
+    setBasicErrors((prev) => ({ ...prev, groupName: "" }));
+
+    // Reset groupId and groupCode since user is performing a new search
+    setGroupId("");
+    setGroupCode("");
+    setMembersList([]);
+    setMemberId("");
   };
+
+  // Handle selecting a group from dropdown
+  const handleSelectGroup = (g: any) => {
+    const name = g.groupName || g.name || "";
+    setGroupName(name);
+    setSearchQuery(name);
+    setGroupCode(g.groupCode || "");
+    setGroupId(g.id);
+    setIsDropdownOpen(false);
+    setBasicErrors((prev) => ({ ...prev, groupName: "" }));
+
+    // Fetch members list for this group
+    dispatch(fetchGroupById(g.id));
+  };
+
+  // Filter groups for dropdown
+  const filteredGroups = allGroups.filter((g: any) => {
+    const nameStr = (g.groupName || g.name || "").toLowerCase();
+    const codeStr = (g.groupCode || "").toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return nameStr.includes(query) || codeStr.includes(query);
+  });
 
   // Calculate current age dynamically based on history date and age when recorded
   const calculateCurrentAge = (recordedAge: number, recordDate: string) => {
@@ -189,14 +209,20 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
       if (currentRecord) {
         setGroupId(currentRecord.groupId);
         setGroupCode(currentRecord.group?.groupCode || "");
-        setGroupName(currentRecord.group?.groupName || currentRecord.group?.name || "");
+        const name = currentRecord.group?.groupName || currentRecord.group?.name || "";
+        setGroupName(name);
+        setSearchQuery(name);
         setFamilyHistoryDate(currentRecord.date.substring(0, 10));
         setMemberId(currentRecord.memberId);
         setTempRecords(currentRecord.records || []);
+        if (currentRecord.groupId) {
+          dispatch(fetchGroupById(currentRecord.groupId));
+        }
       }
     } else {
       setGroupCode("");
       setGroupName("");
+      setSearchQuery("");
       setGroupId("");
       setFamilyHistoryDate(new Date().toISOString().substring(0, 10));
       setMemberId("");
@@ -275,8 +301,8 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!groupCode) errors.groupCode = "Group code is required";
-    if (!groupId) errors.groupCode = "Valid group code is required";
+    if (!groupName) errors.groupName = "Group name is required";
+    if (!groupId) errors.groupName = "Valid group selection is required";
     if (!familyHistoryDate) errors.familyHistoryDate = "Date is required";
     if (!memberId) errors.memberId = "Member selection is required";
 
@@ -359,29 +385,61 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Card 1: Basic Details */}
         <SectionCard title="Basic Details">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Group Code */}
-            <div>
-              <FieldLabel label="Group Code" required />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Group Name */}
+            <div className="relative">
+              <FieldLabel label="Group Name" required />
               <input
                 type="text"
-                placeholder="Enter Group Code"
-                value={groupCode}
-                onChange={(e) => handleGroupCodeChange(e.target.value)}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                  ${basicErrors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                placeholder="Search Group Name"
+                value={searchQuery}
+                onFocus={() => setIsDropdownOpen(true)}
+                onChange={(e) => handleGroupNameChange(e.target.value)}
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+                  ${basicErrors.groupName ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
               />
-              {basicErrors.groupCode && <p className="text-xs text-red-500 mt-1">{basicErrors.groupCode}</p>}
+              {basicErrors.groupName && <p className="text-xs text-red-500 mt-1">{basicErrors.groupName}</p>}
+
+              {isDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setIsDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-20 divide-y divide-slate-100">
+                    {filteredGroups.length === 0 ? (
+                      <div className="p-3 text-sm text-slate-400 text-center">No groups found</div>
+                    ) : (
+                      filteredGroups.map((g: any) => (
+                        <div
+                          key={g.id}
+                          onClick={() => handleSelectGroup(g)}
+                          className="flex justify-between items-center px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors"
+                        >
+                          <span className="font-semibold text-slate-800 text-sm">
+                            {g.groupName || g.name}
+                          </span>
+                          {g.groupCode && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                              {g.groupCode}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Group Name */}
+            {/* Group Code */}
             <div>
-              <FieldLabel label="Group Name" />
+              <FieldLabel label="Group Code" />
               <input
                 type="text"
-                placeholder="Group Name"
+                placeholder="Group Code (Autofilled)"
+                value={groupCode}
                 disabled
-                value={groupName}
                 className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-500 bg-slate-50 cursor-not-allowed outline-none"
               />
             </div>
@@ -396,7 +454,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                   setFamilyHistoryDate(e.target.value);
                   setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
                 }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
                   ${basicErrors.familyHistoryDate ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
               />
               {basicErrors.familyHistoryDate && (
@@ -405,7 +463,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
             </div>
 
             {/* Member Name */}
-            <div className="md:col-span-3">
+            <div>
               <FieldLabel label="Member Name" required />
               <select
                 value={memberId}
@@ -413,7 +471,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                   setMemberId(e.target.value);
                   setBasicErrors((p) => ({ ...p, memberId: "" }));
                 }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
                   ${basicErrors.memberId ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
               >
                 <option value="">Select Member Name</option>
@@ -455,7 +513,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setRelation(e.target.value);
                     setDetailErrors((p) => ({ ...p, relation: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 outline-none bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 outline-none bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
                     ${detailErrors.relation ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
                 >
                   <option value="">Select Relation</option>
