@@ -9,7 +9,6 @@ import insuranceProviderRoutes from "./routes/insuranceProviderRoutes.js";
 import productCategoryRoutes from "./routes/productCategoryRoutes.js";
 import productMasterRoutes from "./routes/productMasterRoutes.js";
 import riderMasterRoutes from "./routes/riderMasterRoutes.js";
-import advisorRoutes from "./routes/advisorRoutes.js";
 import policyRoutes from "./routes/policyRoutes.js";
 import policyStatusMasterRoutes from "./routes/policyStatusMasterRoutes.js";
 import premiumModeMasterRoutes from "./routes/premiumModeMasterRoutes.js";
@@ -36,7 +35,6 @@ app.use("/api/insurance-providers", insuranceProviderRoutes);
 app.use("/api/product-categories", productCategoryRoutes);
 app.use("/api/products", productMasterRoutes);
 app.use("/api/riders", riderMasterRoutes);
-app.use("/api/advisors", advisorRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/policy-statuses", policyStatusMasterRoutes);
 app.use("/api/premium-modes", premiumModeMasterRoutes);
@@ -47,7 +45,6 @@ app.post("/test", (req, res) => {
 
   res.json(req.body);
 });
-
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({

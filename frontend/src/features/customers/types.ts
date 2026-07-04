@@ -196,6 +196,7 @@ export interface CustomerMiscInfo {
   motherName?: string | null;
   spouseName?: string | null;
   nationality?: string | null;
+  qualification?: string | null;
   occupationType?: string | null;
   occupation?: string | null;
   employer?: string | null;
@@ -234,7 +235,11 @@ export interface CustomerMaster {
   aadhaarNumber?: string | null;
   guardianId?: string | null;
   salutationLetter?: string | null;
-  group?: { id: string; groupCode?: string | null; groupName?: string | null } | null;
+  group?: {
+    id: string;
+    groupCode?: string | null;
+    groupName?: string | null;
+  } | null;
   guardian?: { id: string; firstName: string; lastName: string } | null;
   contactInfo?: CustomerContactInfo | null;
   addresses?: CustomerAddress[];

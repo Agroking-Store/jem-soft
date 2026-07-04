@@ -1,6 +1,6 @@
 import express from "express";
 import * as riderMasterController from "../controllers/riderMasterController.js";
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
+import { restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,10 +9,7 @@ const router = express.Router();
 router
   .route("/")
   .get(riderMasterController.getAllRiderMasters)
-  .post(
-    restrictTo("ADMIN"),
-    riderMasterController.createRiderMaster
-  );
+  .post(restrictTo("ADMIN"), riderMasterController.createRiderMaster);
 
 router
   .route("/:id")

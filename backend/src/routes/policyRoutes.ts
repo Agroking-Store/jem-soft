@@ -4,6 +4,10 @@ import { protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(policyController.getAllPolicies).post(policyController.createPolicy);
+router
+  .route("/")
+  .get(protect, policyController.getAllPolicies)
+  .post(protect, policyController.createPolicy);
+router.route("/:id").get(protect, policyController.getPolicyById);
 
 export default router;

@@ -10,4 +10,9 @@ export const API_ENDPOINTS = {
     login: `${BASE}/customers/login`,
     byId: (id: string) => `${BASE}/customers/${id}`,
   },
+  clients: {
+    base: `${BASE}/clients`,
+    login: `${BASE}/clients/login`,
+    byId: (id: string) => `${BASE}/clients/${id}`,
+  },
 } as const;

@@ -22,5 +22,23 @@ export const getAllPolicies = catchAsync(
         policies,
       },
     });
-  }
+  },
 );
+
+export const getPolicyById = catchAsync(async (req: Request, res: Response) => {
+  const policy = await policyService.getPolicyById(req.params.id);
+
+  if (!policy) {
+    return res.status(404).json({
+      status: "fail",
+      message: "Policy not found",
+    });
+  }
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      policy,
+    },
+  });
+});

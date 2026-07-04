@@ -37,7 +37,6 @@ interface PolicyData {
   riders?: RiderData[];
 }
 
-
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   const {
     riders,
@@ -52,48 +51,49 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
   // These should ideally come from the DB based on a default or user input
   const status = await prisma.policyStatusMaster.findFirst({
-    where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
+    where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
   });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
-    where: { modeName: { equals: data.mode, mode: 'insensitive' } },
+    where: { modeName: { equals: data.mode, mode: "insensitive" } },
   });
-
 
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
   }
 
   return prisma.$transaction(async (tx) => {
-   const newPolicy = await tx.policy.create({
-  data: {
-    clientId: data.groupId,
-    CustomerMasterId: data.lifeAssuredId,
+    const newPolicy = await tx.policy.create({
+      data: {
+        clientId: data.groupId,
+        CustomerMasterId: data.lifeAssuredId,
 
-    providerId: data.providerId,
-    productId: data.productId,
+        providerId: data.providerId,
+        productId: data.productId,
 
-    policyNumber: data.policyNumber,
+        policyNumber: data.policyNumber,
 
-    advisorId: data.advisorId,
-    agentCode: data.agentCode,
+        advisorId: data.advisorId,
+        agentCode: data.agentCode,
 
-    statusId: status.id,
-    premiumModeId: premiumMode.id,
+        statusId: status.id,
+        premiumModeId: premiumMode.id,
 
-    commencementDate: new Date(data.commencementDate),
-    maturityDate: data.completionDate
-      ? new Date(data.completionDate)
-      : undefined,
+        commencementDate: new Date(data.commencementDate),
+        maturityDate: data.completionDate
+          ? new Date(data.completionDate)
+          : undefined,
 
-    policyTerm: data.policyTerm,
-    premiumPayingTerm: data.premiumPayingTerm,
-  },
-});
+        policyTerm: data.policyTerm,
+        premiumPayingTerm: data.premiumPayingTerm,
+      },
+    });
 
     if (riders && riders.length > 0) {
       for (const riderData of riders) {
-        const riderMaster = await tx.riderMaster.findFirst({ where: { riderName: riderData.description } });
+        const riderMaster = await tx.riderMaster.findFirst({
+          where: { riderName: riderData.description },
+        });
         if (riderMaster) {
           await tx.policyRider.create({
             data: {
@@ -108,20 +108,20 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     }
 
     await tx.policyPremiumCalculation.create({
-  data: {
-    policyId: newPolicy.id,
+      data: {
+        policyId: newPolicy.id,
 
-    sumAssured: sumAssured ?? 0,
-    basicYearlyPremium: basicYearlyPremium ?? 0,
-    totalYearlyPremium:
-      (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: basicYearlyPremium ?? 0,
+        totalYearlyPremium:
+          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
 
-    installmentPremium: installmentPremium ?? 0,
-    totalInstallmentPremium: totalInstallmentPremium ?? 0,
+        installmentPremium: installmentPremium ?? 0,
+        totalInstallmentPremium: totalInstallmentPremium ?? 0,
 
-    gst: gst ?? 0,
-  },
-});
+        gst: gst ?? 0,
+      },
+    });
 
     return newPolicy;
   });
@@ -137,6 +137,48 @@ export const getAllPolicies = async (): Promise<any[]> => {
       status: true,
       premiumMode: true,
       premium: true,
+    },
+  });
+};
+
+export const getPolicyById = async (id: string): Promise<any | null> => {
+  return prisma.policy.findUnique({
+    where: { id },
+    include: {
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
+      customer: true,
+      provider: true,
+      product: true,
+      status: true,
+      premiumMode: true,
+      advisor: true,
+      premium: true,
+      nominees: true,
+      policyRiders: {
+        include: {
+          rider: true,
+        },
+      },
+      premiumPayments: {
+        include: {
+          paymentStatus: true,
+        },
+      },
+      documents: true,
+      policyAttributes: {
+        include: {
+          attribute: true,
+        },
+      },
+      loans: {
+        include: {
+          loanStatus: true,
+        },
+      },
     },
   });
 };
