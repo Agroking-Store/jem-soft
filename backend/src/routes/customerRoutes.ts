@@ -6,6 +6,7 @@ import {
   updateCustomer,
   deleteCustomer,
   loginCustomer,
+  getCustomerByCode,
 } from "../controllers/customerController.js";
 import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
@@ -17,6 +18,7 @@ router.post("/login", loginCustomer);
 // Protected routes - all logged-in system users can view
 router.use(protect);
 router.get("/", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getAllCustomers);
+router.get("/code/:groupCode", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getCustomerByCode);
 router.get("/:id", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getCustomer);
 
 // Write routes - only ADMIN and ADVISOR

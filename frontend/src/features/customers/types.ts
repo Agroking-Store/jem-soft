@@ -196,6 +196,7 @@ export interface CustomerMiscInfo {
   motherName?: string | null;
   spouseName?: string | null;
   nationality?: string | null;
+  qualification?: string | null;
   occupationType?: string | null;
   occupation?: string | null;
   employer?: string | null;

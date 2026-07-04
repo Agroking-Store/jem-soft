@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import FamilyHistoryList from "./FamilyHistoryList";
+import FamilyHistoryForm from "./FamilyHistoryForm";
+import { Heart, Activity } from "lucide-react";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Client: "bg-blue-100 text-blue-700",
@@ -37,8 +40,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   Prospect: "bg-green-100 text-green-700",
 };
 
-type Tab = "group" | "master";
-type DeleteTarget = { id: string; type: Tab; label: string } | null;
+type Tab = "group" | "master" | "family" | "medical";
+type DeleteTarget = { id: string; type: Extract<Tab, "group" | "master">; label: string } | null;
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
@@ -69,11 +72,22 @@ export default function CustomerListPage() {
   } = useSelector((s: RootState) => s.customerMaster);
 
   const searchParams = useSearchParams();
-  const activeTab: Tab = searchParams.get("tab") === "master" ? "master" : "group";
+  const paramTab = searchParams.get("tab");
+  const activeTab: Tab = paramTab === "master"
+    ? "master"
+    : paramTab === "family"
+    ? "family"
+    : paramTab === "medical"
+    ? "medical"
+    : "group";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit"; recordId?: string }>({
+    type: "list",
+  });
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -116,7 +130,14 @@ export default function CustomerListPage() {
   const switchTab = (tab: Tab) => {
     setSelectedIds(new Set());
     setSearchTerm("");
-    router.replace(tab === "master" ? "/dashboard/customers?tab=master" : "/dashboard/customers");
+    if (tab === "family") {
+      setHistoryView({ type: "list" });
+    }
+    if (tab === "group") {
+      router.replace("/dashboard/customers");
+    } else {
+      router.replace(`/dashboard/customers?tab=${tab}`);
+    }
   };
 
   const handleDelete = async () => {
@@ -198,7 +219,7 @@ export default function CustomerListPage() {
           </button>
           <button
             onClick={() => switchTab("master")}
-            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
               activeTab === "master"
                 ? "text-blue-600 bg-white border-b-2 border-blue-600 -mb-px"
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
@@ -210,9 +231,33 @@ export default function CustomerListPage() {
               {masterCustomers.length}
             </span>
           </button>
+          <button
+            onClick={() => switchTab("family")}
+            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              activeTab === "family"
+                ? "text-blue-600 bg-white border-b-2 border-blue-600 -mb-px"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+            }`}
+          >
+            <Heart size={16} className={activeTab === "family" ? "text-blue-600" : "text-slate-400"} />
+            Family History
+          </button>
+          <button
+            onClick={() => switchTab("medical")}
+            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              activeTab === "medical"
+                ? "text-blue-600 bg-white border-b-2 border-blue-600 -mb-px"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+            }`}
+          >
+            <Activity size={16} className={activeTab === "medical" ? "text-blue-600" : "text-slate-400"} />
+            Medical History
+          </button>
         </div>
 
-        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
+        {(activeTab === "group" || activeTab === "master") && (
+          <>
+            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
@@ -601,6 +646,42 @@ export default function CustomerListPage() {
               </div>
             )}
           </>
+        )}
+      </>
+    )}
+
+        {activeTab === "family" && (
+          <div className="p-6">
+            {historyView.type === "list" ? (
+              <FamilyHistoryList
+                onAdd={() => setHistoryView({ type: "add" })}
+                onEdit={(id) => setHistoryView({ type: "edit", recordId: id })}
+              />
+            ) : (
+              <FamilyHistoryForm
+                recordId={historyView.recordId}
+                onClose={() => setHistoryView({ type: "list" })}
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === "medical" && (
+          <div className="p-8 max-w-2xl mx-auto text-center py-20 bg-white">
+            <div className="relative inline-flex mb-6">
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 bg-gradient-to-tr from-blue-500 to-indigo-600 text-white rounded-2xl shadow-lg border border-blue-400/20">
+                <Activity size={32} className="animate-pulse" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-2">Medical History</h2>
+            <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed mb-6">
+              Our comprehensive medical history tracking suite is under development and will be available soon.
+            </p>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-650 text-xs font-semibold uppercase tracking-wider shadow-sm border border-blue-100 animate-pulse">
+              Coming Soon
+            </span>
+          </div>
         )}
       </div>
 

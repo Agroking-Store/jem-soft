@@ -251,3 +251,23 @@ export const loginCustomer = async (email: string, password: string) => {
   };
 };
 
+export const getCustomerByGroupCode = async (groupCode: string) => {
+  const customer = await prisma.customer.findUnique({
+    where: { groupCode },
+    include: {
+      members: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          salutation: true,
+        },
+      },
+    },
+  });
+  if (!customer) throw new AppError("Customer group not found", 404);
+  return customer;
+};
+
+
