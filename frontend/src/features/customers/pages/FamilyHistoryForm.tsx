@@ -105,6 +105,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   const [basicErrors, setBasicErrors] = useState<Record<string, string>>({});
   const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Load record details and fetch customers for dropdown
   useEffect(() => {
@@ -203,6 +204,17 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     }
   };
 
+  const handleClearDetail = () => {
+    setRelation("");
+    setAge("");
+    setStateOfHealth("");
+    setIsDead(false);
+    setAgeAtDeath("");
+    setCauseOfDeath("");
+    setEditingIndex(null);
+    setDetailErrors({});
+  };
+
   // Reset form helper
   const handleReset = () => {
     if (isEditMode) {
@@ -228,14 +240,8 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
       setMemberId("");
       setMembersList([]);
       setTempRecords([]);
-      setRelation("");
-      setAge("");
-      setStateOfHealth("");
-      setIsDead(false);
-      setAgeAtDeath("");
-      setCauseOfDeath("");
+      handleClearDetail();
       setBasicErrors({});
-      setDetailErrors({});
     }
     toast.success("Form reset successfully");
   };
@@ -272,6 +278,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     setDetailErrors({});
 
     const newRecord: FamilyHistoryRecordItem = {
+      id: editingIndex !== null ? tempRecords[editingIndex].id : undefined,
       relation,
       age: Number(age),
       stateOfHealth: stateOfHealth.trim(),
@@ -280,20 +287,28 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
       causeOfDeath: isDead ? causeOfDeath.trim() : null,
     };
 
-    setTempRecords((prev) => [...prev, newRecord]);
+    if (editingIndex !== null) {
+      setTempRecords((prev) => {
+        const updated = [...prev];
+        updated[editingIndex] = newRecord;
+        return updated;
+      });
+      toast.success("Entry updated in table");
+      setEditingIndex(null);
+    } else {
+      setTempRecords((prev) => [...prev, newRecord]);
+      toast.success("Entry added to table");
+    }
 
-    // Reset details form
-    setRelation("");
-    setAge("");
-    setStateOfHealth("");
-    setIsDead(false);
-    setAgeAtDeath("");
-    setCauseOfDeath("");
+    handleClearDetail();
   };
 
   // Remove record from sub-table
   const handleRemoveDetail = (index: number) => {
     setTempRecords((prev) => prev.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      handleClearDetail();
+    }
   };
 
   // Submit form to backend
@@ -487,22 +502,17 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
         </SectionCard>
 
         {/* Card 2: Family History Records (relations grid) */}
-        <SectionCard
-          title="Family History Records"
-          headerActions={
-            <button
-              onClick={handleAddDetail}
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
-            >
-              <Plus size={14} />
-              Add New
-            </button>
-          }
-        >
+        <SectionCard title="Family History Records">
           {/* Member's Details Subform */}
           <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-200/60 mb-5">
-            <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Member's Details</h3>
+            <h3 className="text-xs font-bold text-slate-650 uppercase tracking-wider mb-4 flex justify-between items-center">
+              <span>Member's Details</span>
+              {editingIndex !== null && (
+                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold normal-case">
+                  Editing Entry #{editingIndex + 1}
+                </span>
+              )}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Relation */}
               <div>
@@ -573,7 +583,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setIsDead(e.target.checked);
                     setDetailErrors((p) => ({ ...p, ageAtDeath: "", causeOfDeath: "" }));
                   }}
-                  className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
                 <label htmlFor="isDead" className="text-xs font-semibold text-slate-600 uppercase cursor-pointer select-none">
                   Is Dead
@@ -625,19 +635,19 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
             {/* Actions for Subform */}
             <div className="flex items-center justify-end gap-3 border-t border-slate-200/50 mt-4 pt-3">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-450 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
-              >
-                <Save size={15} />
-                Save
-              </button>
-              <button
-                onClick={onClose}
+                onClick={handleClearDetail}
                 type="button"
                 className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer"
               >
-                Cancel
+                {editingIndex !== null ? "Cancel Edit" : "Clear Entry"}
+              </button>
+              <button
+                onClick={handleAddDetail}
+                type="button"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-650 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+              >
+                <Plus size={15} />
+                {editingIndex !== null ? "Update Entry" : "Add Entry"}
               </button>
             </div>
           </div>
@@ -665,36 +675,83 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     </td>
                   </tr>
                 ) : (
-                  tempRecords.map((r, index) => (
-                    <tr key={index} className="hover:bg-slate-50/40 transition-colors">
-                      <td className="py-2.5 px-4 text-slate-600">
-                        {formatFamilyHistoryDate(familyHistoryDate)}
-                      </td>
-                      <td className="py-2.5 px-4 font-semibold text-slate-800">{r.relation}</td>
-                      <td className="py-2.5 px-4 text-slate-700">{r.age}</td>
-                      <td className="py-2.5 px-4 text-slate-700">
-                        {r.isDead ? "—" : calculateCurrentAge(r.age, familyHistoryDate)}
-                      </td>
-                      <td className="py-2.5 px-4 text-slate-700">{r.stateOfHealth}</td>
-                      <td className="py-2.5 px-4 text-slate-600">{r.isDead ? r.ageAtDeath : "—"}</td>
-                      <td className="py-2.5 px-4 text-slate-600">{r.isDead ? r.causeOfDeath : "—"}</td>
-                      <td className="py-2.5 px-4 text-right">
-                        <button
-                          onClick={() => handleRemoveDetail(index)}
-                          type="button"
-                          className="p-1 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                          title="Remove item"
-                        >
-                          <X size={15} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  tempRecords.map((r, index) => {
+                    const isCurrentlyEditing = editingIndex === index;
+                    return (
+                      <tr
+                        key={index}
+                        onClick={() => {
+                          setEditingIndex(index);
+                          setRelation(r.relation);
+                          setAge(r.age.toString());
+                          setStateOfHealth(r.stateOfHealth);
+                          setIsDead(r.isDead);
+                          setAgeAtDeath(r.ageAtDeath ? r.ageAtDeath.toString() : "");
+                          setCauseOfDeath(r.causeOfDeath || "");
+                          setDetailErrors({});
+                        }}
+                        className={`transition-colors cursor-pointer ${
+                          isCurrentlyEditing
+                            ? "bg-blue-50/70 hover:bg-blue-50 font-semibold"
+                            : "hover:bg-slate-50/40"
+                        }`}
+                        title="Click to edit this entry"
+                      >
+                        <td className="py-2.5 px-4 text-slate-600">
+                          {formatFamilyHistoryDate(familyHistoryDate)}
+                        </td>
+                        <td className="py-2.5 px-4 font-semibold text-slate-800">
+                          {r.relation}
+                          {isCurrentlyEditing && (
+                            <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold uppercase">
+                              Editing
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-700">{r.age}</td>
+                        <td className="py-2.5 px-4 text-slate-700">
+                          {r.isDead ? "—" : calculateCurrentAge(r.age, familyHistoryDate)}
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-700">{r.stateOfHealth}</td>
+                        <td className="py-2.5 px-4 text-slate-600">{r.isDead ? r.ageAtDeath : "—"}</td>
+                        <td className="py-2.5 px-4 text-slate-600">{r.isDead ? r.causeOfDeath : "—"}</td>
+                        <td className="py-2.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleRemoveDetail(index)}
+                            type="button"
+                            className="p-1 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                            title="Remove item"
+                          >
+                            <X size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
         </SectionCard>
+
+        {/* Main Form Actions */}
+        <div className="flex items-center justify-end gap-3 py-4 border-t border-slate-200">
+          <button
+            onClick={onClose}
+            type="button"
+            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-450 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+          >
+            <Save size={15} />
+            {isEditMode ? "Save Changes" : "Save Family History"}
+          </button>
+        </div>
       </form>
     </div>
   );

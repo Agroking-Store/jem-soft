@@ -44,7 +44,7 @@ const INDIAN_STATES = [
 // ─── Schema ───────────────────────────────────────────────────────
 const schema = z.object({
   // Basic
-  groupCode: z.string().optional().or(z.literal("")),
+  groupCode: z.string().min(1, "Group code is required"),
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
 
@@ -310,12 +310,14 @@ export default function CustomerCreatePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Group Code */}
             <div>
-              <FieldLabel label="Group Code" />
+              <FieldLabel label="Group Code" required />
               <input
                 {...register("groupCode")}
                 placeholder="e.g. A001"
-                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all cursor-pointer"
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  ${errors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
               />
+              {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
             </div>
 
             <FormInput
