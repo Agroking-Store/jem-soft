@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, FC } from "react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +16,8 @@ import { fetchAdvisors } from "@/features/advisor/advisorSlice";
 import { createPolicy } from "@/features/policy/policySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchAgencies } from "@/features/agency/agencySlice";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -34,6 +37,8 @@ import {
   Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import DatePicker from "./DatePicker";
+import { format } from "date-fns";
 
 function getFullName(customer: {
   salutation?: string | null;
@@ -96,7 +101,7 @@ const GroupAutoComplete = ({ value, onChange, groups }: { value: string; onChang
   );
 };
 
-const AdvisorAutoComplete = ({ value, onChange, advisors }: { value: string; onChange: (id: string) => void; advisors: { id: string; advisorCode: string; advisorName: string }[] }) => {
+const AdvisorAutoComplete = ({ value, onChange, advisors, disabled, placeholder }: { value: string; onChange: (id: string) => void; advisors: { id: string; advisorCode: string; advisorName: string }[], disabled?: boolean, placeholder?: string }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -122,8 +127,9 @@ const AdvisorAutoComplete = ({ value, onChange, advisors }: { value: string; onC
           value={selected ? `[${selected.advisorCode}] ${selected.advisorName}` : query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
           onFocus={() => setOpen(true)}
-          placeholder="Search advisor by name or code..."
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9"
+          placeholder={placeholder || "Search advisor by name or code..."}
+          disabled={disabled}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
         {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
       </div>
@@ -160,6 +166,18 @@ const riderSchema = z.object({
   ),
 });
 
+const nomineeSchema = z.object({
+  nomineeName: z.string().min(1, "Nominee name is required"),
+  relationship: z.string().min(1, "Relationship is required"),
+  dateOfBirth: z.string().optional(),
+  percentage: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce.number().positive("Must be positive").max(100, "Cannot exceed 100").nullable()
+  ),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+});
+
 const policySchema = z.object({
   groupId: z.string().min(1, "Group is required"),
   groupCode: z.string().optional(),
@@ -171,11 +189,11 @@ const policySchema = z.object({
 
   providerType: z.string().min(1, "Provider type is required"),
   providerId: z.string().min(1, "Provider is required"),
-  policyNumber: z.string().min(1, "Policy number is required"),
+  policyNumber: z.string().regex(/^\d{9}$/, "Policy number must be exactly 9 digits."),
   productId: z.string().min(1, "Plan is required"),
   mode: z.string().min(1, "Mode is required"),
-  commencementDate: z.string().min(1, "Commencement date is required"),
-  completionDate: z.string().min(1, "Completion date is required"),
+  commencementDate: z.string().min(1, "Commencement date is required."),
+  completionDate: z.string().min(1, "Completion date is required."),
   term: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().positive().optional()),
   ppt: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().positive().optional()),
   extraClass: z.string().optional(),
@@ -190,9 +208,14 @@ const policySchema = z.object({
   totalInstallmentPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
 
   riders: z.array(riderSchema).optional(),
+  nominees: z.array(nomineeSchema).optional(),
 
   advisorId: z.string().optional(),
+  agencyId: z.string().optional(),
+  branchId: z.string().optional(),
   agentCode: z.string().optional(),
+  fupDate: z.string().optional(),
+  fuliDate: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -200,11 +223,13 @@ type PolicyFormValues = z.infer<typeof policySchema>;
 export default function NewLICPolicyPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const { user, isLoading: authLoading } = useAuth();
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<PolicyFormValues>({
      resolver: zodResolver(policySchema),
     defaultValues: {
       riders: [],
+      nominees: [],
     },
   });
 
@@ -216,10 +241,13 @@ export default function NewLICPolicyPage() {
   const { advisors, isLoading: advisorsLoading } = useSelector((s: RootState) => s.advisors);
   const { statuses, isLoading: statusesLoading } = useSelector((s: RootState) => s.policyStatuses);
   const { modes, isLoading: modesLoading } = useSelector((s: RootState) => s.premiumModes);
+  const { branches, isLoading: branchesLoading } = useSelector((s: RootState) => s.licBranch);
+  const { agencies, isLoading: agenciesLoading } = useSelector((s: RootState) => s.agency);
 
   const [activeSection, setActiveSection] = useState("policy-holder");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -231,7 +259,22 @@ export default function NewLICPolicyPage() {
     dispatch(fetchAdvisors());
     dispatch(fetchPolicyStatuses());
     dispatch(fetchPremiumModes());
+    dispatch(fetchLicBranches());
+    dispatch(fetchAgencies());
+    setIsMounted(true);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isMounted && !authLoading && user) {
+      if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
+        toast.error("You do not have permission to create a policy.");
+        router.replace("/dashboard/lic/policies");
+      }
+    }
+  }, [isMounted, authLoading, user, router]);
+
+  const canCreate = user?.role === "ADMIN" || user?.role === "ADVISOR";
+
 
   const sectionRefs = {
     'policy-holder': useRef<HTMLDivElement>(null),
@@ -246,12 +289,19 @@ export default function NewLICPolicyPage() {
     name: "riders",
   });
 
+  const { fields: nomineeFields, append: appendNominee, remove: removeNominee } = useFieldArray({
+    control,
+    name: "nominees",
+  });
+
   const watchGroupId = watch("groupId");
   const watchLifeAssuredId = watch("lifeAssuredId");
   const watchProviderType = watch("providerType");
   const watchProviderId = watch("providerId");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
+  const watchBranchId = watch("branchId");
+  const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
 
 
@@ -269,7 +319,7 @@ export default function NewLICPolicyPage() {
 
   useEffect(() => {
     const member = masterCustomers.find(m => m.id === watchLifeAssuredId);
-    setValue("dob", member?.dob ? new Date(member.dob).toISOString().split("T")[0] : "");
+    setValue("dob", member?.dob ? new Date(member.dob).toISOString().split('T')[0] : "");
     setValue("age", member?.dob ? String(new Date().getFullYear() - new Date(member.dob).getFullYear()) : "");
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -289,9 +339,20 @@ export default function NewLICPolicyPage() {
     return products.filter(p => p.providerId === watchProviderId);
   }, [watchProviderId, products]);
 
+  const filteredAdvisors = useMemo(() => {
+    if (!watchAgencyId) return [];
+    return advisors.filter(a => a.agencyId === watchAgencyId);
+  }, [watchAgencyId, advisors]);
+
   useEffect(() => {
     setValue("providerId", "");
   }, [watchProviderType, setValue]);
+
+  useEffect(() => {
+    const agency = agencies.find(a => a.id === watchAgencyId);
+    setValue("branchId", agency?.branchId || "");
+    setValue("advisorId", ""); // Reset advisor when agency changes
+  }, [watchAgencyId, agencies, setValue]);
 
   useEffect(() => {
     const advisor = advisors.find(a => a.id === watchAdvisorId);
@@ -309,7 +370,13 @@ export default function NewLICPolicyPage() {
   const onSubmit = async (data: PolicyFormValues) => {
     setIsSubmitting(true);
     try {
-      await dispatch(createPolicy(data)).unwrap();
+      const result = await dispatch(createPolicy(data)).unwrap();
+      dispatch(
+        addNotification({
+          message: `New policy #${result.policyNumber} created.`,
+          type: "success",
+        })
+      );
       toast.success("Policy created successfully!");
       router.push("/dashboard/lic/policies");
     } catch (err: any) {
@@ -346,6 +413,12 @@ export default function NewLICPolicyPage() {
     }
   }, [sectionRefs]);
 
+  if (!isMounted || authLoading || !canCreate) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" /></div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto pb-20">
       {/* Header */}
@@ -372,8 +445,11 @@ export default function NewLICPolicyPage() {
           <button onClick={() => router.push("/dashboard/lic/policies")} className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm">
             Cancel
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2">
-            <Save size={16} onClick={handleSubmit(onSubmit)} />
+          <button
+            type="button"
+            onClick={handleSubmit(onSubmit)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2">
+            <Save size={16} />
             Save Policy
           </button>
         </div>
@@ -400,7 +476,7 @@ export default function NewLICPolicyPage() {
       </div>
 
       {/* Form Content - Grid Layout */}
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
         {/* Section 1: Policy Holder's Details */}
         <div
           ref={sectionRefs['policy-holder']}
@@ -513,7 +589,7 @@ export default function NewLICPolicyPage() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column */}
+          {/* Left Column */} 
           <div className="lg:col-span-2 space-y-6">
             {/* Section 2: Policy Details */}
             <div
@@ -561,7 +637,7 @@ export default function NewLICPolicyPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Policy Number <span className="text-red-500">*</span>
-                  </label>
+                  </label> 
                   <input
                     type="text"
                     {...register("policyNumber")}
@@ -606,22 +682,36 @@ export default function NewLICPolicyPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Commencement Date <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="date"
-                    {...register("commencementDate")}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                  <Controller
+                  control={control}
+                  name="commencementDate"
+                  render={({ field }) => (
+                  <DatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date) =>
+                    field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                  }
+                  />
+                  )}
                   />
                   {errors.commencementDate && <p className="text-xs text-red-500 mt-1">{errors.commencementDate.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Completion Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    {...register("completionDate")}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  />
+                  </label> 
+                  <Controller
+  control={control}
+  name="completionDate"
+  render={({ field }) => (
+    <DatePicker
+      value={field.value ? new Date(field.value) : undefined}
+      onChange={(date) =>
+        field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+      }
+    />
+  )}
+/>
                   {errors.completionDate && <p className="text-xs text-red-500 mt-1">{errors.completionDate.message}</p>}
                 </div>
                 <div>
@@ -629,7 +719,7 @@ export default function NewLICPolicyPage() {
                     Term
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     {...register("term")}
                     placeholder="Enter term"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
@@ -641,7 +731,7 @@ export default function NewLICPolicyPage() {
                     PPT
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     {...register("ppt")}
                     placeholder="Enter PPT"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
@@ -664,7 +754,7 @@ export default function NewLICPolicyPage() {
                     Rate %
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     {...register("ratePercent")}
                     placeholder="Rate %"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
@@ -716,7 +806,7 @@ export default function NewLICPolicyPage() {
                       riderFields.map((field, index) => (
                         <tr key={field.id}>
                           <td className="px-2 py-1.5 w-1/3">
-                            <select {...register(`riders.${index}.description`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500">
+                            <select {...register(`riders.${index}.description`)} className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500">
                               <option value="">Select Rider</option>
                               {riders.map(rider => (
                                 <option key={rider.id} value={rider.riderName}>
@@ -727,19 +817,19 @@ export default function NewLICPolicyPage() {
                             {errors.riders?.[index]?.description && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.description?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5">
-                            <input type="text" {...register(`riders.${index}.sum`)} placeholder="Sum" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
+                            <input type="text" {...register(`riders.${index}.sum`)} placeholder="Sum" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
                             {errors.riders?.[index]?.sum && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.sum?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5">
-                            <input type="text" {...register(`riders.${index}.term`)} placeholder="Term" className="w-20 text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
+                            <input type="text" {...register(`riders.${index}.term`)} placeholder="Term" className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
                             {errors.riders?.[index]?.term && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.term?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5">
-                            <input type="text" {...register(`riders.${index}.ppt`)} placeholder="PPT" className="w-20 text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
+                            <input type="text" {...register(`riders.${index}.ppt`)} placeholder="PPT" className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
                             {errors.riders?.[index]?.ppt && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.ppt?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5">
-                            <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
+                            <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
                             {errors.riders?.[index]?.premium && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.premium?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5 text-center">
@@ -843,7 +933,7 @@ export default function NewLICPolicyPage() {
                     Rate %
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     {...register("ratePercent")}
                     placeholder="Rate %"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
@@ -885,8 +975,9 @@ export default function NewLICPolicyPage() {
         >
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
+            type="button"
             className="flex items-center justify-between w-full text-left"
-          >
+          > 
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <Settings size={20} className="text-blue-600" />
               Advanced Options
@@ -895,135 +986,204 @@ export default function NewLICPolicyPage() {
           </button>
 
           {showAdvanced && (
-            <div className="mt-6 grid grid-cols-1 gap-6">
-              {/* Current Status */}
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">Current Status</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Policy Status</label>
-                    <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                      {statuses.map((status) => (<option key={status.id} value={status.statusName}>{status.statusName}</option>))}
-                    </select>
+            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* ================= LEFT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Current Status ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <div><h3 className="font-semibold text-slate-900">Current Status</h3></div>
+                    <span className="text-sm text-slate-500">Check Current Status of Policy</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Premium Adjusted</label>
-                    <input type="text" placeholder="Premium adjusted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Policy Status</label>
+                        <select className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          {statuses.map((status) => (<option key={status.id} value={status.statusName}>{status.statusName}</option>))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">First Unpaid Premium (F.U.P.) Date</label>
+                        <Controller control={control} name="fupDate" render={({ field }) => (<DatePicker value={field.value ? new Date(field.value) : undefined} onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")} />)} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Premium Adjusted</label>
+                        <input type="text" placeholder="Premium Adjusted" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div className="flex items-center pt-8">
+                        <input id="premiumDeposit" type="checkbox" className="h-5 w-5" />
+                        <label htmlFor="premiumDeposit" className="ml-3 text-sm">Create Premium Deposit Entries</label>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Loan Taken</label>
+                        <input type="text" placeholder="Loan Taken" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">First Unpaid Loan Int. (FULI) Date</label>
+                        <Controller control={control} name="fuliDate" render={({ field }) => (<DatePicker value={field.value ? new Date(field.value) : undefined} onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")} />)} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Loan Taken</label>
-                    <input type="text" placeholder="Loan taken" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                </div>
+                {/* ================= NACH & NEFT ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <h3 className="font-semibold text-slate-900">NACH & NEFT Details</h3>
+                    <span className="text-sm text-slate-500">Provide NACH / NEFT Details for Bank Transactions</span>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Bank Name</label>
+                        <input type="text" placeholder="Bank Name" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Account Number</label>
+                        <input type="text" placeholder="Account Number" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">IFSC Code</label>
+                        <input type="text" placeholder="IFSC Code" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Account Holder Name</label>
+                        <input type="text" placeholder="Account Holder Name" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">Check Current Status of Policy</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">First Unpaid Premium (F.U.P) Date</label>
-                    <input type="date" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+              {/* ================= RIGHT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Nomination Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <h3 className="font-semibold text-slate-900">Nomination Details</h3>
+                    <button
+                      type="button"
+                      onClick={() => appendNominee({ nomineeName: "", relationship: "", dateOfBirth: "", percentage: null, phone: "", email: "" })}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                    >
+                      <Plus size={16} />
+                      Add Nominee
+                    </button>
+                  </div>
+                  <div className="p-5">
+                    {nomineeFields.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-4">No nominees added. Click 'Add Nominee' to start.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {nomineeFields.map((field, index) => (
+                          <div key={field.id} className="border border-slate-200 rounded-lg p-4 space-y-3 relative">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-medium mb-1">Nominee Name</label>
+                                <input {...register(`nominees.${index}.nomineeName`)} placeholder="Full Name" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
+                                {errors.nominees?.[index]?.nomineeName && <p className="text-xs text-red-500 mt-1">{errors.nominees[index]?.nomineeName?.message}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">Relationship</label>
+                                <input {...register(`nominees.${index}.relationship`)} placeholder="e.g., Spouse, Son" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
+                                {errors.nominees?.[index]?.relationship && <p className="text-xs text-red-500 mt-1">{errors.nominees[index]?.relationship?.message}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Date of Birth
+                                </label>
+                                <Controller
+                                  control={control}
+                                  name={`nominees.${index}.dateOfBirth`}
+                                  render={({ field }) => (
+                                    <DatePicker
+                                      value={field.value ? new Date(field.value) : undefined}
+                                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                    />
+                                  )}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">Share %</label>
+                                <input type="number" {...register(`nominees.${index}.percentage`)} placeholder="e.g., 100" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                {errors.nominees?.[index]?.percentage && <p className="text-xs text-red-500 mt-1">{errors.nominees[index]?.percentage?.message}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">Phone</label>
+                                <input type="tel" {...register(`nominees.${index}.phone`)} placeholder="Mobile Number" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">Email</label>
+                                <input type="email" {...register(`nominees.${index}.email`)} placeholder="Email Address" className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500" />
+                                {errors.nominees?.[index]?.email && <p className="text-xs text-red-500 mt-1">{errors.nominees[index]?.email?.message}</p>}
+                              </div>
+                            </div>
+                            <button type="button" onClick={() => removeNominee(index)} className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove Nominee"><Trash2 size={14} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">Nomination Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Annuity Details</label>
-                    <input type="text" placeholder="Annuity details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Other Information</label>
-                    <input type="text" placeholder="Other information" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
+                {/* ================= Annuity Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b"><h3 className="font-semibold text-slate-900">Annuity Details</h3></div>
+                  <div className="p-5"><p className="text-sm text-slate-500">This will be enabled for Annuity Policies.</p></div>
                 </div>
-                <button className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium">Add / Edit Nomination Details</button>
-                <p className="text-xs text-slate-400 mt-1">This will be enable for Annuity Policies</p>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">Advisor Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Controller
-                      name="advisorId"
-                      control={control}
-                      render={({ field }) => (
-                        <AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={advisors} />
-                      )}
-                    />
+                {/* ================= Other Information ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h3 className="font-semibold text-slate-900">Other Information</h3>
+                    <span className="text-sm text-slate-500">Agency, Branch, Notes & Other Policy Information</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Agent Code</label>
-                    <input
-                      {...register("agentCode")}
-                      type="text" placeholder="Auto-filled"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" readOnly
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">NACH & NEFT Details</h3>
-                <p className="text-sm text-slate-500 mb-4">Provide NACH / NEFT Details for bank transactions</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
-                    <input type="text" placeholder="Enter bank name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Number</label>
-                    <input type="text" placeholder="Enter account number" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">IFSC Code</label>
-                    <input type="text" placeholder="Enter IFSC code" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
-                    <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">Additional Fields</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                    <input type="text" placeholder="Branch" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Medical</label>
-                    <input type="text" placeholder="Medical details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Sales Channel</label>
-                    <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                      <option value="direct">Direct</option>
-                      <option value="agent">Agent</option>
-                      <option value="broker">Broker</option>
-                      <option value="online">Online</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Age Admitted</label>
-                    <input type="number" placeholder="Age admitted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Tax Beneficiary</label>
-                    <input type="text" placeholder="Tax beneficiary" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                  </div>
-                  <div className="lg:col-span-3">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                    <textarea
-                      placeholder="Add notes"
-                      rows={2}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-y"
-                    />
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Agency</label> 
+                        <select {...register("agencyId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option value="">Select Agency</option>
+                          {agencies.map((agency) => (<option key={agency.id} value={agency.id}>{agency.agencyName}</option>))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Branch</label>
+                        <select {...register("branchId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option value="">Select Branch</option>
+                          {branches.map((branch) => (<option key={branch.id} value={branch.id}>{branch.branchName}</option>))}
+                        </select>
+                      </div>
+                      <div>
+                        <Controller name="advisorId" control={control} render={({ field }) => (<AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={filteredAdvisors} disabled={!watchAgencyId} placeholder={watchAgencyId ? "Search Advisor..." : "Select Agency First"} />)} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Agent Code</label>
+                        <input {...register("agentCode")} readOnly placeholder="Auto Filled" className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Sales Channel</label>
+                        <select className="w-full rounded-lg border border-slate-300 px-3 py-2.5">
+                          <option value="direct">Direct</option>
+                          <option value="agent">Agent</option>
+                          <option value="broker">Broker</option>
+                          <option value="online">Online</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Medical</label>
+                        <input type="text" placeholder="Medical Details" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tax Beneficiary</label>
+                        <input type="text" placeholder="Tax Beneficiary" className="w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+                      </div>
+                      <div className="flex items-center mt-8">
+                        <input id="ageAdmitted" type="checkbox" className="h-5 w-5" />
+                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">Age Admitted</label>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">Notes</label>
+                        <textarea rows={4} placeholder="Enter Notes..." className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1031,17 +1191,6 @@ export default function NewLICPolicyPage() {
           )}
         </div>
       </form>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 flex justify-end gap-3">
-        <button className="px-6 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm font-medium">
-          Cancel
-        </button>
-        <button onClick={handleSubmit(onSubmit)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center gap-2 disabled:opacity-60" disabled={isSubmitting}>
-          <Save size={16} />
-          {isSubmitting ? "Saving..." : "Save Policy"}
-        </button>
-      </div>
     </div>
   );
 }

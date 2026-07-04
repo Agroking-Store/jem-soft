@@ -1,5 +1,6 @@
 import { prisma } from "../config/database.js";
 import { Policy } from "@prisma/client";
+import { AppError } from "../utils/AppError.js";
 
 interface RiderData {
   description: string;
@@ -22,10 +23,10 @@ interface PolicyData {
   advisorId?: string;
   agentCode?: string;
   completionDate?: string;
+  fupDate?: string;
 
-  policyTerm?: number;
-  premiumPayingTerm?: number;
-
+  term?: number;
+  ppt?: number;
   sumAssured?: number;
   basicYearlyPremium?: number;
   totalYearlyPremium?: number;
@@ -39,6 +40,11 @@ interface PolicyData {
 
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
+  // Validate policy number format
+  if (!/^\d{9}$/.test(data.policyNumber)) {
+    throw new AppError("Policy number must be exactly 9 digits.", 400);
+  }
+
   const {
     riders,
     sumAssured,
@@ -48,6 +54,9 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     totalInstallmentPremium,
     gst,
     // Destructure only what's needed for this specific scope
+    term,
+    ppt,
+    fupDate,
   } = data;
 
   // These should ideally come from the DB based on a default or user input
@@ -75,8 +84,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
     policyNumber: data.policyNumber,
 
-    advisorId: data.advisorId,
-    agentCode: data.agentCode,
+    
 
     statusId: status.id,
     premiumModeId: premiumMode.id,
@@ -86,8 +94,11 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       ? new Date(data.completionDate)
       : undefined,
 
-    policyTerm: data.policyTerm,
-    premiumPayingTerm: data.premiumPayingTerm,
+    nextPremiumDueDate: fupDate
+      ? new Date(fupDate)
+      : undefined,
+    policyTerm: term,
+    premiumPayingTerm: ppt,
   },
 });
 
@@ -138,5 +149,32 @@ export const getAllPolicies = async (): Promise<any[]> => {
       premiumMode: true,
       premium: true,
     },
+  });
+};
+
+export const deletePolicy = async (policyId: string): Promise<Policy> => {
+  // First, check if the policy exists
+  const policy = await prisma.policy.findUnique({
+    where: { id: policyId },
+  });
+
+  if (!policy) {
+    throw new Error("Policy not found.");
+  }
+
+  // Use a transaction to ensure all related data is deleted along with the policy
+  return prisma.$transaction(async (tx) => {
+    // Delete related premium calculations
+    await tx.policyPremiumCalculation.deleteMany({
+      where: { policyId: policyId },
+    });
+
+    // Delete related riders
+    await tx.policyRider.deleteMany({
+      where: { policyId: policyId },
+    });
+
+    // Finally, delete the policy itself
+    return tx.policy.delete({ where: { id: policyId } });
   });
 };

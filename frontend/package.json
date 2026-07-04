@@ -9,12 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.19",
     "@hookform/resolvers": "^5.4.0",
     "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.18.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "lucide-react": "^1.18.0",
     "next": "16.2.9",
     "react": "19.2.4",
+    "react-datepicker": "^9.1.0",
+    "react-day-picker": "^10.0.1",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0",
     "react-hot-toast": "^2.6.0",

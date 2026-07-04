@@ -1,9 +1,17 @@
 import express from "express";
-import * as policyController from "../controllers/policyController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import {
+  createPolicy,
+  getAllPolicies,
+  deletePolicy,
+} from "../controllers/policyController.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(policyController.getAllPolicies).post(policyController.createPolicy);
+router.use(protect);
+
+router.route("/").get(getAllPolicies).post(restrictTo("ADMIN", "ADVISOR"), createPolicy);
+
+router.route("/:id").delete(restrictTo("ADMIN", "ADVISOR"), deletePolicy);
 
 export default router;
