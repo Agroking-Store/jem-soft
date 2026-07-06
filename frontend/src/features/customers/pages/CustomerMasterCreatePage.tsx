@@ -65,7 +65,7 @@ const addressSchema = z.object({
 });
 
 const schema = z.object({
-  groupId: z.string().optional().or(z.literal("")),
+  groupId: z.string().min(1, "Customer Group is required"),
   salutation: z.string().optional().or(z.literal("")),
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional().or(z.literal("")),
@@ -184,7 +184,17 @@ function SectionCard({ title, icon, children, accent }: { title: string; icon: R
 }
 
 // Group Autocomplete
-function GroupAutoComplete({ value, onChange, groups }: { value: string; onChange: (id: string) => void; groups: { id: string; groupCode?: string | null; groupName?: string | null }[] }) {
+function GroupAutoComplete({ 
+  value, 
+  onChange, 
+  groups,
+  error,
+}: { 
+  value: string; 
+  onChange: (id: string) => void; 
+  groups: { id: string; groupCode?: string | null; groupName?: string | null }[];
+  error?: string;
+}) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -203,7 +213,7 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
 
   return (
     <div ref={ref} className="relative">
-      <FieldLabel label="Customer Group" />
+      <FieldLabel label="Customer Group" required />
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={14} /></span>
@@ -212,7 +222,8 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
             onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
             onFocus={() => setOpen(true)}
             placeholder="Search group by name or code..."
-            className="w-full border border-slate-200 rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white"
+            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+              ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
             <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -229,6 +240,7 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
           <Plus size={16} />
         </Link>
       </div>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       {open && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
@@ -375,6 +387,7 @@ export default function CustomerMasterCreatePage() {
               value={selectedGroupId}
               onChange={(id) => { setSelectedGroupId(id); setValue("groupId", id); }}
               groups={groups.map((g) => ({ id: g.id, groupCode: g.groupCode, groupName: g.groupName }))}
+              error={errors.groupId?.message}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
