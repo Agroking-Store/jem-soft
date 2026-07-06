@@ -376,7 +376,7 @@ export default function LICPoliciesPage() {
                     </button>
                     <button
                       onClick={() =>
-                        router.push(`/dashboard/lic/policies/${policy.id}/edit`)
+                        router.push(`/dashboard/lic/policies/edit/${policy.id}`)
                       }
                       className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
                       title="Edit"
@@ -506,7 +506,7 @@ export default function LICPoliciesPage() {
                           <button
                             onClick={() =>
                               router.push(
-                                `/dashboard/lic/policies/${policy.id}/edit`,
+                                `/dashboard/lic/policies/edit/${policy.id}`,
                               )
                             }
                             className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"

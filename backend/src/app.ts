@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import advisorRoutes from "./routes/advisorRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import customerMasterRoutes from "./routes/customerMasterRoutes.js";
+import familyHistoryRoutes from "./routes/familyHistoryRoutes.js";
 import insuranceProviderRoutes from "./routes/insuranceProviderRoutes.js";
 import productCategoryRoutes from "./routes/productCategoryRoutes.js";
 import productMasterRoutes from "./routes/productMasterRoutes.js";
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/advisors", advisorRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/customer-master", customerMasterRoutes);
+app.use("/api/family-history", familyHistoryRoutes);
 
 app.use("/api/insurance-providers", insuranceProviderRoutes);
 app.use("/api/product-categories", productCategoryRoutes);

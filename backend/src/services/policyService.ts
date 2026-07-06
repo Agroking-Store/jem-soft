@@ -46,10 +46,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     installmentPremium,
     totalInstallmentPremium,
     gst,
-    // Destructure only what's needed for this specific scope
   } = data;
 
-  // These should ideally come from the DB based on a default or user input
   const status = await prisma.policyStatusMaster.findFirst({
     where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
   });
@@ -67,23 +65,17 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       data: {
         clientId: data.groupId,
         CustomerMasterId: data.lifeAssuredId,
-
         providerId: data.providerId,
         productId: data.productId,
-
         policyNumber: data.policyNumber,
-
         advisorId: data.advisorId,
         agentCode: data.agentCode,
-
         statusId: status.id,
         premiumModeId: premiumMode.id,
-
         commencementDate: new Date(data.commencementDate),
         maturityDate: data.completionDate
           ? new Date(data.completionDate)
           : undefined,
-
         policyTerm: data.policyTerm,
         premiumPayingTerm: data.premiumPayingTerm,
       },
@@ -94,6 +86,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         const riderMaster = await tx.riderMaster.findFirst({
           where: { riderName: riderData.description },
         });
+
         if (riderMaster) {
           await tx.policyRider.create({
             data: {
@@ -110,15 +103,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     await tx.policyPremiumCalculation.create({
       data: {
         policyId: newPolicy.id,
-
         sumAssured: sumAssured ?? 0,
         basicYearlyPremium: basicYearlyPremium ?? 0,
         totalYearlyPremium:
           (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
-
         installmentPremium: installmentPremium ?? 0,
         totalInstallmentPremium: totalInstallmentPremium ?? 0,
-
         gst: gst ?? 0,
       },
     });
@@ -180,5 +170,111 @@ export const getPolicyById = async (id: string): Promise<any | null> => {
         },
       },
     },
+  });
+};
+
+export const updatePolicy = async (
+  id: string,
+  data: PolicyData,
+): Promise<Policy> => {
+  const {
+    riders,
+    sumAssured,
+    basicYearlyPremium,
+    totalRiderPremium,
+    installmentPremium,
+    totalInstallmentPremium,
+    gst,
+  } = data;
+
+  const premiumMode = await prisma.premiumModeMaster.findFirst({
+    where: {
+      modeName: {
+        equals: data.mode,
+        mode: "insensitive",
+      },
+    },
+  });
+
+  if (!premiumMode) {
+    throw new Error("Premium mode not found.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updatedPolicy = await tx.policy.update({
+      where: {
+        id,
+      },
+      data: {
+        clientId: data.groupId,
+        CustomerMasterId: data.lifeAssuredId,
+        providerId: data.providerId,
+        productId: data.productId,
+        policyNumber: data.policyNumber,
+        advisorId: data.advisorId || null,
+        agentCode: data.agentCode,
+        premiumModeId: premiumMode.id,
+        commencementDate: new Date(data.commencementDate),
+        maturityDate: data.completionDate
+          ? new Date(data.completionDate)
+          : null,
+        policyTerm: data.policyTerm,
+        premiumPayingTerm: data.premiumPayingTerm,
+      },
+    });
+
+    await tx.policyRider.deleteMany({
+      where: {
+        policyId: id,
+      },
+    });
+
+    if (riders && riders.length > 0) {
+      for (const riderData of riders) {
+        const riderMaster = await tx.riderMaster.findFirst({
+          where: {
+            riderName: riderData.description,
+          },
+        });
+
+        if (riderMaster) {
+          await tx.policyRider.create({
+            data: {
+              policyId: id,
+              riderId: riderMaster.id,
+              riderAmount: riderData.sum,
+              riderPremium: riderData.premium,
+            },
+          });
+        }
+      }
+    }
+
+    await tx.policyPremiumCalculation.upsert({
+      where: {
+        policyId: id,
+      },
+      update: {
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: basicYearlyPremium ?? 0,
+        totalYearlyPremium:
+          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
+        installmentPremium: installmentPremium ?? 0,
+        totalInstallmentPremium: totalInstallmentPremium ?? 0,
+        gst: gst ?? 0,
+      },
+      create: {
+        policyId: id,
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: basicYearlyPremium ?? 0,
+        totalYearlyPremium:
+          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
+        installmentPremium: installmentPremium ?? 0,
+        totalInstallmentPremium: totalInstallmentPremium ?? 0,
+        gst: gst ?? 0,
+      },
+    });
+
+    return updatedPolicy;
   });
 };

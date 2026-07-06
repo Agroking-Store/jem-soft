@@ -48,6 +48,10 @@ export interface PolicyCustomerMaster {
 
 export interface Policy {
   id: string;
+  clientId?: string | null;
+  CustomerMasterId?: string | null;
+  providerId?: string | null;
+  productId?: string | null;
   policyNumber: string;
   policyTerm?: number | null;
   premiumPayingTerm?: number | null;
@@ -60,18 +64,34 @@ export interface Policy {
   status?: PolicyStatus;
   premiumMode?: PolicyPremiumMode;
   advisor?: PolicyAdvisor;
-  premium?: PolicyPremium;
+  advisorId?: string | null;
+  agentCode?: string | null;
+  premium?: PolicyPremium & {
+    basicYearlyPremium?: number | null;
+    totalYearlyPremium?: number | null;
+    totalInstallmentPremium?: number | null;
+    totalRiderPremium?: number | null;
+  };
   CustomerMaster?: PolicyCustomerMaster;
+  policyRiders?: Array<{
+    riderAmount?: number | null;
+    riderPremium?: number | null;
+    rider?: {
+      riderName?: string | null;
+    };
+  }>;
 }
 
 interface PolicyState {
   policies: Policy[];
+  selectedPolicy: Policy | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: PolicyState = {
   policies: [],
+  selectedPolicy: null,
   isLoading: false,
   error: null,
 };
@@ -162,6 +182,69 @@ export const createPolicy = createAsyncThunk<
   },
 );
 
+export const fetchPolicyById = createAsyncThunk<
+  Policy,
+  string,
+  { rejectValue: string; state: RootState }
+>("policies/fetchPolicyById", async (id, { getState, rejectWithValue }) => {
+  try {
+    const token = getState().auth.token;
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    const response = await axios.get(`${API_URL}/policies/${id}`, config);
+
+    return response.data.data.policy;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch policy",
+      );
+    }
+
+    return rejectWithValue("Unexpected error while fetching policy.");
+  }
+});
+
+export const updatePolicy = createAsyncThunk<
+  Policy,
+  { id: string; data: any },
+  { rejectValue: string; state: RootState }
+>(
+  "policies/updatePolicy",
+  async ({ id, data }, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.put(
+        `${API_URL}/policies/${id}`,
+        data,
+        config,
+      );
+
+      return response.data.data.policy;
+    } catch (error) {
+      if (isAxiosError(error)) {
+        return rejectWithValue(
+          error.response?.data?.message || "Failed to update policy",
+        );
+      }
+
+      return rejectWithValue("Unexpected error while updating policy.");
+    }
+  },
+);
+
 const policySlice = createSlice({
   name: "policies",
   initialState,
@@ -177,12 +260,54 @@ const policySlice = createSlice({
       })
       .addCase(fetchPolicies.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload ?? "Failed to fetch";
+        state.error = action.payload ?? "Failed to fetch policies";
+      })
+      .addCase(createPolicy.pending, (state) => {
+        state.isLoading = true;
       })
       .addCase(createPolicy.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.policies.push(action.payload);
+      })
+      .addCase(createPolicy.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ?? "Failed to create policy";
+      })
+      .addCase(fetchPolicyById.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchPolicyById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedPolicy = action.payload;
+      })
+      .addCase(fetchPolicyById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ?? "Failed to fetch policy";
+      })
+      .addCase(updatePolicy.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updatePolicy.fulfilled, (state, action) => {
+        state.isLoading = false;
+
+        const index = state.policies.findIndex(
+          (policy) => policy.id === action.payload.id,
+        );
+
+        if (index !== -1) {
+          state.policies[index] = action.payload;
+        }
+
+        state.selectedPolicy = action.payload;
+      })
+      .addCase(updatePolicy.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ?? "Failed to update policy";
       });
   },
 });
+
+export const selectSelectedPolicy = (state: RootState) =>
+  state.policies.selectedPolicy;
 
 export default policySlice.reducer;
