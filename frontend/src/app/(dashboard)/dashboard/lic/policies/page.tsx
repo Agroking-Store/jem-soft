@@ -241,7 +241,7 @@ export default function LICPoliciesPage() {
                       <Eye size={16} />
                     </button>
                     <button
-                      onClick={() => router.push(`/dashboard/lic/policies/${policy.id}/edit`)}
+                      onClick={() => router.push(`/dashboard/lic/policies/edit/${policy.id}`)}
                       className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
                       title="Edit"
                     >

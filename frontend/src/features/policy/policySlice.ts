@@ -12,12 +12,14 @@ export interface Policy {
 
 interface PolicyState {
   policies: Policy[];
+  selectedPolicy: Policy | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: PolicyState = {
   policies: [],
+  selectedPolicy: null,
   isLoading: false,
   error: null,
 };
@@ -60,11 +62,155 @@ export const createPolicy = createAsyncThunk<Policy, any, { rejectValue: string;
   }
 );
 
+
+export const fetchPolicyById = createAsyncThunk<
+  Policy,
+  string,
+  { rejectValue: string; state: RootState }
+>(
+  "policies/fetchPolicyById",
+  async (id, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.get(
+        `${API_URL}/policies/${id}`,
+        config
+      );
+
+      return response.data.data.policy;
+    } catch (error) {
+      if (isAxiosError(error)) {
+        return rejectWithValue(
+          error.response?.data?.message ||
+          "Failed to fetch policy"
+        );
+      }
+
+      return rejectWithValue(
+        "Unexpected error while fetching policy."
+      );
+    }
+  }
+);
+
+
+export const updatePolicy = createAsyncThunk<
+  Policy,
+  { id: string; data: any },
+  { rejectValue: string; state: RootState }
+>(
+  "policies/updatePolicy",
+  async ({ id, data }, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.put(
+        `${API_URL}/policies/${id}`,
+        data,
+        config
+      );
+
+      return response.data.data.policy;
+    } catch (error) {
+      if (isAxiosError(error)) {
+        return rejectWithValue(
+          error.response?.data?.message ||
+          "Failed to update policy"
+        );
+      }
+
+      return rejectWithValue(
+        "Unexpected error while updating policy."
+      );
+    }
+  }
+);
+
+
 const policySlice = createSlice({
   name: "policies",
   initialState,
   reducers: {},
-  extraReducers: (builder) => { builder.addCase(fetchPolicies.pending, (state) => { state.isLoading = true; }).addCase(fetchPolicies.fulfilled, (state, action) => { state.isLoading = false; state.policies = action.payload; }).addCase(fetchPolicies.rejected, (state, action) => { state.isLoading = false; state.error = action.payload ?? "Failed to fetch"; }).addCase(createPolicy.fulfilled, (state, action) => { state.policies.push(action.payload); }); },
+ extraReducers: (builder) => {
+  builder
+    // Fetch all policies
+    .addCase(fetchPolicies.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(fetchPolicies.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.policies = action.payload;
+    })
+    .addCase(fetchPolicies.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload ?? "Failed to fetch";
+    })
+
+    // Create policy
+    .addCase(createPolicy.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(createPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.policies.push(action.payload);
+    })
+    .addCase(createPolicy.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload ?? "Failed to create policy";
+    })
+
+    // Fetch one policy
+    .addCase(fetchPolicyById.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(fetchPolicyById.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.selectedPolicy = action.payload;
+    })
+    .addCase(fetchPolicyById.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload ?? "Failed to fetch policy";
+    })
+
+    // Update policy
+    .addCase(updatePolicy.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(updatePolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+
+      const index = state.policies.findIndex(
+        (policy) => policy.id === action.payload.id
+      );
+
+      if (index !== -1) {
+        state.policies[index] = action.payload;
+      }
+
+      state.selectedPolicy = action.payload;
+    })
+    .addCase(updatePolicy.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload ?? "Failed to update policy";
+    });
+},
 });
+
+
+export const selectSelectedPolicy = (state: RootState) =>
+  state.policies.selectedPolicy;
 
 export default policySlice.reducer;
