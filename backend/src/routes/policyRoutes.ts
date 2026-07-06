@@ -1,18 +1,25 @@
 import express from "express";
-import * as policyController from "../controllers/policyController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import {
+  createPolicy,
+  getAllPolicies,
+  getPolicyById,
+  updatePolicy,
+  deletePolicy,
+} from "../controllers/policyController.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
 router
     .route("/")
-    .get(policyController.getAllPolicies)
-    .post(policyController.createPolicy);
+    .get(getAllPolicies)
+    .post(restrictTo("ADMIN", "ADVISOR"), createPolicy);
 
 router
-    .route("/:id")
-    .get(policyController.getPolicyById)
-    .put(policyController.updatePolicy);
+  .route("/:id")
+  .get(getPolicyById)
+  .put(restrictTo("ADMIN", "ADVISOR"), updatePolicy)
+  .delete(restrictTo("ADMIN", "ADVISOR"), deletePolicy);
 
 export default router;

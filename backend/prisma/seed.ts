@@ -93,6 +93,72 @@ async function main() {
     console.log(`Upserted provider: ${providerData.name}`);
   }
 
+  const LicBranchesData = [
+    {
+      branchCode: '951',
+      branchName: 'LIC Branch 1',
+      division: 'Pune',
+      address: 'Jeevan Shree Building, West Wing , 2nd Floor, 1109 University Rd. , Pune',
+      state: 'Maharashtra',
+      pincode: '411016'
+    }
+  ];
+
+  console.log('Seeding LIC branches...');
+  for (const branchData of LicBranchesData) {
+    await prisma.licBranch.upsert({
+      where: { branchCode: branchData.branchCode },
+      update: branchData,
+      create: branchData,
+    });
+    console.log(`Upserted LIC Branch: ${branchData.branchName}`);
+  }
+
+  // Seed Agencies
+  const licBranch1 = await prisma.licBranch.findUnique({ where: { branchCode: '951' } });
+
+  if (licBranch1) {
+    const agenciesData = [
+        {
+          agencyCode: 'AG001',
+          agencyName: 'Other Agencies',
+          licenseNo: 'LIC-AG-00000',
+          branchId: licBranch1.id,
+          address: 'General, Pune',
+          contactNo: '9999999999',
+          email: 'contact@other.com',
+        },
+        {
+          agencyCode: 'AG002',
+          agencyName: 'Jayant Mahabole',
+          licenseNo: 'LIC-AG-11223',
+          branchId: licBranch1.id,
+          address: '789 Kothrud, Pune',
+          contactNo: '9876543212',
+          email: 'contact@mahabole.com',
+        },
+        {
+          agencyCode: 'AG003',
+          agencyName: 'Manisha Y Mahabole',
+          licenseNo: 'LIC-AG-11224',
+          branchId: licBranch1.id,
+        },
+    ];
+
+    console.log('Seeding agencies...');
+    for (const agencyData of agenciesData) {
+        await prisma.agency.upsert({
+            where: { agencyCode: agencyData.agencyCode },
+            update: agencyData,
+            create: agencyData,
+        });
+        console.log(`Upserted agency: ${agencyData.agencyName}`);
+    }
+  }
+
+
+  
+
   // Seed Product Categories
   const dbProviders = await prisma.insuranceProvider.findMany({ select: { id: true, code: true } });
   console.log('Seeding product categories...');
@@ -158,12 +224,48 @@ async function main() {
       console.log(`Upserted product: ${productData.productName}`);
     }
   
+  // Seed Advisors
+  const agency1 = await prisma.agency.findUnique({ where: { agencyCode: 'AG001' } });
+  const agency4 = await prisma.agency.findUnique({ where: { agencyCode: 'AG004' } });
+  const agency5 = await prisma.agency.findUnique({ where: { agencyCode: 'AG005' } });
+  const advisorsData = [
+    { advisorName: 'Ramesh Kumar', advisorCode: 'A001', providerCode: 'LIC', agencyId: agency1?.id },
+    { advisorName: 'Sita Sharma', advisorCode: 'A002', providerCode: 'LIC', agencyId: agency1?.id },
+    { advisorName: 'Vikram Singh', advisorCode: 'A003', providerCode: 'HDFC_LIFE' },
+    { advisorName: 'Jayant Mahabole', advisorCode: 'A004', providerCode: 'LIC', agencyId: agency4?.id },
+    { advisorName: 'Manisha Y Mahabole', advisorCode: 'A005', providerCode: 'LIC', agencyId: agency5?.id },
+  ];
+
+  console.log('Seeding advisors...');
+  for (const advisorData of advisorsData) {
+    const provider = dbProviders.find(p => p.code === advisorData.providerCode);
+    const { providerCode, ...createData } = advisorData;
+
+    if (!provider) {
+      console.warn(`Provider ${advisorData.providerCode} not found for advisor ${advisorData.advisorName}. Skipping.`);
+      continue;
+    }
+
+    await prisma.advisor.upsert({
+      where: { providerId_advisorCode: { providerId: provider.id, advisorCode: advisorData.advisorCode } },
+      update: {
+        advisorName: advisorData.advisorName,
+        agencyId: advisorData.agencyId,
+      },
+      create: {
+        providerId: provider.id,
+        ...createData,
+      },
+    });
+    console.log(`Upserted advisor: ${advisorData.advisorName}`);
+  }
+
 
   // Seed Rider Master
   const ridersData = [
     { riderName: 'Accidental Death and Disability Benefit Rider', riderCode: 'ADDB', description: 'Provides benefit on accidental death or disability.' },
     { riderName: 'Term Assurance Rider', riderCode: 'TERM', description: 'Provides an additional term life cover.' },
-    { riderName: 'Critical Illness Rider', riderCode: 'CI', description: 'Covers a list of specified critical illnesses.' },
+    { riderName: 'Critical Illness Rider', riderCode: 'CIR', description: 'Covers a list of specified critical illnesses.' },
     { riderName: 'Waiver of Premium Rider', riderCode: 'WOP', description: 'Waives future premiums on disability or critical illness.' },
   ];
 
@@ -178,6 +280,40 @@ async function main() {
       create: riderData,
     });
     console.log(`Upserted rider: ${riderData.riderName}`);
+  }
+
+  // Seed Payment Status Master
+  const paymentStatuses = [
+    { statusName: 'Paid', statusCode: 'PAID' },
+    { statusName: 'Unpaid', statusCode: 'UNPAID' },
+    { statusName: 'Overdue', statusCode: 'OVERDUE' },
+  ];
+
+  console.log('Seeding payment statuses...');
+  for (const status of paymentStatuses) {
+    await prisma.paymentStatusMaster.upsert({
+      where: { statusCode: status.statusCode },
+      update: { statusName: status.statusName },
+      create: status,
+    });
+    console.log(`Upserted payment status: ${status.statusName}`);
+  }
+
+  // Seed Loan Status Master
+  const loanStatuses = [
+    { statusName: 'Active', statusCode: 'ACTIVE' },
+    { statusName: 'Paid Off', statusCode: 'PAID_OFF' },
+    { statusName: 'Defaulted', statusCode: 'DEFAULTED' },
+  ];
+
+  console.log('Seeding loan statuses...');
+  for (const status of loanStatuses) {
+    await prisma.loanStatusMaster.upsert({
+      where: { statusCode: status.statusCode },
+      update: { statusName: status.statusName },
+      create: status,
+    });
+    console.log(`Upserted loan status: ${status.statusName}`);
   }
 
   console.log(`Seeding finished.`);
