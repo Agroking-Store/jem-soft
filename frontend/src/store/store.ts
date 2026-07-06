@@ -10,6 +10,9 @@ import advisorReducer from "@/features/advisor/advisorSlice";
 import policyReducer from "@/features/policy/policySlice";
 import policyStatusMasterReducer from "@/features/policy/policyStatusMasterSlice";
 import premiumModeMasterReducer from "@/features/policy/premiumModeMasterSlice";
+import licBranchReducer from "@/features/lic/licBranchSlice";
+import agencyReducer from "@/features/agency/agencySlice";
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -23,8 +26,11 @@ export const store = configureStore({
     policies: policyReducer,
     policyStatuses: policyStatusMasterReducer,
     premiumModes: premiumModeMasterReducer,
+    licBranch: licBranchReducer, // Added licBranch reducer
+    agency: agencyReducer, // Added agency reducer
   },
 });
 
+// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

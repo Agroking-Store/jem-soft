@@ -5,6 +5,7 @@ import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // All routes below are protected
+router.use(protect);
 
 router
   .route("/")
