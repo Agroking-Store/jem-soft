@@ -45,6 +45,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 type Tab = "group" | "master" | "family" | "medical";
 type DeleteTarget = { id: string; type: Extract<Tab, "group" | "master">; label: string } | null;
 
+type HistoryView =
+  | { type: "list" }
+  | { type: "add" }
+  | { type: "edit"; recordId?: string }
+  | { type: "view"; recordId?: string };
+
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
   if (error instanceof Error) return error.message;
@@ -88,6 +94,12 @@ export default function CustomerListPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // --- previously missing state (this was the source of the runtime/compile errors) ---
+  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [historyView, setHistoryView] = useState<HistoryView>({ type: "list" });
+  // --------------------------------------------------------------------------------------
+
   useEffect(() => {
     dispatch(fetchCustomers());
     dispatch(fetchCustomersMaster());
@@ -97,7 +109,6 @@ export default function CustomerListPage() {
     // This will only run on the client, after the initial render
     setIsClient(true);
   }, []);
-
 
   useEffect(() => {
     setMounted(true);
@@ -714,8 +725,6 @@ export default function CustomerListPage() {
             )}
           </>
         )}
-      </>
-    )}
 
         {activeTab === "family" && (
           <div className="p-6">
