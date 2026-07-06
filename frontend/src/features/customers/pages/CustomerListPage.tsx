@@ -86,6 +86,7 @@ export default function CustomerListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isClient, setIsClient] = useState(false);
   const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit" | "view"; recordId?: string }>({
     type: "list",
   });
@@ -94,6 +95,12 @@ export default function CustomerListPage() {
     dispatch(fetchCustomers());
     dispatch(fetchCustomersMaster());
   }, [dispatch]);
+
+  useEffect(() => {
+    // This will only run on the client, after the initial render
+    setIsClient(true);
+  }, []);
+
 
   const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
 
@@ -293,7 +300,7 @@ export default function CustomerListPage() {
                 Delete ({selectedIds.size})
               </button>
             )}
-            {canEdit && (
+            {isClient && canEdit && (
               <Link
                 href={activeTab === "group" ? "/dashboard/customers/new" : "/dashboard/customers/master/new"}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all duration-200"
@@ -337,7 +344,7 @@ export default function CustomerListPage() {
                     ? "No groups match your search. Try a different keyword."
                     : "Start building your customer base by adding a new group."}
                 </p>
-                {canEdit && !searchTerm && (
+                {isClient && canEdit && !searchTerm && (
                   <Link
                     href="/dashboard/customers/new"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all"
@@ -366,7 +373,7 @@ export default function CustomerListPage() {
                       <th className="py-3 px-4 whitespace-nowrap text-center">No. of Members</th>
                       <th className="py-3 px-4 text-center">Group</th>
                       <th className="py-3 px-4 text-center">Photo</th>
-                      {canEdit && <th className="py-3 px-4 text-right"></th>}
+                      {isClient && canEdit && <th className="py-3 px-4 text-right"></th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
@@ -441,7 +448,7 @@ export default function CustomerListPage() {
                               <Camera size={13} />
                             </span>
                           </td>
-                          {canEdit && (
+                          {isClient && canEdit && (
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <Link
@@ -511,7 +518,7 @@ export default function CustomerListPage() {
                     ? "No individual customers match your search."
                     : "Add the first individual customer and map them to a customer group."}
                 </p>
-                {canEdit && !searchTerm && (
+                {isClient && canEdit && !searchTerm && (
                   <Link
                     href="/dashboard/customers/master/new"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all"
@@ -532,7 +539,7 @@ export default function CustomerListPage() {
                       <th className="py-3 px-4 whitespace-nowrap">Contact</th>
                       <th className="py-3 px-4 whitespace-nowrap">Type</th>
                       <th className="py-3 px-4 whitespace-nowrap text-center">Status</th>
-                      {canEdit && <th className="py-3 px-4 text-right"></th>}
+                      {isClient && canEdit && <th className="py-3 px-4 text-right"></th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
@@ -613,7 +620,7 @@ export default function CustomerListPage() {
                               </span>
                             )}
                           </td>
-                          {canEdit && (
+                          {isClient && canEdit && (
                             <td className="py-3 px-4 text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <Link
