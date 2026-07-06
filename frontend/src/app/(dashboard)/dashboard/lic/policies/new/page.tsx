@@ -371,12 +371,6 @@ export default function NewLICPolicyPage() {
     setIsSubmitting(true);
     try {
       const result = await dispatch(createPolicy(data)).unwrap();
-      dispatch(
-        addNotification({
-          message: `New policy #${result.policyNumber} created.`,
-          type: "success",
-        })
-      );
       toast.success("Policy created successfully!");
       router.push("/dashboard/lic/policies");
     } catch (err: any) {

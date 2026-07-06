@@ -177,6 +177,8 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
 
     // Finally, delete the policy itself
     return tx.policy.delete({ where: { id: policyId } });
+  });
+};
 export const getPolicyById = async (id: string): Promise<any> => {
   return prisma.policy.findUnique({
     where: {

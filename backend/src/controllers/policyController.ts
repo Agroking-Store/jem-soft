@@ -38,6 +38,10 @@ export const deletePolicy = catchAsync(
       status: "success",
       data: null,
 
+     });
+  }
+);
+
 export const getPolicyById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;

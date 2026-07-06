@@ -86,6 +86,7 @@ export default function CustomerListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isClient, setIsClient] = useState(false);
   const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit" | "view"; recordId?: string }>({
     type: "list",
   });
