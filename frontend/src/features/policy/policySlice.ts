@@ -50,11 +50,12 @@ export const fetchPolicies = createAsyncThunk(
 
 export const deletePolicy = createAsyncThunk(
   "policies/delete",
-  async (id: string, { rejectWithValue }) => {
+  async (id: string, { getState, rejectWithValue }) => {
     try {
+      // Correctly access getState from thunkAPI
       const policyToDelete = (getState() as RootState).policies.policies.find(p => p.id === id);
       await deletePolicyApi(id);
-      return { id, policyNumber: policyToDelete?.policyNumber };
+      return { id, policyNumber: policyToDelete?.policyNumber ?? 'Unknown' };
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to delete policy");
     }
@@ -216,6 +217,16 @@ const policySlice = createSlice({
     .addCase(updatePolicy.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload ?? "Failed to update policy";
+    })
+
+    // Delete policy
+    .addCase(deletePolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.policies = state.policies.filter(p => p.id !== action.payload.id);
+    })
+    .addCase(deletePolicy.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload ?? "Failed to delete policy";
     });
 },
 });

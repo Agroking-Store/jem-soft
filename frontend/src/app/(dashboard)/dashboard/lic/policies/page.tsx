@@ -108,13 +108,7 @@ export default function LICPoliciesPage() {
     setIsDeleting(true);
     try {
       const result = await dispatch(deletePolicy(deleteTarget.id)).unwrap();
-      toast.success(`Policy #${deleteTarget.policyNumber} deleted successfully.`);
-      dispatch(
-        addNotification({
-          message: `Policy #${result.policyNumber} was deleted.`,
-          type: "info",
-        })
-      );
+      toast.success(`Policy #${result.policyNumber} deleted successfully.`);
     } catch (err: any) {
       toast.error(err.message || "Failed to delete policy.");
       console.error("Failed to delete policy:", err);

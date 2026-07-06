@@ -256,8 +256,6 @@ model Policy {
   policyNumber   String  @unique
   proposalNumber String?
 
-  
-
   issueDate        DateTime?
   commencementDate DateTime
   maturityDate     DateTime?
@@ -267,6 +265,7 @@ model Policy {
 
   nextPremiumDueDate DateTime?
 
+  agentCode  String?
 
   remarks String?
 

@@ -254,9 +254,9 @@ export const updatePolicy = async (
           ? new Date(data.completionDate)
           : null,
 
-        policyTerm: data.policyTerm,
+        policyTerm: data.term,
 
-        premiumPayingTerm: data.premiumPayingTerm,
+        premiumPayingTerm: data.ppt,
       },
     });
 
