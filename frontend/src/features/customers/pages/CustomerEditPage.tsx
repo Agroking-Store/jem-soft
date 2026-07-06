@@ -42,7 +42,7 @@ const INDIAN_STATES = [
 
 // ─── Schema ───────────────────────────────────────────────────────
 const schema = z.object({
-  groupCode: z.string().optional().or(z.literal("")),
+  groupCode: z.string().min(1, "Group code is required"),
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
   mobilePersonal: z.string().optional().or(z.literal("")),
@@ -96,7 +96,7 @@ function FormInput({
         {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">{icon}</span>}
         <input
           {...props}
-          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
             ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
         />
@@ -115,7 +115,7 @@ function FormSelect({
     <div>
       <FieldLabel label={label} required={required} />
       <select {...props}
-        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
           ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >{children}</select>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
@@ -302,21 +302,16 @@ export default function CustomerEditPage() {
         {/* ── Section 1: Group Info ── */}
         <SectionCard title="Group Information" icon={<Hash size={16} />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Group Code */}
             <div>
-              <FieldLabel label="Group Code" />
-              <div className="flex gap-2">
-                <input
-                  {...register("groupCode")}
-                  placeholder="e.g. A001"
-                  className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white"
-                />
-                <button type="button"
-                  onClick={() => { const ts = Date.now().toString().slice(-4); setValue("groupCode", `A${ts}`); }}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors whitespace-nowrap"
-                >
-                  <Wand2 size={12} /> Auto Fill
-                </button>
-              </div>
+              <FieldLabel label="Group Code" required />
+              <input
+                {...register("groupCode")}
+                placeholder="e.g. A001"
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  ${errors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
+              />
+              {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
             </div>
             <FormInput label="Group Name" required placeholder="e.g. Jayant Shinde" icon={<User size={14} />} error={errors.groupName?.message} {...register("groupName")} />
             <FormSelect label="Category" {...register("category")}>

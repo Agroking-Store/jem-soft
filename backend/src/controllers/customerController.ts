@@ -41,3 +41,9 @@ export const loginCustomer = catchAsync(async (req: Request, res: Response, next
     data: { customer },
   });
 });
+
+export const getCustomerByCode = catchAsync(async (req: Request, res: Response) => {
+  const customer = await customerService.getCustomerByGroupCode(req.params.groupCode);
+  res.status(200).json({ status: "success", data: { customer } });
+});
+
