@@ -23,6 +23,10 @@ import {
   Tag,
   ChevronRight,
   Star,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -86,6 +90,20 @@ function getFullName(customer: {
     .filter(Boolean)
     .join(" ");
 }
+
+const getStatusBadge = (status: string) => {
+  const statusMap = {
+    Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
+    Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
+    Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
+    Completed: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
+  };
+  const StatusIcon = statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
+  return {
+    className: statusMap[status as keyof typeof statusMap]?.color || "bg-gray-100 text-gray-700",
+    icon: StatusIcon,
+  };
+};
 
 export default function CustomerDetailsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -399,6 +417,92 @@ export default function CustomerDetailsPage() {
                             Member
                           </span>
                         )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Group Policies" icon={<FileText size={16} />}>
+        {!currentCustomer.policies || currentCustomer.policies.length === 0 ? (
+          <div className="text-center py-10">
+            <FileText size={28} className="text-slate-300 mx-auto mb-3" />
+            <h3 className="text-sm font-semibold text-slate-800 mb-1">No policies found</h3>
+            <p className="text-sm text-slate-500 mb-4">No policies are mapped to this customer group.</p>
+            {canEdit && (
+              <Link
+                href="/dashboard/lic/policies/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                Create Policy
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <th className="py-3 px-4 text-left">Policy Number</th>
+                  <th className="py-3 px-4 text-left">Life Assured</th>
+                  <th className="py-3 px-4 text-left">Provider / Product</th>
+                  <th className="py-3 px-4 text-right">Sum Assured</th>
+                  <th className="py-3 px-4 text-right">Installment Premium</th>
+                  <th className="py-3 px-4 text-center">Commencement Date</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {currentCustomer.policies.map((policy: any) => {
+                  const memberName = policy.CustomerMaster
+                    ? [policy.CustomerMaster.salutation, policy.CustomerMaster.firstName, policy.CustomerMaster.middleName, policy.CustomerMaster.lastName]
+                        .filter(Boolean)
+                        .join(" ")
+                    : "—";
+
+                  const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
+                  const StatusIcon = statusDetails.icon;
+
+                  return (
+                    <tr key={policy.id} className="hover:bg-blue-50/30 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-slate-900">
+                        {canEdit ? (
+                          <Link
+                            href={`/dashboard/lic/policies/edit/${policy.id}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {policy.policyNumber}
+                          </Link>
+                        ) : (
+                          policy.policyNumber
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 font-medium">{memberName}</td>
+                      <td className="py-3 px-4">
+                        <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
+                        <div className="text-xs text-slate-550">
+                          {policy.product?.productName || "—"} {policy.product?.planNumber ? `(Plan: ${policy.product.planNumber})` : ""}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                        {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                        {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
+                        <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
+                      </td>
+                      <td className="py-3 px-4 text-center text-slate-650 font-medium">
+                        {policy.commencementDate ? new Date(policy.commencementDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
+                          <StatusIcon size={11} />
+                          {policy.status?.statusName || "Active"}
+                        </span>
                       </td>
                     </tr>
                   );

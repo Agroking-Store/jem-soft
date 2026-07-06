@@ -1,5 +1,66 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
+import type { RootState } from "@/store/store";
+
+export interface Policy {
+  id: string;
+  clientId: string;
+  CustomerMasterId: string;
+  providerId: string;
+  productId: string;
+  statusId: string;
+  premiumModeId: string;
+  advisorId?: string | null;
+  branchId?: string | null;
+  policyNumber: string;
+  proposalNumber?: string | null;
+  issueDate?: string | null;
+  commencementDate: string;
+  maturityDate?: string | null;
+  policyTerm?: number | null;
+  premiumPayingTerm?: number | null;
+  nextPremiumDueDate?: string | null;
+  remarks?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  CustomerMaster?: {
+    id: string;
+    salutation?: string | null;
+    firstName: string;
+    middleName?: string | null;
+    lastName: string;
+  } | null;
+  customer?: {
+    id: string;
+    groupCode?: string | null;
+    groupName?: string | null;
+    name: string;
+  } | null;
+  provider?: {
+    id: string;
+    name: string;
+  } | null;
+  product?: {
+    id: string;
+    productName: string;
+    planNumber?: string | null;
+  } | null;
+  status?: {
+    id: string;
+    statusName: string;
+    statusCode: string;
+  } | null;
+  premiumMode?: {
+    id: string;
+    modeName: string;
+  } | null;
+  premium?: {
+    id: string;
+    sumAssured: number;
+    installmentPremium: number;
+    totalInstallmentPremium: number;
+  } | null;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -36,7 +97,11 @@ const getPoliciesApi = () => api.get(`${API_URL}/policies`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
 const createPolicyApi = (policyData: any) => api.post(`${API_URL}/policies`, policyData);
 
-export const fetchPolicies = createAsyncThunk(
+export const fetchPolicies = createAsyncThunk<
+  Policy[],
+  void,
+  { rejectValue: string }
+>(
   "policies/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
@@ -48,9 +113,13 @@ export const fetchPolicies = createAsyncThunk(
   }
 );
 
-export const deletePolicy = createAsyncThunk(
+export const deletePolicy = createAsyncThunk<
+  { id: string; policyNumber: string | undefined },
+  string,
+  { state: RootState; rejectValue: string }
+>(
   "policies/delete",
-  async (id: string, { rejectWithValue }) => {
+  async (id, { getState, rejectWithValue }) => {
     try {
       const policyToDelete = (getState() as RootState).policies.policies.find(p => p.id === id);
       await deletePolicyApi(id);
@@ -61,9 +130,13 @@ export const deletePolicy = createAsyncThunk(
   }
 );
 
-export const createPolicy = createAsyncThunk(
+export const createPolicy = createAsyncThunk<
+  Policy,
+  any,
+  { rejectValue: string }
+>(
   "policies/create",
-  async (policyData: any, { rejectWithValue }) => {
+  async (policyData, { rejectWithValue }) => {
     try {
       const response = await createPolicyApi(policyData);
       return response.data.data.policy;

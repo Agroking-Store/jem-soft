@@ -695,7 +695,7 @@ export default function CustomerListPage() {
             <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed mb-6">
               Our comprehensive medical history tracking suite is under development and will be available soon.
             </p>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-650 text-xs font-semibold uppercase tracking-wider shadow-sm border border-blue-100 animate-pulse">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wider shadow-sm border border-blue-100 animate-pulse">
               Coming Soon
             </span>
           </div>

@@ -644,7 +644,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
               <button
                 onClick={handleAddDetail}
                 type="button"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-650 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
               >
                 <Plus size={15} />
                 {editingIndex !== null ? "Update Entry" : "Add Entry"}
