@@ -282,31 +282,28 @@ export default function LICPoliciesPage() {
                   </div>
 
                   {/* Actions */}
-                  {isClient && canEdit && (
-                    <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="View"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        onClick={() => router.push(`/dashboard/lic/policies/${policy.id}/edit`)}
-                        className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        onClick={() => setDeleteTarget(policy)}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="View"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
+                      onClick={() => router.push(`/dashboard/lic/policies/edit/${policy.id}`)}
+                      className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                      title="Edit"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Delete"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

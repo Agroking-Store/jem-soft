@@ -63,8 +63,9 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members  CustomerMaster[]
-  policies Policy[]
+  members         CustomerMaster[]
+  policies        Policy[]
+  familyHistories FamilyHistory[]
 }
 
 // ======================================================
@@ -532,8 +533,9 @@ model CustomerMaster {
   addresses   CustomerAddress[]
   bankDetails CustomerBankDetails[]
   miscInfo    CustomerMiscInfo?
-  preferences CustomerServicePreferences?
-  policies    Policy[]
+  preferences     CustomerServicePreferences?
+  policies        Policy[]
+  familyHistories FamilyHistory[]
 }
 
 model CustomerContactInfo {
@@ -674,3 +676,31 @@ model Agency {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+model FamilyHistory {
+  id        String                @id @default(uuid())
+  groupId   String
+  memberId  String
+  date      DateTime              @default(now())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  group     Customer              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member    CustomerMaster        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records   FamilyHistoryRecord[]
+}
+
+model FamilyHistoryRecord {
+  id              String        @id @default(uuid())
+  familyHistoryId String
+  relation        String
+  age             Int
+  stateOfHealth   String
+  isDead          Boolean       @default(false)
+  ageAtDeath      Int?
+  causeOfDeath    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  familyHistory   FamilyHistory @relation(fields: [familyHistoryId], references: [id], onDelete: Cascade)
+}
+
