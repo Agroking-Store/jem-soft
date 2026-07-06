@@ -93,6 +93,72 @@ async function main() {
     console.log(`Upserted provider: ${providerData.name}`);
   }
 
+  const LicBranchesData = [
+    {
+      branchCode: '951',
+      branchName: 'LIC Branch 1',
+      division: 'Pune',
+      address: 'Jeevan Shree Building, West Wing , 2nd Floor, 1109 University Rd. , Pune',
+      state: 'Maharashtra',
+      pincode: '411016'
+    }
+  ];
+
+  console.log('Seeding LIC branches...');
+  for (const branchData of LicBranchesData) {
+    await prisma.licBranch.upsert({
+      where: { branchCode: branchData.branchCode },
+      update: branchData,
+      create: branchData,
+    });
+    console.log(`Upserted LIC Branch: ${branchData.branchName}`);
+  }
+
+  // Seed Agencies
+  const licBranch1 = await prisma.licBranch.findUnique({ where: { branchCode: '951' } });
+
+  if (licBranch1) {
+    const agenciesData = [
+        {
+          agencyCode: 'AG001',
+          agencyName: 'Other Agencies',
+          licenseNo: 'LIC-AG-00000',
+          branchId: licBranch1.id,
+          address: 'General, Pune',
+          contactNo: '9999999999',
+          email: 'contact@other.com',
+        },
+        {
+          agencyCode: 'AG002',
+          agencyName: 'Jayant Mahabole',
+          licenseNo: 'LIC-AG-11223',
+          branchId: licBranch1.id,
+          address: '789 Kothrud, Pune',
+          contactNo: '9876543212',
+          email: 'contact@mahabole.com',
+        },
+        {
+          agencyCode: 'AG003',
+          agencyName: 'Manisha Y Mahabole',
+          licenseNo: 'LIC-AG-11224',
+          branchId: licBranch1.id,
+        },
+    ];
+
+    console.log('Seeding agencies...');
+    for (const agencyData of agenciesData) {
+        await prisma.agency.upsert({
+            where: { agencyCode: agencyData.agencyCode },
+            update: agencyData,
+            create: agencyData,
+        });
+        console.log(`Upserted agency: ${agencyData.agencyName}`);
+    }
+  }
+
+
+  
+
   // Seed Product Categories
   const dbProviders = await prisma.insuranceProvider.findMany({ select: { id: true, code: true } });
   console.log('Seeding product categories...');
@@ -126,18 +192,189 @@ async function main() {
     { productName: 'ABSLI DigiShield Plan', productCode: 'ADP', planNumber: 'ABSLI001', providerCode: 'ABSLI' },
     { productName: 'ABSLI Salaried Term Plan', productCode: 'ASTP', planNumber: 'ABSLI002', providerCode: 'ABSLI' },
     // ICICI Pru Products
-    { productName: 'ICICI Pru Signature Secure', productCode: 'IPSS', planNumber: 'ICICIPRU001', providerCode: 'ICICI_PRU' }, // No change needed here
-    { productName: 'ICICI Pru Protect N Gain Whole Life', productCode: 'IPPNGWL', planNumber: 'ICICIPRU002', providerCode: 'ICICI_PRU' }, // No change needed here
+    { productName: 'ICICI Pru Signature Secure', productCode: '105L210V01', planNumber: 'ICICIPRU001', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Protect N Gain Whole Life', productCode: '105L208V01', planNumber: 'ICICIPRU002', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Care', productCode: '105N209V02', planNumber: 'ICICIPRU003', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru SmartKid 360', productCode: '105N225V02', planNumber: 'ICICIPRU004', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Wealth Elite Pro', productCode: '105L207V01', planNumber: 'ICICIPRU005', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Wealth Forever', productCode: '105N206V01', planNumber: 'ICICIPRU006', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Smart Plus', productCode: '105N205V05', planNumber: 'ICICIPRU007', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Gift Select', productCode: '105N233V05', planNumber: 'ICICIPRU008', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Smart Goal Assure', productCode: '105L199V01', planNumber: 'ICICIPRU009', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Super', productCode: '105N197V03', planNumber: 'ICICIPRU010', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Saral Jeevan Bima', productCode: '105N183V03', planNumber: 'ICICIPRU011', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI PRU Signature Assure', productCode: '105L196V01', planNumber: 'ICICIPRU012', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Smart Return of Premium', productCode: '105N195V02', planNumber: 'ICICIPRU013', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Guaranteed Pension Plan', productCode: '105N181V05', planNumber: 'ICICIPRU014', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Signature Pension', productCode: '105L194V03', planNumber: 'ICICIPRU015', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Supreme', productCode: '105N193V03', planNumber: 'ICICIPRU016', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Savings Suraksha', productCode: '105N135V05', planNumber: 'ICICIPRU017', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Assured Savings Insurance Plan', productCode: '105N144V13', planNumber: 'ICICIPRU018', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru iProtect Smart', productCode: '105N151V16', planNumber: 'ICICIPRU019', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Sarv Jana Suraksha', productCode: '105N081V06', planNumber: 'ICICIPRU020', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Future Perfect', productCode: '105N153V05', planNumber: 'ICICIPRU021', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Life Time Classic', productCode: '105L155V10', planNumber: 'ICICIPRU022', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru1 Wealth', productCode: '105L175V10', planNumber: 'ICICIPRU023', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Signature', productCode: '105L177V12', planNumber: 'ICICIPRU024', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Guaranteed Income For Tomorrow', productCode: '105N182V13', planNumber: 'ICICIPRU025', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Saral Pension', productCode: '105N184V09', planNumber: 'ICICIPRU026', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Guaranteed Income For Tomorrow (Long-term)', productCode: '105N185V17', planNumber: 'ICICIPRU027', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Guaranteed Pension Plan Flexi', productCode: '105N185V03', planNumber: 'ICICIPRU028', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Sukh Samruddhi', productCode: '105N188V03', planNumber: 'ICICIPRU029', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Ezy Grow', productCode: '105L202V02', planNumber: 'ICICIPRU030', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Gold', productCode: '105N190V06', planNumber: 'ICICIPRU031', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Protect N Gain', productCode: '105L191V06', planNumber: 'ICICIPRU032', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru GIFT Pro', productCode: '105N201V05', planNumber: 'ICICIPRU033', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Gold Pension Savings', productCode: '105N202V03', planNumber: 'ICICIPRU034', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Platinum', productCode: '105L192V04', planNumber: 'ICICIPRU035', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Wish', productCode: '105N198V01', planNumber: 'ICICIPRU036', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Smart Insurance Plan Plus', productCode: '105L204V03', planNumber: 'ICICIPRU037', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru GIFT Assure', productCode: '105N224V02', planNumber: 'ICICIPRU038', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Unit Linked Superannuation Plus', productCode: '105L200V02', planNumber: 'ICICIPRU039', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Immediate Annuity', productCode: '105N009V26', planNumber: 'ICICIPRU040', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Unit Linked Superannuation', productCode: '105L136V03', planNumber: 'ICICIPRU041', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Suraksha Plus Superannuation', productCode: '105N148V03', planNumber: 'ICICIPRU042', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Unit Linked Employee Benefit Plan', productCode: '105L137V04', planNumber: 'ICICIPRU043', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Insurance Scheme for Pradhan Mantri Jeevan Jyoti Bima Yojana', productCode: '105G146V02', planNumber: 'ICICIPRU044', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Suraksha Plus', productCode: '105N147V03', planNumber: 'ICICIPRU045', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Term Plus', productCode: '105N119V08', planNumber: 'ICICIPRU046', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Loan Secure', productCode: '105N152V04', planNumber: 'ICICIPRU047', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Shubh Raksha Credit', productCode: '105N159V03', planNumber: 'ICICIPRU048', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Shubh Raksha One', productCode: '105N158V03', planNumber: 'ICICIPRU049', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Shubh Raksha Life', productCode: '105N160V03', planNumber: 'ICICIPRU050', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Super Protect - Credit', productCode: '105N176V03', planNumber: 'ICICIPRU051', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Super Protect life', productCode: '105N180V02', planNumber: 'ICICIPRU052', providerCode: 'ICICI_PRU' },
+    { productName: 'ICICI Pru Group Nischit Aay Yojna', productCode: '105N203V02', planNumber: 'ICICIPRU053', providerCode: 'ICICI_PRU' },
+
+    //SUD Products 
+    { productName: 'SUD Life Sarva Suraksha Bima', productCode: '142N103V01', planNumber: 'SUD-LI-001', providerCode: 'SUD' },
+    { productName: 'SUD Life Assured Term Plan', productCode: '142N102V01', planNumber: 'SUD-LI-002', providerCode: 'SUD' },
+    { productName: 'SUD Life Smart Term Return of Premium Plan', productCode: '142N097V01', planNumber: 'SUD-LI-003', providerCode: 'SUD' },
+    { productName: 'SUD Life Smart Term Plan', productCode: '142N096V01', planNumber: 'SUD-LI-004', providerCode: 'SUD' },
+    { productName: 'SUD Life Saral Jeevan Bima', productCode: '142N079V01', planNumber: 'SUD-LI-005', providerCode: 'SUD' },
+    { productName: 'SUD Life e-Lifeline', productCode: '142N092V02', planNumber: 'SUD-LI-006', providerCode: 'SUD' },
+    { productName: 'SUD Life Simple Term Plan', productCode: '142N095V01', planNumber: 'SUD-LI-007', providerCode: 'SUD' },
+    { productName: 'SUD Life E-Wealth Royale Plan', productCode: '142L082V03', planNumber: 'SUD-LI-008', providerCode: 'SUD' },
+    { productName: 'SUD Life Star TULIP', productCode: '142L091V01', planNumber: 'SUD-LI-009', providerCode: 'SUD' },
+    { productName: 'SUD LIFE Wealth Creator', productCode: '142L077V01', planNumber: 'SUD-LI-010', providerCode: 'SUD' },
+    { productName: 'SUD Life Wealth Builder Plan', productCode: '142L042V05', planNumber: 'SUD-LI-011', providerCode: 'SUD' },
+    { productName: 'SUD Life Immediate Annuity Plus', productCode: '142N048V08', planNumber: 'SUD-LI-012', providerCode: 'SUD' },
+    { productName: 'SUD Life Saral Pension', productCode: '142N081V02', planNumber: 'SUD-LI-013', providerCode: 'SUD' },
+    { productName: 'SUD Life Retirement Royale', productCode: '142L099V02', planNumber: 'SUD-LI-014', providerCode: 'SUD' },
+    { productName: 'SUD Life Pension Plus', productCode: '142L093V02', planNumber: 'SUD-LI-015', providerCode: 'SUD' },
+    { productName: 'SUD Life Smart Guaranteed Pension Plan', productCode: '142N123V01', planNumber: 'SUD-LI-016', providerCode: 'SUD' },
+    { productName: 'SUD Life Smart Healthcare', productCode: '142N089V01', planNumber: 'SUD-LI-017', providerCode: 'SUD' },
+    { productName: 'SUD Life Health Assure', productCode: '142N098V01', planNumber: 'SUD-LI-018', providerCode: 'SUD' },
+    { productName: 'SUD Life Smart Income Plan', productCode: '142N126V01', planNumber: 'SUD-LI-019', providerCode: 'SUD' },
+    { productName: 'SUD Life Century Star', productCode: '142N075V04', planNumber: 'SUD-LI-020', providerCode: 'SUD' },
+    { productName: 'SUD Life Guaranteed Money Back Plan', productCode: '142N036V06', planNumber: 'SUD-LI-021', providerCode: 'SUD' },
+    { productName: 'SUD Life Century Plus', productCode: '142N074V05', planNumber: 'SUD-LI-022', providerCode: 'SUD' },
+    { productName: 'SUD Life Samriddhi', productCode: '142N057V02', planNumber: 'SUD-LI-023', providerCode: 'SUD' },
+    { productName: 'POS – SUD Life Sanchay', productCode: '142N058V05', planNumber: 'SUD-LI-024', providerCode: 'SUD' },
+    { productName: 'SUD Life Century Gold', productCode: '142N087V04', planNumber: 'SUD-LI-025', providerCode: 'SUD' },
+    { productName: 'SUD Life Century Royale', productCode: '142N083V05', planNumber: 'SUD-LI-026', providerCode: 'SUD' },
+    { productName: 'SUD Life Fortune Royale', productCode: '142N086V03', planNumber: 'SUD-LI-027', providerCode: 'SUD' },
+    { productName: 'SUD Life Guarantee Royale', productCode: '142N122V01', planNumber: 'SUD-LI-028', providerCode: 'SUD' },
+    { productName: 'SUD Life Century Income', productCode: '142N100V03', planNumber: 'SUD-LI-029', providerCode: 'SUD' },
+    { productName: 'SUD Life Centurion', productCode: '142N101V02', planNumber: 'SUD-LI-030', providerCode: 'SUD' },
+    { productName: 'SUD Life Assured Returns Plan', productCode: '142N127V01', planNumber: 'SUD-LI-031', providerCode: 'SUD' },
+    { productName: 'SUD Life Sampoorna Loan Suraksha Plus', productCode: '142N084V02', planNumber: 'SUD-LI-032', providerCode: 'SUD' },
+    { productName: 'SUD Life Pradhan Mantri Jeevan Jyoti Bima Yojana', productCode: '142G047V02', planNumber: 'SUD-LI-033', providerCode: 'SUD' },
+    { productName: 'SUD Life Group Term Insurance Plus', productCode: '142N046V04', planNumber: 'SUD-LI-034', providerCode: 'SUD' },
+    { productName: 'SUD Life Group Micro Term Insurance Plan', productCode: '142N094V01', planNumber: 'SUD-LI-035', providerCode: 'SUD' },
+    { productName: 'SUD Life Group Retirement Benefit Plan', productCode: '142L049V01', planNumber: 'SUD-LI-036', providerCode: 'SUD' },
+    { productName: 'SUD Life Group Employee Benefit Plus', productCode: '142N090V01', planNumber: 'SUD-LI-037', providerCode: 'SUD' },
+    { productName: 'SUD Life Fortune Plus', productCode: '142N124V01', planNumber: 'SUD-LI-038', providerCode: 'SUD' },
+    { productName: 'SUD Life Aadarsh', productCode: '142N054V04', planNumber: 'SUD-LI-039', providerCode: 'SUD' },
+
+    //INDIAFIRST Products
+    { productName: 'IndiaFirst Life Elite Term Plan', productCode: '143N070V01', planNumber: 'IF-LI-001', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Super Protection Plan', productCode: '143N075V01', planNumber: 'IF-LI-002', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Plan', productCode: '143N007V03', planNumber: 'IF-LI-003', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Saral Jeevan Bima Plan', productCode: '143N061V01', planNumber: 'IF-LI-004', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Protect Shield Plus Plan', productCode: '143N078V01', planNumber: 'IF-LI-005', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Assured Income For Milestones Plan', productCode: '143N101V01', planNumber: 'IF-LI-006', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guarantee Of Life Dreams Plan', productCode: '143N080V03', planNumber: 'IF-LI-007', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Growth of Life Dreams Plus Plan', productCode: '143N093V02', planNumber: 'IF-LI-008', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Long Guaranteed Income Plan', productCode: '143N054V06', planNumber: 'IF-LI-009', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Fortune Plus Plan', productCode: '143N065V03', planNumber: 'IF-LI-010', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Mahajeevan Plus Plan', productCode: '143N059V03', planNumber: 'IF-LI-011', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Cash Back Plan', productCode: '143N024V05', planNumber: 'IF-LI-012', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Mahajeevan Plan', productCode: '143N018V05', planNumber: 'IF-LI-013', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Simple Benefit Plan', productCode: '143N019V03', planNumber: 'IF-LI-014', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guaranteed Monthly Income Plan', productCode: '143N047V01', planNumber: 'IF-LI-015', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Smart Pay Plan', productCode: '143N051V04', planNumber: 'IF-LI-016', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Saral Bachat Bima Plan', productCode: '143N063V02', planNumber: 'IF-LI-017', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Micro Bachat Plan', productCode: '143N052V02', planNumber: 'IF-LI-018', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guaranteed Benefit Plan', productCode: '143N056V09', planNumber: 'IF-LI-019', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life CSC Shubhlabh Plan', productCode: '143N023V01', planNumber: 'IF-LI-020', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)', productCode: '143N057V03', planNumber: 'IF-LI-021', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life POS Cash Back Plan', productCode: '143N034V01', planNumber: 'IF-LI-022', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Radiance Smart Invest Plan', productCode: '143L067V01', planNumber: 'IF-LI-023', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Wealth Maximizer Plan', productCode: '143L029V05', planNumber: 'IF-LI-024', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Money Balance Plan', productCode: '143L017V07', planNumber: 'IF-LI-025', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Smart Save Plan', productCode: '143L010V04', planNumber: 'IF-LI-026', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guaranteed Single Premium Plan', productCode: '143N068V04', planNumber: 'IF-LI-027', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Little Champ Plan', productCode: '143N035V02', planNumber: 'IF-LI-028', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst LIfe Smart Retirement Plan', productCode: '143L076V01', planNumber: 'IF-LI-029', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Guaranteed Retirement Plan', productCode: '143N026V02', planNumber: 'IF-LI-030', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guaranteed Annuity Pension Plan', productCode: '143N050V07', planNumber: 'IF-LI-031', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Guaranteed Pension Plan', productCode: '143N066V05', planNumber: 'IF-LI-032', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Saral Pension Plan', productCode: '143N062V01', planNumber: 'IF-LI-033', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Group Living Benefits Plan', productCode: '143N040V02', planNumber: 'IF-LI-034', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Group Term Plan', productCode: '143N006V06', planNumber: 'IF-LI-035', providerCode: 'INDIAFIRST' },
+    { productName: 'Group Credit Life Plus Plan', productCode: '143N036V02', planNumber: 'IF-LI-036', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Group Micro Insurance Plan', productCode: '143N053V03', planNumber: 'IF-LI-037', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Group Loan Protect Plan', productCode: '143N055V02', planNumber: 'IF-LI-038', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Group HospiCare Plan', productCode: '143N039V02', planNumber: 'IF-LI-039', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Group Critical Illness Rider Plan', productCode: '143B002V02', planNumber: 'IF-LI-040', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Life Group Additional Benefit Rider Plan', productCode: '143B018V02', planNumber: 'IF-LI-041', providerCode: 'INDIAFIRST' },
+    { productName: 'Group Disability Rider', productCode: '143B004V02', planNumber: 'IF-LI-042', providerCode: 'INDIAFIRST' },
+    { productName: 'Unit Linked Superannuation Plan', productCode: '143L060V01', planNumber: 'IF-LI-043', providerCode: 'INDIAFIRST' },
+    { productName: 'Superannuation Plan', productCode: '143N020V03', planNumber: 'IF-LI-044', providerCode: 'INDIAFIRST' },
+    { productName: 'New Corporate Benefit Plan', productCode: '143N022V02', planNumber: 'IF-LI-045', providerCode: 'INDIAFIRST' },
+    { productName: 'IndiaFirst Employee Benefit Plan', productCode: '143L013V02', planNumber: 'IF-LI-046', providerCode: 'INDIAFIRST' },
+
+    // TATA_AIA
+    { productName: 'Tata AIA Sampoorna Raksha Promise', productCode: '110N176V12', planNumber: 'TATA001', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Maha Raksha Supreme Select', productCode: '110N171V15', planNumber: 'TATA002', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Sampoorna Raksha Supreme', productCode: '110L179V02', planNumber: 'TATA003', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Fortune Guarantee Plus', productCode: '110N158V14', planNumber: 'TATA004', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Guaranteed Return Insurance Plan', productCode: '110N152V15', planNumber: 'TATA005', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Value Income Plan', productCode: '110N162V03', planNumber: 'TATA006', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Fortune Plus', productCode: '110L177V01', planNumber: 'TATA007', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart SIP', productCode: '110L174V02', planNumber: 'TATA008', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Fortune Pro', productCode: '110L112V07', planNumber: 'TATA009', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Pension Secure', productCode: '110L182V09', planNumber: 'TATA010', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Fortune Guarantee Pension', productCode: '110N161V13', planNumber: 'TATA011', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Shubh Family Protect', productCode: '110N176V08', planNumber: 'TATA012', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Fortune Guarantee Supreme', productCode: '110N163V12', planNumber: 'TATA013', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Fortune Guarantee Secure', productCode: '110N206V03', planNumber: 'TATA014', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Life Insurance Fortune Guarantee', productCode: '110N120V12', planNumber: 'TATA015', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Income Plus', productCode: '110N126V05', planNumber: 'TATA016', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA iSIP (i Systematic Insurance Plan)', productCode: '110L164V10', planNumber: 'TATA017', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Shubh Muhurat Solution (Combination of Fortune Guarantee Secure + Smart Fortune Plus)', productCode: '110N206V02 + 110L177V01', planNumber: 'TATA018', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Smart Sampoorna Raksha Pro', productCode: '110L172V03', planNumber: 'TATA019', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Life Insurance Wealth Pro', productCode: '110L111V05', planNumber: 'TATA020', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Life Insurance Wealth Maxima', productCode: '110L114V05', planNumber: 'TATA021', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Shubh Flexi Pension Plan', productCode: '110N209V02', planNumber: 'TATA022', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Life Insurance Saral Pension', productCode: '110N159V09', planNumber: 'TATA023', providerCode: 'TATA_AIA' },
+    { productName: 'TATA AIA Fortune Guarantee Retirement Ready', productCode: '110N175V04', planNumber: 'TATA024', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Sampoorna Care', productCode: '110N186V01', planNumber: 'TATA025', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Health SIP', productCode: '110L184V01', planNumber: 'TATA026', providerCode: 'TATA_AIA' },
+    { productName: 'Tata AIA Health Pro', productCode: '110L180V01', planNumber: 'TATA027', providerCode: 'TATA_AIA' },
+
+
   ];
 
   console.log('Seeding products...');
   for (const productData of productsData) {
     const categoryInfo = categoryMap.get(`${productData.providerCode}_LIFE`);
     if (!categoryInfo) {
-        console.warn(
-            `Category ${productData.providerCode}_LIFE not found. Skipping ${productData.productName}`
-        );
-        continue;   
+      console.warn(
+        `Category ${productData.providerCode}_LIFE not found. Skipping ${productData.productName}`
+      );
+      continue;
     }
 
       await prisma.productMaster.upsert({
@@ -158,12 +395,48 @@ async function main() {
       console.log(`Upserted product: ${productData.productName}`);
     }
   
+  // Seed Advisors
+  const agency1 = await prisma.agency.findUnique({ where: { agencyCode: 'AG001' } });
+  const agency4 = await prisma.agency.findUnique({ where: { agencyCode: 'AG004' } });
+  const agency5 = await prisma.agency.findUnique({ where: { agencyCode: 'AG005' } });
+  const advisorsData = [
+    { advisorName: 'Ramesh Kumar', advisorCode: 'A001', providerCode: 'LIC', agencyId: agency1?.id },
+    { advisorName: 'Sita Sharma', advisorCode: 'A002', providerCode: 'LIC', agencyId: agency1?.id },
+    { advisorName: 'Vikram Singh', advisorCode: 'A003', providerCode: 'HDFC_LIFE' },
+    { advisorName: 'Jayant Mahabole', advisorCode: 'A004', providerCode: 'LIC', agencyId: agency4?.id },
+    { advisorName: 'Manisha Y Mahabole', advisorCode: 'A005', providerCode: 'LIC', agencyId: agency5?.id },
+  ];
+
+  console.log('Seeding advisors...');
+  for (const advisorData of advisorsData) {
+    const provider = dbProviders.find(p => p.code === advisorData.providerCode);
+    const { providerCode, ...createData } = advisorData;
+
+    if (!provider) {
+      console.warn(`Provider ${advisorData.providerCode} not found for advisor ${advisorData.advisorName}. Skipping.`);
+      continue;
+    }
+
+    await prisma.advisor.upsert({
+      where: { providerId_advisorCode: { providerId: provider.id, advisorCode: advisorData.advisorCode } },
+      update: {
+        advisorName: advisorData.advisorName,
+        agencyId: advisorData.agencyId,
+      },
+      create: {
+        providerId: provider.id,
+        ...createData,
+      },
+    });
+    console.log(`Upserted advisor: ${advisorData.advisorName}`);
+  }
+
 
   // Seed Rider Master
   const ridersData = [
     { riderName: 'Accidental Death and Disability Benefit Rider', riderCode: 'ADDB', description: 'Provides benefit on accidental death or disability.' },
     { riderName: 'Term Assurance Rider', riderCode: 'TERM', description: 'Provides an additional term life cover.' },
-    { riderName: 'Critical Illness Rider', riderCode: 'CI', description: 'Covers a list of specified critical illnesses.' },
+    { riderName: 'Critical Illness Rider', riderCode: 'CIR', description: 'Covers a list of specified critical illnesses.' },
     { riderName: 'Waiver of Premium Rider', riderCode: 'WOP', description: 'Waives future premiums on disability or critical illness.' },
   ];
 
@@ -178,6 +451,40 @@ async function main() {
       create: riderData,
     });
     console.log(`Upserted rider: ${riderData.riderName}`);
+  }
+
+  // Seed Payment Status Master
+  const paymentStatuses = [
+    { statusName: 'Paid', statusCode: 'PAID' },
+    { statusName: 'Unpaid', statusCode: 'UNPAID' },
+    { statusName: 'Overdue', statusCode: 'OVERDUE' },
+  ];
+
+  console.log('Seeding payment statuses...');
+  for (const status of paymentStatuses) {
+    await prisma.paymentStatusMaster.upsert({
+      where: { statusCode: status.statusCode },
+      update: { statusName: status.statusName },
+      create: status,
+    });
+    console.log(`Upserted payment status: ${status.statusName}`);
+  }
+
+  // Seed Loan Status Master
+  const loanStatuses = [
+    { statusName: 'Active', statusCode: 'ACTIVE' },
+    { statusName: 'Paid Off', statusCode: 'PAID_OFF' },
+    { statusName: 'Defaulted', statusCode: 'DEFAULTED' },
+  ];
+
+  console.log('Seeding loan statuses...');
+  for (const status of loanStatuses) {
+    await prisma.loanStatusMaster.upsert({
+      where: { statusCode: status.statusCode },
+      update: { statusName: status.statusName },
+      create: status,
+    });
+    console.log(`Upserted loan status: ${status.statusName}`);
   }
 
   console.log(`Seeding finished.`);

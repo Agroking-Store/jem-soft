@@ -63,8 +63,9 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members  CustomerMaster[]
-  policies Policy[]
+  members         CustomerMaster[]
+  policies        Policy[]
+  familyHistories FamilyHistory[]
 }
 
 // ======================================================
@@ -249,10 +250,13 @@ model Policy {
   statusId      String
   premiumModeId String
 
-  advisorId String?
+  advisorId      String?
+  branchId       String?
 
   policyNumber   String  @unique
   proposalNumber String?
+
+  
 
   issueDate        DateTime?
   commencementDate DateTime
@@ -263,8 +267,6 @@ model Policy {
 
   nextPremiumDueDate DateTime?
 
-  agentCode  String?
-  branchCode String?
 
   remarks String?
 
@@ -279,6 +281,7 @@ model Policy {
   premiumMode    PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
 
   advisor Advisor? @relation(fields: [advisorId], references: [id])
+  branch LicBranch? @relation(fields: [branchId], references:[id])
 
   nominees     Nominee[]
   policyRiders PolicyRider[]
@@ -417,15 +420,16 @@ model Advisor {
   advisorCode String
   advisorName String
 
+  agencyId    String?
+  agency      Agency? @relation(fields: [agencyId], references: [id])
+
   email String?
   phone String?
 
   licenseNumber String?
   panNumber     String?
 
-  branchCode  String?
   designation String?
-
   joiningDate DateTime?
 
   isActive Boolean @default(true)
@@ -529,8 +533,9 @@ model CustomerMaster {
   addresses   CustomerAddress[]
   bankDetails CustomerBankDetails[]
   miscInfo    CustomerMiscInfo?
-  preferences CustomerServicePreferences?
-  policies    Policy[]
+  preferences     CustomerServicePreferences?
+  policies        Policy[]
+  familyHistories FamilyHistory[]
 }
 
 model CustomerContactInfo {
@@ -635,3 +640,67 @@ model CustomerServicePreferences {
 
   customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
+
+model LicBranch {
+  id          String   @id @default(cuid())
+  branchCode  String   @unique
+  branchName  String
+  division    String?
+  address        String?
+  state       String?
+  pincode        String?
+
+  policies    Policy[]
+  agencies    Agency[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Agency {
+  id           String   @id @default(cuid())
+  agencyCode   String   @unique
+  agencyName   String
+  licenseNo    String?
+
+  branchId     String?
+  branch       LicBranch? @relation(fields: [branchId], references: [id])
+
+  address      String?
+  contactNo    String?
+  email        String?
+  isActive     Boolean  @default(true)
+
+  advisors     Advisor[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+model FamilyHistory {
+  id        String                @id @default(uuid())
+  groupId   String
+  memberId  String
+  date      DateTime              @default(now())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  group     Customer              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member    CustomerMaster        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records   FamilyHistoryRecord[]
+}
+
+model FamilyHistoryRecord {
+  id              String        @id @default(uuid())
+  familyHistoryId String
+  relation        String
+  age             Int
+  stateOfHealth   String
+  isDead          Boolean       @default(false)
+  ageAtDeath      Int?
+  causeOfDeath    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  familyHistory   FamilyHistory @relation(fields: [familyHistoryId], references: [id], onDelete: Cascade)
+}
+
