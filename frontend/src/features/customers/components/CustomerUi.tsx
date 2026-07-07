@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
@@ -11,7 +12,7 @@ export function CustomerPageHero({
   actions?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -27,7 +28,7 @@ export function CustomerPageHero({
               </p>
             )}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       </div>
     </div>
@@ -48,7 +49,7 @@ export function CustomerSectionCard({
   subtitle?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
         <div className="flex items-start gap-3">
           {Icon ? (
@@ -89,7 +90,7 @@ export function CustomerStatCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="flex items-center gap-3">
         {Icon ? (
           <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tones[tone]}`}>
@@ -123,6 +124,63 @@ export function CustomerEmptyState({
       <h3 className="text-base font-semibold text-slate-900">{title}</h3>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{description}</p>
       {action && <div className="mt-5 flex justify-center">{action}</div>}
+    </div>
+  );
+}
+
+export function CustomerBreadcrumbs({
+  items,
+}: {
+  items: Array<{ label: string; href?: string }>;
+}) {
+  return (
+    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs">
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+        const content = (
+          <span
+            className={`font-medium ${
+              isLast ? "text-slate-600" : "text-slate-400 transition-colors hover:text-slate-600"
+            }`}
+          >
+            {item.label}
+          </span>
+        );
+
+        return (
+          <div key={`${item.label}-${index}`} className="flex items-center gap-2">
+            {index > 0 && <span className="text-slate-300">/</span>}
+            {item.href && !isLast ? <Link href={item.href}>{content}</Link> : content}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function CustomerToolbar({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] lg:flex-row lg:items-center lg:justify-between">
+      {children}
+    </div>
+  );
+}
+
+export function CustomerTableFrame({
+  children,
+  footer,
+}: {
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="overflow-x-auto">{children}</div>
+      {footer && <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3">{footer}</div>}
     </div>
   );
 }

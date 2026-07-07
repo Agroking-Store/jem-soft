@@ -134,7 +134,7 @@ type FormValues = z.output<typeof schema>;
 // ─── Reusable UI Components ───────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
       {label}{required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   );
@@ -145,10 +145,10 @@ function FormInput({ label, error, required, icon, className: cls, ...props }: R
     <div>
       <FieldLabel label={label} required={required} />
       <div className="relative">
-        {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">{icon}</span>}
-        <input {...props} className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
+        {icon && <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>}
+        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -157,8 +157,8 @@ function FormSelect({ label, error, required, children, ...props }: React.Select
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -167,21 +167,21 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <textarea {...props} rows={3} className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`} />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
 
 function SectionCard({ title, icon, children, accent }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-      <div className={`flex items-center gap-2.5 px-5 py-3.5 border-b border-slate-200 ${accent || "bg-slate-50"}`}>
-        <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
+      <div className={`flex items-center gap-2.5 border-b border-slate-200 px-5 py-3.5 ${accent || "bg-slate-50"}`}>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#B8873A]">{icon}</span>
         <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   );
 }
@@ -364,7 +364,7 @@ export default function CustomerMasterCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <CustomerModuleNav />
 
       {/* Header */}
@@ -684,7 +684,7 @@ export default function CustomerMasterCreatePage() {
             Cancel
           </Link>
           <button type="submit" disabled={isSubmitting}
-            className="px-6 py-2.5 bg-[#0B1220] hover:bg-[#16294D] disabled:opacity-60 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200">
+            className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
         </div>

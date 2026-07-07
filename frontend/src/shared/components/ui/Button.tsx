@@ -24,9 +24,9 @@ export const Button = ({
     secondary:
       "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200",
     outline:
-      "border-2 border-[#0B1220] text-[#0B1220] hover:bg-[#0B1220]/5 bg-transparent",
+      "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50 bg-white",
     destructive:
-      "bg-[#A93226] hover:bg-[#8E2A20] text-white shadow-sm",
+      "bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/15",
     ghost:
       "text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-transparent",
   };
@@ -36,9 +36,10 @@ export const Button = ({
       disabled={disabled || isLoading}
       className={`
         flex items-center justify-center gap-2
-        px-4 py-2.5 rounded-lg font-semibold text-sm
+        rounded-xl px-4 py-2.5 text-sm font-semibold
         transition-all duration-200
-        disabled:opacity-60 disabled:cursor-not-allowed
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8873A]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+        disabled:cursor-not-allowed disabled:opacity-60
         ${variants[variant]}
         ${className}
       `}

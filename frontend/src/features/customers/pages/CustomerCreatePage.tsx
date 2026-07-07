@@ -93,9 +93,9 @@ type FormValues = z.infer<typeof schema>;
 // ─── Reusable field components ────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
       {label}
-      {required && <span className="text-red-500 ml-0.5">*</span>}
+      {required && <span className="ml-0.5 text-rose-500">*</span>}
     </label>
   );
 }
@@ -117,19 +117,19 @@ function FormInput({
       <FieldLabel label={label} required={required} />
       <div className="relative">
         {icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
             {icon}
           </span>
         )}
         <input
           {...props}
-          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer
-            focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
-            ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
+          className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer
+            focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
+            ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
         />
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -150,13 +150,13 @@ function FormSelect({
       <FieldLabel label={label} required={required} />
       <select
         {...props}
-        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white cursor-pointer
-          focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
-          ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
+        className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all cursor-pointer
+          focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
+          ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >
         {children}
       </select>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -171,12 +171,12 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#B8873A]">{icon}</span>
         <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   );
 }
@@ -286,11 +286,11 @@ export default function CustomerCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <CustomerModuleNav />
 
       {/* Header */}
-      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
         <Link
           href="/dashboard/customers"
           className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
@@ -551,19 +551,19 @@ export default function CustomerCreatePage() {
         <div className="flex items-center justify-end gap-3 py-2">
           <Link
             href="/dashboard/customers"
-            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
-          >
-            Cancel
-          </Link>
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            variant="primary"
-            className="px-6 py-2.5 w-auto"
-          >
-            Create Customer Group
-          </Button>
-        </div>
+          className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+        >
+          Cancel
+        </Link>
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          variant="primary"
+          className="w-auto px-6 py-2.5"
+        >
+          Create Customer Group
+        </Button>
+      </div>
       </form>
     </div >
   );

@@ -15,8 +15,8 @@ interface FamilyHistoryViewProps {
 
 function ViewField({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-100">
-      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
         {label}
       </span>
       <span className="text-sm font-semibold text-slate-800">{value || "—"}</span>
@@ -51,32 +51,36 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
     }
   };
 
-  const getMemberFullName = (member: any) => {
-    if (!member) return "—";
-    return [member.salutation, member.firstName, member.middleName, member.lastName]
-      .filter(Boolean)
-      .join(" ");
+  const getMemberFullName = (member: unknown) => {
+    if (!member || typeof member !== "object") return "—";
+    const typed = member as {
+      salutation?: string | null;
+      firstName?: string | null;
+      middleName?: string | null;
+      lastName?: string | null;
+    };
+    return [typed.salutation, typed.firstName, typed.middleName, typed.lastName].filter(Boolean).join(" ");
   };
 
   if (isLoading && !currentRecord) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#0B1220]" />
       </div>
     );
   }
 
   if (error && !currentRecord) {
     return (
-      <div className="max-w-md mx-auto text-center py-12 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <ShieldAlert className="mx-auto text-red-500 mb-4" size={40} />
-        <h3 className="text-base font-bold text-slate-800 mb-1">Failed to Load Details</h3>
-        <p className="text-xs text-slate-500 mb-4">{error}</p>
+      <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <ShieldAlert className="mx-auto mb-4 text-rose-500" size={40} />
+        <h3 className="mb-1 text-base font-semibold text-slate-900">Failed to load details</h3>
+        <p className="mb-4 text-xs text-slate-500">{error}</p>
         <button
           onClick={onClose}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#16294D]"
         >
-          Back to List
+          Back to list
         </button>
       </div>
     );
@@ -85,39 +89,35 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
   if (!currentRecord) return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
-      {/* Header */}
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Family History Details</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-slate-900">Family History Details</h1>
+          <p className="mt-0.5 text-xs text-slate-400">
             Group: {currentRecord.group?.groupName || currentRecord.group?.name || "—"}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onEdit(currentRecord.id)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
           >
             <Edit2 size={13} />
             Edit Record
           </button>
           <button
             onClick={onClose}
-            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
-            title="Back to List"
+            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:bg-slate-50"
+            title="Back to list"
           >
             <ArrowLeft size={15} />
           </button>
         </div>
       </div>
 
-      {/* Basic Details Grid */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-5">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Basic Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Basic Information</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <ViewField label="Group Code" value={currentRecord.group?.groupCode || "—"} />
           <ViewField label="Group Name" value={currentRecord.group?.groupName || currentRecord.group?.name || "—"} />
           <ViewField label="Family History Date" value={formatFamilyHistoryDate(currentRecord.date)} />
@@ -125,43 +125,38 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
         </div>
       </div>
 
-      {/* Records Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Family History Records
-          </h2>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">Family History Records</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-4 text-left">Relation</th>
-                <th className="py-2.5 px-4 text-left">Age Recorded</th>
-                <th className="py-2.5 px-4 text-left">Current Age</th>
-                <th className="py-2.5 px-4 text-left">State of Health</th>
-                <th className="py-2.5 px-4 text-left">Age at Death</th>
-                <th className="py-2.5 px-4 text-left">Cause of Death</th>
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <th className="px-4 py-2.5 text-left">Relation</th>
+                <th className="px-4 py-2.5 text-left">Age Recorded</th>
+                <th className="px-4 py-2.5 text-left">Current Age</th>
+                <th className="px-4 py-2.5 text-left">State of Health</th>
+                <th className="px-4 py-2.5 text-left">Age at Death</th>
+                <th className="px-4 py-2.5 text-left">Cause of Death</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {!currentRecord.records || currentRecord.records.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 font-medium bg-white">
+                  <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
                     No family records registered.
                   </td>
                 </tr>
               ) : (
                 currentRecord.records.map((r, index) => (
-                  <tr key={index} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-slate-800">{r.relation}</td>
-                    <td className="py-3 px-4 text-slate-700">{r.age}</td>
-                    <td className="py-3 px-4 text-slate-700">
-                      {r.isDead ? "—" : calculateCurrentAge(r.age, currentRecord.date)}
-                    </td>
-                    <td className="py-3 px-4 text-slate-700">{r.stateOfHealth}</td>
-                    <td className="py-3 px-4 text-slate-600">{r.isDead ? r.ageAtDeath : "—"}</td>
-                    <td className="py-3 px-4 text-slate-600">{r.isDead ? r.causeOfDeath : "—"}</td>
+                  <tr key={index} className="transition-colors hover:bg-[#0B1220]/[0.025]">
+                    <td className="px-4 py-3 font-semibold text-slate-800">{r.relation}</td>
+                    <td className="px-4 py-3 text-slate-700">{r.age}</td>
+                    <td className="px-4 py-3 text-slate-700">{r.isDead ? "—" : calculateCurrentAge(r.age, currentRecord.date)}</td>
+                    <td className="px-4 py-3 text-slate-700">{r.stateOfHealth}</td>
+                    <td className="px-4 py-3 text-slate-600">{r.isDead ? r.ageAtDeath : "—"}</td>
+                    <td className="px-4 py-3 text-slate-600">{r.isDead ? r.causeOfDeath : "—"}</td>
                   </tr>
                 ))
               )}

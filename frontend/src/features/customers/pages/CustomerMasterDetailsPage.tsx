@@ -28,7 +28,7 @@ function InfoRow({ label, value }: { label: string; value?: string | null | bool
 
 function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
         <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
@@ -99,13 +99,13 @@ export default function CustomerMasterDetailsPage() {
   const fullName = [c.salutation, c.firstName, c.middleName, c.lastName].filter(Boolean).join(" ");
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <CustomerModuleNav />
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50">
             <ArrowLeft size={16} />
           </Link>
           <div>
@@ -122,7 +122,7 @@ export default function CustomerMasterDetailsPage() {
             <Link href={`/dashboard/customers/master/${id}/edit`} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
               <Edit size={14} /> Edit
             </Link>
-            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg font-semibold text-sm transition-colors">
+            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50">
               <Trash2 size={14} /> Delete
             </button>
           </div>
@@ -130,7 +130,7 @@ export default function CustomerMasterDetailsPage() {
       </div>
 
       {/* Hero card */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
         <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#0B1220] text-[#E8C77A] flex items-center justify-center text-2xl font-serif font-semibold shadow-sm ring-2 ring-[#B8873A]/50 ring-offset-2 ring-offset-[#0B1220]">
