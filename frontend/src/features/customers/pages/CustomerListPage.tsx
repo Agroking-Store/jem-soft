@@ -26,6 +26,7 @@ import {
   Star,
   Edit,
   Building2,
+  UserCog,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -43,6 +44,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 type Tab = "group" | "master" | "family" | "medical";
 type DeleteTarget = { id: string; type: Extract<Tab, "group" | "master">; label: string } | null;
+
+type HistoryView =
+  | { type: "list" }
+  | { type: "add" }
+  | { type: "edit"; recordId?: string }
+  | { type: "view"; recordId?: string };
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
@@ -86,10 +93,12 @@ export default function CustomerListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // --- previously missing state (this was the source of the runtime/compile errors) ---
   const [isClient, setIsClient] = useState(false);
-  const [historyView, setHistoryView] = useState<{ type: "list" | "add" | "edit" | "view"; recordId?: string }>({
-    type: "list",
-  });
+  const [mounted, setMounted] = useState(false);
+  const [historyView, setHistoryView] = useState<HistoryView>({ type: "list" });
+  // --------------------------------------------------------------------------------------
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -101,8 +110,16 @@ export default function CustomerListPage() {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
+  // `canEdit` depends on auth state that is only known on the client, so it can
+  // differ between the server-rendered HTML and the first client render. Gating
+  // it behind `mounted` keeps the initial client render identical to the server
+  // render, avoiding a hydration mismatch; the edit/add controls then appear
+  // right after hydration completes.
+  const canEdit = mounted && (user?.role === "ADMIN" || user?.role === "ADVISOR");
 
   const groupMemberCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -111,6 +128,25 @@ export default function CustomerListPage() {
       counts[customer.groupId] = (counts[customer.groupId] || 0) + 1;
     });
     return counts;
+  }, [masterCustomers]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { Client: 0, Personal: 0, Prospect: 0, Others: 0 };
+    customers.forEach((c) => {
+      const cat = c.category && counts[c.category] !== undefined ? c.category : "Others";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [customers]);
+
+  const masterStats = useMemo(() => {
+    const heads = masterCustomers.filter((c) => c.isGroupHead).length;
+    const unmapped = masterCustomers.filter((c) => !c.groupId).length;
+    return {
+      heads,
+      members: masterCustomers.length - heads,
+      unmapped,
+    };
   }, [masterCustomers]);
 
   const filteredCustomers = customers.filter((c) => {
@@ -198,46 +234,62 @@ export default function CustomerListPage() {
       ? "This will remove the customer and all linked contact, address, bank, and preference details."
       : "This will remove the customer group and related portal access.";
 
+  // Status-grid style stats (Vehicle-page style) for each tab
+  const groupStatusItems = [
+    { label: "Client", value: categoryCounts.Client, icon: Users, color: "text-blue-600 bg-blue-50" },
+    { label: "Personal", value: categoryCounts.Personal, icon: UserCog, color: "text-amber-600 bg-amber-50" },
+    { label: "Prospect", value: categoryCounts.Prospect, icon: Star, color: "text-green-600 bg-green-50" },
+    { label: "Others", value: categoryCounts.Others, icon: Tag, color: "text-slate-600 bg-slate-100" },
+  ];
+
+  const masterStatusItems = [
+    { label: "Group Heads", value: masterStats.heads, icon: Star, color: "text-amber-600 bg-amber-50" },
+    { label: "Members", value: masterStats.members, icon: Users, color: "text-blue-600 bg-blue-50" },
+    { label: "Not Mapped", value: masterStats.unmapped, icon: AlertTriangle, color: "text-red-500 bg-red-50" },
+  ];
+
+  const activeStatusItems = activeTab === "group" ? groupStatusItems : masterStatusItems;
+
   return (
     <div className="max-w-7xl mx-auto space-y-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Customers</h1>
-          <p className="text-slate-500 text-sm mt-0.5">
-            Manage customer groups and individual customer records.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <Users size={20} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Customers</h1>
+            <p className="text-slate-600 text-sm mt-0.5">
+              Manage your customer groups and individual profiles — all in one organized place.
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-200 bg-slate-50/60">
+        {/* Tabs - flat icon+text, solid blue when active (no counts) */}
+        <div className="flex items-center gap-1 px-4 pt-4 pb-3 border-b border-slate-200">
           <button
             onClick={() => switchTab("group")}
-            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "group"
-                ? "text-blue-600 bg-white border-b-2 border-blue-600 -mb-px"
-                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            <Users size={16} />
+            <Users size={15} />
             Customer Group
-            <span className="ml-1 bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full">
-              {customers.length}
-            </span>
           </button>
           <button
             onClick={() => switchTab("master")}
-            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+            className={`relative px-6 py-4 text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
               activeTab === "master"
-                ? "text-blue-600 bg-white border-b-2 border-blue-600 -mb-px"
-                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-slate-100"
             }`}
           >
-            <SlidersHorizontal size={16} />
+            <UserCog size={15} />
             Customer Master
-            <span className="ml-1 bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full">
-              {masterCustomers.length}
-            </span>
           </button>
           <button
             onClick={() => switchTab("family")}
@@ -263,9 +315,7 @@ export default function CustomerListPage() {
           </button>
         </div>
 
-        {(activeTab === "group" || activeTab === "master") && (
-          <>
-            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
@@ -283,7 +333,7 @@ export default function CustomerListPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-lg text-sm font-medium transition-colors">
               <Filter size={14} />
-              Filter
+              All Statuses
             </button>
             {activeTab === "group" && canEdit && selectedIds.size > 0 && (
               <button
@@ -300,7 +350,7 @@ export default function CustomerListPage() {
                 Delete ({selectedIds.size})
               </button>
             )}
-            {isClient && canEdit && (
+            {canEdit && (
               <Link
                 href={activeTab === "group" ? "/dashboard/customers/new" : "/dashboard/customers/master/new"}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all duration-200"
@@ -310,6 +360,26 @@ export default function CustomerListPage() {
               </Link>
             )}
           </div>
+        </div>
+
+        {/* Status grid — Vehicle-page style icon boxes with counts */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-4 py-4 border-b border-slate-100">
+          {activeStatusItems.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${stat.color}`}>
+                  <Icon size={16} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 leading-tight">
+                    {stat.label}
+                  </p>
+                  <p className="text-sm font-bold text-slate-900">{stat.value}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {activeTab === "group" && (
@@ -655,8 +725,6 @@ export default function CustomerListPage() {
             )}
           </>
         )}
-      </>
-    )}
 
         {activeTab === "family" && (
           <div className="p-6">

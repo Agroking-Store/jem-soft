@@ -335,9 +335,14 @@ export default function NewLICPolicyPage() {
   }, [watchProviderType, providers]);
 
   const filteredProducts = useMemo(() => {
-    if (!watchProviderId) return [];
-    return products.filter(p => p.providerId === watchProviderId);
-  }, [watchProviderId, products]);
+  if (!watchProviderId) return [];
+
+  return products
+    .filter((p) => p.providerId === watchProviderId)
+    .sort((a, b) =>
+      (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
+    );
+}, [watchProviderId, products]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
