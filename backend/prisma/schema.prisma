@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum NotificationType {
+  POLICY_CREATED
+  POLICY_UPDATED
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -290,6 +295,26 @@ model Policy {
   policyAttributes PolicyAttribute[]
   premiumPayments  PremiumPayment[]
   loans            PolicyLoan[]
+
+  notifications Notification[]
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+
+  title     String
+  message   String
+  type      NotificationType
+
+  isRead    Boolean          @default(false)
+
+  policyId  String?
+  policy    Policy?          @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([createdAt])
 }
 
 model PolicyAttribute {

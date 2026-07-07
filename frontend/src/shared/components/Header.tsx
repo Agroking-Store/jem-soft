@@ -1,10 +1,11 @@
 "use client";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { 
-  LogOut, 
-  User, 
-  Bell, 
+import NotificationBell from "@/features/notifications/components/NotificationBell";
+import {
+  LogOut,
+  User,
+  Bell,
   ChevronDown,
   Ticket,
   UserCog,
@@ -64,7 +65,7 @@ export const Header = () => {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
-      <h1 
+      <h1
         className="text-xl font-semibold text-slate-900"
         suppressHydrationWarning
       >
@@ -73,11 +74,8 @@ export const Header = () => {
 
       <div className="flex items-center gap-4">
         {/* Notification Bell - Always rendered but hidden for customers */}
-        <div className={isMounted && isAdmin ? 'block' : 'hidden'}>
-          <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition relative">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+        <div className={isMounted && isAdmin ? "block" : "hidden"}>
+          <NotificationBell />
         </div>
 
         {/* User Profile Section */}
@@ -93,13 +91,13 @@ export const Header = () => {
               <User size={16} className="text-blue-600" />
             </div>
             <div className="hidden sm:flex flex-col items-start">
-              <span 
+              <span
                 className="text-sm font-medium text-slate-900"
                 suppressHydrationWarning
               >
                 {isMounted ? user?.name || "User" : "Loading..."}
               </span>
-              <span 
+              <span
                 className="text-xs text-slate-500 capitalize"
                 suppressHydrationWarning
               >
@@ -107,8 +105,8 @@ export const Header = () => {
               </span>
             </div>
             {isMounted && isAdmin && (
-              <ChevronDown 
-                size={16} 
+              <ChevronDown
+                size={16}
                 className={`text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`}
               />
             )}

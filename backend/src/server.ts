@@ -15,6 +15,7 @@ import productMasterRoutes from "./routes/productMasterRoutes.js";
 import riderMasterRoutes from "./routes/riderMasterRoutes.js";
 import advisorRoutes from "./routes/advisorRoutes.js";
 import policyRoutes from "./routes/policyRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import policyStatusMasterRoutes from "./routes/policyStatusMasterRoutes.js";
 import premiumModeMasterRoutes from "./routes/premiumModeMasterRoutes.js";
 import licBranchRoutes from "./routes/licBranchRoutes.js"; // Import licBranch routes
@@ -40,6 +41,7 @@ app.use("/api/products", productMasterRoutes);
 app.use("/api/riders", riderMasterRoutes);
 app.use("/api/advisors", advisorRoutes);
 app.use("/api/policies", policyRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/policy-statuses", policyStatusMasterRoutes); // This was missing
 app.use("/api/premium-modes", premiumModeMasterRoutes); // This was missing
 app.use("/api/lic-branches", licBranchRoutes);

@@ -1,6 +1,9 @@
 import { prisma } from "../config/database.js";
 import { Policy } from "@prisma/client";
 import { AppError } from "../utils/AppError.js";
+import { createNotification } from "./notificationService.js";
+import { NotificationType } from "@prisma/client";
+
 
 interface RiderData {
   description: string;
@@ -95,13 +98,15 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           ? new Date(data.completionDate)
           : undefined,
 
-    nextPremiumDueDate: fupDate
-      ? new Date(fupDate)
-      : undefined,
-    policyTerm: term,
-    premiumPayingTerm: ppt,
-  },
-});
+        nextPremiumDueDate: fupDate
+          ? new Date(fupDate)
+          : undefined,
+        policyTerm: term,
+        premiumPayingTerm: ppt,
+      },
+    });
+
+
 
     if (riders && riders.length > 0) {
       for (const riderData of riders) {
@@ -133,6 +138,13 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
         gst: gst ?? 0,
       },
+    });
+
+    await createNotification(tx, {
+      title: "Policy Created",
+      message: `New policy (${newPolicy.policyNumber}) has been created.`,
+      type: NotificationType.POLICY_CREATED,
+      policyId: newPolicy.id,
     });
 
     return newPolicy;

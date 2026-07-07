@@ -18,6 +18,7 @@ import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
+import { useNotificationStore } from "@/store/notificationStore";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -66,6 +67,8 @@ const GroupAutoComplete = ({ value, onChange, groups }: { value: string; onChang
     const q = query.toLowerCase();
     return (g.groupName?.toLowerCase().includes(q) || g.groupCode?.toLowerCase().includes(q));
   }).slice(0, 10);
+
+  const { fetchNotifications } = useNotificationStore();
 
   return (
     <div ref={ref} className="relative">
@@ -226,7 +229,7 @@ export default function NewLICPolicyPage() {
   const { user, isLoading: authLoading } = useAuth();
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<PolicyFormValues>({
-     resolver: zodResolver(policySchema),
+    resolver: zodResolver(policySchema),
     defaultValues: {
       riders: [],
       nominees: [],
@@ -249,6 +252,7 @@ export default function NewLICPolicyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const { fetchNotifications } = useNotificationStore();
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -335,14 +339,14 @@ export default function NewLICPolicyPage() {
   }, [watchProviderType, providers]);
 
   const filteredProducts = useMemo(() => {
-  if (!watchProviderId) return [];
+    if (!watchProviderId) return [];
 
-  return products
-    .filter((p) => p.providerId === watchProviderId)
-    .sort((a, b) =>
-      (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
-    );
-}, [watchProviderId, products]);
+    return products
+      .filter((p) => p.providerId === watchProviderId)
+      .sort((a, b) =>
+        (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
+      );
+  }, [watchProviderId, products]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -372,19 +376,29 @@ export default function NewLICPolicyPage() {
     setValue("totalYearlyPremium", total > 0 ? String(total) : "");
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
+
   const onSubmit = async (data: PolicyFormValues) => {
     setIsSubmitting(true);
+
     try {
       const result = await dispatch(createPolicy(data)).unwrap();
+
+      // Refresh notifications immediately
+      await fetchNotifications();
+
       toast.success("Policy created successfully!");
+
       router.push("/dashboard/lic/policies");
     } catch (err: any) {
-      toast.error(err.message || "Failed to create policy. Please check the details.");
+      toast.error(
+        err.message || "Failed to create policy. Please check the details."
+      );
       console.error("Failed to create policy:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const states = ["Maharashtra", "Gujarat", "Rajasthan", "Uttar Pradesh", "Delhi", "Karnataka"];
 
@@ -400,11 +414,11 @@ export default function NewLICPolicyPage() {
     const ref = sectionRefs[sectionId];
     if (ref.current) {
       // We add an offset to account for the sticky header if you have one.
-      const yOffset = -80; 
+      const yOffset = -80;
       const y = ref.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
       window.scrollTo({ top: y, behavior: 'smooth' });
-      
+
       setActiveSection(sectionId);
       setGlowingSection(sectionId);
       // Remove the glow after 1.5 seconds
@@ -479,9 +493,8 @@ export default function NewLICPolicyPage() {
         {/* Section 1: Policy Holder's Details */}
         <div
           ref={sectionRefs['policy-holder']}
-          className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-            glowingSection === 'policy-holder' ? 'shadow-lg shadow-blue-500/20' : ''
-          }`}
+          className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'policy-holder' ? 'shadow-lg shadow-blue-500/20' : ''
+            }`}
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -588,14 +601,13 @@ export default function NewLICPolicyPage() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column */} 
+          {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Section 2: Policy Details */}
             <div
               ref={sectionRefs['policy-details']}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === 'policy-details' ? 'shadow-lg shadow-blue-500/20' : ''
-              }`}
+              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'policy-details' ? 'shadow-lg shadow-blue-500/20' : ''
+                }`}
             >
               <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
                 <FileText size={20} className="text-blue-600" />
@@ -636,7 +648,7 @@ export default function NewLICPolicyPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Policy Number <span className="text-red-500">*</span>
-                  </label> 
+                  </label>
                   <input
                     type="text"
                     {...register("policyNumber")}
@@ -682,35 +694,35 @@ export default function NewLICPolicyPage() {
                     Commencement Date <span className="text-red-500">*</span>
                   </label>
                   <Controller
-                  control={control}
-                  name="commencementDate"
-                  render={({ field }) => (
-                  <DatePicker
-                  value={field.value ? new Date(field.value) : undefined}
-                  onChange={(date) =>
-                    field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                  }
-                  />
-                  )}
+                    control={control}
+                    name="commencementDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                      />
+                    )}
                   />
                   {errors.commencementDate && <p className="text-xs text-red-500 mt-1">{errors.commencementDate.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Completion Date <span className="text-red-500">*</span>
-                  </label> 
+                  </label>
                   <Controller
-  control={control}
-  name="completionDate"
-  render={({ field }) => (
-    <DatePicker
-      value={field.value ? new Date(field.value) : undefined}
-      onChange={(date) =>
-        field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-      }
-    />
-  )}
-/>
+                    control={control}
+                    name="completionDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                      />
+                    )}
+                  />
                   {errors.completionDate && <p className="text-xs text-red-500 mt-1">{errors.completionDate.message}</p>}
                 </div>
                 <div>
@@ -765,9 +777,8 @@ export default function NewLICPolicyPage() {
             {/* Section 4: Riders Details */}
             <div
               ref={sectionRefs['riders']}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === 'riders' ? 'shadow-lg shadow-blue-500/20' : ''
-              }`}
+              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'riders' ? 'shadow-lg shadow-blue-500/20' : ''
+                }`}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -855,9 +866,8 @@ export default function NewLICPolicyPage() {
             {/* Section 3: Policy Premium Calculation */}
             <div
               ref={sectionRefs['premium-calculation']}
-              className={`bg-white border border-slate-200 rounded-xl p-6 sticky top-6 transition-all duration-500 ${
-                glowingSection === 'premium-calculation' ? 'shadow-lg shadow-blue-500/20' : ''
-              }`}
+              className={`bg-white border border-slate-200 rounded-xl p-6 sticky top-6 transition-all duration-500 ${glowingSection === 'premium-calculation' ? 'shadow-lg shadow-blue-500/20' : ''
+                }`}
             >
               <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
                 <DollarSign size={20} className="text-blue-600" />
@@ -897,7 +907,7 @@ export default function NewLICPolicyPage() {
                     {...register("totalYearlyPremium")}
                     placeholder="Enter total yearly premium"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                    
+
                     readOnly
                   />
                   {errors.totalYearlyPremium && <p className="text-xs text-red-500 mt-1">{errors.totalYearlyPremium.message}</p>}
@@ -968,15 +978,14 @@ export default function NewLICPolicyPage() {
 
         <div
           ref={sectionRefs['advanced']}
-          className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${
-            glowingSection === 'advanced' ? 'shadow-lg shadow-blue-500/20' : ''
-          }`}
+          className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${glowingSection === 'advanced' ? 'shadow-lg shadow-blue-500/20' : ''
+            }`}
         >
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             type="button"
             className="flex items-center justify-between w-full text-left"
-          > 
+          >
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <Settings size={20} className="text-blue-600" />
               Advanced Options
@@ -1137,7 +1146,7 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Agency</label> 
+                        <label className="block text-sm font-medium mb-2">Agency</label>
                         <select {...register("agencyId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="">Select Agency</option>
                           {agencies.map((agency) => (<option key={agency.id} value={agency.id}>{agency.agencyName}</option>))}
