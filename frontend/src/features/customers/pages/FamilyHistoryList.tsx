@@ -79,7 +79,7 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
         <div className="flex items-center gap-3">
           <button
             onClick={onAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white font-semibold text-sm rounded-lg transition-all shadow-sm cursor-pointer"
           >
             <Plus size={16} />
             Add family history
@@ -98,14 +98,14 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20 transition-all cursor-pointer"
           />
         </div>
       </div>
 
       {isLoading && records.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
           <p className="text-sm text-slate-500">Loading records...</p>
         </div>
       ) : filteredRecords.length === 0 ? (
@@ -129,7 +129,7 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                 <tr key={record.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer">
                   <td
                     onClick={() => onView(record.id)}
-                    className="py-3.5 px-6 font-semibold text-blue-600 hover:text-blue-800"
+                    className="py-3.5 px-6 font-semibold text-[#B8873A] hover:text-[#16294D]"
                   >
                     {record.group?.groupCode || "—"}
                   </td>
@@ -154,14 +154,14 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                   <td className="py-3.5 px-6 text-right flex items-center justify-end gap-2">
                     <button
                       onClick={() => onEdit(record.id)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-[#B8873A] hover:bg-[#B8873A]/10 rounded transition-colors cursor-pointer"
                       title="Edit Record"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(record.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                       title="Delete Record"
                     >
                       <Trash2 size={16} />

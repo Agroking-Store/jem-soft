@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
@@ -26,10 +28,11 @@ function InfoRow({ label, value }: { label: string; value?: string | null | bool
 
 function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
+        <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -77,7 +80,7 @@ export default function CustomerMasterDetailsPage() {
   };
 
   if (!isMounted || (isLoading && !currentCustomer)) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" /></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" /></div>;
   }
 
   if (error && !currentCustomer) {
@@ -85,7 +88,7 @@ export default function CustomerMasterDetailsPage() {
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors">Back to Customers</Link>
+        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">Back to Customers</Link>
       </div>
     );
   }
@@ -97,6 +100,8 @@ export default function CustomerMasterDetailsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+      <CustomerModuleNav />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -126,9 +131,9 @@ export default function CustomerMasterDetailsPage() {
 
       {/* Hero card */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6">
+        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center text-2xl font-bold shadow-sm border border-white/30">
+            <div className="w-16 h-16 rounded-full bg-[#0B1220] text-[#E8C77A] flex items-center justify-center text-2xl font-serif font-semibold shadow-sm ring-2 ring-[#B8873A]/50 ring-offset-2 ring-offset-[#0B1220]">
               {c.firstName.charAt(0).toUpperCase()}
             </div>
             <div className="text-white">
@@ -192,7 +197,7 @@ export default function CustomerMasterDetailsPage() {
               <div key={idx} className="border border-slate-200 rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{addr.addressType}</span>
-                  {addr.useGroupAddress && <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">Uses Group Address</span>}
+                  {addr.useGroupAddress && <span className="text-xs bg-[#B8873A]/10 text-[#B8873A] px-2 py-0.5 rounded-full font-medium">Uses Group Address</span>}
                 </div>
                 <p className="text-sm text-slate-700 leading-relaxed">
                   {[addr.addressLine1, addr.addressLine2, addr.addressLine3, addr.addressLine4, addr.city, addr.state, addr.country, addr.pin].filter(Boolean).join(", ")}
@@ -209,7 +214,7 @@ export default function CustomerMasterDetailsPage() {
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
+                <tr className="bg-[#0B1220] text-white text-xs font-semibold">
                   {["Default","IFSC Code","Bank Name","Branch","City","A/C Type","A/C No.","MICR No."].map((h) => (
                     <th key={h} className="py-2.5 px-3 text-left font-semibold text-xs">{h}</th>
                   ))}

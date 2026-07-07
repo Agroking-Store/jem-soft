@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -122,7 +124,7 @@ function FormInput({
         <input
           {...props}
           className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer
-            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+            focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
             ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
         />
@@ -149,7 +151,7 @@ function FormSelect({
       <select
         {...props}
         className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white cursor-pointer
-          focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+          focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
           ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >
         {children}
@@ -171,8 +173,8 @@ function SectionCard({
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
+        <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -276,7 +278,7 @@ export default function CustomerCreatePage() {
   if (!isMounted || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -285,6 +287,8 @@ export default function CustomerCreatePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+      <CustomerModuleNav />
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
@@ -314,7 +318,7 @@ export default function CustomerCreatePage() {
               <input
                 {...register("groupCode")}
                 placeholder="e.g. A001"
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                   ${errors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
               />
               {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
@@ -384,7 +388,7 @@ export default function CustomerCreatePage() {
                 <label
                   key={opt}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${watch("prefCommAddress") === opt
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    ? "border-[#B8873A] bg-[#B8873A]/5 text-[#0B1220]"
                     : "border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                 >
@@ -524,7 +528,7 @@ export default function CustomerCreatePage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Min. 6 characters"
                   {...register("password")}
-                  className={`w-full border rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  className={`w-full border rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                     ${errors.password ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
                 />
                 <button
@@ -554,7 +558,8 @@ export default function CustomerCreatePage() {
           <Button
             type="submit"
             isLoading={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 w-auto"
+            variant="primary"
+            className="px-6 py-2.5 w-auto"
           >
             Create Customer Group
           </Button>

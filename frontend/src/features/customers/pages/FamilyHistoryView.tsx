@@ -61,7 +61,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
   if (isLoading && !currentRecord) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -74,7 +74,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
         <p className="text-xs text-slate-500 mb-4">{error}</p>
         <button
           onClick={onClose}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
         >
           Back to List
         </button>

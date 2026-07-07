@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
@@ -96,7 +98,7 @@ function FormInput({
         {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">{icon}</span>}
         <input
           {...props}
-          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
             ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
         />
@@ -115,7 +117,7 @@ function FormSelect({
     <div>
       <FieldLabel label={label} required={required} />
       <select {...props}
-        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
           ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >{children}</select>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
@@ -125,10 +127,11 @@ function FormSelect({
 
 function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#0B1220]/5 text-[#0B1220]">{icon}</span>
+        <h2 className="font-serif text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -259,7 +262,7 @@ export default function CustomerEditPage() {
   if (!isMounted || authLoading || (customerLoading && !currentCustomer)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -271,7 +274,7 @@ export default function CustomerEditPage() {
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/dashboard/customers" className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors">
+        <Link href="/dashboard/customers" className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">
           Back to Customers
         </Link>
       </div>
@@ -280,6 +283,8 @@ export default function CustomerEditPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+      <CustomerModuleNav />
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/customers" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
@@ -293,7 +298,7 @@ export default function CustomerEditPage() {
               {currentCustomer?.groupName || currentCustomer?.name || "Edit"}
             </span>
           </nav>
-          <h1 className="text-xl font-bold text-slate-900">Edit Customer Group</h1>
+          <h1 className="font-serif text-xl font-bold text-[#0B1220]">Edit Customer Group</h1>
         </div>
       </div>
 
@@ -308,7 +313,7 @@ export default function CustomerEditPage() {
               <input
                 {...register("groupCode")}
                 placeholder="e.g. A001"
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                   ${errors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
               />
               {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
@@ -338,7 +343,7 @@ export default function CustomerEditPage() {
             <div className="flex gap-3">
               {["Residence", "Office"].map((opt) => (
                 <label key={opt} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all
-                  ${watch("prefCommAddress") === opt ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  ${watch("prefCommAddress") === opt ? "border-[#B8873A] bg-[#B8873A]/10 text-[#0B1220]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <input type="radio" value={opt} {...register("prefCommAddress")} className="sr-only" />
                   {opt === "Residence" ? <Home size={14} /> : <Building size={14} />}
                   {opt}
@@ -405,7 +410,7 @@ export default function CustomerEditPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Leave blank to keep current password"
                   {...register("password")}
-                  className="w-full border border-slate-200 rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white"
+                  className="w-full border border-slate-200 rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -423,7 +428,7 @@ export default function CustomerEditPage() {
             Cancel
           </Link>
           <Button type="submit" isLoading={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 w-auto">
+            className="px-6 py-2.5 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 w-auto">
             Save Changes
           </Button>
         </div>

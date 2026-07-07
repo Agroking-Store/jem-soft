@@ -365,7 +365,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   if (isEditMode && isLoading && !currentRecord) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -410,7 +410,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                 value={searchQuery}
                 onFocus={() => setIsDropdownOpen(true)}
                 onChange={(e) => handleGroupNameChange(e.target.value)}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
                   ${basicErrors.groupName ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
               />
               {basicErrors.groupName && <p className="text-xs text-red-500 mt-1">{basicErrors.groupName}</p>}
@@ -469,7 +469,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                   setFamilyHistoryDate(e.target.value);
                   setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
                 }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
                   ${basicErrors.familyHistoryDate ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
               />
               {basicErrors.familyHistoryDate && (
@@ -486,7 +486,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                   setMemberId(e.target.value);
                   setBasicErrors((p) => ({ ...p, memberId: "" }));
                 }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
                   ${basicErrors.memberId ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
               >
                 <option value="">Select Member Name</option>
@@ -505,10 +505,10 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
         <SectionCard title="Family History Records">
           {/* Member's Details Subform */}
           <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-200/60 mb-5">
-            <h3 className="text-xs font-bold text-slate-650 uppercase tracking-wider mb-4 flex justify-between items-center">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex justify-between items-center">
               <span>Member's Details</span>
               {editingIndex !== null && (
-                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold normal-case">
+                <span className="text-[10px] bg-[#E8C77A]/20 text-[#0B1220] px-2 py-0.5 rounded font-semibold normal-case">
                   Editing Entry #{editingIndex + 1}
                 </span>
               )}
@@ -523,7 +523,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setRelation(e.target.value);
                     setDetailErrors((p) => ({ ...p, relation: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 outline-none bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 outline-none bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
                     ${detailErrors.relation ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
                 >
                   <option value="">Select Relation</option>
@@ -547,7 +547,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setAge(e.target.value);
                     setDetailErrors((p) => ({ ...p, age: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                     ${detailErrors.age ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                 />
                 <span className="text-[10px] text-slate-400 mt-0.5 block">Current Age</span>
@@ -565,7 +565,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setStateOfHealth(e.target.value);
                     setDetailErrors((p) => ({ ...p, stateOfHealth: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                     ${detailErrors.stateOfHealth ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                 />
                 {detailErrors.stateOfHealth && (
@@ -583,7 +583,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                     setIsDead(e.target.checked);
                     setDetailErrors((p) => ({ ...p, ageAtDeath: "", causeOfDeath: "" }));
                   }}
-                  className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 text-[#B8873A] border-slate-300 rounded focus:ring-[#B8873A] cursor-pointer"
                 />
                 <label htmlFor="isDead" className="text-xs font-semibold text-slate-600 uppercase cursor-pointer select-none">
                   Is Dead
@@ -603,7 +603,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                         setAgeAtDeath(e.target.value);
                         setDetailErrors((p) => ({ ...p, ageAtDeath: "" }));
                       }}
-                      className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                         ${detailErrors.ageAtDeath ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                     />
                     {detailErrors.ageAtDeath && (
@@ -621,7 +621,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                         setCauseOfDeath(e.target.value);
                         setDetailErrors((p) => ({ ...p, causeOfDeath: "" }));
                       }}
-                      className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                      className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                         ${detailErrors.causeOfDeath ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                     />
                     {detailErrors.causeOfDeath && (
@@ -644,7 +644,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
               <button
                 onClick={handleAddDetail}
                 type="button"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
               >
                 <Plus size={15} />
                 {editingIndex !== null ? "Update Entry" : "Add Entry"}
@@ -692,7 +692,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                         }}
                         className={`transition-colors cursor-pointer ${
                           isCurrentlyEditing
-                            ? "bg-blue-50/70 hover:bg-blue-50 font-semibold"
+                            ? "bg-[#B8873A]/15 hover:bg-[#B8873A]/10 font-semibold"
                             : "hover:bg-slate-50/40"
                         }`}
                         title="Click to edit this entry"
@@ -703,7 +703,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                         <td className="py-2.5 px-4 font-semibold text-slate-800">
                           {r.relation}
                           {isCurrentlyEditing && (
-                            <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold uppercase">
+                            <span className="ml-2 text-[10px] bg-[#E8C77A]/20 text-[#0B1220] px-1.5 py-0.5 rounded font-bold uppercase">
                               Editing
                             </span>
                           )}
@@ -719,7 +719,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
                           <button
                             onClick={() => handleRemoveDetail(index)}
                             type="button"
-                            className="p-1 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                             title="Remove item"
                           >
                             <X size={15} />
@@ -746,7 +746,7 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-450 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-[#0B1220] hover:bg-[#16294D] disabled:bg-slate-400 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
           >
             <Save size={15} />
             {isEditMode ? "Save Changes" : "Save Family History"}

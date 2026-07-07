@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
@@ -51,10 +53,11 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#0B1220]/5 text-[#0B1220]">{icon}</span>
+        <h2 className="font-serif text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -96,7 +99,7 @@ const getStatusBadge = (status: string) => {
     Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
     Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
     Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
-    Completed: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
+    Completed: { color: "bg-[#B8873A]/10 text-[#0B1220]", icon: CheckCircle },
   };
   const StatusIcon = statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
   return {
@@ -145,7 +148,7 @@ export default function CustomerDetailsPage() {
   if (isLoading && !currentCustomer) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -157,7 +160,7 @@ export default function CustomerDetailsPage() {
         <p className="text-slate-500 mb-6">{error}</p>
         <Link
           href="/dashboard/customers"
-          className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors"
         >
           Back to Customers
         </Link>
@@ -185,6 +188,8 @@ export default function CustomerDetailsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
+      <CustomerModuleNav />
+
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link
@@ -199,7 +204,7 @@ export default function CustomerDetailsPage() {
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{groupName}</span>
             </nav>
-            <h1 className="text-xl font-bold text-slate-900">Customer Group Details</h1>
+            <h1 className="font-serif text-xl font-bold text-[#0B1220]">Customer Group Details</h1>
           </div>
         </div>
 
@@ -224,9 +229,9 @@ export default function CustomerDetailsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6">
+        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center text-2xl font-bold shadow-sm border border-white/30">
+            <div className="w-16 h-16 rounded-full bg-[#0B1220] text-[#E8C77A] flex items-center justify-center text-2xl font-serif font-semibold shadow-sm ring-2 ring-[#B8873A]/50 ring-offset-2 ring-offset-[#0B1220]">
               {groupName.charAt(0).toUpperCase()}
             </div>
             <div className="text-white">
@@ -354,7 +359,7 @@ export default function CustomerDetailsPage() {
             {canEdit && (
               <Link
                 href="/dashboard/customers/master/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
               >
                 Add Customer
               </Link>
@@ -375,14 +380,14 @@ export default function CustomerDetailsPage() {
                 {groupMembers.map((member) => {
                   const fullName = getFullName(member);
                   return (
-                    <tr key={member.id} className="hover:bg-blue-50/30 transition-colors">
+                    <tr key={member.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
                       <td className="py-3 px-4">
                         <Link
                           href={`/dashboard/customers/master/${member.id}`}
-                          className="font-semibold text-slate-900 hover:text-blue-600 transition-colors flex items-center gap-1 group"
+                          className="font-semibold text-slate-900 hover:text-[#0B1220] transition-colors flex items-center gap-1 group"
                         >
                           {fullName}
-                          <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                          <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#0B1220]" />
                         </Link>
                         <span className="text-xs text-slate-400">{member.customerType || "Customer"}</span>
                       </td>
@@ -436,7 +441,7 @@ export default function CustomerDetailsPage() {
             {canEdit && (
               <Link
                 href="/dashboard/lic/policies/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
               >
                 Create Policy
               </Link>
@@ -468,12 +473,12 @@ export default function CustomerDetailsPage() {
                   const StatusIcon = statusDetails.icon;
 
                   return (
-                    <tr key={policy.id} className="hover:bg-blue-50/30 transition-colors">
+                    <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
                       <td className="py-3 px-4 font-semibold text-slate-900">
                         {canEdit ? (
                           <Link
                             href={`/dashboard/lic/policies/edit/${policy.id}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="text-[#0B1220] hover:text-[#16294D] hover:underline"
                           >
                             {policy.policyNumber}
                           </Link>
@@ -484,7 +489,7 @@ export default function CustomerDetailsPage() {
                       <td className="py-3 px-4 text-slate-700 font-medium">{memberName}</td>
                       <td className="py-3 px-4">
                         <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
-                        <div className="text-xs text-slate-550">
+                        <div className="text-xs text-slate-500">
                           {policy.product?.productName || "—"} {policy.product?.planNumber ? `(Plan: ${policy.product.planNumber})` : ""}
                         </div>
                       </td>
@@ -495,7 +500,7 @@ export default function CustomerDetailsPage() {
                         {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
                         <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
                       </td>
-                      <td className="py-3 px-4 text-center text-slate-650 font-medium">
+                      <td className="py-3 px-4 text-center text-slate-600 font-medium">
                         {policy.commencementDate ? new Date(policy.commencementDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
                       </td>
                       <td className="py-3 px-4 text-center">
