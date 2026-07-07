@@ -5,7 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { fetchCustomers, deleteCustomer } from "@/features/customers/customerSlice";
+import {
+  fetchCustomers,
+  deleteCustomer,
+} from "@/features/customers/customerSlice";
 import {
   fetchCustomersMaster,
   deleteCustomerMaster,
@@ -43,11 +46,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 type Tab = "group" | "master" | "family" | "medical";
-type DeleteTarget = { id: string; type: Extract<Tab, "group" | "master">; label: string } | null;
+type DeleteTarget = {
+  id: string;
+  type: Extract<Tab, "group" | "master">;
+  label: string;
+} | null;
 
 type HistoryView =
   | { type: "list" }
-  | { type: "add" }
+  | { type: "add"; recordId?: string }
   | { type: "edit"; recordId?: string }
   | { type: "view"; recordId?: string };
 
@@ -63,7 +70,12 @@ function getFullName(customer: {
   middleName?: string | null;
   lastName?: string | null;
 }) {
-  return [customer.salutation, customer.firstName, customer.middleName, customer.lastName]
+  return [
+    customer.salutation,
+    customer.firstName,
+    customer.middleName,
+    customer.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 }
@@ -72,7 +84,9 @@ export default function CustomerListPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user } = useAuth();
-  const { customers, isLoading, error } = useSelector((s: RootState) => s.customers);
+  const { customers, isLoading, error } = useSelector(
+    (s: RootState) => s.customers,
+  );
   const {
     customers: masterCustomers,
     isLoading: isMasterLoading,
@@ -80,14 +94,20 @@ export default function CustomerListPage() {
   } = useSelector((s: RootState) => s.customerMaster);
 
   const searchParams = useSearchParams();
-  const paramTab = searchParams.get("tab");
-  const activeTab: Tab = paramTab === "master"
-    ? "master"
-    : paramTab === "family"
-    ? "family"
-    : paramTab === "medical"
-    ? "medical"
-    : "group";
+  const [activeTab, setActiveTab] = useState<Tab>("group");
+
+  useEffect(() => {
+    const paramTab = searchParams.get("tab");
+    const tab: Tab =
+      paramTab === "master"
+        ? "master"
+        : paramTab === "family"
+          ? "family"
+          : paramTab === "medical"
+            ? "medical"
+            : "group";
+    setActiveTab(tab);
+  }, [searchParams]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
@@ -119,7 +139,8 @@ export default function CustomerListPage() {
   // it behind `mounted` keeps the initial client render identical to the server
   // render, avoiding a hydration mismatch; the edit/add controls then appear
   // right after hydration completes.
-  const canEdit = mounted && (user?.role === "ADMIN" || user?.role === "ADVISOR");
+  const canEdit =
+    mounted && (user?.role === "ADMIN" || user?.role === "ADVISOR");
 
   const groupMemberCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -131,9 +152,15 @@ export default function CustomerListPage() {
   }, [masterCustomers]);
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { Client: 0, Personal: 0, Prospect: 0, Others: 0 };
+    const counts: Record<string, number> = {
+      Client: 0,
+      Personal: 0,
+      Prospect: 0,
+      Others: 0,
+    };
     customers.forEach((c) => {
-      const cat = c.category && counts[c.category] !== undefined ? c.category : "Others";
+      const cat =
+        c.category && counts[c.category] !== undefined ? c.category : "Others";
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return counts;
@@ -161,7 +188,8 @@ export default function CustomerListPage() {
   const filteredMasterCustomers = masterCustomers.filter((c) => {
     const query = searchTerm.toLowerCase();
     const fullName = getFullName(c).toLowerCase();
-    const groupLabel = `${c.group?.groupCode || ""} ${c.group?.groupName || ""}`.toLowerCase();
+    const groupLabel =
+      `${c.group?.groupCode || ""} ${c.group?.groupName || ""}`.toLowerCase();
     return (
       fullName.includes(query) ||
       groupLabel.includes(query) ||
@@ -228,7 +256,10 @@ export default function CustomerListPage() {
     }
   };
 
-  const deleteTitle = deleteTarget?.type === "master" ? "Delete Customer" : "Delete Customer Group";
+  const deleteTitle =
+    deleteTarget?.type === "master"
+      ? "Delete Customer"
+      : "Delete Customer Group";
   const deleteText =
     deleteTarget?.type === "master"
       ? "This will remove the customer and all linked contact, address, bank, and preference details."
@@ -236,19 +267,55 @@ export default function CustomerListPage() {
 
   // Status-grid style stats (Vehicle-page style) for each tab
   const groupStatusItems = [
-    { label: "Client", value: categoryCounts.Client, icon: Users, color: "text-blue-600 bg-blue-50" },
-    { label: "Personal", value: categoryCounts.Personal, icon: UserCog, color: "text-amber-600 bg-amber-50" },
-    { label: "Prospect", value: categoryCounts.Prospect, icon: Star, color: "text-green-600 bg-green-50" },
-    { label: "Others", value: categoryCounts.Others, icon: Tag, color: "text-slate-600 bg-slate-100" },
+    {
+      label: "Client",
+      value: categoryCounts.Client,
+      icon: Users,
+      color: "text-blue-600 bg-blue-50",
+    },
+    {
+      label: "Personal",
+      value: categoryCounts.Personal,
+      icon: UserCog,
+      color: "text-amber-600 bg-amber-50",
+    },
+    {
+      label: "Prospect",
+      value: categoryCounts.Prospect,
+      icon: Star,
+      color: "text-green-600 bg-green-50",
+    },
+    {
+      label: "Others",
+      value: categoryCounts.Others,
+      icon: Tag,
+      color: "text-slate-600 bg-slate-100",
+    },
   ];
 
   const masterStatusItems = [
-    { label: "Group Heads", value: masterStats.heads, icon: Star, color: "text-amber-600 bg-amber-50" },
-    { label: "Members", value: masterStats.members, icon: Users, color: "text-blue-600 bg-blue-50" },
-    { label: "Not Mapped", value: masterStats.unmapped, icon: AlertTriangle, color: "text-red-500 bg-red-50" },
+    {
+      label: "Group Heads",
+      value: masterStats.heads,
+      icon: Star,
+      color: "text-amber-600 bg-amber-50",
+    },
+    {
+      label: "Members",
+      value: masterStats.members,
+      icon: Users,
+      color: "text-blue-600 bg-blue-50",
+    },
+    {
+      label: "Not Mapped",
+      value: masterStats.unmapped,
+      icon: AlertTriangle,
+      color: "text-red-500 bg-red-50",
+    },
   ];
 
-  const activeStatusItems = activeTab === "group" ? groupStatusItems : masterStatusItems;
+  const activeStatusItems =
+    activeTab === "group" ? groupStatusItems : masterStatusItems;
 
   return (
     <div className="max-w-7xl mx-auto space-y-0">
@@ -258,9 +325,12 @@ export default function CustomerListPage() {
             <Users size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Customers</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Customers
+            </h1>
             <p className="text-slate-600 text-sm mt-0.5">
-              Manage your customer groups and individual profiles — all in one organized place.
+              Manage your customer groups and individual profiles — all in one
+              organized place.
             </p>
           </div>
         </div>
@@ -299,7 +369,12 @@ export default function CustomerListPage() {
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <Heart size={16} className={activeTab === "family" ? "text-blue-600" : "text-slate-400"} />
+            <Heart
+              size={16}
+              className={
+                activeTab === "family" ? "text-blue-600" : "text-slate-400"
+              }
+            />
             Family History
           </button>
           <button
@@ -310,14 +385,22 @@ export default function CustomerListPage() {
                 : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <Activity size={16} className={activeTab === "medical" ? "text-blue-600" : "text-slate-400"} />
+            <Activity
+              size={16}
+              className={
+                activeTab === "medical" ? "text-blue-600" : "text-slate-400"
+              }
+            />
             Medical History
           </button>
         </div>
 
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
             <input
               type="text"
               placeholder={
@@ -341,7 +424,11 @@ export default function CustomerListPage() {
                   if (selectedIds.size === 1) {
                     const id = [...selectedIds][0];
                     const group = customers.find((c) => c.id === id);
-                    setDeleteTarget({ id, type: "group", label: group?.groupName || group?.name || "this group" });
+                    setDeleteTarget({
+                      id,
+                      type: "group",
+                      label: group?.groupName || group?.name || "this group",
+                    });
                   }
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium transition-colors"
@@ -352,7 +439,11 @@ export default function CustomerListPage() {
             )}
             {canEdit && (
               <Link
-                href={activeTab === "group" ? "/dashboard/customers/new" : "/dashboard/customers/master/new"}
+                href={
+                  activeTab === "group"
+                    ? "/dashboard/customers/new"
+                    : "/dashboard/customers/master/new"
+                }
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all duration-200"
               >
                 <Plus size={16} />
@@ -368,14 +459,18 @@ export default function CustomerListPage() {
             const Icon = stat.icon;
             return (
               <div key={stat.label} className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${stat.color}`}>
+                <div
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${stat.color}`}
+                >
                   <Icon size={16} />
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 leading-tight">
                     {stat.label}
                   </p>
-                  <p className="text-sm font-bold text-slate-900">{stat.value}</p>
+                  <p className="text-sm font-bold text-slate-900">
+                    {stat.value}
+                  </p>
                 </div>
               </div>
             );
@@ -387,15 +482,21 @@ export default function CustomerListPage() {
             {isLoading && customers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
-                <p className="text-sm text-slate-500">Loading customer groups...</p>
+                <p className="text-sm text-slate-500">
+                  Loading customer groups...
+                </p>
               </div>
             ) : error && customers.length === 0 ? (
               <div className="text-center py-16 px-4">
                 <div className="inline-flex p-3 bg-red-50 text-red-500 rounded-xl mb-3">
                   <AlertTriangle size={24} />
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1">Failed to Load</h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">{error}</p>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  Failed to Load
+                </h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
+                  {error}
+                </p>
                 <button
                   onClick={() => dispatch(fetchCustomers())}
                   className="text-sm font-semibold text-blue-600 hover:text-blue-700"
@@ -408,7 +509,9 @@ export default function CustomerListPage() {
                 <div className="inline-flex p-4 bg-blue-50 text-blue-400 rounded-2xl mb-4">
                   <Users size={28} />
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1">No Customer Groups Found</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  No Customer Groups Found
+                </h3>
                 <p className="text-sm text-slate-500 max-w-xs mx-auto mb-5">
                   {searchTerm
                     ? "No groups match your search. Try a different keyword."
@@ -432,24 +535,36 @@ export default function CustomerListPage() {
                       <th className="py-3 px-4">
                         <input
                           type="checkbox"
-                          checked={selectedIds.size === filteredCustomers.length && filteredCustomers.length > 0}
+                          checked={
+                            selectedIds.size === filteredCustomers.length &&
+                            filteredCustomers.length > 0
+                          }
                           onChange={toggleSelectAll}
                           className="rounded border-white/40 text-blue-600 focus:ring-0"
                         />
                       </th>
-                      <th className="py-3 px-4 whitespace-nowrap">Group Code</th>
-                      <th className="py-3 px-4 whitespace-nowrap">Group Name</th>
+                      <th className="py-3 px-4 whitespace-nowrap">
+                        Group Code
+                      </th>
+                      <th className="py-3 px-4 whitespace-nowrap">
+                        Group Name
+                      </th>
                       <th className="py-3 px-4 whitespace-nowrap">Category</th>
-                      <th className="py-3 px-4 whitespace-nowrap text-center">No. of Members</th>
+                      <th className="py-3 px-4 whitespace-nowrap text-center">
+                        No. of Members
+                      </th>
                       <th className="py-3 px-4 text-center">Group</th>
                       <th className="py-3 px-4 text-center">Photo</th>
-                      {isClient && canEdit && <th className="py-3 px-4 text-right"></th>}
+                      {isClient && canEdit && (
+                        <th className="py-3 px-4 text-right"></th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {filteredCustomers.map((customer, idx) => {
                       const catColor =
-                        CATEGORY_COLORS[customer.category || ""] ?? "bg-slate-100 text-slate-600";
+                        CATEGORY_COLORS[customer.category || ""] ??
+                        "bg-slate-100 text-slate-600";
                       const memberCount = groupMemberCounts[customer.id] || 0;
                       const isSelected = selectedIds.has(customer.id);
                       const groupHref = `/dashboard/customers/${customer.id}`;
@@ -459,7 +574,11 @@ export default function CustomerListPage() {
                           key={customer.id}
                           onDoubleClick={() => router.push(groupHref)}
                           className={`transition-colors ${
-                            isSelected ? "bg-blue-50/60" : idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                            isSelected
+                              ? "bg-blue-50/60"
+                              : idx % 2 === 0
+                                ? "bg-white"
+                                : "bg-slate-50/40"
                           } hover:bg-blue-50/30`}
                         >
                           <td className="py-3 px-4">
@@ -471,7 +590,10 @@ export default function CustomerListPage() {
                             />
                           </td>
                           <td className="py-3 px-4">
-                            <Link href={groupHref} className="font-mono font-semibold text-slate-700 text-xs bg-slate-100 px-2 py-1 rounded hover:bg-blue-100 hover:text-blue-700 transition-colors">
+                            <Link
+                              href={groupHref}
+                              className="font-mono font-semibold text-slate-700 text-xs bg-slate-100 px-2 py-1 rounded hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                            >
                               {customer.groupCode || "-"}
                             </Link>
                           </td>
@@ -481,7 +603,10 @@ export default function CustomerListPage() {
                               className="font-semibold text-slate-900 hover:text-blue-600 transition-colors flex items-center gap-1 group"
                             >
                               {customer.groupName || customer.name}
-                              <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                              <ChevronRight
+                                size={13}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500"
+                              />
                             </Link>
                             {customer.email && (
                               <div className="text-xs text-slate-400 mt-0.5 truncate max-w-[180px]">
@@ -491,7 +616,9 @@ export default function CustomerListPage() {
                           </td>
                           <td className="py-3 px-4">
                             {customer.category ? (
-                              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${catColor}`}>
+                              <span
+                                className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${catColor}`}
+                              >
                                 <Tag size={10} />
                                 {customer.category}
                               </span>
@@ -500,7 +627,10 @@ export default function CustomerListPage() {
                             )}
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <Link href={`${groupHref}?tab=members`} className="text-blue-600 font-bold text-sm hover:underline">
+                            <Link
+                              href={`${groupHref}?tab=members`}
+                              className="text-blue-600 font-bold text-sm hover:underline"
+                            >
                               {memberCount}
                             </Link>
                           </td>
@@ -514,7 +644,10 @@ export default function CustomerListPage() {
                             </Link>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="inline-flex w-7 h-7 items-center justify-center bg-slate-100 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-colors cursor-pointer" title="Upload Photo">
+                            <span
+                              className="inline-flex w-7 h-7 items-center justify-center bg-slate-100 rounded-lg text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-colors cursor-pointer"
+                              title="Upload Photo"
+                            >
                               <Camera size={13} />
                             </span>
                           </td>
@@ -529,7 +662,14 @@ export default function CustomerListPage() {
                                   <Edit size={14} />
                                 </Link>
                                 <button
-                                  onClick={() => setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name })}
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: customer.id,
+                                      type: "group",
+                                      label:
+                                        customer.groupName || customer.name,
+                                    })
+                                  }
                                   className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                   <Trash2 size={14} />
@@ -544,11 +684,20 @@ export default function CustomerListPage() {
                 </table>
                 <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between text-xs text-slate-400">
                   <span>
-                    Showing <strong className="text-slate-600">{filteredCustomers.length}</strong> of{" "}
-                    <strong className="text-slate-600">{customers.length}</strong> customer groups
+                    Showing{" "}
+                    <strong className="text-slate-600">
+                      {filteredCustomers.length}
+                    </strong>{" "}
+                    of{" "}
+                    <strong className="text-slate-600">
+                      {customers.length}
+                    </strong>{" "}
+                    customer groups
                   </span>
                   {selectedIds.size > 0 && (
-                    <span className="text-blue-600 font-semibold">{selectedIds.size} selected</span>
+                    <span className="text-blue-600 font-semibold">
+                      {selectedIds.size} selected
+                    </span>
                   )}
                 </div>
               </div>
@@ -568,8 +717,12 @@ export default function CustomerListPage() {
                 <div className="inline-flex p-3 bg-red-50 text-red-500 rounded-xl mb-3">
                   <AlertTriangle size={24} />
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1">Failed to Load</h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">{masterError}</p>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  Failed to Load
+                </h3>
+                <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
+                  {masterError}
+                </p>
                 <button
                   onClick={() => dispatch(fetchCustomersMaster())}
                   className="text-sm font-semibold text-blue-600 hover:text-blue-700"
@@ -582,7 +735,9 @@ export default function CustomerListPage() {
                 <div className="inline-flex p-4 bg-blue-50 text-blue-400 rounded-2xl mb-4">
                   <SlidersHorizontal size={28} />
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1">No Customers Found</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  No Customers Found
+                </h3>
                 <p className="text-sm text-slate-500 max-w-xs mx-auto mb-5">
                   {searchTerm
                     ? "No individual customers match your search."
@@ -603,13 +758,19 @@ export default function CustomerListPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gradient-to-r from-blue-600 to-blue-600 text-white text-xs font-semibold uppercase tracking-wider">
-                      <th className="py-3 px-4 whitespace-nowrap">Customer Name</th>
+                      <th className="py-3 px-4 whitespace-nowrap">
+                        Customer Name
+                      </th>
                       <th className="py-3 px-4 whitespace-nowrap">Group</th>
                       <th className="py-3 px-4 whitespace-nowrap">Relation</th>
                       <th className="py-3 px-4 whitespace-nowrap">Contact</th>
                       <th className="py-3 px-4 whitespace-nowrap">Type</th>
-                      <th className="py-3 px-4 whitespace-nowrap text-center">Status</th>
-                      {isClient && canEdit && <th className="py-3 px-4 text-right"></th>}
+                      <th className="py-3 px-4 whitespace-nowrap text-center">
+                        Status
+                      </th>
+                      {isClient && canEdit && (
+                        <th className="py-3 px-4 text-right"></th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
@@ -632,10 +793,15 @@ export default function CustomerListPage() {
                               className="font-semibold text-slate-900 hover:text-blue-600 transition-colors flex items-center gap-1 group"
                             >
                               {fullName}
-                              <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                              <ChevronRight
+                                size={13}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500"
+                              />
                             </Link>
                             <div className="text-xs text-slate-400 mt-0.5">
-                              {[customer.gender, customer.panNumber].filter(Boolean).join(" | ") || "Individual record"}
+                              {[customer.gender, customer.panNumber]
+                                .filter(Boolean)
+                                .join(" | ") || "Individual record"}
                             </div>
                           </td>
                           <td className="py-3 px-4">
@@ -648,7 +814,9 @@ export default function CustomerListPage() {
                                 {groupLabel}
                               </Link>
                             ) : (
-                              <span className="text-xs text-slate-300">Not mapped</span>
+                              <span className="text-xs text-slate-300">
+                                Not mapped
+                              </span>
                             )}
                           </td>
                           <td className="py-3 px-4">
@@ -670,13 +838,18 @@ export default function CustomerListPage() {
                                   {customer.contactInfo.emailPersonal}
                                 </div>
                               )}
-                              {!customer.contactInfo?.mobile1 && !customer.contactInfo?.emailPersonal && (
-                                <span className="text-xs text-slate-300">-</span>
-                              )}
+                              {!customer.contactInfo?.mobile1 &&
+                                !customer.contactInfo?.emailPersonal && (
+                                  <span className="text-xs text-slate-300">
+                                    -
+                                  </span>
+                                )}
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-slate-700">{customer.customerType || "-"}</span>
+                            <span className="text-sm text-slate-700">
+                              {customer.customerType || "-"}
+                            </span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             {customer.isGroupHead ? (
@@ -701,7 +874,13 @@ export default function CustomerListPage() {
                                   <Edit size={14} />
                                 </Link>
                                 <button
-                                  onClick={() => setDeleteTarget({ id: customer.id, type: "master", label: fullName })}
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: customer.id,
+                                      type: "master",
+                                      label: fullName,
+                                    })
+                                  }
                                   className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                   title="Delete"
                                 >
@@ -717,8 +896,15 @@ export default function CustomerListPage() {
                 </table>
                 <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between text-xs text-slate-400">
                   <span>
-                    Showing <strong className="text-slate-600">{filteredMasterCustomers.length}</strong> of{" "}
-                    <strong className="text-slate-600">{masterCustomers.length}</strong> customers
+                    Showing{" "}
+                    <strong className="text-slate-600">
+                      {filteredMasterCustomers.length}
+                    </strong>{" "}
+                    of{" "}
+                    <strong className="text-slate-600">
+                      {masterCustomers.length}
+                    </strong>{" "}
+                    customers
                   </span>
                 </div>
               </div>
@@ -744,7 +930,7 @@ export default function CustomerListPage() {
             )}
             {(historyView.type === "add" || historyView.type === "edit") && (
               <FamilyHistoryForm
-                recordId={historyView.recordId}
+                recordId={historyView.recordId || ""}
                 onClose={() => setHistoryView({ type: "list" })}
               />
             )}
@@ -759,9 +945,12 @@ export default function CustomerListPage() {
                 <Activity size={32} className="animate-pulse" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-2">Medical History</h2>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-2">
+              Medical History
+            </h2>
             <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed mb-6">
-              Our comprehensive medical history tracking suite is under development and will be available soon.
+              Our comprehensive medical history tracking suite is under
+              development and will be available soon.
             </p>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-650 text-xs font-semibold uppercase tracking-wider shadow-sm border border-blue-100 animate-pulse">
               Coming Soon
@@ -778,12 +967,17 @@ export default function CustomerListPage() {
                 <AlertTriangle size={22} className="text-red-500" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">{deleteTitle}</h3>
-                <p className="text-xs text-slate-400">This action cannot be undone</p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {deleteTitle}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  This action cannot be undone
+                </p>
               </div>
             </div>
             <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to delete <strong>{deleteTarget.label}</strong>? {deleteText}
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget.label}</strong>? {deleteText}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
