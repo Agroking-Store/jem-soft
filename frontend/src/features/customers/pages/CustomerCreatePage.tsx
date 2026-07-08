@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -44,7 +46,7 @@ const INDIAN_STATES = [
 // ─── Schema ───────────────────────────────────────────────────────
 const schema = z.object({
   // Basic
-  groupCode: z.string().optional().or(z.literal("")),
+  groupCode: z.string().min(1, "Group code is required"),
   groupName: z.string().min(2, "Group name must be at least 2 characters"),
   category: z.string().optional().or(z.literal("")),
 
@@ -91,9 +93,9 @@ type FormValues = z.infer<typeof schema>;
 // ─── Reusable field components ────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
       {label}
-      {required && <span className="text-red-500 ml-0.5">*</span>}
+      {required && <span className="ml-0.5 text-rose-500">*</span>}
     </label>
   );
 }
@@ -115,19 +117,19 @@ function FormInput({
       <FieldLabel label={label} required={required} />
       <div className="relative">
         {icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
             {icon}
           </span>
         )}
         <input
           {...props}
-          className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all
-            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-            ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}
+          className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer
+            focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
+            ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}
             ${icon ? "pl-9 pr-3" : "px-3"}`}
         />
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -148,13 +150,13 @@ function FormSelect({
       <FieldLabel label={label} required={required} />
       <select
         {...props}
-        className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white
-          focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-          ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
+        className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all cursor-pointer
+          focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
+          ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}
       >
         {children}
       </select>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -169,12 +171,12 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#B8873A]">{icon}</span>
+        <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   );
 }
@@ -276,7 +278,7 @@ export default function CustomerCreatePage() {
   if (!isMounted || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" />
       </div>
     );
   }
@@ -284,9 +286,11 @@ export default function CustomerCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      <CustomerModuleNav />
+
       {/* Header */}
-      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
         <Link
           href="/dashboard/customers"
           className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
@@ -310,25 +314,14 @@ export default function CustomerCreatePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Group Code */}
             <div>
-              <FieldLabel label="Group Code" />
-              <div className="flex gap-2">
-                <input
-                  {...register("groupCode")}
-                  placeholder="e.g. A001"
-                  className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const ts = Date.now().toString().slice(-4);
-                    setValue("groupCode", `A${ts}`);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors whitespace-nowrap"
-                >
-                  <Wand2 size={12} />
-                  Auto Fill
-                </button>
-              </div>
+              <FieldLabel label="Group Code" required />
+              <input
+                {...register("groupCode")}
+                placeholder="e.g. A001"
+                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+                  ${errors.groupCode ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
+              />
+              {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
             </div>
 
             <FormInput
@@ -395,7 +388,7 @@ export default function CustomerCreatePage() {
                 <label
                   key={opt}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${watch("prefCommAddress") === opt
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    ? "border-[#B8873A] bg-[#B8873A]/5 text-[#0B1220]"
                     : "border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                 >
@@ -535,7 +528,7 @@ export default function CustomerCreatePage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Min. 6 characters"
                   {...register("password")}
-                  className={`w-full border rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  className={`w-full border rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
                     ${errors.password ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
                 />
                 <button
@@ -558,18 +551,19 @@ export default function CustomerCreatePage() {
         <div className="flex items-center justify-end gap-3 py-2">
           <Link
             href="/dashboard/customers"
-            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
-          >
-            Cancel
-          </Link>
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 w-auto"
-          >
-            Create Customer Group
-          </Button>
-        </div>
+          className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+        >
+          Cancel
+        </Link>
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          variant="primary"
+          className="w-auto px-6 py-2.5"
+        >
+          Create Customer Group
+        </Button>
+      </div>
       </form>
     </div >
   );

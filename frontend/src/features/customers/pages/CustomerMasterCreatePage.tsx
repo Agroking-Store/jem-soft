@@ -1,5 +1,7 @@
 "use client";
 
+import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -65,7 +67,7 @@ const addressSchema = z.object({
 });
 
 const schema = z.object({
-  groupId: z.string().optional().or(z.literal("")),
+  groupId: z.string().min(1, "Customer Group is required"),
   salutation: z.string().optional().or(z.literal("")),
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional().or(z.literal("")),
@@ -132,7 +134,7 @@ type FormValues = z.output<typeof schema>;
 // ─── Reusable UI Components ───────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
-    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
       {label}{required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   );
@@ -143,10 +145,10 @@ function FormInput({ label, error, required, icon, className: cls, ...props }: R
     <div>
       <FieldLabel label={label} required={required} />
       <div className="relative">
-        {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">{icon}</span>}
-        <input {...props} className={`w-full border rounded-lg py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
+        {icon && <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>}
+        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
       </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -155,8 +157,8 @@ function FormSelect({ label, error, required, children, ...props }: React.Select
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
@@ -165,26 +167,37 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <textarea {...props} rows={3} className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`} />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
 }
 
 function SectionCard({ title, icon, children, accent }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className={`flex items-center gap-2.5 px-5 py-3.5 border-b border-slate-200 ${accent || "bg-slate-50"}`}>
-        <span className="text-blue-500">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className={`flex items-center gap-2.5 border-b border-slate-200 px-5 py-3.5 ${accent || "bg-slate-50"}`}>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#B8873A]">{icon}</span>
+        <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 sm:p-6">{children}</div>
     </div>
   );
 }
 
 // Group Autocomplete
-function GroupAutoComplete({ value, onChange, groups }: { value: string; onChange: (id: string) => void; groups: { id: string; groupCode?: string | null; groupName?: string | null }[] }) {
+function GroupAutoComplete({ 
+  value, 
+  onChange, 
+  groups,
+  error,
+}: { 
+  value: string; 
+  onChange: (id: string) => void; 
+  groups: { id: string; groupCode?: string | null; groupName?: string | null }[];
+  error?: string;
+}) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -203,7 +216,7 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
 
   return (
     <div ref={ref} className="relative">
-      <FieldLabel label="Customer Group" />
+      <FieldLabel label="Customer Group" required />
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={14} /></span>
@@ -212,7 +225,8 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
             onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
             onFocus={() => setOpen(true)}
             placeholder="Search group by name or code..."
-            className="w-full border border-slate-200 rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white"
+            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+              ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
             <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -223,12 +237,13 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
         <Link
           href="/dashboard/customers/new"
           target="_blank"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-[#0B1220] hover:bg-slate-100 transition-colors"
           title="Add new group"
         >
           <Plus size={16} />
         </Link>
       </div>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       {open && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
@@ -236,7 +251,7 @@ function GroupAutoComplete({ value, onChange, groups }: { value: string; onChang
               key={g.id}
               type="button"
               onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#0B1220]/5 transition-colors text-left"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
@@ -344,12 +359,14 @@ export default function CustomerMasterCreatePage() {
   };
 
   if (!isMounted || authLoading) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" /></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" /></div>;
   }
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      <CustomerModuleNav />
+
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
@@ -375,6 +392,7 @@ export default function CustomerMasterCreatePage() {
               value={selectedGroupId}
               onChange={(id) => { setSelectedGroupId(id); setValue("groupId", id); }}
               groups={groups.map((g) => ({ id: g.id, groupCode: g.groupCode, groupName: g.groupName }))}
+              error={errors.groupId?.message}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -407,14 +425,14 @@ export default function CustomerMasterCreatePage() {
 
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20" />
+                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]/20" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Is Group Head</p>
                   <p className="text-xs text-slate-400">Mark as the primary person of the group</p>
                 </div>
               </label>
               {watch("isGroupHead") && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#B8873A]/10 text-[#B8873A]">
                   <Star size={11} /> Group Head
                 </span>
               )}
@@ -430,22 +448,22 @@ export default function CustomerMasterCreatePage() {
             <div>
               <FieldLabel label="Landline 1" />
               <div className="flex gap-2">
-                <input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
-                <input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <div>
               <FieldLabel label="Landline 2" />
               <div className="flex gap-2">
-                <input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
-                <input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <div>
               <FieldLabel label="Fax" />
               <div className="flex gap-2">
-                <input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
-                <input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 transition-all bg-white" />
+                <input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <FormInput label="Skype ID" placeholder="skype.username" {...register("skypeId")} />
@@ -468,7 +486,7 @@ export default function CustomerMasterCreatePage() {
                   </button>
                 </div>
                 <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                  <input type="checkbox" {...register(`addresses.${idx}.useGroupAddress`)} className="rounded border-slate-300 text-blue-600" />
+                  <input type="checkbox" {...register(`addresses.${idx}.useGroupAddress`)} className="rounded border-slate-300 text-[#B8873A]" />
                   Use Group Address
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -491,7 +509,7 @@ export default function CustomerMasterCreatePage() {
             ))}
             <button type="button"
               onClick={() => appendAddr({ addressType: "Residence", country: "India", useGroupAddress: false, addressLine1: "", addressLine2: "", addressLine3: "", addressLine4: "", city: "", pin: "", state: "", area: "" })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#0B1220] bg-[#0B1220]/5 hover:bg-[#0B1220]/10 border border-[#0B1220]/20 rounded-lg transition-colors"
             >
               <Plus size={14} /> Add Address
             </button>
@@ -505,7 +523,7 @@ export default function CustomerMasterCreatePage() {
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gradient-to-r from-blue-600 to-blue-600 text-white">
+                    <tr className="bg-[#0B1220] text-white">
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">Default</th>
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">IFSC Code</th>
                       <th className="py-2.5 px-3 text-left font-semibold text-xs">Bank Name</th>
@@ -521,20 +539,20 @@ export default function CustomerMasterCreatePage() {
                     {bankFields.map((field, idx) => (
                       <tr key={field.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
                         <td className="py-2 px-3">
-                          <input type="checkbox" {...register(`bankDetails.${idx}.isDefault`)} className="rounded border-slate-300 text-blue-600" />
+                          <input type="checkbox" {...register(`bankDetails.${idx}.isDefault`)} className="rounded border-slate-300 accent-[#0B1220]" />
                         </td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.ifscCode`)} placeholder="SBIN0001234" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankName`)} placeholder="Bank Name" className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.ifscCode`)} placeholder="SBIN0001234" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankName`)} placeholder="Bank Name" className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2">
-                          <select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white">
+                          <select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white">
                             <option value="">Select</option>
                             {ACCOUNT_TYPES.map((t) => <option key={t}>{t}</option>)}
                           </select>
                         </td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
+                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2">
                           <button type="button" onClick={() => removeBank(idx)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
                             <Trash2 size={13} />
@@ -548,7 +566,7 @@ export default function CustomerMasterCreatePage() {
             )}
             <button type="button"
               onClick={() => appendBank({ isDefault: bankFields.length === 0, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#0B1220] bg-[#0B1220]/5 hover:bg-[#0B1220]/10 border border-[#0B1220]/20 rounded-lg transition-colors"
             >
               <Plus size={14} /> Add Bank Account
             </button>
@@ -567,14 +585,14 @@ export default function CustomerMasterCreatePage() {
             <div className="space-y-2">
               <FormInput label="Marriage Date" type="date" {...register("marriageDate")} />
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
-                <input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-blue-600" />
+                <input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" />
                 Is Married
               </label>
             </div>
             <div className="space-y-2">
               <FormInput label="Demise Date" type="date" {...register("demiseDate")} />
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
-                <input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-blue-600" />
+                <input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" />
                 Is Deceased
               </label>
             </div>
@@ -608,8 +626,8 @@ export default function CustomerMasterCreatePage() {
             <div>
               <FieldLabel label="Height / Weight" />
               <div className="flex gap-2">
-                <input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white" />
-                <input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white" />
+                <input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" />
+                <input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" />
               </div>
             </div>
             <div>
@@ -617,7 +635,7 @@ export default function CustomerMasterCreatePage() {
               <input
                 {...register("incomeSlab")}
                 placeholder="Type income slab (e.g., 5L-10L)"
-                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-slate-300 bg-white"
+                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white"
               />
             </div>
             <FormSelect label="Religion" {...register("religion")}>
@@ -643,14 +661,14 @@ export default function CustomerMasterCreatePage() {
             </FormSelect>
             <div className="flex items-center gap-8">
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-blue-600" />
+                <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">SMS Marketing</p>
                   <p className="text-xs text-slate-400">Allow SMS notifications</p>
                 </div>
               </label>
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-blue-600" />
+                <input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Email Marketing</p>
                   <p className="text-xs text-slate-400">Allow email notifications</p>
@@ -666,7 +684,7 @@ export default function CustomerMasterCreatePage() {
             Cancel
           </Link>
           <button type="submit" disabled={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200">
+            className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
         </div>
