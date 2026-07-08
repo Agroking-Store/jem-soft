@@ -9,6 +9,7 @@ import { globalErrorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import customerMasterRoutes from "./routes/customerMasterRoutes.js";
+import familyHistoryRoutes from "./routes/familyHistoryRoutes.js";
 import insuranceProviderRoutes from "./routes/insuranceProviderRoutes.js";
 import productCategoryRoutes from "./routes/productCategoryRoutes.js";
 import productMasterRoutes from "./routes/productMasterRoutes.js";
