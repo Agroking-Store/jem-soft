@@ -10,6 +10,7 @@ datasource db {
 enum NotificationType {
   POLICY_CREATED
   POLICY_UPDATED
+  POLICY_DELETED
 }
 
 model User {
@@ -309,7 +310,7 @@ model Notification {
   isRead    Boolean          @default(false)
 
   policyId  String?
-  policy    Policy?          @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policy    Policy?          @relation(fields: [policyId], references: [id], onDelete: SetNull)
 
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt

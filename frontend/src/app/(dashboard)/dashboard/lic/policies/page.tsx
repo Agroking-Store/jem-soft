@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useNotificationStore } from "@/store/notificationStore";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -41,6 +42,7 @@ const getStatusBadge = (status: string) => {
 export default function LICPoliciesPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const { fetchNotifications } = useNotificationStore();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -108,6 +110,9 @@ export default function LICPoliciesPage() {
     setIsDeleting(true);
     try {
       const result = await dispatch(deletePolicy(deleteTarget.id)).unwrap();
+
+       await fetchNotifications();
+       
       toast.success(`Policy #${result.policyNumber} deleted successfully.`);
     } catch (err: any) {
       toast.error(err.message || "Failed to delete policy.");
