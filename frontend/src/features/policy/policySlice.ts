@@ -2,53 +2,72 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios, { isAxiosError } from "axios";
 import type { RootState } from "@/store/store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-const api = axios.create({
-  baseURL: API_URL,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
 export interface Policy {
   id: string;
-  policyNumber: string;
-  clientId?: string;
-  customer?: any;
-  CustomerMasterId?: string;
-  CustomerMaster?: any;
+  clientId: string;
+  CustomerMasterId: string;
   providerId: string;
-  provider?: any;
   productId: string;
-  product?: any;
-  mode?: string;
-  commencementDate?: string;
-  maturityDate?: string;
-  policyTerm?: number;
-  premiumPayingTerm?: number;
-  premiumMode?: any;
-  status?: any;
-  policyStatus?: string;
-  nextPremiumDueDate?: string;
+  statusId: string;
+  premiumModeId: string;
   advisorId?: string | null;
-  advisor?: any;
-  agentCode?: string;
-  branchId?: string;
-  branch?: any;
-  remarks?: string;
-  premium?: any;
+  branchId?: string | null;
+  policyNumber: string;
+  proposalNumber?: string | null;
+  issueDate?: string | null;
+  commencementDate: string;
+  maturityDate?: string | null;
+  policyTerm?: number | null;
+  premiumPayingTerm?: number | null;
+  nextPremiumDueDate?: string | null;
+  remarks?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  CustomerMaster?: {
+    id: string;
+    salutation?: string | null;
+    firstName: string;
+    middleName?: string | null;
+    lastName: string;
+  } | null;
+  customer?: {
+    id: string;
+    groupCode?: string | null;
+    groupName?: string | null;
+    name: string;
+  } | null;
+  provider?: {
+    id: string;
+    name: string;
+  } | null;
+  product?: {
+    id: string;
+    productName: string;
+    planNumber?: string | null;
+  } | null;
+  status?: {
+    id: string;
+    statusName: string;
+    statusCode: string;
+  } | null;
+  premiumMode?: {
+    id: string;
+    modeName: string;
+  } | null;
+  premium?: {
+    id: string;
+    sumAssured: number;
+    installmentPremium: number;
+    totalInstallmentPremium: number;
+  } | null;
+  // Kept custom fields from the feature branch below:
   nominees?: any[];
   policyRiders?: any[];
-  createdAt?: string;
-  updatedAt?: string;
+  advisor?: any;
+  agentCode?: string;
+  branch?: any;
+  mode?: string;
+  policyStatus?: string;
 }
 
 interface PolicyState {
@@ -65,10 +84,25 @@ const initialState: PolicyState = {
   error: null,
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+const api = axios.create({
+  baseURL: API_URL,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 const getPoliciesApi = () => api.get(`${API_URL}/policies`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
-const createPolicyApi = (policyData: any) =>
-  api.post(`${API_URL}/policies`, policyData);
+const createPolicyApi = (policyData: any) => api.post(`${API_URL}/policies`, policyData);
 
 export const fetchPolicies = createAsyncThunk<
   Policy[],
@@ -88,10 +122,9 @@ export const fetchPolicies = createAsyncThunk<
 export const deletePolicy = createAsyncThunk<
   { id: string; policyNumber: string },
   string,
-  { rejectValue: string; state: RootState }
+  { state: RootState; rejectValue: string }
 >("policies/delete", async (id: string, { getState, rejectWithValue }) => {
   try {
-    // Correctly access getState from thunkAPI
     const policyToDelete = (getState() as RootState).policies.policies.find(
       (p) => p.id === id,
     );

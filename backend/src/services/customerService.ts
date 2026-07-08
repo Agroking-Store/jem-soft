@@ -149,6 +149,53 @@ export const getCustomerById = async (id: string) => {
           salutation: true,
         },
       },
+      policies: {
+        include: {
+          CustomerMaster: {
+            select: {
+              id: true,
+              firstName: true,
+              middleName: true,
+              lastName: true,
+              salutation: true,
+            },
+          },
+          provider: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          product: {
+            select: {
+              id: true,
+              productName: true,
+              planNumber: true,
+            },
+          },
+          status: {
+            select: {
+              id: true,
+              statusName: true,
+              statusCode: true,
+            },
+          },
+          premium: {
+            select: {
+              id: true,
+              sumAssured: true,
+              installmentPremium: true,
+              totalInstallmentPremium: true,
+            },
+          },
+          premiumMode: {
+            select: {
+              id: true,
+              modeName: true,
+            },
+          },
+        },
+      },
     },
   });
   if (!customer) throw new AppError("Customer not found", 404);
@@ -279,6 +326,53 @@ export const getCustomerByGroupCode = async (groupCode: string) => {
           middleName: true,
           lastName: true,
           salutation: true,
+        },
+      },
+      policies: {
+        include: {
+          CustomerMaster: {
+            select: {
+              id: true,
+              firstName: true,
+              middleName: true,
+              lastName: true,
+              salutation: true,
+            },
+          },
+          provider: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          product: {
+            select: {
+              id: true,
+              productName: true,
+              planNumber: true,
+            },
+          },
+          status: {
+            select: {
+              id: true,
+              statusName: true,
+              statusCode: true,
+            },
+          },
+          premium: {
+            select: {
+              id: true,
+              sumAssured: true,
+              installmentPremium: true,
+              totalInstallmentPremium: true,
+            },
+          },
+          premiumMode: {
+            select: {
+              id: true,
+              modeName: true,
+            },
+          },
         },
       },
     },
