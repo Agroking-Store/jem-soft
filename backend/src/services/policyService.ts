@@ -42,7 +42,6 @@ interface PolicyData {
   riders?: RiderData[];
 }
 
-
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   // Validate policy number format
   if (!/^\d{9}$/.test(data.policyNumber)) {
@@ -65,13 +64,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
   // These should ideally come from the DB based on a default or user input
   const status = await prisma.policyStatusMaster.findFirst({
-    where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
+    where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
   });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
-    where: { modeName: { equals: data.mode, mode: 'insensitive' } },
+    where: { modeName: { equals: data.mode, mode: "insensitive" } },
   });
-
 
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
@@ -107,11 +105,11 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       },
     });
 
-
-
     if (riders && riders.length > 0) {
       for (const riderData of riders) {
-        const riderMaster = await tx.riderMaster.findFirst({ where: { riderName: riderData.description } });
+        const riderMaster = await tx.riderMaster.findFirst({
+          where: { riderName: riderData.description },
+        });
         if (riderMaster) {
           await tx.policyRider.create({
             data: {
@@ -226,6 +224,13 @@ export const getPolicyById = async (id: string): Promise<any> => {
       status: true,
       premiumMode: true,
       premium: true,
+      branch: true,
+      advisor: {
+        include: {
+          agency: true,
+        },
+      },
+      nominees: true,
       policyRiders: {
         include: {
           rider: true,
@@ -236,9 +241,8 @@ export const getPolicyById = async (id: string): Promise<any> => {
 };
 export const updatePolicy = async (
   id: string,
-  data: PolicyData
+  data: PolicyData,
 ): Promise<Policy> => {
-
   const {
     riders,
     sumAssured,
@@ -263,7 +267,6 @@ export const updatePolicy = async (
   }
 
   return prisma.$transaction(async (tx) => {
-
     const updatedPolicy = await tx.policy.update({
       where: {
         id,
@@ -304,7 +307,6 @@ export const updatePolicy = async (
     // Insert new riders
     if (riders && riders.length > 0) {
       for (const riderData of riders) {
-
         const riderMaster = await tx.riderMaster.findFirst({
           where: {
             riderName: riderData.description,
@@ -312,7 +314,6 @@ export const updatePolicy = async (
         });
 
         if (riderMaster) {
-
           await tx.policyRider.create({
             data: {
               policyId: id,
@@ -321,7 +322,6 @@ export const updatePolicy = async (
               riderPremium: riderData.premium,
             },
           });
-
         }
       }
     }
@@ -329,25 +329,21 @@ export const updatePolicy = async (
     // Update Premium Calculation
 
     await tx.policyPremiumCalculation.update({
-
       where: {
         policyId: id,
       },
 
       data: {
-
         sumAssured: sumAssured ?? 0,
 
         basicYearlyPremium: basicYearlyPremium ?? 0,
 
         totalYearlyPremium:
-          (basicYearlyPremium ?? 0) +
-          (totalRiderPremium ?? 0),
+          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
 
         installmentPremium: installmentPremium ?? 0,
 
-        totalInstallmentPremium:
-          totalInstallmentPremium ?? 0,
+        totalInstallmentPremium: totalInstallmentPremium ?? 0,
 
         gst: gst ?? 0,
       },

@@ -2,10 +2,11 @@
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
-import {
-  LogOut,
-  User,
-  Bell,
+import Link from "next/link";
+import { 
+  LogOut, 
+  User, 
+  Bell, 
   ChevronDown,
   Ticket,
   UserCog,
@@ -54,14 +55,6 @@ export const Header = () => {
     logout();
   };
 
-  // Admin Profile Dropdown Menu Items
-  const adminMenuItems = [
-    { icon: Ticket, label: "Raise a Ticket", href: "/dashboard/tickets/raise" },
-    { icon: UserCog, label: "Edit Profile", href: "/dashboard/profile/edit" },
-    { icon: FileText, label: "My Tickets", href: "/dashboard/tickets" },
-    { icon: Video, label: "Video Tutorials", href: "/dashboard/tutorials" },
-    { icon: Calendar, label: "Training Schedule", href: "/dashboard/training" },
-  ];
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
@@ -81,7 +74,7 @@ export const Header = () => {
         {/* User Profile Section */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => isAdmin && setIsProfileOpen(!isProfileOpen)}
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
             className={`
               flex items-center gap-2 px-3 py-2 rounded-lg transition-all
               ${isProfileOpen ? 'bg-slate-100' : 'hover:bg-slate-50'}
@@ -113,92 +106,29 @@ export const Header = () => {
           </button>
 
           {/* Admin Profile Dropdown */}
-          {isMounted && isAdmin && isProfileOpen && (
+          {isMounted && isProfileOpen && (
             <div className="absolute right-0 top-full mt-2 w-105 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
               {/* Profile Header */}
-              <div className="p-4 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User size={24} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{user?.name}</p>
-                    <p className="text-sm text-slate-500">{user?.email}</p>
-                    <p className="text-xs text-blue-600 font-medium capitalize">{user?.role}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Menu Items */}
-              <div className="p-2">
-                {adminMenuItems.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        // Handle navigation here
-                        console.log(`Navigate to: ${item.href}`);
-                      }}
-                      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                      <Icon size={18} className="text-slate-400" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Relationship Manager */}
-              <div className="p-4 bg-blue-50 border-t border-blue-100">
-                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
-                  Your Relationship Manager
-                </p>
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
-                    <User size={18} className="text-blue-700" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">Mansi Dhotre</p>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone size={14} className="text-slate-400" />
-                      <span>9004600583</span>
+              <Link href="/dashboard/profile" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+                <div  className="p-4 border-b border-slate-100 hover:bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <User size={24} className="text-blue-600" />
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone size={14} className="text-slate-400" />
-                      <span>9004600583 / 02261830000</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Mail size={14} className="text-slate-400" />
-                      <span>mansid@datacomp.in</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">{user?.name}</p>
+                      <p className="text-sm text-slate-500">{user?.email}</p>
+                      <p className="text-xs text-blue-600 font-medium capitalize">{user?.role}</p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
 
-              {/* Account Manager */}
-              <div className="p-4 bg-green-50 border-t border-green-100">
-                <p className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-3">
-                  Your Account Manager
-                </p>
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center shrink-0">
-                    <Building2 size={18} className="text-green-700" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">Kiran Patil</p>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone size={14} className="text-slate-400" />
-                      <span>9822312261</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Mail size={14} className="text-slate-400" />
-                      <span>kiran@amalan.in</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              
+
+              
+
+              
 
               {/* Logout Button */}
               <div className="p-2 border-t border-slate-100">

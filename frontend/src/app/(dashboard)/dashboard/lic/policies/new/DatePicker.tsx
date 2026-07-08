@@ -28,7 +28,7 @@ export default function DatePicker({
 
       <ReactDatePicker
         selected={value}
-        onChange={(date) => onChange(date ?? undefined)}
+        onChange={(date: Date | null) => onChange(date ?? undefined)}
         dateFormat="yyyy-MM-dd"
         placeholderText={placeholder}
         showMonthDropdown
