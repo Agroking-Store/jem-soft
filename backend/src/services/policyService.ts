@@ -331,6 +331,15 @@ export const updatePolicy = async (
       },
     });
 
+    await tx.notification.create({
+      data: {
+        title: "Policy Updated",
+        message: `Policy (${updatedPolicy.policyNumber}) has been updated.`,
+        type: "POLICY_UPDATED",
+        policyId: updatedPolicy.id,
+      },
+    });
+
     return updatedPolicy;
   });
 };

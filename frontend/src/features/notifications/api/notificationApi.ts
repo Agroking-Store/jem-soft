@@ -1,7 +1,8 @@
 import api from "@/lib/axios";
 
 
-export const getNotifications = async()=>{
+
+export const getNotifications = async () => {
 
     const response =
         await api.get("/notifications");
@@ -14,14 +15,25 @@ export const getNotifications = async()=>{
 
 
 export const markNotificationRead =
-async(id:string)=>{
+    async (id: string) => {
 
-    const response =
-        await api.patch(
-            `/notifications/${id}/read`
-        );
+        const response =
+            await api.patch(
+                `/notifications/${id}/read`
+            );
 
 
+        return response.data;
+
+    };
+
+export const deleteNotification = async (id: string) => {
+    const response = await api.delete(`/notifications/${id}`);
     return response.data;
+};
 
+
+
+export const deleteReadNotifications = () => {
+    return api.delete("/notifications/read");
 };

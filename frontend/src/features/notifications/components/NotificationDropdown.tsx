@@ -2,21 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { Notification } from "../types";
-
 import NotificationCard from "./NotificationCard";
 
 interface NotificationDropdownProps {
   notifications: Notification[];
   onNotificationClick: (id: string) => void;
+  onDeleteNotification: (id: string) => void;
   onClose: () => void;
 }
 
 export default function NotificationDropdown({
   notifications,
   onNotificationClick,
+  onDeleteNotification,
   onClose,
 }: NotificationDropdownProps) {
-
   const router = useRouter();
 
   return (
@@ -53,7 +53,12 @@ export default function NotificationDropdown({
             <NotificationCard
               key={notification.id}
               notification={notification}
-              onClick={() => onNotificationClick(notification.id)}
+              onClick={() =>
+                onNotificationClick(notification.id)
+              }
+              onDelete={() =>
+                onDeleteNotification(notification.id)
+              }
             />
           ))}
         </div>

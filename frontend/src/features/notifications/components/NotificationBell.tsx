@@ -15,6 +15,7 @@ export default function NotificationBell() {
     unreadCount,
     fetchNotifications,
     readNotification,
+    deleteNotification,
   } = useNotificationStore();
 
   const [open, setOpen] = useState(false);
@@ -23,20 +24,27 @@ export default function NotificationBell() {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  // Mark notification as read
   const handleNotificationClick = async (id: string) => {
     try {
       await readNotification(id);
-
-      // Refresh notifications so unread count stays correct
       await fetchNotifications();
 
-      // Close dropdown
       setOpen(false);
 
-      // For now open Notification Center
       router.push("/dashboard/notifications");
     } catch (error) {
       console.error("Failed to read notification:", error);
+    }
+  };
+
+  // Delete notification
+  const handleDeleteNotification = async (id: string) => {
+    try {
+      await deleteNotification(id);
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
     }
   };
 
@@ -74,10 +82,11 @@ export default function NotificationBell() {
 
       {open && (
         <NotificationDropdown
-  notifications={notifications}
-  onNotificationClick={handleNotificationClick}
-  onClose={() => setOpen(false)}
-/>
+          notifications={notifications}
+          onNotificationClick={handleNotificationClick}
+          onDeleteNotification={handleDeleteNotification}
+          onClose={() => setOpen(false)}
+        />
       )}
     </div>
   );

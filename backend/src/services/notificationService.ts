@@ -53,3 +53,26 @@ export const markNotificationAsRead = async (id: string) => {
     },
   });
 };
+
+
+export const deleteNotification = async (
+  id: string
+) => {
+
+  return prisma.notification.delete({
+
+    where: {
+      id,
+    },
+
+  });
+
+};
+
+export const deleteReadNotifications = async () => {
+  return prisma.notification.deleteMany({
+    where: {
+      isRead: true,
+    },
+  });
+};

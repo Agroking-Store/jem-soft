@@ -3,7 +3,14 @@ import {
   getNotifications,
   getUnreadNotificationCount,
   markNotificationAsRead,
+  deleteNotification as deleteNotificationService,
 } from "../services/notificationService.js";
+
+import {
+  deleteReadNotifications as deleteReadNotificationsService,
+} from "../services/notificationService.js";
+
+
 
 export const fetchNotifications = async (
   req: Request,
@@ -66,6 +73,50 @@ export const readNotification = async (
     res.status(500).json({
       success: false,
       message: "Failed to mark notification as read.",
+    });
+  }
+};
+
+export const deleteNotification = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    await deleteNotificationService(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete notification",
+    });
+  }
+};
+
+export const deleteReadNotifications = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    await deleteReadNotificationsService();
+
+    res.status(200).json({
+      success: true,
+      message: "All read notifications deleted.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete read notifications.",
     });
   }
 };
