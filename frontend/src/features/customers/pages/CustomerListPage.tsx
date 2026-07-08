@@ -20,6 +20,8 @@ import {
   UserCog,
   Users,
   ShieldAlert,
+  Heart,
+  Activity,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -50,11 +52,15 @@ const CATEGORY_DOT: Record<string, string> = {
 };
 
 type Tab = "group" | "master" | "family" | "medical";
-type DeleteTarget = { id: string; type: Extract<Tab, "group" | "master">; label: string } | null;
+type DeleteTarget = {
+  id: string;
+  type: Extract<Tab, "group" | "master">;
+  label: string;
+} | null;
 
 type HistoryView =
   | { type: "list" }
-  | { type: "add" }
+  | { type: "add"; recordId?: string }
   | { type: "edit"; recordId?: string }
   | { type: "view"; recordId?: string };
 
@@ -70,7 +76,12 @@ function getFullName(customer: {
   middleName?: string | null;
   lastName?: string | null;
 }) {
-  return [customer.salutation, customer.firstName, customer.middleName, customer.lastName]
+  return [
+    customer.salutation,
+    customer.firstName,
+    customer.middleName,
+    customer.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 }
@@ -149,7 +160,9 @@ export default function CustomerListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const { customers, isLoading, error } = useSelector((s: RootState) => s.customers);
+  const { customers, isLoading, error } = useSelector(
+    (s: RootState) => s.customers,
+  );
   const {
     customers: masterCustomers,
     isLoading: isMasterLoading,

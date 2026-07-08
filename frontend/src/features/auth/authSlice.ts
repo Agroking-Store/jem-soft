@@ -68,6 +68,17 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null;
     },
+    updateUser(state, action) {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          ...action.payload,
+        };
+
+        localStorage.setItem("user", JSON.stringify(state.user));
+        document.cookie = `user=${JSON.stringify(state.user)}; path=/; max-age=${60 * 60 * 24 * 7}`;
+      }
+    }
   },
 
   extraReducers: (builder) => {
@@ -103,5 +114,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, updateUser } = authSlice.actions;
 export default authSlice.reducer;
