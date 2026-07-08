@@ -1,6 +1,7 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Notification } from "../types";
 
 interface NotificationCardProps {
@@ -14,6 +15,25 @@ export default function NotificationCard({
   onClick,
   onDelete,
 }: NotificationCardProps) {
+  const router = useRouter();
+
+  const handleView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!notification.policyId) {
+      console.warn("No policyId found for this notification.");
+      return;
+    }
+
+    // Mark notification as read
+    onClick();
+
+    // Navigate to the corresponding policy
+   router.push(
+  `/dashboard/lic/policies?highlight=${notification.policyId}&view=table`
+);
+  };
+
   return (
     <div
       className={`
@@ -25,14 +45,10 @@ export default function NotificationCard({
         py-3
         border-b
         transition
-        ${
-          notification.isRead
-            ? "bg-white"
-            : "bg-blue-50"
-        }
+        ${notification.isRead ? "bg-white" : "bg-blue-50"}
       `}
     >
-      {/* Clickable Notification */}
+      {/* Notification Content */}
       <button
         onClick={onClick}
         className="flex-1 text-left hover:bg-slate-50 rounded-md p-1"
@@ -62,19 +78,22 @@ export default function NotificationCard({
         </p>
       </button>
 
-      {/* Delete Button */}
+      {/* View Policy */}
+      <button
+        onClick={handleView}
+        className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+        title="View Policy"
+      >
+        <Eye size={18} />
+      </button>
+
+      {/* Delete Notification */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onDelete(notification.id);
         }}
-        className="
-          p-2
-          rounded-lg
-          text-red-500
-          hover:bg-red-50
-          transition-colors
-        "
+        className="p-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         title="Delete notification"
       >
         <Trash2 size={18} />

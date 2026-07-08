@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useNotificationStore } from "@/store/notificationStore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Plus,
   Search,
@@ -44,12 +44,23 @@ const getStatusBadge = (status: string) => {
 
 export default function LICPoliciesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get("view");
+  const highlightId = searchParams.get("highlight");
+
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+
+
   const dispatch = useDispatch<AppDispatch>();
   const { fetchNotifications } = useNotificationStore();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-  const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const [viewMode, setViewMode] = useState<"card" | "table">(
+    viewParam === "table" ? "table" : "card"
+  );
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -68,6 +79,47 @@ export default function LICPoliciesPage() {
   useEffect(() => {
     dispatch(fetchPolicies());
   }, [dispatch]);
+
+
+
+
+  useEffect(() => {
+    if (!highlightId || policies.length === 0) return;
+
+    setActiveHighlight(highlightId);
+
+    setTimeout(() => {
+      const row = rowRefs.current[highlightId];
+
+      if (row) {
+        row.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 300);
+
+    const timer = setTimeout(() => {
+      setActiveHighlight(null);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [highlightId, policies]);
+
+
+  useEffect(() => {
+    if (viewParam === "table") {
+      setViewMode("table");
+    }
+  }, [viewParam]);
+
+
+  useEffect(() => {
+    console.log("Highlight ID:", highlightId);
+    console.log("Policies:", policies);
+  }, [highlightId, policies]);
+
+
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -131,8 +183,8 @@ export default function LICPoliciesPage() {
     try {
       const result = await dispatch(deletePolicy(deleteTarget.id)).unwrap();
 
-       await fetchNotifications();
-       
+      await fetchNotifications();
+
       toast.success(`Policy #${result.policyNumber} deleted successfully.`);
     } catch (err: any) {
       toast.error(err.message || "Failed to delete policy.");
@@ -243,21 +295,19 @@ export default function LICPoliciesPage() {
             <div className="flex border border-slate-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode("card")}
-                className={`px-3 py-2 transition ${
-                  viewMode === "card"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-slate-500 hover:bg-slate-50"
-                }`}
+                className={`px-3 py-2 transition ${viewMode === "card"
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-slate-500 hover:bg-slate-50"
+                  }`}
               >
                 <Grid3x3 size={18} />
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className={`px-3 py-2 border-l border-slate-200 transition ${
-                  viewMode === "table"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-slate-500 hover:bg-slate-50"
-                }`}
+                className={`px-3 py-2 border-l border-slate-200 transition ${viewMode === "table"
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-slate-500 hover:bg-slate-50"
+                  }`}
               >
                 <List size={18} />
               </button>
@@ -373,8 +423,8 @@ export default function LICPoliciesPage() {
                         <p className="text-sm font-medium text-slate-900">
                           {policy.nextPremiumDueDate
                             ? new Date(
-                                policy.nextPremiumDueDate,
-                              ).toLocaleDateString("en-IN")
+                              policy.nextPremiumDueDate,
+                            ).toLocaleDateString("en-IN")
                             : "N/A"}
                         </p>
                       </div>
@@ -401,8 +451,8 @@ export default function LICPoliciesPage() {
                         <p className="text-sm font-medium text-slate-900">
                           {policy.commencementDate
                             ? new Date(
-                                policy.commencementDate,
-                              ).toLocaleDateString()
+                              policy.commencementDate,
+                            ).toLocaleDateString()
                             : "N/A"}
                         </p>
                       </div>
@@ -494,7 +544,14 @@ export default function LICPoliciesPage() {
                   return (
                     <tr
                       key={policy.id}
-                      className="hover:bg-slate-50 transition group"
+                      ref={(el) => {
+                        rowRefs.current[policy.id] = el;
+                      }}
+                      className={`group transition-all duration-700
+    ${activeHighlight === policy.id
+                          ? "bg-yellow-100 border-l-4 border-yellow-500 animate-pulse"
+                          : "hover:bg-slate-50"
+                        }`}
                     >
                       <td className="px-4 py-3">
                         <div className="flex flex-col">
@@ -543,8 +600,8 @@ export default function LICPoliciesPage() {
                         <span className="text-sm text-slate-600">
                           {policy.nextPremiumDueDate
                             ? new Date(
-                                policy.nextPremiumDueDate,
-                              ).toLocaleDateString("en-IN")
+                              policy.nextPremiumDueDate,
+                            ).toLocaleDateString("en-IN")
                             : "N/A"}
                         </span>
                       </td>
