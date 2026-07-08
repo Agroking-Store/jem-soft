@@ -39,6 +39,7 @@ import {
   CustomerStatCard,
   CustomerTableFrame,
   CustomerToolbar,
+  FilterSelect,
 } from "@/features/customers/components/CustomerUi";
 
 const CATEGORY_DOT: Record<string, string> = {
@@ -166,12 +167,14 @@ export default function CustomerListPage() {
           : "group";
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [historyView, setHistoryView] = useState<HistoryView>({ type: "list" });
+  const showListChrome = activeTab !== "family" || historyView.type === "list";
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -686,19 +689,24 @@ export default function CustomerListPage() {
           </CustomerTableFrame>
         )}
       </CustomerSectionCard>
-    ) : activeTab === "family" ? (
+    ) : activeTab === "family" && historyView.type === "list" ? (
       <CustomerSectionCard
         title="Family History"
         subtitle="Track family history records with a cleaner review flow and direct access to add, edit, and view actions."
         icon={ShieldAlert}
       >
-        {historyView.type === "list" && (
-          <FamilyHistoryList
-            onAdd={() => setHistoryView({ type: "add" })}
-            onEdit={(recordId) => setHistoryView({ type: "edit", recordId })}
-            onView={(recordId) => setHistoryView({ type: "view", recordId })}
-          />
-        )}
+        <FamilyHistoryList
+          onAdd={() => setHistoryView({ type: "add" })}
+          onEdit={(recordId) => setHistoryView({ type: "edit", recordId })}
+          onView={(recordId) => setHistoryView({ type: "view", recordId })}
+          searchTerm={searchTerm}
+        />
+      </CustomerSectionCard>
+    ) : activeTab === "family" ? (
+      // Add / Edit / View own their full page header (breadcrumb, golden accent, title) —
+      // matching the Customer Group / Master form pages — so they aren't nested under a
+      // second "Family History" title bar.
+      <>
         {historyView.type === "add" && <FamilyHistoryForm onClose={() => setHistoryView({ type: "list" })} />}
         {historyView.type === "edit" && historyView.recordId && (
           <FamilyHistoryForm recordId={historyView.recordId} onClose={() => setHistoryView({ type: "list" })} />
@@ -710,7 +718,7 @@ export default function CustomerListPage() {
             onEdit={(recordId) => setHistoryView({ type: "edit", recordId })}
           />
         )}
-      </CustomerSectionCard>
+      </>
     ) : (
       <CustomerSectionCard
         title="Medical History"
@@ -749,17 +757,19 @@ export default function CustomerListPage() {
 
       <CustomerModuleNav />
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <CustomerStatCard key={stat.label} label={stat.label} value={stat.value} icon={stat.icon} tone={stat.tone} />
-        ))}
-      </div>
+      {/* Stat cards + search/filter toolbar only make sense on the list views —
+          hidden while a Family History add/edit/view form takes over the page. */}
+      {showListChrome && (
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <CustomerStatCard key={stat.label} label={stat.label} value={stat.value} icon={stat.icon} tone={stat.tone} />
+          ))}
+        </div>
+      )}
 
+      {showListChrome && (
       <CustomerToolbar>
         <div className="min-w-0 flex-1">
-          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Search
-          </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
@@ -779,10 +789,17 @@ export default function CustomerListPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <PillButton>
-            <Filter size={14} />
-            All Statuses
-          </PillButton>
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Statuses"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            searchPlaceholder="Search statuses..."
+            options={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+          />
 
           {activeTab === "group" && canEdit && selectedIds.size > 0 && (
             <button
@@ -800,7 +817,7 @@ export default function CustomerListPage() {
             </button>
           )}
 
-          {isClient && canEdit && activeTab !== "family" && activeTab !== "medical" && (
+          {isClient && canEdit && (activeTab === "group" || activeTab === "master") && (
             <Link
               href={activeTab === "group" ? "/dashboard/customers/new" : "/dashboard/customers/master/new"}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
@@ -809,8 +826,19 @@ export default function CustomerListPage() {
               {activeTab === "group" ? "New Group" : "New Customer"}
             </Link>
           )}
+
+          {isClient && canEdit && activeTab === "family" && historyView.type === "list" && (
+            <button
+              onClick={() => setHistoryView({ type: "add" })}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
+            >
+              <Plus size={16} />
+              Add Family History
+            </button>
+          )}
         </div>
       </CustomerToolbar>
+      )}
 
       {activeContent}
 

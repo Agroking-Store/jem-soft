@@ -13,9 +13,10 @@ import {
   FamilyHistoryRecordItem,
 } from "../familyHistorySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
-import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X, ChevronRight, Calendar, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatFamilyHistoryDate } from "./FamilyHistoryList";
+import { SearchableSelect } from "@/features/customers/components/CustomerUi";
 
 interface FamilyHistoryFormProps {
   recordId?: string;
@@ -57,9 +58,10 @@ function SectionCard({
   headerActions?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+    <div className="relative mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+        <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-[#0B1220]">{title}</h2>
         {headerActions}
       </div>
       <div className="p-5">{children}</div>
@@ -85,10 +87,6 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   });
   const [memberId, setMemberId] = useState("");
   const [membersList, setMembersList] = useState<any[]>([]);
-
-  // Search dropdown states
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Form states - Relation detail input
   const [relation, setRelation] = useState("");
@@ -126,7 +124,6 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
       setGroupCode(currentRecord.group?.groupCode || "");
       const name = currentRecord.group?.groupName || currentRecord.group?.name || "";
       setGroupName(name);
-      setSearchQuery(name);
       setFamilyHistoryDate(currentRecord.date.substring(0, 10));
       setMemberId(currentRecord.memberId);
       if (currentRecord.records) {
@@ -153,41 +150,17 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     }
   }, [currentGroup, isEditMode]);
 
-  // Handle typing in Group Name input
-  const handleGroupNameChange = (val: string) => {
-    setGroupName(val);
-    setSearchQuery(val);
-    setIsDropdownOpen(true);
-    setBasicErrors((prev) => ({ ...prev, groupName: "" }));
-
-    // Reset groupId and groupCode since user is performing a new search
-    setGroupId("");
-    setGroupCode("");
-    setMembersList([]);
-    setMemberId("");
-  };
-
-  // Handle selecting a group from dropdown
+  // Handle selecting a group from the SearchableSelect dropdown
   const handleSelectGroup = (g: any) => {
     const name = g.groupName || g.name || "";
     setGroupName(name);
-    setSearchQuery(name);
     setGroupCode(g.groupCode || "");
     setGroupId(g.id);
-    setIsDropdownOpen(false);
     setBasicErrors((prev) => ({ ...prev, groupName: "" }));
 
     // Fetch members list for this group
     dispatch(fetchGroupById(g.id));
   };
-
-  // Filter groups for dropdown
-  const filteredGroups = allGroups.filter((g: any) => {
-    const nameStr = (g.groupName || g.name || "").toLowerCase();
-    const codeStr = (g.groupCode || "").toLowerCase();
-    const query = searchQuery.toLowerCase();
-    return nameStr.includes(query) || codeStr.includes(query);
-  });
 
   // Calculate current age dynamically based on history date and age when recorded
   const calculateCurrentAge = (recordedAge: number, recordDate: string) => {
@@ -223,7 +196,6 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
         setGroupCode(currentRecord.group?.groupCode || "");
         const name = currentRecord.group?.groupName || currentRecord.group?.name || "";
         setGroupName(name);
-        setSearchQuery(name);
         setFamilyHistoryDate(currentRecord.date.substring(0, 10));
         setMemberId(currentRecord.memberId);
         setTempRecords(currentRecord.records || []);
@@ -234,7 +206,6 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     } else {
       setGroupCode("");
       setGroupName("");
-      setSearchQuery("");
       setGroupId("");
       setFamilyHistoryDate(new Date().toISOString().substring(0, 10));
       setMemberId("");
@@ -371,81 +342,65 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      {/* Navbar / Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3 bg-transparent">
-        <h1 className="text-xl font-bold text-slate-800">
-          {isEditMode ? "Edit Family History" : "Add Family History"}
-        </h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleReset}
-            type="button"
-            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
-            title="Reset Form"
-          >
-            <RotateCcw size={16} />
-          </button>
+    <div className="mx-auto max-w-5xl space-y-5 pb-8">
+      {/* Header — mirrors the Customer Group / Master create & edit page pattern */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
           <button
             onClick={onClose}
             type="button"
-            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-lg transition-colors cursor-pointer"
-            title="Back to List"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
+            title="Back to list"
           >
             <ArrowLeft size={16} />
           </button>
+          <div>
+            <nav className="mb-0.5 flex items-center gap-1 text-xs text-slate-400">
+              <button type="button" onClick={onClose} className="hover:text-slate-600">
+                Family History
+              </button>
+              <ChevronRight size={12} />
+              <span className="font-medium text-slate-600">{isEditMode ? "Edit Record" : "New Record"}</span>
+            </nav>
+            <h1 className="font-serif text-xl font-bold text-slate-900">
+              {isEditMode ? "Edit Family History" : "Add Family History"}
+            </h1>
+          </div>
         </div>
+        <button
+          onClick={handleReset}
+          type="button"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+          title="Reset Form"
+        >
+          <RotateCcw size={14} />
+          Reset
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Card 1: Basic Details */}
         <SectionCard title="Basic Details">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Group Name */}
-            <div className="relative">
-              <FieldLabel label="Group Name" required />
-              <input
-                type="text"
-                placeholder="Search Group Name"
-                value={searchQuery}
-                onFocus={() => setIsDropdownOpen(true)}
-                onChange={(e) => handleGroupNameChange(e.target.value)}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
-                  ${basicErrors.groupName ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
-              />
-              {basicErrors.groupName && <p className="text-xs text-red-500 mt-1">{basicErrors.groupName}</p>}
-
-              {isDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setIsDropdownOpen(false)}
-                  />
-                  <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-20 divide-y divide-slate-100">
-                    {filteredGroups.length === 0 ? (
-                      <div className="p-3 text-sm text-slate-400 text-center">No groups found</div>
-                    ) : (
-                      filteredGroups.map((g: any) => (
-                        <div
-                          key={g.id}
-                          onClick={() => handleSelectGroup(g)}
-                          className="flex justify-between items-center px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors"
-                        >
-                          <span className="font-semibold text-slate-800 text-sm">
-                            {g.groupName || g.name}
-                          </span>
-                          {g.groupCode && (
-                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
-                              {g.groupCode}
-                            </span>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
+            {/* Group Name — shadcn-style searchable dropdown */}
+            <SearchableSelect
+              label="Group Name"
+              required
+              icon={<Users size={14} />}
+              placeholder="Search & select a group"
+              searchPlaceholder="Search by group name or code..."
+              error={basicErrors.groupName}
+              value={groupId}
+              onChange={(id) => {
+                const g = allGroups.find((grp: any) => grp.id === id);
+                if (g) handleSelectGroup(g);
+              }}
+              options={allGroups.map((g: any) => ({
+                value: g.id,
+                label: g.groupName || g.name || "Unnamed group",
+                sublabel: g.groupCode || undefined,
+              }))}
+            />
 
             {/* Group Code */}
             <div>
@@ -462,42 +417,42 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
             {/* Family History Date */}
             <div>
               <FieldLabel label="Family History Date" required />
-              <input
-                type="date"
-                value={familyHistoryDate}
-                onChange={(e) => {
-                  setFamilyHistoryDate(e.target.value);
-                  setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
-                }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
-                  ${basicErrors.familyHistoryDate ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
-              />
+              <div className="relative">
+                <Calendar size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="date"
+                  value={familyHistoryDate}
+                  onChange={(e) => {
+                    setFamilyHistoryDate(e.target.value);
+                    setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
+                  }}
+                  className={`w-full border rounded-lg py-2.5 pl-9 pr-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
+                    ${basicErrors.familyHistoryDate ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                />
+              </div>
               {basicErrors.familyHistoryDate && (
                 <p className="text-xs text-red-500 mt-1">{basicErrors.familyHistoryDate}</p>
               )}
             </div>
 
-            {/* Member Name */}
-            <div>
-              <FieldLabel label="Member Name" required />
-              <select
-                value={memberId}
-                onChange={(e) => {
-                  setMemberId(e.target.value);
-                  setBasicErrors((p) => ({ ...p, memberId: "" }));
-                }}
-                className={`w-full border rounded-lg py-2.5 px-3 text-sm text-slate-900 outline-none transition-all bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
-                  ${basicErrors.memberId ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
-              >
-                <option value="">Select Member Name</option>
-                {membersList.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {getMemberFullName(m)}
-                  </option>
-                ))}
-              </select>
-              {basicErrors.memberId && <p className="text-xs text-red-500 mt-1">{basicErrors.memberId}</p>}
-            </div>
+            {/* Member Name — shadcn-style searchable dropdown */}
+            <SearchableSelect
+              label="Member Name"
+              required
+              placeholder={membersList.length === 0 ? "Select a group first" : "Search & select a member"}
+              searchPlaceholder="Search members..."
+              error={basicErrors.memberId}
+              disabled={membersList.length === 0}
+              value={memberId}
+              onChange={(id) => {
+                setMemberId(id);
+                setBasicErrors((p) => ({ ...p, memberId: "" }));
+              }}
+              options={membersList.map((m) => ({
+                value: m.id,
+                label: getMemberFullName(m),
+              }))}
+            />
           </div>
         </SectionCard>
 
@@ -515,26 +470,19 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Relation */}
-              <div>
-                <FieldLabel label="Relation" required />
-                <select
-                  value={relation}
-                  onChange={(e) => {
-                    setRelation(e.target.value);
-                    setDetailErrors((p) => ({ ...p, relation: "" }));
-                  }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 outline-none bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
-                    ${detailErrors.relation ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
-                >
-                  <option value="">Select Relation</option>
-                  {RELATIONS.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-                {detailErrors.relation && <p className="text-xs text-red-500 mt-1">{detailErrors.relation}</p>}
-              </div>
+              <SearchableSelect
+                label="Relation"
+                required
+                placeholder="Select relation"
+                searchPlaceholder="Search relations..."
+                error={detailErrors.relation}
+                value={relation}
+                onChange={(val) => {
+                  setRelation(val);
+                  setDetailErrors((p) => ({ ...p, relation: "" }));
+                }}
+                options={RELATIONS.map((r) => ({ value: r, label: r }))}
+              />
 
               {/* Age */}
               <div>
