@@ -88,12 +88,12 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
 
   return (
     <div>
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/40">
-        <h2 className="text-xl font-bold text-slate-800 tracking-tight">Family History Records</h2>
+      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-6 py-4">
+        <h2 className="text-base font-semibold tracking-tight text-slate-900">Family History Records</h2>
         <div className="flex items-center gap-3">
           <button
             onClick={onAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
           >
             <Plus size={16} />
             Add family history
@@ -101,7 +101,7 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
         </div>
       </div>
 
-      <div className="p-4 border-b border-slate-100">
+      <div className="border-b border-slate-100 p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
@@ -112,25 +112,25 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all cursor-pointer placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/15"
           />
         </div>
       </div>
 
       {isLoading && records.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
           <p className="text-sm text-slate-500">Loading records...</p>
         </div>
       ) : filteredRecords.length === 0 ? (
-        <div className="text-center py-20 text-slate-500 font-medium">
+        <div className="py-20 text-center text-slate-500 font-medium">
           No Family History Records available to display.
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                 <th className="py-3 px-6 text-left">Group Code</th>
                 <th className="py-3 px-6 text-left">Group Name</th>
                 <th className="py-3 px-6 text-left">Member Name</th>
@@ -140,10 +140,10 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer">
+                <tr key={record.id} className="cursor-pointer transition-colors hover:bg-[#0B1220]/[0.025]">
                   <td
                     onClick={() => onView(record.id)}
-                    className="py-3.5 px-6 font-semibold text-blue-600 hover:text-blue-800"
+                    className="py-3.5 px-6 font-semibold text-[#B8873A] hover:text-[#16294D]"
                   >
                     {record.group?.groupCode || "—"}
                   </td>
@@ -168,14 +168,16 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                   <td className="py-3.5 px-6 text-right flex items-center justify-end gap-2">
                     <button
                       onClick={() => onEdit(record.id)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                    className="cursor-pointer rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-[#B8873A]/10 hover:text-[#B8873A]"
                       title="Edit Record"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
+
                       onClick={() => requestDelete(record)}
                       className="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
+
                       title="Delete Record"
                     >
                       <Trash2 size={16} />
@@ -195,7 +197,7 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none"
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-700 outline-none"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -211,14 +213,14 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
-                  className="p-1 border border-slate-200 bg-white rounded hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-lg border border-slate-200 bg-white p-1 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
-                  className="p-1 border border-slate-200 bg-white rounded hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-lg border border-slate-200 bg-white p-1 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
                 >
                   <ChevronRight size={16} />
                 </button>

@@ -42,6 +42,7 @@ export interface Customer {
   offArea?: string | null;
 
   _count?: { policies: number };
+  policies?: any[];
   createdAt: string;
   updatedAt: string;
 }
