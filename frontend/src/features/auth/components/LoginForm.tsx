@@ -4,13 +4,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Mail, Lock, Eye } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
 import { loginPortalCustomer } from "@/features/customers/customerSlice";
+import { loginUser } from "@/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -23,10 +24,11 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
-  const { login, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -40,27 +42,36 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     try {
       // Try system user login first
-      const result = await dispatch(
-        (await import("@/features/auth/authSlice")).loginUser(data)
-      );
-      if ((await import("@/features/auth/authSlice")).loginUser.fulfilled.match(result)) {
-        const user = (result.payload as any).data.user;
-        toast.success(`Welcome back, ${user.name}!`);
+      const result = await dispatch(loginUser(data));
+
+      if (loginUser.fulfilled.match(result)) {
+        const user = (result.payload as any)?.data?.user;
+        toast.success(`Welcome back, ${user?.name ?? "User"}!`);
         router.push("/dashboard");
         return;
       }
 
       // If system login fails, try customer portal login
-      const customerResult = await dispatch(loginPortalCustomer({ email: data.email, password: data.password }));
+      const customerResult = await dispatch(
+        loginPortalCustomer({ email: data.email, password: data.password })
+      );
+
       if (loginPortalCustomer.fulfilled.match(customerResult)) {
-        const customer = (customerResult.payload as any).data.customer;
-        toast.success(`Welcome, ${customer.name}!`);
+        const customer = (customerResult.payload as any)?.data?.customer;
+        toast.success(`Welcome, ${customer?.name ?? "Customer"}!`);
         router.push("/customer-portal");
         return;
       }
 
-      // Both failed
-      toast.error("Invalid email or password");
+      // Both failed — try to surface the real error message
+      const errMsg =
+        (result.payload as any)?.message ||
+        (customerResult.payload as any)?.message ||
+        "Invalid email or password";
+      toast.error(errMsg);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      toast.error(err?.message || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -87,7 +98,7 @@ export const LoginForm = () => {
         <div className="relative">
           <Input
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             icon={<Lock size={18} />}
             error={errors.password?.message}
@@ -95,9 +106,10 @@ export const LoginForm = () => {
           />
           <button
             type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
             className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <Eye size={18} />
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
 
