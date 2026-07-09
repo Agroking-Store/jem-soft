@@ -320,9 +320,11 @@ export default function LICPoliciesPage() {
       {viewMode === "card" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredPolicies.map((p) => {
-            const policy = { ...p, status: p.status?.statusName ?? 'Unknown' }; // Use local var for status
+            const policy = { ...p, status: p.status?.statusName ?? "Unknown" }; // Use local var for status
             const lifeAssured = policy.CustomerMaster;
-            const holderName = lifeAssured ? `${lifeAssured.firstName} ${lifeAssured.lastName}` : '';
+            const holderName = lifeAssured
+              ? `${lifeAssured.firstName} ${lifeAssured.lastName}`
+              : "";
             const statusBadge = getStatusBadge(policy.status);
             const StatusIcon = statusBadge.icon;
             return (
@@ -335,14 +337,26 @@ export default function LICPoliciesPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-base font-bold text-slate-900">
-                        {policy.policyNumber} <span className="font-medium text-slate-600">{holderName}</span>
+                        {policy.policyNumber}{" "}
+                        <span className="font-medium text-slate-600">
+                          {holderName}
+                        </span>
                       </h3>
                     </div>
-                    <p className="text-sm font-medium text-slate-600">{policy.provider?.name}</p>
+                    <p className="text-sm font-medium text-slate-600">
+                      {policy.provider?.name}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm text-slate-500">{policy.product?.planNumber ? `[${policy.product.planNumber}] ` : ''}{policy.product?.productName}</p>
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge.className}`}>
+                    <p className="text-sm text-slate-500">
+                      {policy.product?.planNumber
+                        ? `[${policy.product.planNumber}] `
+                        : ""}
+                      {policy.product?.productName}
+                    </p>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge.className}`}
+                    >
                       <StatusIcon size={13} />
                       <span>{policy.status}</span>
                     </span>
@@ -354,11 +368,50 @@ export default function LICPoliciesPage() {
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                     {/* Left Column */}
                     <div className="space-y-3">
-                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Mode</p><p className="text-sm font-medium text-slate-900">{policy.premiumMode?.modeName || 'N/A'}</p></div>
-                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Term</p><p className="text-sm font-medium text-slate-900">{policy.policyTerm || 'N/A'}</p></div>
-                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Sum Assured</p><p className="text-sm font-medium text-blue-600">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN') || 'N/A'}</p></div>
-                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">Gr.code</p><p className="text-sm font-medium text-slate-900">{policy.customer?.groupCode || 'N/A'}</p></div>
-                      <div><p className="text-xs text-slate-400 uppercase tracking-wider">GST</p><p className="text-sm font-medium text-slate-900">₹ {policy.premium?.gst?.toLocaleString('en-IN') || '0'}</p></div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider">
+                          Mode
+                        </p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {policy.premiumMode?.modeName || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider">
+                          Term
+                        </p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {policy.policyTerm || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider">
+                          Sum Assured
+                        </p>
+                        <p className="text-sm font-medium text-blue-600">
+                          ₹{" "}
+                          {policy.premium?.sumAssured?.toLocaleString(
+                            "en-IN",
+                          ) || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider">
+                          Gr.code
+                        </p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {policy.customer?.groupCode || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider">
+                          GST
+                        </p>
+                        <p className="text-sm font-medium text-slate-900">
+                          ₹{" "}
+                          {policy.premium?.gst?.toLocaleString("en-IN") || "0"}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Right Column */}
@@ -420,14 +473,18 @@ export default function LICPoliciesPage() {
                   {/* Actions */}
                   <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
                     <button
-                      onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
+                      onClick={() =>
+                        router.push(`/dashboard/lic/policies/${policy.id}`)
+                      }
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                       title="View"
                     >
                       <Eye size={16} />
                     </button>
                     <button
-                      onClick={() => router.push(`/dashboard/lic/policies/edit/${policy.id}`)}
+                      onClick={() =>
+                        router.push(`/dashboard/lic/policies/edit/${policy.id}`)
+                      }
                       className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
                       title="Edit"
                     >
@@ -454,18 +511,34 @@ export default function LICPoliciesPage() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Policy #</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Sum Assured</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Premium</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fup Date</th>
-                  {isClient && canEdit && <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>}
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Policy #
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Plan
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Sum Assured
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Premium
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Fup Date
+                  </th>
+                  {isClient && canEdit && (
+                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {filteredPolicies.map((policy) => {
-                  const statusName = policy.status?.statusName || 'Unknown';
+                  const statusName = policy.status?.statusName || "Unknown";
                   const statusBadge = getStatusBadge(statusName);
                   const StatusIcon = statusBadge.icon;
                   return (
@@ -485,24 +558,40 @@ export default function LICPoliciesPage() {
                           <span className="font-mono text-sm font-medium text-slate-900">
                             {policy.policyNumber}
                           </span>
-                          <span className="text-xs text-slate-400">{policy.customer?.groupName}</span>
+                          <span className="text-xs text-slate-400">
+                            {policy.customer?.groupName}
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">{policy.product?.productName}</span>
+                        <span className="text-sm text-slate-600">
+                          {policy.product?.productName}
+                        </span>
                         <div className="text-xs text-slate-400">
                           {policy.policyTerm}Y / {policy.premiumPayingTerm}Y PPT
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-slate-900">₹ {policy.premium?.sumAssured?.toLocaleString('en-IN')}</span>
+                        <span className="text-sm font-medium text-slate-900">
+                          ₹{" "}
+                          {policy.premium?.sumAssured?.toLocaleString("en-IN")}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">₹ {policy.premium?.installmentPremium?.toLocaleString('en-IN')}</span>
-                        <div className="text-xs text-slate-400">{policy.premiumMode?.modeName}</div>
+                        <span className="text-sm text-slate-600">
+                          ₹{" "}
+                          {policy.premium?.installmentPremium?.toLocaleString(
+                            "en-IN",
+                          )}
+                        </span>
+                        <div className="text-xs text-slate-400">
+                          {policy.premiumMode?.modeName}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusBadge.className}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusBadge.className}`}
+                        >
                           <StatusIcon size={12} />
                           {statusName}
                         </span>
@@ -520,14 +609,22 @@ export default function LICPoliciesPage() {
                         {isClient && canEdit && (
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
                             <button
-                              onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/lic/policies/${policy.id}`,
+                                )
+                              }
                               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="View"
                             >
                               <Eye size={16} />
                             </button>
                             <button
-                              onClick={() => router.push(`/dashboard/lic/policies/${policy.id}/edit`)}
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/lic/policies/edit/${policy.id}`,
+                                )
+                              }
                               className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
                               title="Edit"
                             >
