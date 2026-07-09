@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchFamilyHistories, deleteFamilyHistory, FamilyHistoryItem } from "../familyHistorySlice";
-import { Plus, Edit2, Search, Trash2, Filter, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Search, Trash2, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface FamilyHistoryListProps {
@@ -34,11 +34,6 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  // --- delete confirmation modal state (replaces window.confirm) ---
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  // -------------------------------------------------------------------
-
   useEffect(() => {
     dispatch(fetchFamilyHistories());
   }, [dispatch]);
@@ -66,23 +61,14 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + itemsPerPage);
 
-  // Opens the custom confirmation modal instead of window.confirm
-  const requestDelete = (record: FamilyHistoryItem) => {
-    const label = getFullName(record) || record.group?.groupName || "this record";
-    setDeleteTarget({ id: record.id, label });
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      await dispatch(deleteFamilyHistory(deleteTarget.id)).unwrap();
-      toast.success("Record deleted successfully");
-    } catch (err: any) {
-      toast.error(err || "Failed to delete record");
-    } finally {
-      setIsDeleting(false);
-      setDeleteTarget(null);
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this family history record?")) {
+      try {
+        await dispatch(deleteFamilyHistory(id)).unwrap();
+        toast.success("Record deleted successfully");
+      } catch (err: any) {
+        toast.error(err || "Failed to delete record");
+      }
     }
   };
 
@@ -174,10 +160,8 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                       <Edit2 size={16} />
                     </button>
                     <button
-
-                      onClick={() => requestDelete(record)}
-                      className="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors cursor-pointer"
-
+                      onClick={() => handleDelete(record.id)}
+                    className="cursor-pointer rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
                       title="Delete Record"
                     >
                       <Trash2 size={16} />
@@ -225,50 +209,6 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView }: FamilyHisto
                   <ChevronRight size={16} />
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Custom delete confirmation modal — matches the Customer Group delete modal style */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-50 rounded-xl">
-                <AlertTriangle size={22} className="text-red-500" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Family History Record</h3>
-                <p className="text-xs text-slate-400">This action cannot be undone</p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to delete the family history record for{" "}
-              <strong>{deleteTarget.label}</strong>?
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                disabled={isDeleting}
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={isDeleting}
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="animate-spin w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full" />
-                    Deleting...
-                  </>
-                ) : (
-                  "Delete"
-                )}
-              </button>
             </div>
           </div>
         </div>
