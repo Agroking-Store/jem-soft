@@ -1,6 +1,10 @@
 import { prisma } from "../config/database.js";
 import { Policy } from "@prisma/client";
 import { AppError } from "../utils/AppError.js";
+import { createNotification } from "./notificationService.js";
+import { NotificationType } from "@prisma/client";
+
+
 
 interface RiderData {
   description: string;
@@ -93,7 +97,9 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           ? new Date(data.completionDate)
           : undefined,
 
-        nextPremiumDueDate: fupDate ? new Date(fupDate) : undefined,
+        nextPremiumDueDate: fupDate
+          ? new Date(fupDate)
+          : undefined,
         policyTerm: term,
         premiumPayingTerm: ppt,
       },
@@ -133,6 +139,13 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       },
     });
 
+    await createNotification(tx, {
+      title: "Policy Created",
+      message: `New policy (${newPolicy.policyNumber}) has been created.`,
+      type: NotificationType.POLICY_CREATED,
+      policyId: newPolicy.id,
+    });
+
     return newPolicy;
   });
 };
@@ -151,32 +164,53 @@ export const getAllPolicies = async (): Promise<any[]> => {
   });
 };
 
+
 export const deletePolicy = async (policyId: string): Promise<Policy> => {
-  // First, check if the policy exists
+  // Check if policy exists
   const policy = await prisma.policy.findUnique({
-    where: { id: policyId },
+    where: {
+      id: policyId,
+    },
   });
 
   if (!policy) {
     throw new Error("Policy not found.");
   }
 
-  // Use a transaction to ensure all related data is deleted along with the policy
   return prisma.$transaction(async (tx) => {
     // Delete related premium calculations
     await tx.policyPremiumCalculation.deleteMany({
-      where: { policyId: policyId },
+      where: {
+        policyId,
+      },
     });
 
     // Delete related riders
     await tx.policyRider.deleteMany({
-      where: { policyId: policyId },
+      where: {
+        policyId,
+      },
     });
 
-    // Finally, delete the policy itself
-    return tx.policy.delete({ where: { id: policyId } });
+    // Delete the policy
+    const deletedPolicy = await tx.policy.delete({
+      where: {
+        id: policyId,
+      },
+    });
+
+    // Create notification
+    await createNotification(tx, {
+      title: "Policy Deleted",
+      message: `Policy (${policy.policyNumber}) has been deleted.`,
+      type: NotificationType.POLICY_DELETED,
+    });
+
+    return deletedPolicy;
   });
 };
+
+
 export const getPolicyById = async (id: string): Promise<any> => {
   return prisma.policy.findUnique({
     where: {
@@ -313,6 +347,13 @@ export const updatePolicy = async (
 
         gst: gst ?? 0,
       },
+    });
+
+    await createNotification(tx, {
+      title: "Policy Updated",
+      message: `Policy (${updatedPolicy.policyNumber}) has been updated.`,
+      type: NotificationType.POLICY_UPDATED,
+      policyId: updatedPolicy.id,
     });
 
     return updatedPolicy;
