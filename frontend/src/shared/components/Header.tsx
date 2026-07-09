@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import NotificationBell from "@/features/notifications/components/NotificationBell";
 import Link from "next/link";
 import { 
   LogOut, 
@@ -57,7 +58,7 @@ export const Header = () => {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
-      <h1 
+      <h1
         className="text-xl font-semibold text-slate-900"
         suppressHydrationWarning
       >
@@ -65,6 +66,10 @@ export const Header = () => {
       </h1>
 
       <div className="flex items-center gap-4">
+        {/* Notification Bell - Always rendered but hidden for customers */}
+        <div className={isMounted && isAdmin ? "block" : "hidden"}>
+          <NotificationBell />
+        </div>
 
         {/* User Profile Section */}
         <div className="relative" ref={dropdownRef}>
@@ -79,22 +84,22 @@ export const Header = () => {
               <User size={16} className="text-blue-600" />
             </div>
             <div className="hidden sm:flex flex-col items-start">
-              <span 
+              <span
                 className="text-sm font-medium text-slate-900"
                 suppressHydrationWarning
               >
                 {isMounted ? user?.name || "User" : "Loading..."}
               </span>
-              <span 
+              <span
                 className="text-xs text-slate-500 capitalize"
                 suppressHydrationWarning
               >
                 {isMounted ? user?.role?.toLowerCase() || "guest" : "..."}
               </span>
             </div>
-            {isMounted && (
-              <ChevronDown 
-                size={16} 
+            {isMounted && isAdmin && (
+              <ChevronDown
+                size={16}
                 className={`text-slate-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`}
               />
             )}
