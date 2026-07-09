@@ -26,17 +26,19 @@ export default function NotificationBell() {
 
   // Mark notification as read
   const handleNotificationClick = async (id: string) => {
-    try {
-      await readNotification(id);
-      await fetchNotifications();
+  try {
+    await readNotification(id);
+    await fetchNotifications();
 
-      setOpen(false);
+    setOpen(false);
 
-      router.push("/dashboard/notifications");
-    } catch (error) {
-      console.error("Failed to read notification:", error);
-    }
-  };
+    // ❌ Remove this line
+    // router.push("/dashboard/notifications");
+  } catch (error) {
+    console.error("Failed to read notification:", error);
+  }
+};
+
 
   // Delete notification
   const handleDeleteNotification = async (id: string) => {
