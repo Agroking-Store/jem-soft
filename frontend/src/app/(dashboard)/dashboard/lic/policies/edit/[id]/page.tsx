@@ -36,6 +36,7 @@ import {
     Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNotificationStore } from "@/store/notificationStore";
 
 function getFullName(customer: {
     salutation?: string | null;
@@ -63,7 +64,8 @@ const GroupAutoComplete = ({ value, onChange, groups }: { value: string; onChang
         const q = query.toLowerCase();
         return (g.groupName?.toLowerCase().includes(q) || g.groupCode?.toLowerCase().includes(q));
     }).slice(0, 10);
-
+ 
+   
     return (
         <div ref={ref} className="relative">
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -206,6 +208,8 @@ export default function EditLICPolicyPage() {
     const id = params.id as string;
 
     const dispatch = useDispatch<AppDispatch>();
+
+    const { fetchNotifications } = useNotificationStore();
 
     const { selectedPolicy } = useSelector(
         (state: RootState) => state.policies
@@ -441,6 +445,9 @@ export default function EditLICPolicyPage() {
                     data: payload,
                 })
             ).unwrap();
+
+
+             await fetchNotifications();
 
             toast.success("Policy updated successfully!");
             router.push("/dashboard/lic/policies");

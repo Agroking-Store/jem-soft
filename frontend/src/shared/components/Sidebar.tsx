@@ -25,42 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
-const UserProfile = () => {
-  const { logout, user } = useAuth();
 
-  return (
-    <div className="p-4 border-t border-slate-200 space-y-2">
-      <div className="flex items-center gap-3 px-4 py-3 text-slate-600">
-        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-          <User size={18} className="text-slate-600" />
-        </div>
-        <div className="flex flex-col overflow-hidden">
-          <span className="text-xs font-bold text-slate-900 truncate w-32">
-            {user?.name || "User Account"}
-          </span>
-          <span className="text-xs text-slate-500 capitalize">
-            {user?.role || "Guest"}
-          </span>
-        </div>
-      </div>
-
-      <button
-        onClick={logout}
-        className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
-      >
-        <LogOut size={20} />
-        Logout
-      </button>
-    </div>
-  );
-};
-
-const DynamicUserProfile = dynamic(() => Promise.resolve(UserProfile), {
-  ssr: false,
-  loading: () => (
-    <div className="p-4 border-t border-slate-200 h-24 animate-pulse bg-slate-50" />
-  ),
-});
 
 // AdminDropdown component - Only for ADMIN users
 const AdminDropdown = () => {
@@ -202,8 +167,6 @@ export const Sidebar = () => {
         {/* User Management section - Only show for ADMIN users */}
         {isMounted && isAdmin && <AdminDropdown />}
       </nav>
-
-      <DynamicUserProfile />
     </aside>
   );
 };
