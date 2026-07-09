@@ -39,7 +39,7 @@ function CustomerModuleNavInner() {
   return (
     <nav
       aria-label="Customer module navigation"
-      className="bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1.5"
+      className="inline-flex max-w-full bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1"
     >
       <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, icon: Icon, href }) => {
@@ -50,7 +50,7 @@ function CustomerModuleNavInner() {
               href={href}
               aria-current={isActive ? "page" : undefined}
               className={`
-                relative flex items-center gap-2 px-5 py-2.5 rounded-xl
+                relative flex items-center gap-2 px-4 py-2 rounded-xl
                 text-[13px] font-bold whitespace-nowrap
                 transition-all duration-200 select-none
                 ${
@@ -75,7 +75,7 @@ export default function CustomerModuleNav() {
   return (
     <Suspense
       fallback={
-        <div className="bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1.5 h-[52px] animate-pulse" />
+        <div className="inline-block bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1 h-[48px] w-[420px] max-w-full animate-pulse" />
       }
     >
       <CustomerModuleNavInner />

@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchFamilyHistory, clearCurrentRecord } from "../familyHistorySlice";
-import { ArrowLeft, Edit2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Edit2, ShieldAlert, ChevronRight, FileText } from "lucide-react";
 import { formatFamilyHistoryDate } from "./FamilyHistoryList";
+import { CustomerSectionCard, CustomerTableFrame } from "@/features/customers/components/CustomerUi";
 
 interface FamilyHistoryViewProps {
   recordId: string;
@@ -72,7 +73,8 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
 
   if (error && !currentRecord) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="relative mx-auto max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-rose-400 via-rose-300 to-transparent" />
         <ShieldAlert className="mx-auto mb-4 text-rose-500" size={40} />
         <h3 className="mb-1 text-base font-semibold text-slate-900">Failed to load details</h3>
         <p className="mb-4 text-xs text-slate-500">{error}</p>
@@ -89,47 +91,50 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
   if (!currentRecord) return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">Family History Details</h1>
-          <p className="mt-0.5 text-xs text-slate-400">
-            Group: {currentRecord.group?.groupName || currentRecord.group?.name || "—"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit(currentRecord.id)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            <Edit2 size={13} />
-            Edit Record
-          </button>
+    <div className="mx-auto max-w-5xl space-y-5 pb-8">
+      {/* Header — mirrors the Customer Group / Master details page pattern */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:bg-slate-50"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
             title="Back to list"
           >
-            <ArrowLeft size={15} />
+            <ArrowLeft size={16} />
           </button>
+          <div>
+            <nav className="mb-0.5 flex items-center gap-1 text-xs text-slate-400">
+              <button type="button" onClick={onClose} className="hover:text-slate-600">
+                Family History
+              </button>
+              <ChevronRight size={12} />
+              <span className="font-medium text-slate-600">
+                {currentRecord.group?.groupName || currentRecord.group?.name || "Record"}
+              </span>
+            </nav>
+            <h1 className="font-serif text-xl font-bold text-slate-900">Family History Details</h1>
+          </div>
         </div>
+        <button
+          onClick={() => onEdit(currentRecord.id)}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
+        >
+          <Edit2 size={14} />
+          Edit Record
+        </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Basic Information</h2>
+      <CustomerSectionCard title="Basic Information" icon={FileText}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <ViewField label="Group Code" value={currentRecord.group?.groupCode || "—"} />
           <ViewField label="Group Name" value={currentRecord.group?.groupName || currentRecord.group?.name || "—"} />
           <ViewField label="Family History Date" value={formatFamilyHistoryDate(currentRecord.date)} />
           <ViewField label="Member Name" value={getMemberFullName(currentRecord.member)} />
         </div>
-      </div>
+      </CustomerSectionCard>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="border-b border-slate-200 bg-slate-50 px-5 py-3.5">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">Family History Records</h2>
-        </div>
-        <div className="overflow-x-auto">
+      <CustomerSectionCard title="Family History Records" icon={ShieldAlert}>
+        <CustomerTableFrame>
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -162,8 +167,8 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
               )}
             </tbody>
           </table>
-        </div>
-      </div>
+        </CustomerTableFrame>
+      </CustomerSectionCard>
     </div>
   );
 }

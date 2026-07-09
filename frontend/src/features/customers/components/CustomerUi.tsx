@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { Check, ChevronDown, Search as SearchIcon } from "lucide-react";
 
 export function CustomerPageHero({
   title,
@@ -19,7 +22,7 @@ export function CustomerPageHero({
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E8C77A]">
               Customer Module
             </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
+            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
               {title}
             </h1>
             {subtitle && (
@@ -35,6 +38,12 @@ export function CustomerPageHero({
   );
 }
 
+/**
+ * CustomerSectionCard
+ * A shared "Ledger Identity" section shell: thin brass-gold top accent,
+ * serif uppercase heading, consistent border/shadow treatment.
+ * Used across list, details, edit, create and module sub-pages.
+ */
 export function CustomerSectionCard({
   title,
   icon: Icon,
@@ -49,7 +58,8 @@ export function CustomerSectionCard({
   subtitle?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+    <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
         <div className="flex items-start gap-3">
           {Icon ? (
@@ -58,7 +68,7 @@ export function CustomerSectionCard({
             </div>
           ) : null}
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+            <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
               {title}
             </h2>
             {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
@@ -83,25 +93,27 @@ export function CustomerStatCard({
   tone?: "neutral" | "accent" | "success" | "warning";
 }) {
   const tones = {
-    neutral: "bg-slate-50 text-slate-700",
-    accent: "bg-[#B8873A]/10 text-[#B8873A]",
-    success: "bg-emerald-50 text-emerald-700",
-    warning: "bg-amber-50 text-amber-700",
+    neutral: { chip: "bg-slate-50 text-slate-700", bar: "from-slate-300 to-slate-200" },
+    accent: { chip: "bg-[#B8873A]/10 text-[#B8873A]", bar: "from-[#B8873A] to-[#E8C77A]" },
+    success: { chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-200" },
+    warning: { chip: "bg-amber-50 text-amber-700", bar: "from-amber-400 to-amber-200" },
   };
+  const t = tones[tone];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(15,23,42,0.09)]">
+      <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${t.bar}`} />
       <div className="flex items-center gap-3">
         {Icon ? (
-          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.chip}`}>
             <Icon size={16} />
           </div>
         ) : null}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             {label}
           </p>
-          <p className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+          <p className="mt-1 font-serif text-xl font-semibold tracking-tight text-slate-900">
             {value}
           </p>
         </div>
@@ -181,6 +193,228 @@ export function CustomerTableFrame({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="overflow-x-auto">{children}</div>
       {footer && <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3">{footer}</div>}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * Shared "shadcn-style" searchable dropdowns.
+ * Two flavors:
+ *  - SearchableSelect: full form field (label, border box, icon) — used in forms.
+ *  - FilterSelect: compact pill trigger — used in list toolbars (e.g. "All Statuses").
+ * Both share the same search-first popover pattern so every dropdown in the
+ * module behaves consistently.
+ * ──────────────────────────────────────────────────────────────── */
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  sublabel?: string;
+}
+
+function useOutsideClose(onClose: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [onClose]);
+  return ref;
+}
+
+function DropdownPanel({
+  query,
+  onQueryChange,
+  searchPlaceholder,
+  options,
+  value,
+  onSelect,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  searchPlaceholder: string;
+  options: SelectOption[];
+  value?: string;
+  onSelect: (value: string) => void;
+}) {
+  const filtered = options.filter((o) =>
+    `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="absolute z-30 mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+      <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
+        <SearchIcon size={14} className="shrink-0 text-slate-400" />
+        <input
+          autoFocus
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="w-full text-sm text-slate-900 outline-none placeholder:text-slate-400"
+        />
+      </div>
+      <div className="max-h-60 overflow-y-auto py-1">
+        {filtered.length === 0 ? (
+          <p className="px-3 py-4 text-center text-sm text-slate-400">No results found</p>
+        ) : (
+          filtered.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onSelect(opt.value)}
+              className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
+                opt.value === value ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block truncate">{opt.label}</span>
+                {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
+              </span>
+              {opt.value === value && <Check size={14} className="shrink-0 text-[#B8873A]" />}
+            </button>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function SearchableSelect({
+  label,
+  required,
+  error,
+  options,
+  value,
+  onChange,
+  placeholder = "Select...",
+  searchPlaceholder = "Search...",
+  icon,
+  disabled,
+}: {
+  label?: string;
+  required?: boolean;
+  error?: string;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  icon?: ReactNode;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useOutsideClose(() => {
+    setOpen(false);
+    setQuery("");
+  });
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      {label && (
+        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {label}
+          {required && <span className="ml-0.5 text-rose-500">*</span>}
+        </label>
+      )}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 text-sm outline-none transition-all
+          ${icon ? "pl-9 pr-3" : "px-3"}
+          ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}
+          ${open ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : ""}
+          ${disabled ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900"}`}
+      >
+        {icon && (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
+        )}
+        <span className={`truncate text-left ${!selected ? "text-slate-400" : ""}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown size={15} className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+
+      {open && (
+        <DropdownPanel
+          query={query}
+          onQueryChange={setQuery}
+          searchPlaceholder={searchPlaceholder}
+          options={options}
+          value={value}
+          onSelect={(v) => {
+            onChange(v);
+            setOpen(false);
+            setQuery("");
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Compact pill-style dropdown for list-page toolbars, e.g. "All Statuses". */
+export function FilterSelect({
+  icon: Icon,
+  options,
+  value,
+  onChange,
+  placeholder = "All",
+  searchPlaceholder = "Search...",
+}: {
+  icon?: LucideIcon;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useOutsideClose(() => {
+    setOpen(false);
+    setQuery("");
+  });
+
+  const selected = options.find((o) => o.value === value);
+  const active = Boolean(selected);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all ${
+          active || open
+            ? "border-[#B8873A] bg-[#B8873A]/10 text-[#B8873A]"
+            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+        }`}
+      >
+        {Icon && <Icon size={14} />}
+        {selected ? selected.label : placeholder}
+        <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <DropdownPanel
+          query={query}
+          onQueryChange={setQuery}
+          searchPlaceholder={searchPlaceholder}
+          options={options}
+          value={value}
+          onSelect={(v) => {
+            onChange(v);
+            setOpen(false);
+            setQuery("");
+          }}
+        />
+      )}
     </div>
   );
 }
