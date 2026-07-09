@@ -18,6 +18,7 @@ import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
+import { useNotificationStore } from "@/store/notificationStore";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -93,6 +94,8 @@ const GroupAutoComplete = ({
       );
     })
     .slice(0, 10);
+
+  const { fetchNotifications } = useNotificationStore();
 
   return (
     <div ref={ref} className="relative">
@@ -430,6 +433,7 @@ export default function NewLICPolicyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const { fetchNotifications } = useNotificationStore();
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -537,7 +541,9 @@ export default function NewLICPolicyPage() {
 
     return products
       .filter((p) => p.providerId === watchProviderId)
-      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+      .sort((a, b) =>
+        (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
+      );
   }, [watchProviderId, products]);
 
   const filteredAdvisors = useMemo(() => {
@@ -568,11 +574,18 @@ export default function NewLICPolicyPage() {
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
+
   const onSubmit = async (data: PolicyFormValues) => {
     setIsSubmitting(true);
+
     try {
       const result = await dispatch(createPolicy(data)).unwrap();
+
+      // Refresh notifications immediately
+      await fetchNotifications();
+
       toast.success("Policy created successfully!");
+
       router.push("/dashboard/lic/policies");
     } catch (err: any) {
       toast.error(
