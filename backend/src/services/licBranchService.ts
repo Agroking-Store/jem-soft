@@ -17,7 +17,11 @@ export const createLicBranch = async (
  * @returns A list of all LIC branches.
  */
 export const getAllLicBranches = async (): Promise<LicBranch[]> => {
-  return prisma.licBranch.findMany();
+  return prisma.licBranch.findMany({
+    orderBy: {
+      branchCode: 'asc',
+    },
+  });
 };
 
 /**

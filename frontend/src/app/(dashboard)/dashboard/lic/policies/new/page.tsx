@@ -119,8 +119,10 @@ const AdvisorAutoComplete = ({ value, onChange, advisors, disabled, placeholder 
   }).slice(0, 10);
 
   return (
-    <div ref={ref} className="relative">
-      <label className="block text-sm font-medium text-slate-700 mb-1">Advisor</label>
+    <div ref={ref} className="relative w-full">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Advisor <span className="text-red-500">*</span>
+      </label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
         <input
@@ -138,6 +140,84 @@ const AdvisorAutoComplete = ({ value, onChange, advisors, disabled, placeholder 
           {filtered.map((a) => (<button key={a.id} type="button" onClick={() => { onChange(a.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{a.advisorCode}</span><span className="text-sm font-medium text-slate-800">{a.advisorName}</span></button>))}
         </div>
       )}
+    </div>
+  );
+};
+
+const BranchAutoComplete = ({ value, onChange, branches, disabled, placeholder }: { value: string; onChange: (id: string) => void; branches: { branchCode: string; branchName: string }[], disabled?: boolean, placeholder?: string }) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = branches.find((b) => b.branchCode === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = branches.filter((b) => {
+    const q = query.toLowerCase();
+    return (b.branchName.toLowerCase().includes(q) || b.branchCode.toLowerCase().includes(q));
+  }).slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
+        <input
+          value={selected ? `[${selected.branchCode}] ${selected.branchName}` : query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder || "Search branch by name or code..."}
+          disabled={disabled}
+          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        />
+        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.branchCode} type="button" onClick={() => { onChange(b.branchCode); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
+      )}
+    </div>
+  );
+};
+
+const PlanAutoComplete = ({ value, onChange, products, disabled, placeholder }: { value: string; onChange: (id: string) => void; products: { id: string; planNumber: string | null; productName: string }[], disabled?: boolean, placeholder?: string }) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = products.find((p) => p.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = products.filter((p) => {
+    const q = query.toLowerCase();
+    return (p.productName.toLowerCase().includes(q) || (p.planNumber && p.planNumber.toLowerCase().includes(q)));
+  }).slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Plan <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
+        <input
+          value={selected ? `${selected.planNumber ? `[${selected.planNumber}] ` : ""}${selected.productName}` : query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder || "Search plan by name or number..."}
+          disabled={disabled}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        />
+        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+      </div>
+      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((p) => (<button key={p.id} type="button" onClick={() => { onChange(p.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{p.planNumber || "N/A"}</span><span className="text-sm font-medium text-slate-800">{p.productName}</span></button>))}</div>)}
     </div>
   );
 };
@@ -210,12 +290,13 @@ const policySchema = z.object({
   riders: z.array(riderSchema).optional(),
   nominees: z.array(nomineeSchema).optional(),
 
-  advisorId: z.string().optional(),
-  agencyId: z.string().optional(),
+  advisorId: z.string().min(1, "Advisor is required."),
+  agencyId: z.string().min(1, "Agency is required."),
   branchId: z.string().optional(),
   agentCode: z.string().optional(),
   fupDate: z.string().optional(),
   fuliDate: z.string().optional(),
+  statusId: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -263,6 +344,12 @@ export default function NewLICPolicyPage() {
     dispatch(fetchAgencies());
     setIsMounted(true);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (activeSection === 'advanced') {
+      setShowAdvanced(true);
+    }
+  }, [activeSection]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
@@ -355,7 +442,13 @@ export default function NewLICPolicyPage() {
 
   useEffect(() => {
     const agency = agencies.find(a => a.id === watchAgencyId);
-    setValue("branchId", agency?.branchId || "");
+    if (agency) {
+      if (agency.agencyCode === 'AG002' || agency.agencyCode === 'AG003') {
+        setValue("branchId", "955");
+      } else {
+        setValue("branchId", agency.branchId || "");
+      }
+    }
     setValue("advisorId", ""); // Reset advisor when agency changes
   }, [watchAgencyId, agencies, setValue]);
 
@@ -406,11 +499,16 @@ export default function NewLICPolicyPage() {
       window.scrollTo({ top: y, behavior: 'smooth' });
       
       setActiveSection(sectionId);
+
+      if (sectionId === 'advanced') {
+        setShowAdvanced(true);
+      }
+
       setGlowingSection(sectionId);
       // Remove the glow after 1.5 seconds
       setTimeout(() => setGlowingSection(null), 1500);
     }
-  }, [sectionRefs]);
+  }, [sectionRefs, setShowAdvanced]);
 
   if (!isMounted || authLoading || !canCreate) {
     return (
@@ -663,6 +761,7 @@ export default function NewLICPolicyPage() {
                       </option>
                     ))}
                   </select>
+                  <Controller name="productId" control={control} render={({ field }) => (<PlanAutoComplete value={field.value || ""} onChange={field.onChange} products={filteredProducts} disabled={!watchProviderId || filteredProducts.length === 0} placeholder={watchProviderId ? (filteredProducts.length > 0 ? "Search plan..." : "No plans for this provider") : "Select provider first"} />)} />
                   {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
                 </div>
                 <div>
@@ -998,8 +1097,8 @@ export default function NewLICPolicyPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-sm font-medium mb-2">Policy Status</label>
-                        <select className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          {statuses.map((status) => (<option key={status.id} value={status.statusName}>{status.statusName}</option>))}
+                        <select {...register("statusId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          {statuses.map((status) => (<option key={status.id} value={status.id}>{status.statusName}</option>))}
                         </select>
                       </div>
                       <div>
@@ -1137,21 +1236,20 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Agency</label> 
+                        <label className="block text-sm font-medium mb-2">Agency <span className="text-red-500">*</span></label>
                         <select {...register("agencyId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="">Select Agency</option>
                           {agencies.map((agency) => (<option key={agency.id} value={agency.id}>{agency.agencyName}</option>))}
                         </select>
+                        {errors.agencyId && <p className="text-xs text-red-500 mt-1">{errors.agencyId.message}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Branch</label>
-                        <select {...register("branchId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option value="">Select Branch</option>
-                          {branches.map((branch) => (<option key={branch.id} value={branch.id}>{branch.branchName}</option>))}
-                        </select>
+                        <Controller name="branchId" control={control} render={({ field }) => (<BranchAutoComplete value={field.value || ""} onChange={field.onChange} branches={branches} />)} />
                       </div>
-                      <div>
-                        <Controller name="advisorId" control={control} render={({ field }) => (<AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={filteredAdvisors} disabled={!watchAgencyId} placeholder={watchAgencyId ? "Search Advisor..." : "Select Agency First"} />)} />
+                      <div className="relative">
+                        <Controller name="advisorId" control={control} render={({ field }) => (<AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={filteredAdvisors} disabled={!watchAgencyId} placeholder={watchAgencyId ? "Search Advisor..." : "Select Agency First"} />
+                        )} />
+                        {errors.advisorId && <p className="text-xs text-red-500 mt-1">{errors.advisorId.message}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Agent Code</label>

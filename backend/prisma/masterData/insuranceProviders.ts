@@ -27,4 +27,5 @@ export const providersData = [
   { name: 'Star Union Dai-ichi Life Insurance Company', type: 'Insurance', code: 'SUD' },
   { name: 'Tata AIA Life Insurance Company Limited', type: 'Insurance', code: 'TATA_AIA' },
   { name: 'Unit Trust of India', type: 'Insurance', code: 'UTI' },
+  { name: 'Zurich Kotak General Insurance', type: 'General Insurance', code: 'ZURICH_KOTAK' },
 ];
