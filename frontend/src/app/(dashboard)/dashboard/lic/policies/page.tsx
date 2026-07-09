@@ -550,7 +550,7 @@ export default function LICPoliciesPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {isClient && canEdit && (
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
+                          <div className="flex items-center justify-end gap-1 ">
                             <button
                               onClick={() =>
                                 router.push(
