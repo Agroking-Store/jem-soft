@@ -38,6 +38,7 @@ interface PolicyData {
   totalInstallmentPremium?: number;
   totalRiderPremium?: number;
   gst?: number;
+  statusId?: string;
 
   riders?: RiderData[];
 }
@@ -56,16 +57,19 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     installmentPremium,
     totalInstallmentPremium,
     gst,
+    statusId,
     // Destructure only what's needed for this specific scope
     term,
     ppt,
     fupDate,
   } = data;
 
-  // These should ideally come from the DB based on a default or user input
-  const status = await prisma.policyStatusMaster.findFirst({
-    where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
-  });
+  // Use the provided statusId, or fall back to 'ACTIVE' if not provided
+  const status = statusId
+    ? await prisma.policyStatusMaster.findUnique({ where: { id: statusId } })
+    : await prisma.policyStatusMaster.findFirst({
+        where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
+      });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
