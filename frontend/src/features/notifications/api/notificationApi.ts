@@ -37,3 +37,7 @@ export const deleteNotification = async (id: string) => {
 export const deleteReadNotifications = () => {
     return api.delete("/notifications/read");
 };
+
+export const markAllNotificationsRead = () => {
+    return api.patch("/notifications/mark-all-read");
+};
