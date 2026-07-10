@@ -2297,13 +2297,6 @@ export const productsData = [
     planNumber: "RN022",
     providerCode: "RELIANCE_NIPPON",
   },
-  {
-    productName: "Reliance Nippon Life Group Term Assurance Plus",
-    productCode: "121N093V02",
-    planNumber: "RN022",
-    providerCode: "RELIANCE_NIPPON",
-  },
-
   // Exide Life Insurance Products
  {
     productName: "Exide Life Smart Term Plan",
