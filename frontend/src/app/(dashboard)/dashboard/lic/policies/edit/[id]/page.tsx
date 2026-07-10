@@ -64,8 +64,8 @@ const GroupAutoComplete = ({ value, onChange, groups }: { value: string; onChang
         const q = query.toLowerCase();
         return (g.groupName?.toLowerCase().includes(q) || g.groupCode?.toLowerCase().includes(q));
     }).slice(0, 10);
- 
-   
+
+
     return (
         <div ref={ref} className="relative">
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -447,7 +447,7 @@ export default function EditLICPolicyPage() {
             ).unwrap();
 
 
-             await fetchNotifications();
+            await fetchNotifications();
 
             toast.success("Policy updated successfully!");
             router.push("/dashboard/lic/policies");
@@ -1026,7 +1026,8 @@ export default function EditLICPolicyPage() {
                         }`}
                 >
                     <button
-                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        type="button"
+                        onClick={() => setShowAdvanced(prev => !prev)}
                         className="flex items-center justify-between w-full text-left"
                     >
                         <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
