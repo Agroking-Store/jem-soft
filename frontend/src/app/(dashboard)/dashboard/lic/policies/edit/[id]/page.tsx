@@ -197,7 +197,8 @@ const policySchema = z.object({
 
     advisorId: z.string().optional(),
     agentCode: z.string().optional(),
-    statusId: z.string().optional()
+    statusId: z.string().optional(),
+    fupDate: z.string().optional()
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -229,6 +230,7 @@ export default function EditLICPolicyPage() {
         defaultValues: {
             riders: [],
             statusId: "",
+            fupDate: ""
         },
     });
 
@@ -281,6 +283,10 @@ export default function EditLICPolicyPage() {
             policyNumber: selectedPolicy.policyNumber,
 
             statusId: selectedPolicy.statusId,
+
+            fupDate: selectedPolicy.nextPremiumDueDate
+                ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
+                : "",
 
             commencementDate: selectedPolicy.commencementDate
                 ?.substring(0, 10),
@@ -1080,8 +1086,15 @@ export default function EditLICPolicyPage() {
                                 <h3 className="text-base font-semibold text-slate-800 mb-4">Check Current Status of Policy</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">First Unpaid Premium (F.U.P) Date</label>
-                                        <input type="date" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            First Unpaid Premium (F.U.P) Date
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            {...register("fupDate")}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                        />
                                     </div>
                                 </div>
                             </div>
