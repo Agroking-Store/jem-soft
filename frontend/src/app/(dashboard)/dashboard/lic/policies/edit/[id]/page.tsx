@@ -17,6 +17,7 @@ import {
     updatePolicy,
 } from "@/features/policy/policySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -174,6 +175,7 @@ const policySchema = z.object({
     pan: z.string().optional(),
 
     providerType: z.string().min(1, "Provider type is required"),
+    productType: z.string().optional(),
     providerId: z.string().min(1, "Provider is required"),
     policyNumber: z.string().min(1, "Policy number is required"),
     productId: z.string().min(1, "Plan is required"),
@@ -197,6 +199,7 @@ const policySchema = z.object({
 
     advisorId: z.string().optional(),
     agentCode: z.string().optional(),
+    branchId: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -238,6 +241,7 @@ export default function EditLICPolicyPage() {
     const { advisors, isLoading: advisorsLoading } = useSelector((s: RootState) => s.advisors);
     const { statuses, isLoading: statusesLoading } = useSelector((s: RootState) => s.policyStatuses);
     const { modes, isLoading: modesLoading } = useSelector((s: RootState) => s.premiumModes);
+    const { branches: licBranches, isLoading: licBranchesLoading } = useSelector((s: RootState) => s.licBranch);
 
     const [activeSection, setActiveSection] = useState("policy-holder");
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -253,6 +257,7 @@ export default function EditLICPolicyPage() {
         dispatch(fetchAdvisors());
         dispatch(fetchPolicyStatuses());
         dispatch(fetchPremiumModes());
+        dispatch(fetchLicBranches());
     }, [dispatch]);
 
     useEffect(() => {
@@ -266,12 +271,15 @@ export default function EditLICPolicyPage() {
     useEffect(() => {
         if (!selectedPolicy) return;
 
+        const policyBranch = licBranches.find(b => b.id === selectedPolicy.branchId);
+
+
         reset({
             groupId: selectedPolicy.clientId,
             lifeAssuredId: selectedPolicy.CustomerMasterId,
 
             providerType:
-                selectedPolicy.provider?.type,
+            selectedPolicy.provider?.type ?? "",
 
             providerId: selectedPolicy.providerId,
             productId: selectedPolicy.productId,
@@ -284,10 +292,14 @@ export default function EditLICPolicyPage() {
             completionDate: selectedPolicy.maturityDate
                 ? selectedPolicy.maturityDate.substring(0, 10)
                 : "",
+            
+            productType: selectedPolicy.product?.productType ?? "",
 
             advisorId: selectedPolicy.advisorId ?? "",
 
             agentCode: selectedPolicy.agentCode ?? "",
+
+            branchId: policyBranch?.branchCode ?? "",
 
             term: selectedPolicy.policyTerm ?? undefined,
 
@@ -324,7 +336,7 @@ export default function EditLICPolicyPage() {
                     ppt: "",
                 })) ?? [],
         });
-    }, [selectedPolicy, reset]);
+    }, [selectedPolicy, reset, licBranches]);
 
 
     const sectionRefs = {
@@ -344,6 +356,7 @@ export default function EditLICPolicyPage() {
     const watchLifeAssuredId = watch("lifeAssuredId");
     const watchProviderType = watch("providerType");
     const watchProviderId = watch("providerId");
+    const watchProductType = watch("productType");
     const watchAdvisorId = watch("advisorId");
     const watchBasicYearlyPremium = watch("basicYearlyPremium");
     const watchTotalRiderPremium = watch("totalRiderPremium");
@@ -390,21 +403,35 @@ export default function EditLICPolicyPage() {
         return providers.filter(p => p.type === watchProviderType);
     }, [watchProviderType, providers]);
 
+    const selectedProvider = useMemo(() => {
+        return providers.find((p) => p.id === watchProviderId);
+    }, [watchProviderId, providers]);
+    const isLicProviderSelected = selectedProvider?.code === 'LIC';
 
+    const productTypesForProvider = useMemo(() => {
+        if (!watchProviderId) return [];
+        const providerProducts = products.filter(p => p.providerId === watchProviderId);
+        const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
+        return types.sort();
+    }, [watchProviderId, products]);
 
     const filteredProducts = useMemo(() => {
         if (!watchProviderId) return [];
 
-        return products
-            .filter((p) => p.providerId === watchProviderId)
-            .sort((a, b) =>
-                (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
-            );
-    }, [watchProviderId, products]);
+        let providerProducts = products.filter((p) => p.providerId === watchProviderId);
+
+        if (watchProductType && isLicProviderSelected) {
+            providerProducts = providerProducts.filter(p => p.productType === watchProductType);
+        }
+        return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+    }, [watchProviderId, watchProductType, products]);
 
     useEffect(() => {
         setValue("providerId", "");
-    }, [watchProviderType, setValue]);
+        if (!isLicProviderSelected) {
+            setValue("productType", "");
+        }
+    }, [watchProviderType, setValue, isLicProviderSelected]);
 
     useEffect(() => {
         const advisor = advisors.find(a => a.id === watchAdvisorId);
@@ -431,6 +458,7 @@ export default function EditLICPolicyPage() {
                 ...data,
 
                 advisorId: data.advisorId || null,
+                branchId: data.branchId || null,
 
                 policyTerm: data.term,
                 premiumPayingTerm: data.ppt,
@@ -703,6 +731,26 @@ export default function EditLICPolicyPage() {
                                     </select>
                                     {errors.providerId && <p className="text-xs text-red-500 mt-1">{errors.providerId.message}</p>}
                                 </div>
+                                {isLicProviderSelected && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                                            Product Type
+                                        </label>
+                                        <select
+                                            {...register("productType")}
+                                            disabled={!watchProviderId || productTypesForProvider.length === 0}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
+                                        >
+                                            <option value="">All Product Types</option>
+                                            {productTypesForProvider.map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.productType && <p className="text-xs text-red-500 mt-1">{errors.productType.message}</p>}
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
                                         Policy Number <span className="text-red-500">*</span>
@@ -1136,7 +1184,13 @@ export default function EditLICPolicyPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                                        <input type="text" placeholder="Branch" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                        <select {...register("branchId")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+                                            <option value="">Select Branch</option>
+                                            {licBranches.map((branch) => (
+                                                <option key={branch.branchCode} value={branch.branchCode}>{branch.branchCode} - {branch.branchName}</option>
+                                            ))}
+                                        </select>
+                                        {errors.branchId && <p className="text-xs text-red-500 mt-1">{errors.branchId.message}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Medical</label>

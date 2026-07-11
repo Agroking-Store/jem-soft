@@ -105,6 +105,7 @@ export const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
+    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
   ];
 
   return (

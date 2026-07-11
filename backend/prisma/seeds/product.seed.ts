@@ -25,7 +25,8 @@ export const seedProducts = async (prisma: PrismaClient) => {
       update: {
         categoryId: categoryInfo.id,
         productName: productData.productName,
-        planNumber: productData.planNumber
+        planNumber: productData.planNumber,
+        productType: productData.productType,
       },
       create: {
         providerId: categoryInfo.providerId,
