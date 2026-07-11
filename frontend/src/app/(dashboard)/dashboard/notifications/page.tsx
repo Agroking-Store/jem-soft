@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 
 import { useNotificationStore } from "@/store/notificationStore";
 import NotificationCard from "@/features/notifications/components/NotificationCard";
 
 export default function NotificationsPage() {
+
   const {
     notifications,
     fetchNotifications,
     readNotification,
     deleteNotification,
     deleteReadNotifications,
+    markAllNotificationsRead,
   } = useNotificationStore();
 
   useEffect(() => {
@@ -48,6 +50,19 @@ export default function NotificationsPage() {
     await fetchNotifications();
   };
 
+
+
+  const handleMarkAllRead = async () => {
+    const confirmed = window.confirm(
+      "Mark all unread notifications as read?"
+    );
+
+    if (!confirmed) return;
+
+    await markAllNotificationsRead();
+    await fetchNotifications();
+  };
+
   return (
     <div className="mx-auto max-w-5xl p-6">
 
@@ -67,26 +82,51 @@ export default function NotificationsPage() {
 
         </div>
 
-        {readNotifications.length > 0 && (
-          <button
-            onClick={handleDeleteAllRead}
-            className="
-              flex
-              items-center
-              gap-2
-              rounded-lg
-              bg-red-500
-              px-4
-              py-2
-              text-white
-              hover:bg-red-600
-              transition
-            "
-          >
-            <Trash2 size={18} />
-            Delete All Read
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+
+          {unreadNotifications.length > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="
+        flex
+        items-center
+        gap-2
+        rounded-lg
+        bg-blue-600
+        px-4
+        py-2
+        text-white
+        hover:bg-blue-700
+        transition
+      "
+            >
+              <Eye size={18} />
+              Mark All Read
+            </button>
+          )}
+
+          {readNotifications.length > 0 && (
+            <button
+              onClick={handleDeleteAllRead}
+              className="
+        flex
+        items-center
+        gap-2
+        rounded-lg
+        bg-red-500
+        px-4
+        py-2
+        text-white
+        hover:bg-red-600
+        transition
+      "
+            >
+              <Trash2 size={18} />
+              Delete All Read
+            </button>
+          )}
+
+        </div>
 
       </div>
 
@@ -121,9 +161,7 @@ export default function NotificationsPage() {
               <NotificationCard
                 key={notification.id}
                 notification={notification}
-                onClick={() =>
-                  handleNotificationClick(notification.id)
-                }
+                onClick={() => handleNotificationClick(notification.id)}
                 onDelete={handleDeleteNotification}
               />
             ))}
@@ -148,9 +186,7 @@ export default function NotificationsPage() {
               <NotificationCard
                 key={notification.id}
                 notification={notification}
-                onClick={() =>
-                  handleNotificationClick(notification.id)
-                }
+                onClick={() => handleNotificationClick(notification.id)}
                 onDelete={handleDeleteNotification}
               />
             ))}

@@ -3,6 +3,7 @@ import {
   getNotifications,
   getUnreadNotificationCount,
   markNotificationAsRead,
+  markAllNotificationsAsRead,
   deleteNotification as deleteNotificationService,
 } from "../services/notificationService.js";
 
@@ -73,6 +74,29 @@ export const readNotification = async (
     res.status(500).json({
       success: false,
       message: "Failed to mark notification as read.",
+    });
+  }
+};
+
+
+
+export const markAllRead = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    await markAllNotificationsAsRead();
+
+    res.status(200).json({
+      success: true,
+      message: "All notifications marked as read.",
+    });
+  } catch (error) {
+    console.error("Mark All Read Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to mark all notifications as read.",
     });
   }
 };
