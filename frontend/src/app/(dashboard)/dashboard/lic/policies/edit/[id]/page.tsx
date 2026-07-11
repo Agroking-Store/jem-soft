@@ -197,6 +197,7 @@ const policySchema = z.object({
 
     advisorId: z.string().optional(),
     agentCode: z.string().optional(),
+    statusId: z.string().optional()
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -227,6 +228,7 @@ export default function EditLICPolicyPage() {
         resolver: zodResolver(policySchema),
         defaultValues: {
             riders: [],
+            statusId: "",
         },
     });
 
@@ -277,6 +279,8 @@ export default function EditLICPolicyPage() {
             productId: selectedPolicy.productId,
 
             policyNumber: selectedPolicy.policyNumber,
+
+            statusId: selectedPolicy.statusId,
 
             commencementDate: selectedPolicy.commencementDate
                 ?.substring(0, 10),
@@ -1045,8 +1049,20 @@ export default function EditLICPolicyPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Policy Status</label>
-                                        <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                            {statuses.map((status) => (<option key={status.id} value={status.statusName}>{status.statusName}</option>))}
+                                        <select
+                                            {...register("statusId")}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                        >
+                                            <option value="">Select Status</option>
+
+                                            {statuses.map((status) => (
+                                                <option
+                                                    key={status.id}
+                                                    value={status.id}
+                                                >
+                                                    {status.statusName}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>

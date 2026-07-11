@@ -298,6 +298,8 @@ export const updatePolicy = async (
         policyTerm: data.term,
 
         premiumPayingTerm: data.ppt,
+        statusId: data.statusId
+
       },
     });
 
