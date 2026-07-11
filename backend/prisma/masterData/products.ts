@@ -1094,35 +1094,77 @@ export const productsData = [
     providerCode: "INDIAFIRST",
   },
 
-    // TATA_AIA
-    { productName: 'Tata AIA Sampoorna Raksha Promise', productCode: '110N176V12', planNumber: 'TATA001', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Maha Raksha Supreme Select', productCode: '110N171V15', planNumber: 'TATA002', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Sampoorna Raksha Supreme', productCode: '110L179V02', planNumber: 'TATA003', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Fortune Guarantee Plus', productCode: '110N158V14', planNumber: 'TATA004', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Guaranteed Return Insurance Plan', productCode: '110N152V15', planNumber: 'TATA005', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Value Income Plan', productCode: '110N162V03', planNumber: 'TATA006', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Fortune Plus', productCode: '110L177V01', planNumber: 'TATA007', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart SIP', productCode: '110L174V02', planNumber: 'TATA008', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Fortune Pro', productCode: '110L112V07', planNumber: 'TATA009', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Pension Secure', productCode: '110L182V09', planNumber: 'TATA010', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Fortune Guarantee Pension', productCode: '110N161V13', planNumber: 'TATA011', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Shubh Family Protect', productCode: '110N176V08', planNumber: 'TATA012', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Fortune Guarantee Supreme', productCode: '110N163V12', planNumber: 'TATA013', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Fortune Guarantee Secure', productCode: '110N206V03', planNumber: 'TATA014', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Life Insurance Fortune Guarantee', productCode: '110N120V12', planNumber: 'TATA015', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Income Plus', productCode: '110N126V05', planNumber: 'TATA016', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA iSIP (i Systematic Insurance Plan)', productCode: '110L164V10', planNumber: 'TATA017', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Shubh Muhurat Solution (Combination of Fortune Guarantee Secure + Smart Fortune Plus)', productCode: '110N206V02 + 110L177V01', planNumber: 'TATA018', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Smart Sampoorna Raksha Pro', productCode: '110L172V03', planNumber: 'TATA019', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Life Insurance Wealth Pro', productCode: '110L111V05', planNumber: 'TATA020', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Life Insurance Wealth Maxima', productCode: '110L114V05', planNumber: 'TATA021', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Shubh Flexi Pension Plan', productCode: '110N209V02', planNumber: 'TATA022', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Life Insurance Saral Pension', productCode: '110N159V09', planNumber: 'TATA023', providerCode: 'TATA_AIA' },
-    { productName: 'TATA AIA Fortune Guarantee Retirement Ready', productCode: '110N175V04', planNumber: 'TATA024', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Sampoorna Care', productCode: '110N186V01', planNumber: 'TATA025', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Health SIP', productCode: '110L184V01', planNumber: 'TATA026', providerCode: 'TATA_AIA' },
-    { productName: 'Tata AIA Health Pro', productCode: '110L180V01', planNumber: 'TATA027', providerCode: 'TATA_AIA' },
-    
+  // TATA_AIA
+  { productName: 'Tata AIA Sampoorna Raksha Promise', productCode: '110N176V12', planNumber: 'TATA001', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Maha Raksha Supreme Select', productCode: '110N171V15', planNumber: 'TATA002', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Sampoorna Raksha Supreme', productCode: '110L179V02', planNumber: 'TATA003', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Fortune Guarantee Plus', productCode: '110N158V14', planNumber: 'TATA004', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Guaranteed Return Insurance Plan', productCode: '110N152V15', planNumber: 'TATA005', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Value Income Plan', productCode: '110N162V03', planNumber: 'TATA006', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Fortune Plus', productCode: '110L177V01', planNumber: 'TATA007', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart SIP', productCode: '110L174V02', planNumber: 'TATA008', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Fortune Pro', productCode: '110L112V07', planNumber: 'TATA009', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Pension Secure', productCode: '110L182V09', planNumber: 'TATA010', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Fortune Guarantee Pension', productCode: '110N161V13', planNumber: 'TATA011', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Shubh Family Protect', productCode: '110N176V08', planNumber: 'TATA012', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Fortune Guarantee Supreme', productCode: '110N163V12', planNumber: 'TATA013', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Fortune Guarantee Secure', productCode: '110N206V03', planNumber: 'TATA014', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Life Insurance Fortune Guarantee', productCode: '110N120V12', planNumber: 'TATA015', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Income Plus', productCode: '110N126V05', planNumber: 'TATA016', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA iSIP (i Systematic Insurance Plan)', productCode: '110L164V10', planNumber: 'TATA017', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Shubh Muhurat Solution (Combination of Fortune Guarantee Secure + Smart Fortune Plus)', productCode: '110N206V02 + 110L177V01', planNumber: 'TATA018', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Smart Sampoorna Raksha Pro', productCode: '110L172V03', planNumber: 'TATA019', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Life Insurance Wealth Pro', productCode: '110L111V05', planNumber: 'TATA020', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Life Insurance Wealth Maxima', productCode: '110L114V05', planNumber: 'TATA021', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Shubh Flexi Pension Plan', productCode: '110N209V02', planNumber: 'TATA022', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Life Insurance Saral Pension', productCode: '110N159V09', planNumber: 'TATA023', providerCode: 'TATA_AIA' },
+  { productName: 'TATA AIA Fortune Guarantee Retirement Ready', productCode: '110N175V04', planNumber: 'TATA024', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Sampoorna Care', productCode: '110N186V01', planNumber: 'TATA025', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Health SIP', productCode: '110L184V01', planNumber: 'TATA026', providerCode: 'TATA_AIA' },
+  { productName: 'Tata AIA Health Pro', productCode: '110L180V01', planNumber: 'TATA027', providerCode: 'TATA_AIA' },
+
+  // Postal Life Insurance 
+  { productName: "Whole Life Assurance (Suraksha)", productCode: "WLA(S)", planNumber: "PLI-LI-001", providerCode: "PLI" },
+  { productName: "Convertible Whole Life Assurance (Suvidha) ", productCode: "CWLA(S)", planNumber: "PLI-LI-002", providerCode: "PLI" },
+  { productName: "Endowment Assurance (Santosh)", productCode: "EA(S)", planNumber: "PLI-LI-003", providerCode: "PLI" },
+  { productName: "Joint Life Assurance (Yugal Suraksha) ", productCode: "JLA(YS)", planNumber: "PLI-LI-004", providerCode: "PLI" },
+  { productName: "Anticipated Endowment Assurance (Sumangal)", productCode: "AEA(S)", planNumber: "PLI-LI-005", providerCode: "PLI" },
+  { productName: "Children Policy (Bal Jeevan Bima)", productCode: "CP(BJB)", planNumber: "PLI-LI-006", providerCode: "PLI" },
+
+
+  // AGEAS_FEDERAL
+  { productName: "Super Protect Plus Plan", productCode: "135N102V01", planNumber: "AF-LI-001", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Super Protect Plan", productCode: "SPP", planNumber: "AF-LI-002", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Magic Savings Plan", productCode: "135N098V04", planNumber: "AF-LI-003", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Life Advantage Plus Plan", productCode: "135N078V02", planNumber: "AF-LI-004", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Wealth Gain Insurance Plan", productCode: "135L047V05", planNumber: "AF-LI-005", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Wealthsurance Growth Insurance Plan Sp-II", productCode: "135L082V02", planNumber: "AF-LI-006", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Super Cash Plan", productCode: "135N099V02", planNumber: "AF-LI-007", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Assured Income Plan", productCode: "135N083V05", planNumber: "AF-LI-008", providerCode: "AGEAS_FEDERAL" },
+  { productName: "iSecure Plan", productCode: "135N088V02", planNumber: "AF-LI-009", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Young Star Plus Plan", productCode: "135N076V03", planNumber: "AF-LI-010", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Guaranteed Wealth Plan", productCode: "135N048V09", planNumber: "AF-LI-011", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Super Cash Supreme Plan", productCode: "135N121V01", planNumber: "AF-LI-012", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Guaranteed Income Plan", productCode: "135N050V05", planNumber: "AF-LI-013", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Easy Save Plan", productCode: "135N122V01", planNumber: "AF-LI-014", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Saral Jeevan Bima", productCode: "135N079V01", planNumber: "AF-LI-015", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Termsurance Life Protection Insurance Plan", productCode: "135N040V03", planNumber: "AF-LI-016", providerCode: "AGEAS_FEDERAL" },
+  { productName: "ProGrow Plan", productCode: "135L101V01", planNumber: "AF-LI-017", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Platinum Wealth Builder Plan", productCode: "135L089V02", planNumber: "AF-LI-018", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Smart Growth Plan", productCode: "135L053V07", planNumber: "AF-LI-019", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Criti Care Plan", productCode: "135N085V02", planNumber: "AF-LI-020", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Retire Smart Plan", productCode: "135N123V01", planNumber: "AF-LI-021", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Saral Pension", productCode: "135N080V02", planNumber: "AF-LI-022", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Golden Years Pension Plan", productCode: "135L100V01", planNumber: "AF-LI-023", providerCode: "AGEAS_FEDERAL" },
+
+  { productName: "Group Credit shield Plan II", productCode: "135N087V03", planNumber: "AF-LI-024", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Group Loan Secure Plan II", productCode: "135N081V02", planNumber: "AF-LI-025", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Group Term Life Plan II", productCode: "135N091V03", planNumber: "AF-LI-026", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Group Employee Benefit Plan", productCode: "135L052V04", planNumber: "AF-LI-027", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Group Microsurance Plan II", productCode: "135N086V03", planNumber: "AF-LI-028", providerCode: "AGEAS_FEDERAL" },
+  { productName: "Pradhan Mantri Jeevan Jyoti Bima Yojana", productCode: "135G090V01", planNumber: "AF-LI-029", providerCode: "AGEAS_FEDERAL" },
+
+
   // Bharti AXA Products
   { productName: 'Bharti AXA Life eProtect', productCode: 'BAXAL001', planNumber: 'BAXAL001', providerCode: 'BHARTI_AXA' },
   { productName: 'Bharti AXA Life Smart Jeevan', productCode: 'BAXAL002', planNumber: 'BAXAL002', providerCode: 'BHARTI_AXA' },
@@ -1257,7 +1299,7 @@ export const productsData = [
   { productName: 'Pramerica Life Group Credit Shield', productCode: 'PL-GRP-002', planNumber: 'PL-GRP-002', providerCode: 'DHFL_PRAMERICA' },
   { productName: 'Pramerica Life Group Term Plan', productCode: 'PL-GRP-003', planNumber: 'PL-GRP-003', providerCode: 'DHFL_PRAMERICA' },
   { productName: 'Pramerica Life Sarv Suraksha (Group Micro)', productCode: 'PL-GRP-004', planNumber: 'PL-GRP-004', providerCode: 'DHFL_PRAMERICA' },
-  
+
   // Future Generali Products
   {
     productName: "Accident Suraksha",
@@ -1603,7 +1645,7 @@ export const productsData = [
   },
 
   //CANARA HSBC LIFE INSURANCE
-  
+
   {
     productName: "Canara HSBC Life Insurance Alpha Wealth",
     productCode: "136L088V02",
@@ -2178,7 +2220,7 @@ export const productsData = [
   },
 
   //RELIANCE NIPPON LIFE (INDUSIND NIPPON LIFE)
-  
+
   {
     productName: "Reliance Nippon Life Digi-Term Insurance Plan",
     productCode: "121N135V03",
@@ -2311,4 +2353,204 @@ export const productsData = [
     planNumber: "RN022",
     providerCode: "RELIANCE_NIPPON",
   },
+  // Exide Life Insurance Products
+ {
+    productName: "Exide Life Smart Term Plan",
+    productCode:  "114N083V01",
+    planNumber: "EXIDE001",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Term Plan",
+    productCode: "114N076V01",
+    planNumber: "EXIDE002",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life My Term Insurance",
+    productCode: "114N063V02",
+    planNumber: "EXIDE003",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Group Term Life",
+    productCode: "114N012V03",
+    planNumber: "EXIDE004",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Guaranteed Income Insurance Plan",
+    productCode: "114N067V01",
+    planNumber: "EXIDE005",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Income Advantage Plan",
+    productCode: "114N082V01",
+    planNumber: "EXIDE006",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Secured Income Insurance RP",
+    productCode: "114N060V02",
+    planNumber: "EXIDE007",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Immediate Annuity with Return of Purchase Price",
+    productCode: "114N050V02",
+    planNumber: "EXIDE008",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Saral Pension",
+    productCode: "114N118V01",
+    planNumber: "EXIDE009",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Wealth Maxima",
+    productCode: "114L079V01",
+    planNumber: "EXIDE010",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life New Creating Life Insurance Plus",
+    productCode: "114N071V02",
+    planNumber: "EXIDE011",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Group Loan Suraksha",
+    productCode: "114N084V02",
+    planNumber: "EXIDE012",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Star Saver Plan",
+    productCode: "114N080V01",
+    planNumber: "EXIDE013",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Star Life",
+    productCode: "114N062V02",
+    planNumber: "EXIDE014",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Group Traditional Employee Benefit Plan",
+    productCode: "114N075V01",
+    planNumber: "EXIDE015",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Term Life Rider",
+    productCode: "114B007V01",
+    planNumber: "EXIDE016",
+    providerCode: "EXIDE",
+  },
+  {
+    productName: "Exide Life Group Illness Rider",
+    productCode: "114B010V01",
+    planNumber: "EXIDE017",
+    providerCode: "EXIDE",
+  },
+  // SBI Life Insurance Products 
+{
+  productName: "SBI Life - Smart Term Plan",
+  productCode: "LI001",
+  planNumber: "SBILIFE001",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - eShield Next",
+  productCode: "LI002",
+  planNumber: "SBILIFE002",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Elite Life Insurance",
+  productCode: "LI003",
+  planNumber: "SBILIFE003",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Endowment Plan",
+  productCode: "LI004",
+  planNumber: "SBILIFE004",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Advantage Plan",
+  productCode: "LI005",
+  planNumber: "SBILIFE005",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Smart Goal Assure",
+  productCode: "LI006",
+  planNumber: "SBILIFE006",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Guaranteed Plan",
+  productCode: "LI007",
+  planNumber: "SBILIFE007",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Super Retirement Plan",
+  productCode: "LI008",
+  planNumber: "SBILIFE008",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Immediate Annuity Plan",
+  productCode: "LI009",
+  planNumber: "SBILIFE009",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Smart Child Plan",
+  productCode: "LI010",
+  planNumber: "SBILIFE010",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Junior Insurance Plan",
+  productCode: "LI011",
+  planNumber: "SBILIFE011",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Health Gain Plus",
+  productCode: "LI012",
+  planNumber: "SBILIFE012",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Saral Jeevan Bima",
+  productCode: "LI013",
+  planNumber: "SBILIFE013",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Dignity Plan",
+  productCode: "LI014",
+  planNumber: "SBILIFE014",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Smart Fortune Builder",
+  productCode: "111L142V01",
+  planNumber: "SBILIFE028",
+  providerCode: "SBI_LIFE",
+},
+{
+  productName: "SBI Life - Smart Wealth Builder",
+  productCode: "111L095V02",
+  planNumber: "SBILIFE029",
+  providerCode: "SBI_LIFE",
+},
 ];

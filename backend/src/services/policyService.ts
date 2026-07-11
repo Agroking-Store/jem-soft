@@ -69,8 +69,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   const status = statusId
     ? await prisma.policyStatusMaster.findUnique({ where: { id: statusId } })
     : await prisma.policyStatusMaster.findFirst({
-        where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
-      });
+      where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
+    });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
@@ -300,6 +300,13 @@ export const updatePolicy = async (
         policyTerm: data.term,
 
         premiumPayingTerm: data.ppt,
+
+        statusId: data.statusId,
+
+        nextPremiumDueDate: data.fupDate
+          ? new Date(data.fupDate)
+          : null,
+
       },
     });
 
