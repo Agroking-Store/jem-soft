@@ -15,6 +15,9 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import policyStatusMasterRoutes from "./routes/policyStatusMasterRoutes.js";
 import premiumModeMasterRoutes from "./routes/premiumModeMasterRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import claimRoutes from "./routes/claimRoutes.js";
+import licBranchRoutes from "./routes/licBranchRoutes.js";
+import agencyRoutes from "./routes/agencyRoutes.js";
 import { config } from "./config/env.js";
 
 const app: Application = express();
@@ -34,7 +37,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/customer-master", customerMasterRoutes);
 app.use("/api/family-history", familyHistoryRoutes);
-
+app.use("/api/claims", claimRoutes);
 app.use("/api/insurance-providers", insuranceProviderRoutes);
 app.use("/api/product-categories", productCategoryRoutes);
 app.use("/api/products", productMasterRoutes);
@@ -45,6 +48,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/policy-statuses", policyStatusMasterRoutes);
 app.use("/api/premium-modes", premiumModeMasterRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/lic-branches", licBranchRoutes);
+app.use("/api/agencies", agencyRoutes);
 
 app.post("/test", (req, res) => {
   console.log("Headers:", req.headers);

@@ -26,6 +26,7 @@ interface PolicyData {
 
   advisorId?: string;
   agentCode?: string;
+  branchId?: string;
   completionDate?: string;
   fupDate?: string;
 
@@ -92,6 +93,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
         advisorId: data.advisorId,
         agentCode: data.agentCode,
+        branchId: data.branchId,
 
         statusId: status.id,
         premiumModeId: premiumMode.id,

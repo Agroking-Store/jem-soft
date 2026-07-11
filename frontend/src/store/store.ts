@@ -10,8 +10,8 @@ import advisorReducer from "@/features/advisor/advisorSlice";
 import policyReducer from "@/features/policy/policySlice";
 import policyStatusMasterReducer from "@/features/policy/policyStatusMasterSlice";
 import premiumModeMasterReducer from "@/features/policy/premiumModeMasterSlice";
-import licBranchReducer from "@/features/lic/licBranchSlice";
-import agencyReducer from "@/features/agency/agencySlice";
+import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch reducer
+import agencyReducer from "@/features/agency/agencySlice"; // Added agency reducer
 
 export const store = configureStore({
   reducer: {
@@ -26,8 +26,8 @@ export const store = configureStore({
     policies: policyReducer,
     policyStatuses: policyStatusMasterReducer,
     premiumModes: premiumModeMasterReducer,
-    licBranch: licBranchReducer, // Added licBranch reducer
-    agency: agencyReducer, // Added agency reducer
+    licBranch: licBranchReducer,
+    agency: agencyReducer,
   },
 });
 

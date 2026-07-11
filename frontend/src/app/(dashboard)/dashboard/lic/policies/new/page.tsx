@@ -263,11 +263,23 @@ const AdvisorAutoComplete = ({
   );
 };
 
-const BranchAutoComplete = ({ value, onChange, branches, disabled, placeholder }: { value: string; onChange: (id: string) => void; branches: { branchCode: string; branchName: string }[], disabled?: boolean, placeholder?: string }) => {
+const BranchAutoComplete = ({
+   value, 
+   onChange, 
+   branches, 
+   disabled, 
+   placeholder 
+  }: 
+  { 
+    value: string; 
+    onChange: (id: string) => void; 
+    branches: {id: string; branchCode: string; branchName: string }[], 
+    disabled?: boolean, placeholder?: string 
+  }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = branches.find((b) => b.branchCode === value);
+  const selected = branches.find((b) => b.id === value);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -296,7 +308,7 @@ const BranchAutoComplete = ({ value, onChange, branches, disabled, placeholder }
         {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.branchCode} type="button" onClick={() => { onChange(b.branchCode); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
       )}
     </div>
   );
@@ -391,6 +403,7 @@ const policySchema = z.object({
   pan: z.string().optional(),
 
   providerType: z.string().min(1, "Provider type is required"),
+  productType: z.string().optional(),
   providerId: z.string().min(1, "Provider is required"),
   policyNumber: z
     .string()
@@ -575,9 +588,14 @@ export default function NewLICPolicyPage() {
   const watchLifeAssuredId = watch("lifeAssuredId");
   const watchProviderType = watch("providerType");
   const watchProviderId = watch("providerId");
+  const watchProductType = watch("productType");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
   const watchBranchId = watch("branchId");
+  const watchSumAssured = watch("sumAssured");
+  const watchTerm = watch("term");
+  const watchPpt = watch("ppt");
+  const watchMode = watch("mode");
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
 
@@ -621,15 +639,23 @@ export default function NewLICPolicyPage() {
     return providers.filter((p) => p.type === watchProviderType);
   }, [watchProviderType, providers]);
 
+  const productTypesForProvider = useMemo(() => {
+    if (!watchProviderId) return [];
+    const providerProducts = products.filter(p => p.providerId === watchProviderId);
+    const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
+    return types.sort();
+  }, [watchProviderId, products]);
+
   const filteredProducts = useMemo(() => {
     if (!watchProviderId) return [];
 
-    return products
-      .filter((p) => p.providerId === watchProviderId)
-      .sort((a, b) =>
-        (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
-      );
-  }, [watchProviderId, products]);
+    let providerProducts = products.filter((p) => p.providerId === watchProviderId);
+
+    if (watchProductType) {
+      providerProducts = providerProducts.filter(p => p.productType === watchProductType);
+    }
+    return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+  }, [watchProviderId, watchProductType, products]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -638,19 +664,23 @@ export default function NewLICPolicyPage() {
 
   useEffect(() => {
     setValue("providerId", "");
+    setValue("productType", "");
   }, [watchProviderType, setValue]);
 
   useEffect(() => {
     const agency = agencies.find(a => a.id === watchAgencyId);
+    // When agency changes, reset the advisor
+    setValue("advisorId", ""); 
+
     if (agency) {
       if (agency.agencyCode === 'AG002' || agency.agencyCode === 'AG003') {
-        setValue("branchId", "955");
+        const directBranch = branches.find(b => b.branchCode === '955');
+        setValue("branchId", directBranch?.id || "");
       } else {
         setValue("branchId", agency.branchId || "");
       }
     }
-    setValue("advisorId", ""); // Reset advisor when agency changes
-  }, [watchAgencyId, agencies, setValue]);
+  }, [watchAgencyId, agencies, branches, setValue]);
 
   useEffect(() => {
     const advisor = advisors.find((a) => a.id === watchAdvisorId);
@@ -665,8 +695,60 @@ export default function NewLICPolicyPage() {
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
+  useEffect(() => {
+    const sum = parseFloat(String(watchSumAssured)) || 0;
+    const term = parseFloat(String(watchTerm)) || 0;
+    const ppt = parseFloat(String(watchPpt)) || 0;
+    const mode = watchMode;
+
+    if (sum > 0 && term > 0 && ppt > 0 && mode) {
+      // Placeholder logic for basic yearly premium.
+      // This should be replaced with your actual business logic.
+      // For example, it could be a lookup from a rate table based on age, term, ppt.
+      const basicYearlyPremium = sum * 0.05; // Example: 5% of sum assured
+      setValue("basicYearlyPremium", basicYearlyPremium > 0 ? parseFloat(basicYearlyPremium.toFixed(2)) : undefined);
+
+      // Calculate installment premium based on mode
+      let installmentPremium = 0;
+      switch (mode) {
+        case "Yearly":
+          installmentPremium = basicYearlyPremium;
+          break;
+        case "Half-yearly":
+          installmentPremium = basicYearlyPremium * 0.51; // Example factor
+          break;
+        case "Quarterly":
+          installmentPremium = basicYearlyPremium * 0.26; // Example factor
+          break;
+        case "Monthly":
+          installmentPremium = basicYearlyPremium * 0.088; // Example factor
+          break;
+        default:
+          installmentPremium = 0;
+      }
+      setValue("installmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
+
+      // Calculate GST (e.g., 4.5% for first year, 2.25% for subsequent years - using a simple 4.5%)
+      const gst = installmentPremium * 0.045;
+      setValue("gst", gst > 0 ? parseFloat(gst.toFixed(2)) : undefined);
+
+      // Calculate total installment premium
+      const totalInstallmentPremium = installmentPremium + gst;
+      setValue("totalInstallmentPremium", totalInstallmentPremium > 0 ? parseFloat(totalInstallmentPremium.toFixed(2)) : undefined);
+    }
+
+  }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
+
 
   const onSubmit = async (data: PolicyFormValues) => {
+    const selectedProduct = products.find((p) => p.id === data.productId);
+    if (selectedProduct && selectedProduct.productType === "Withdrawn") {
+      toast.error(
+        "This plan is withdrawn and cannot be used to create a new policy.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -1007,6 +1089,23 @@ export default function NewLICPolicyPage() {
                       {errors.providerId.message}
                     </p>
                   )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Product Type
+                  </label>
+                  <select
+                    {...register("productType")}
+                    disabled={!watchProviderId || productTypesForProvider.length === 0}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
+                  >
+                    <option value="">All Product Types</option>
+                    {productTypesForProvider.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
