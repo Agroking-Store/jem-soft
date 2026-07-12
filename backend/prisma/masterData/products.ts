@@ -285,21 +285,21 @@ export const productsData = [
     productCode: "105N225V02",
     planNumber: "ICICIPRU004",
     providerCode: "ICICI_PRU",
-    productType:"Child Savings Plan"
+    productType:"Child Plans"
   },
   {
     productName: "ICICI Pru Wealth Elite Pro",
     productCode: "105L207V01",
     planNumber: "ICICIPRU005",
     providerCode: "ICICI_PRU",
-    productType:"ULIP (Wealth Creation)"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru Wealth Forever",
     productCode: "105N206V01",
     planNumber: "ICICIPRU006",
     providerCode: "ICICI_PRU",
-    productType:"Savings Plan (Non-Participating, Non-linked)"
+    productType:"Legacy Plans"
   },
   {
     productName: "ICICI Pru iProtect Smart Plus",
@@ -313,14 +313,14 @@ export const productsData = [
     productCode: "105N233V05",
     planNumber: "ICICIPRU008",
     providerCode: "ICICI_PRU",
-    productType:"Savings Plan"
+    productType:"Guaranteed Savings Plans"
   },
   {
     productName: "ICICI Pru Smart Goal Assure",
     productCode: "105L199V01",
     planNumber: "ICICIPRU009",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP)"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru iProtect Super",
@@ -341,28 +341,28 @@ export const productsData = [
     productCode: "105L196V01",
     planNumber: "ICICIPRU012",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP)"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru iProtect Smart Return of Premium",
     productCode: "105N195V02",
     planNumber: "ICICIPRU013",
     providerCode: "ICICI_PRU",
-    productType:"Term Insurance (Return of Premium)"
+    productType:"Term Insurance with Returns"
   },
   {
     productName: "ICICI Pru Guaranteed Pension Plan",
     productCode: "105N181V05",
     planNumber: "ICICIPRU014",
     providerCode: "ICICI_PRU",
-    productType:"Pension / Annuity Plan"
+    productType:"Retirement and Pension Plans"
   },
   {
     productName: "ICICI Pru Signature Pension",
     productCode: "105L194V03",
     planNumber: "ICICIPRU015",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Pension Plan (ULIP Pension Plan)"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru iProtect Supreme",
@@ -376,70 +376,70 @@ export const productsData = [
     productCode: "105N135V05",
     planNumber: "ICICIPRU017",
     providerCode: "ICICI_PRU",
-    productType:"Participating Savings Plan"
+    productType:"Savings Plans"
   },
   {
     productName: "ICICI Pru Assured Savings Insurance Plan",
     productCode: "105N144V13",
     planNumber: "ICICIPRU018",
     providerCode: "ICICI_PRU",
-    productType:"Non-Linked Non-Participating Savings Plan"
+    productType:"Guaranteed Savings Plans"
   },
   {
     productName: "ICICI Pru iProtect Smart",
     productCode: "105N151V16",
     planNumber: "ICICIPRU019",
     providerCode: "ICICI_PRU",
-    productType:"NM"
+    productType:"Health Insurance Plans"
   },
   {
     productName: "ICICI Pru Sarv Jana Suraksha",
     productCode: "105N081V06",
     planNumber: "ICICIPRU020",
     providerCode: "ICICI_PRU",
-    productType:"Non-Linked, Non-Participating Pure Risk Micro Insurance Plan"
+    productType:"NM"
   },
   {
     productName: "ICICI Pru Future Perfect",
     productCode: "105N153V05",
     planNumber: "ICICIPRU021",
     providerCode: "ICICI_PRU",
-    productType:"Non-Linked Participating Savings Plan"
+    productType:"Savings Plans"
   },
   {
     productName: "ICICI Pru Life Time Classic",
     productCode: "105L155V10",
     planNumber: "ICICIPRU022",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP) / Non-Participating Linked Individual Savings Life Insurance Plan"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru1 Wealth",
     productCode: "105L175V10",
     planNumber: "ICICIPRU023",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP) / Non-Participating Linked Individual Savings Life Insurance Plan"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru Signature",
     productCode: "105L177V12",
     planNumber: "ICICIPRU024",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP) / Non-Participating Linked Individual Savings Life Insurance Plan"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru Guaranteed Income For Tomorrow",
     productCode: "105N182V13",
     planNumber: "ICICIPRU025",
     providerCode: "ICICI_PRU",
-    productType:"Non-Linked Non-Participating Savings Plan"
+    productType:"Guaranteed Savings Plans"
   },
   {
     productName: "ICICI Pru Saral Pension",
     productCode: "105N184V09",
     planNumber: "ICICIPRU026",
     providerCode: "ICICI_PRU",
-    productType:"Immediate Annuity"
+    productType:"Retirement and Pension Plans"
   },
   {
     productName: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
@@ -453,7 +453,7 @@ export const productsData = [
     productCode: "105N185V03",
     planNumber: "ICICIPRU028",
     providerCode: "ICICI_PRU",
-    productType:"Retirement"
+    productType:"Retirement and Pension Plans"
   },
   {
     productName: "ICICI Pru Sukh Samruddhi",
@@ -467,7 +467,7 @@ export const productsData = [
     productCode: "105L202V02",
     planNumber: "ICICIPRU030",
     providerCode: "ICICI_PRU",
-    productType:"Unit Linked Insurance Plan (ULIP)"
+    productType:"ULIP"
   },
   {
     productName: "ICICI Pru Gold",
@@ -488,14 +488,14 @@ export const productsData = [
     productCode: "105N201V05",
     planNumber: "ICICIPRU033",
     providerCode: "ICICI_PRU",
-    productType:"NM"
+    productType:"Guaranteed Savings Plans"
   },
   {
     productName: "ICICI Pru Gold Pension Savings",
     productCode: "105N202V03",
     planNumber: "ICICIPRU034",
     providerCode: "ICICI_PRU",
-    productType:"Retirement"
+    productType:"Retirement and Pension Plans"
   },
   {
     productName: "ICICI Pru Platinum",
@@ -523,7 +523,7 @@ export const productsData = [
     productCode: "105N224V02",
     planNumber: "ICICIPRU038",
     providerCode: "ICICI_PRU",
-    productType:"Guaranteed Savings Plan"
+    productType:"Guaranteed Savings Plans"
   },
   {
     productName: "ICICI Pru Group Unit Linked Superannuation Plus",
@@ -537,28 +537,28 @@ export const productsData = [
     productCode: "105N009V26",
     planNumber: "ICICIPRU040",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Unit Linked Superannuation",
     productCode: "105L136V03",
     planNumber: "ICICIPRU041",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Suraksha Plus Superannuation",
     productCode: "105N148V03",
     planNumber: "ICICIPRU042",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Unit Linked Employee Benefit Plan",
     productCode: "105L137V04",
     planNumber: "ICICIPRU043",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName:
@@ -566,70 +566,70 @@ export const productsData = [
     productCode: "105G146V02",
     planNumber: "ICICIPRU044",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Suraksha Plus",
     productCode: "105N147V03",
     planNumber: "ICICIPRU045",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Term Plus",
     productCode: "105N119V08",
     planNumber: "ICICIPRU046",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Loan Secure",
     productCode: "105N152V04",
     planNumber: "ICICIPRU047",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Shubh Raksha Credit",
     productCode: "105N159V03",
     planNumber: "ICICIPRU048",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Shubh Raksha One",
     productCode: "105N158V03",
     planNumber: "ICICIPRU049",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Shubh Raksha Life",
     productCode: "105N160V03",
     planNumber: "ICICIPRU050",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Super Protect - Credit",
     productCode: "105N176V03",
     planNumber: "ICICIPRU051",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Super Protect life",
     productCode: "105N180V02",
     planNumber: "ICICIPRU052",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
   {
     productName: "ICICI Pru Group Nischit Aay Yojna",
     productCode: "105N203V02",
     planNumber: "ICICIPRU053",
     providerCode: "ICICI_PRU",
-    productType:" Group Insurance Plans"
+    productType:"Group Insurance Plans"
   },
 
   //SUD Products
