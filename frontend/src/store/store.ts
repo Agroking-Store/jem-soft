@@ -13,6 +13,10 @@ import licBranchReducer from "@/features/lic/licBranchSlice";
 import agencyReducer from "@/features/agency/agencySlice";
 import familyHistoryReducer from "@/features/customers/familyHistorySlice";
 import productAttributeValueReducer from "@/features/insurance/productAttributeValueSlice";
+import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch reducer
+import agencyReducer from "@/features/agency/agencySlice"; // Added agency reducer
+import loanReducer from "@/features/loans/loanSlice";
+import loanStatusMasterReducer from "@/features/loans/loanStatusMasterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +34,8 @@ export const store = configureStore({
     agency: agencyReducer,
     familyHistory: familyHistoryReducer,
     productAttributeValues: productAttributeValueReducer,
+    loans: loanReducer,
+    loanStatuses: loanStatusMasterReducer,
   },
 });
 
