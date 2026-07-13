@@ -9,8 +9,6 @@ import advisorReducer from "@/features/advisor/advisorSlice";
 import policyReducer from "@/features/policy/policySlice";
 import policyStatusMasterReducer from "@/features/policy/policyStatusMasterSlice";
 import premiumModeMasterReducer from "@/features/policy/premiumModeMasterSlice";
-import licBranchReducer from "@/features/lic/licBranchSlice";
-import agencyReducer from "@/features/agency/agencySlice";
 import familyHistoryReducer from "@/features/customers/familyHistorySlice";
 import productAttributeValueReducer from "@/features/insurance/productAttributeValueSlice";
 import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch reducer
