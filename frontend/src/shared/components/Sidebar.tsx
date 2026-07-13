@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   FileSpreadsheet,
   PlusCircle,
   List,
+  Landmark,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -93,7 +95,6 @@ export const Sidebar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
@@ -105,6 +106,8 @@ export const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
+    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
+    { name: "Loans", href: "/dashboard/loans", icon: Landmark },
   ];
 
   return (
@@ -125,6 +128,7 @@ export const Sidebar = () => {
           const isActive = item.href === "/dashboard"
             ? pathname === item.href
             : pathname.startsWith(item.href);
+
           return (
             <Link
               key={item.href}
@@ -148,6 +152,7 @@ export const Sidebar = () => {
         {isMounted && (isAdmin || isAdvisor || isViewer) && (() => {
           const licPath = "/dashboard/lic/policies";
           const isLicActive = pathname.startsWith(licPath);
+
           return (
             <Link
               href={licPath}
@@ -170,3 +175,4 @@ export const Sidebar = () => {
     </aside>
   );
 };
+

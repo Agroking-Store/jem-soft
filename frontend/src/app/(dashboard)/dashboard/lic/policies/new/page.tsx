@@ -18,6 +18,7 @@ import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
+import { fetchProductAttributeValues } from "@/features/insurance/productAttributeValueSlice";
 import { useNotificationStore } from "@/store/notificationStore";
 
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ import {
   Save,
   X,
   User,
-  DollarSign,
+  IndianRupee,
   FileText,
   Plus,
   Trash2,
@@ -263,11 +264,23 @@ const AdvisorAutoComplete = ({
   );
 };
 
-const BranchAutoComplete = ({ value, onChange, branches, disabled, placeholder }: { value: string; onChange: (id: string) => void; branches: { branchCode: string; branchName: string }[], disabled?: boolean, placeholder?: string }) => {
+const BranchAutoComplete = ({
+   value, 
+   onChange, 
+   branches, 
+   disabled, 
+   placeholder 
+  }: 
+  { 
+    value: string; 
+    onChange: (id: string) => void; 
+    branches: {id: string; branchCode: string; branchName: string }[], 
+    disabled?: boolean, placeholder?: string 
+  }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = branches.find((b) => b.branchCode === value);
+  const selected = branches.find((b) => b.id === value);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -296,7 +309,7 @@ const BranchAutoComplete = ({ value, onChange, branches, disabled, placeholder }
         {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.branchCode} type="button" onClick={() => { onChange(b.branchCode); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
       )}
     </div>
   );
@@ -391,6 +404,7 @@ const policySchema = z.object({
   pan: z.string().optional(),
 
   providerType: z.string().min(1, "Provider type is required"),
+  productType: z.string().optional(),
   providerId: z.string().min(1, "Provider is required"),
   policyNumber: z
     .string()
@@ -452,6 +466,14 @@ const policySchema = z.object({
   fupDate: z.string().optional(),
   fuliDate: z.string().optional(),
   statusId: z.string().optional(),
+
+  bankName: z.string().optional(),
+  bankBranch: z.string().optional(),
+  city: z.string().optional(),
+  accountType: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  micrNumber: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -460,21 +482,6 @@ export default function NewLICPolicyPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading: authLoading } = useAuth();
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<PolicyFormValues>({
-    resolver: zodResolver(policySchema) as any,
-    defaultValues: {
-      riders: [],
-      nominees: [],
-    },
-  });
 
   const { customers: groups, isLoading: groupsLoading } = useSelector(
     (s: RootState) => s.customers,
@@ -506,6 +513,10 @@ export default function NewLICPolicyPage() {
   const { agencies, isLoading: agenciesLoading } = useSelector(
     (s: RootState) => s.agency,
   );
+  const { values: productAttributeValues, isLoading: attributesLoading } = useSelector(
+    (s: RootState) => s.productAttributeValues,
+  );
+
 
   const [activeSection, setActiveSection] = useState("policy-holder");
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -513,6 +524,12 @@ export default function NewLICPolicyPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
   const { fetchNotifications } = useNotificationStore();
+  const [attributeHints, setAttributeHints] = useState({
+    term: '',
+    ppt: '',
+    sumAssured: '',
+  });
+
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -525,6 +542,7 @@ export default function NewLICPolicyPage() {
     dispatch(fetchPremiumModes());
     dispatch(fetchLicBranches());
     dispatch(fetchAgencies());
+    dispatch(fetchProductAttributeValues());
     setIsMounted(true);
   }, [dispatch]);
 
@@ -544,6 +562,73 @@ export default function NewLICPolicyPage() {
   }, [isMounted, authLoading, user, router]);
 
   const canCreate = user?.role === "ADMIN" || user?.role === "ADVISOR";
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<PolicyFormValues>({
+    // The resolver is re-evaluated on each render, so it can access the latest dynamic schema.
+    resolver: (values, context, options) => {
+      const selectedProductAttributes = productAttributeValues.filter(
+        (attr) => attr.productId === values.productId,
+      );
+      const getAttributeValue = (code: string) =>
+         selectedProductAttributes.find(
+    (a) => a.attribute.attributeCode === code
+  )?.value;
+
+      let refinedSchema = policySchema;
+
+      const minTerm = getAttributeValue("MIN_POLICY_TERM");
+      const maxTerm = getAttributeValue("MAX_POLICY_TERM");
+      if (minTerm || maxTerm) {
+        refinedSchema = refinedSchema.refine((data) => {
+          if (!data.term) return true;
+          const term = Number(data.term);
+          if (minTerm && term < Number(minTerm)) return false;
+          if (maxTerm && term > Number(maxTerm)) return false;
+          return true;
+        }, { message: `Term must be between ${minTerm || 'N/A'} and ${maxTerm || 'N/A'}.`, path: ["term"] });
+      }
+
+      const minSum = getAttributeValue("MIN_SUM_ASSURED");
+      const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+      if (minSum || maxSum) {
+        refinedSchema = refinedSchema.refine((data) => {
+          if (!data.sumAssured) return true;
+          const sum = Number(data.sumAssured);
+          if (minSum && sum < Number(minSum)) return false;
+          if (maxSum && sum > Number(maxSum)) return false;
+          return true;
+        }, { message: `Sum Assured must be between ${minSum || 'N/A'} and ${maxSum || 'N/A'}.`, path: ["sumAssured"] });
+      }
+
+      const minPpt = getAttributeValue("MIN_PPT");
+      const maxPpt = getAttributeValue("MAX_PPT");
+      if (minPpt || maxPpt) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.ppt) return true;
+            const ppt = Number(data.ppt);
+            if (minPpt && ppt < Number(minPpt)) return false;
+            if (maxPpt && ppt > Number(maxPpt)) return false;
+            return true;
+          },
+          { message: `PPT must be between ${minPpt || "N/A"} and ${maxPpt || "N/A"}.`, path: ["ppt"] },
+        );
+      }
+
+      return zodResolver(refinedSchema)(values, context, options);
+    },
+    defaultValues: {
+      riders: [],
+      nominees: [],
+    },
+  });
 
   const sectionRefs = {
     "policy-holder": useRef<HTMLDivElement>(null),
@@ -575,12 +660,18 @@ export default function NewLICPolicyPage() {
   const watchLifeAssuredId = watch("lifeAssuredId");
   const watchProviderType = watch("providerType");
   const watchProviderId = watch("providerId");
+  const watchProductType = watch("productType");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
   const watchBranchId = watch("branchId");
+  const watchSumAssured = watch("sumAssured");
+  const watchTerm = watch("term");
+  const watchPpt = watch("ppt");
+  const watchMode = watch("mode");
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
 
+  const watchProductId = watch("productId");
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
     [watchGroupId, groups],
@@ -610,6 +701,21 @@ export default function NewLICPolicyPage() {
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
+
+    // Auto-fill bank details from the selected customer's default bank account
+    if (member && member.bankDetails && member.bankDetails.length > 0) {
+      const defaultBank =
+        member.bankDetails.find((b) => b.isDefault) || member.bankDetails[0];
+      if (defaultBank) {
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+      }
+    }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
 
   const providerTypes = useMemo(() => {
@@ -621,15 +727,23 @@ export default function NewLICPolicyPage() {
     return providers.filter((p) => p.type === watchProviderType);
   }, [watchProviderType, providers]);
 
+  const productTypesForProvider = useMemo(() => {
+    if (!watchProviderId) return [];
+    const providerProducts = products.filter(p => p.providerId === watchProviderId);
+    const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
+    return types.sort();
+  }, [watchProviderId, products]);
+
   const filteredProducts = useMemo(() => {
     if (!watchProviderId) return [];
 
-    return products
-      .filter((p) => p.providerId === watchProviderId)
-      .sort((a, b) =>
-        (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
-      );
-  }, [watchProviderId, products]);
+    let providerProducts = products.filter((p) => p.providerId === watchProviderId);
+
+    if (watchProductType) {
+      providerProducts = providerProducts.filter(p => p.productType === watchProductType);
+    }
+    return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+  }, [watchProviderId, watchProductType, products]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -638,19 +752,23 @@ export default function NewLICPolicyPage() {
 
   useEffect(() => {
     setValue("providerId", "");
+    setValue("productType", "");
   }, [watchProviderType, setValue]);
 
   useEffect(() => {
     const agency = agencies.find(a => a.id === watchAgencyId);
+    // When agency changes, reset the advisor
+    setValue("advisorId", ""); 
+
     if (agency) {
       if (agency.agencyCode === 'AG002' || agency.agencyCode === 'AG003') {
-        setValue("branchId", "955");
+        const directBranch = branches.find(b => b.branchCode === '955');
+        setValue("branchId", directBranch?.id || "");
       } else {
         setValue("branchId", agency.branchId || "");
       }
     }
-    setValue("advisorId", ""); // Reset advisor when agency changes
-  }, [watchAgencyId, agencies, setValue]);
+  }, [watchAgencyId, agencies, branches, setValue]);
 
   useEffect(() => {
     const advisor = advisors.find((a) => a.id === watchAdvisorId);
@@ -665,12 +783,108 @@ export default function NewLICPolicyPage() {
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
+  useEffect(() => {
+    const sum = parseFloat(String(watchSumAssured)) || 0;
+    const term = parseFloat(String(watchTerm)) || 0;
+    const ppt = parseFloat(String(watchPpt)) || 0;
+    const mode = watchMode;
+
+    if (sum > 0 && term > 0 && ppt > 0 && mode) {
+      // Placeholder logic for basic yearly premium.
+      // This should be replaced with your actual business logic.
+      // For example, it could be a lookup from a rate table based on age, term, ppt.
+      const basicYearlyPremium = sum * 0.05; // Example: 5% of sum assured
+      setValue("basicYearlyPremium", basicYearlyPremium > 0 ? parseFloat(basicYearlyPremium.toFixed(2)) : undefined);
+
+      // Calculate installment premium based on mode
+      let installmentPremium = 0;
+      switch (mode) {
+        case "Yearly":
+          installmentPremium = basicYearlyPremium;
+          break;
+        case "Half-yearly":
+          installmentPremium = basicYearlyPremium * 0.51; // Example factor
+          break;
+        case "Quarterly":
+          installmentPremium = basicYearlyPremium * 0.26; // Example factor
+          break;
+        case "Monthly":
+          installmentPremium = basicYearlyPremium * 0.088; // Example factor
+          break;
+        default:
+          installmentPremium = 0;
+      }
+      setValue("installmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
+
+      // Calculate GST (e.g., 4.5% for first year, 2.25% for subsequent years - using a simple 4.5%)
+      const gst = installmentPremium * 0.045;
+      setValue("gst", gst > 0 ? parseFloat(gst.toFixed(2)) : undefined);
+
+      // Calculate total installment premium
+      const totalInstallmentPremium = installmentPremium + gst;
+      setValue("totalInstallmentPremium", totalInstallmentPremium > 0 ? parseFloat(totalInstallmentPremium.toFixed(2)) : undefined);
+    }
+
+  }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
+
+  // When product changes, update the attribute hints instead of auto-filling fields.
+  useEffect(() => {
+    if (!watchProductId || !productAttributeValues || !products.length) {
+      setAttributeHints({ term: '', ppt: '', sumAssured: '' });
+      return;
+    }
+  
+    const selectedProductAttributes = productAttributeValues.filter(
+      (attr) => attr.productId === watchProductId
+    );
+  
+    const getAttributeValue = (code: string) =>
+      selectedProductAttributes.find(
+        (a) => a.attribute.attributeCode === code
+      )?.value;
+  
+    const minTerm = getAttributeValue("MIN_POLICY_TERM");
+    const maxTerm = getAttributeValue("MAX_POLICY_TERM");
+    const minPpt = getAttributeValue("MIN_PPT");
+    const maxPpt = getAttributeValue("MAX_PPT");
+    const minSum = getAttributeValue("MIN_SUM_ASSURED");
+    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+  
+    setAttributeHints({
+      term: minTerm || maxTerm ? `Range: ${minTerm || 'N/A'} - ${maxTerm || 'N/A'}` : '',
+      ppt: minPpt || maxPpt ? `Range: ${minPpt || 'N/A'} - ${maxPpt || 'N/A'}` : '',
+      sumAssured: minSum || maxSum ? `Range: ${minSum || 'N/A'} - ${maxSum || 'N/A'}` : '',
+    });
+  }, [watchProductId, productAttributeValues, products, setValue]);
 
   const onSubmit = async (data: PolicyFormValues) => {
+    const selectedProduct = products.find((p) => p.id === data.productId);
+    if (selectedProduct && selectedProduct.productType === "Withdrawn") {
+      toast.error(
+        "This plan is withdrawn and cannot be used to create a new policy.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const result = await dispatch(createPolicy(data)).unwrap();
+      const payload = {
+        ...data,
+        attributes: {
+          MIN_POLICY_TERM: data.term,
+    MAX_POLICY_TERM: data.term,
+
+    MIN_PPT: data.ppt,
+    MAX_PPT: data.ppt,
+
+    MIN_SUM_ASSURED: data.sumAssured,
+    MAX_SUM_ASSURED: data.sumAssured,
+
+    GST_RATE: data.gst,
+        },
+      };
+      const result = await dispatch(createPolicy(payload)).unwrap();
 
       // Refresh notifications immediately
       await fetchNotifications();
@@ -822,7 +1036,7 @@ export default function NewLICPolicyPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <User size={20} className="text-blue-600" />
-              Policy Holder's Details
+              Policy Holders Details
             </h2>
             <Link
               href="/dashboard/customers/new"
@@ -1010,6 +1224,23 @@ export default function NewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Product Type
+                  </label>
+                  <select
+                    {...register("productType")}
+                    disabled={!watchProviderId || productTypesForProvider.length === 0}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
+                  >
+                    <option value="">All Product Types</option>
+                    {productTypesForProvider.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Policy Number <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1129,6 +1360,9 @@ export default function NewLICPolicyPage() {
                       {errors.term.message}
                     </p>
                   )}
+                  {attributeHints.term && !errors.term && (
+                    <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1144,6 +1378,9 @@ export default function NewLICPolicyPage() {
                     <p className="text-xs text-red-500 mt-1">
                       {errors.ppt.message}
                     </p>
+                  )}
+                  {attributeHints.ppt && !errors.ppt && (
+                    <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
                   )}
                 </div>
                 <div>
@@ -1347,7 +1584,7 @@ export default function NewLICPolicyPage() {
               }`}
             >
               <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <DollarSign size={20} className="text-blue-600" />
+                <IndianRupee size={20} className="text-blue-600" />
                 Policy Premium Calculation
               </h2>
               <div className="space-y-4">
@@ -1365,6 +1602,9 @@ export default function NewLICPolicyPage() {
                     <p className="text-xs text-red-500 mt-1">
                       {errors.sumAssured.message}
                     </p>
+                  )}
+                  {attributeHints.sumAssured && !errors.sumAssured && (
+                    <p className="text-xs text-slate-500 mt-1">{attributeHints.sumAssured}</p>
                   )}
                 </div>
                 <div>
@@ -1619,6 +1859,7 @@ export default function NewLICPolicyPage() {
                         <input
                           type="text"
                           placeholder="Bank Name"
+                          {...register("bankName")}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
                         />
                       </div>
@@ -1629,6 +1870,7 @@ export default function NewLICPolicyPage() {
                         <input
                           type="text"
                           placeholder="Account Number"
+                          {...register("accountNumber")}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
                         />
                       </div>
@@ -1639,6 +1881,7 @@ export default function NewLICPolicyPage() {
                         <input
                           type="text"
                           placeholder="IFSC Code"
+                          {...register("ifscCode")}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
                         />
                       </div>
@@ -1649,9 +1892,55 @@ export default function NewLICPolicyPage() {
                         <input
                           type="text"
                           placeholder="Account Holder Name"
+                          // Assuming account holder name is same as customer name for now
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
                         />
                       </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Bank Branch
+                      </label>
+                      <input
+                        {...register("bankBranch")}
+                        type="text"
+                        placeholder="Bank Branch"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        City
+                      </label>
+                      <input
+                        {...register("city")}
+                        type="text"
+                        placeholder="City"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Account Type
+                      </label>
+                      <select {...register("accountType")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5">
+                        <option value="">Select Account Type</option>
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                      </select>
+                    </div>
+                   
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        MICR Number
+                      </label>
+                      <input
+                        {...register("micrNumber")}
+                        type="text"
+                        placeholder="MICR Number"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      />
+                    </div>
                     </div>
                   </div>
                 </div>

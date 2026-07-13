@@ -21,6 +21,9 @@ model User {
   role      String   @default("VIEWER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  createdClaims Claim[] @relation("ClaimCreatedBy")
+  updatedClaims Claim[] @relation("ClaimUpdatedBy")
 }
 
 model Customer {
@@ -96,6 +99,29 @@ model InsuranceProvider {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+model Claim {
+  id            String   @id @default(cuid())
+  policyId      String
+  claimantName  String
+  claimType     String   // e.g., 'Death', 'Maturity', 'Rider', 'Other'
+  claimAmount   Float
+  status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
+  claimDate     DateTime
+  
+  // Relations
+  policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  
+  createdBy     User     @relation("ClaimCreatedBy", fields: [createdById], references: [id])
+  createdById   String
+  updatedBy     User?    @relation("ClaimUpdatedBy", fields: [updatedById], references: [id])
+  updatedById   String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 
 // ======================================================
 // Product Category Master
@@ -296,6 +322,7 @@ model Policy {
   policyAttributes PolicyAttribute[]
   premiumPayments  PremiumPayment[]
   loans            PolicyLoan[]
+  claims  Claim[]
 
   notifications Notification[]
 }

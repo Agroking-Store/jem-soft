@@ -14,6 +14,16 @@ interface RiderData {
   premium: number | null;
 }
 
+interface NomineeData {
+  nomineeName: string;
+  relationship: string;
+  dateOfBirth?: string;
+  percentage?: number;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
 interface PolicyData {
   groupId: string;
   lifeAssuredId: string;
@@ -26,6 +36,7 @@ interface PolicyData {
 
   advisorId?: string;
   agentCode?: string;
+  branchId?: string;
   completionDate?: string;
   fupDate?: string;
 
@@ -41,6 +52,8 @@ interface PolicyData {
   statusId?: string;
 
   riders?: RiderData[];
+  attributes?: { [key: string]: string | number };
+  nominees?: NomineeData[];
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
@@ -61,6 +74,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     // Destructure only what's needed for this specific scope
     term,
     ppt,
+    sumAssured: formSumAssured, // Rename to avoid conflict with `sumAssured` from premium
     fupDate,
   } = data;
 
@@ -68,8 +82,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   const status = statusId
     ? await prisma.policyStatusMaster.findUnique({ where: { id: statusId } })
     : await prisma.policyStatusMaster.findFirst({
-        where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
-      });
+      where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
+    });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
@@ -92,6 +106,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
         advisorId: data.advisorId,
         agentCode: data.agentCode,
+        branchId: data.branchId,
 
         statusId: status.id,
         premiumModeId: premiumMode.id,
@@ -142,6 +157,49 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         gst: gst ?? 0,
       },
     });
+
+   // Save Policy Attributes using values entered in the form
+   console.log("Received attributes:", data.attributes);
+if (data.attributes && Object.keys(data.attributes).length > 0) {
+  const productAttributes = await tx.productAttributeMaster.findMany({
+    where: {
+      attributeCode: {
+        in: Object.keys(data.attributes),
+      },
+    },
+  });
+
+  const policyAttributesToCreate = productAttributes
+    .filter((attr) => data.attributes![attr.attributeCode] !== undefined)
+    .map((attr) => ({
+      policyId: newPolicy.id,
+      attributeId: attr.id,
+      value: String(data.attributes![attr.attributeCode]),
+    }));
+
+  if (policyAttributesToCreate.length > 0) {
+    await tx.policyAttribute.createMany({
+      data: policyAttributesToCreate,
+    });
+  }
+}
+
+if (data.nominees && data.nominees.length > 0) {
+  await tx.nominee.createMany({
+    data: data.nominees.map((nominee) => ({
+      policyId: newPolicy.id,
+      nomineeName: nominee.nomineeName,
+      relationship: nominee.relationship,
+      dateOfBirth: nominee.dateOfBirth
+        ? new Date(nominee.dateOfBirth)
+        : null,
+      percentage: nominee.percentage,
+      phone: nominee.phone,
+      email: nominee.email,
+      address: nominee.address,
+    })),
+  });
+}
 
     await createNotification(tx, {
       title: "Policy Created",
@@ -255,6 +313,7 @@ export const updatePolicy = async (
     installmentPremium,
     totalInstallmentPremium,
     gst,
+    attributes,
   } = data;
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
@@ -298,6 +357,13 @@ export const updatePolicy = async (
         policyTerm: data.term,
 
         premiumPayingTerm: data.ppt,
+
+        statusId: data.statusId,
+
+        nextPremiumDueDate: data.fupDate
+          ? new Date(data.fupDate)
+          : null,
+
       },
     });
 
@@ -352,6 +418,43 @@ export const updatePolicy = async (
         gst: gst ?? 0,
       },
     });
+
+    // Update Policy Attributes
+    if (attributes) {
+      const productAttributes = await tx.productAttributeMaster.findMany({
+        where: {
+          attributeCode: {
+            in: Object.keys(attributes),
+          },
+        },
+      });
+
+      const policyAttributes = productAttributes
+  .filter((attr) => attributes[attr.attributeCode] !== undefined)
+  .map((attr) => ({
+    policyId: id,
+    attributeId: attr.id,
+    value: String(attributes[attr.attributeCode]),
+  }));
+
+for (const attribute of policyAttributes) {
+  await tx.policyAttribute.upsert({
+    where: {
+      policyId_attributeId: {
+        policyId: attribute.policyId,
+        attributeId: attribute.attributeId,
+      },
+    },
+    update: {
+      value: attribute.value,
+    },
+    create: attribute,
+  });
+}
+    }
+
+
+
 
     await createNotification(tx, {
       title: "Policy Updated",
