@@ -9,6 +9,8 @@ import { seedProducts } from './product.seed';
 import { seedAdvisors } from './advisor.seed';
 import { seedRiders } from './rider.seed';
 import { seedPaymentStatuses } from './paymentStatus.seed';
+import { seedProductAttributes } from './productattributemaster.seed';
+import { seedProductAttributeValues } from './productattributevalue.seed';
 import { seedLoanStatuses } from './loanStatus.seed';
 
 export const runSeeders = async (prisma: PrismaClient) => {
@@ -18,10 +20,11 @@ export const runSeeders = async (prisma: PrismaClient) => {
   await seedLicBranches(prisma);
   await seedAgencies(prisma);
   await seedProductCategories(prisma);
+  await seedProductAttributes(prisma);
   await seedProducts(prisma);
+  await seedProductAttributeValues(prisma);
   await seedAdvisors(prisma);
   await seedRiders(prisma);
   await seedPaymentStatuses(prisma);
   await seedLoanStatuses(prisma);
 };
-

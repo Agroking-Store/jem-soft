@@ -467,6 +467,12 @@ export default function EditLICPolicyPage() {
 
                 advisorId: data.advisorId || null,
                 branchId: data.branchId || null,
+                attributes: {
+                    SUM_ASSURED: data.sumAssured,
+                    POLICY_TERM: data.term,
+                    PREMIUM_PAYING_TERM: data.ppt,
+                    // Add other dynamic attributes here if they are on the form
+                },
 
                 policyTerm: data.term,
                 premiumPayingTerm: data.ppt,
