@@ -12,6 +12,8 @@ import policyStatusMasterReducer from "@/features/policy/policyStatusMasterSlice
 import premiumModeMasterReducer from "@/features/policy/premiumModeMasterSlice";
 import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch reducer
 import agencyReducer from "@/features/agency/agencySlice"; // Added agency reducer
+import loanReducer from "@/features/loans/loanSlice";
+import loanStatusMasterReducer from "@/features/loans/loanStatusMasterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +30,8 @@ export const store = configureStore({
     premiumModes: premiumModeMasterReducer,
     licBranch: licBranchReducer,
     agency: agencyReducer,
+    loans: loanReducer,
+    loanStatuses: loanStatusMasterReducer,
   },
 });
 
