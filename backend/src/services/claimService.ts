@@ -32,6 +32,21 @@ export const getAllClaims = async () => {
     });
 };
 
+export const getClaimById = async (id: string): Promise<any> => {
+  return prisma.claim.findUnique({
+    where: {
+      id,
+    },
+    include: {
+        policy : {
+            include : {
+                product : true
+            }
+        }
+    },
+  });
+};
+
 export const createClaim = async (data: ClaimData, userId: string) => {
     return await prisma.claim.create({
         data: {
