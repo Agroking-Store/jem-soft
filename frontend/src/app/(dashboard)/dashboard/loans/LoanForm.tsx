@@ -23,6 +23,8 @@ interface FormState {
   interestRate: string;
   loanDate: string;
   loanStatusId: string;
+  loanTenure: string;
+  remarks: string;
 }
 
 const emptyForm: FormState = {
@@ -32,6 +34,8 @@ const emptyForm: FormState = {
   interestRate: "",
   loanDate: "",
   loanStatusId: "",
+  loanTenure: "",
+  remarks: "",
 };
 
 export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
@@ -63,6 +67,8 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
           ? new Date(initialLoan.loanDate).toISOString().slice(0, 10)
           : "",
         loanStatusId: initialLoan.loanStatusId || "",
+        loanTenure: initialLoan.loanTenure?.toString() || "",
+        remarks: initialLoan.remarks || "",
       });
     }
   }, [mode, initialLoan]);
@@ -114,13 +120,20 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
 
     setIsSubmitting(true);
 
+
     const payload = {
       policyId: form.policyId,
       loanNumber: form.loanNumber || undefined,
       loanAmount: Number(form.loanAmount),
-      interestRate: form.interestRate ? Number(form.interestRate) : undefined,
+      interestRate: form.interestRate
+        ? Number(form.interestRate)
+        : undefined,
       loanDate: form.loanDate,
       loanStatusId: form.loanStatusId,
+      loanTenure: form.loanTenure
+        ? Number(form.loanTenure)
+        : undefined,
+      remarks: form.remarks || undefined,
     };
 
     try {
@@ -140,124 +153,178 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-        <div>
-          <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Policy
-          </label>
-          <select
-            value={form.policyId}
-            onChange={(e) => handleChange("policyId", e.target.value)}
-            className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${
-              errors.policyId
-                ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
-                : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            }`}
-          >
-            <option value="">Select a policy</option>
-            {policies.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.policyNumber}
-                {p.CustomerMaster
-                  ? ` — ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName}`
-                  : ""}
-              </option>
-            ))}
-          </select>
-          {errors.policyId && (
-            <p className="mt-1 text-xs text-rose-600">{errors.policyId}</p>
-          )}
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+
+        {/* Header */}
+        <div className="px-6 pt-6 pb-2">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Loan Information
+          </h2>
         </div>
 
-        <Input
-          label="Loan Number"
-          placeholder="e.g. LN-2026-001 (optional)"
-          value={form.loanNumber}
-          onChange={(e) => handleChange("loanNumber", e.target.value)}
-          error={errors.loanNumber}
-        />
+        {/* Body */}
+        <div className="p-6 space-y-5">
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Input
-            label="Loan Amount (₹)"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="e.g. 50000"
-            value={form.loanAmount}
-            onChange={(e) => handleChange("loanAmount", e.target.value)}
-            error={errors.loanAmount}
-          />
-          <Input
-            label="Interest Rate (%)"
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            placeholder="e.g. 9.5 (optional)"
-            value={form.interestRate}
-            onChange={(e) => handleChange("interestRate", e.target.value)}
-            error={errors.interestRate}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Input
-            label="Loan Date"
-            type="date"
-            value={form.loanDate}
-            onChange={(e) => handleChange("loanDate", e.target.value)}
-            error={errors.loanDate}
-          />
-
+          {/* Policy */}
           <div>
             <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Loan Status
+              Policy
             </label>
+
             <select
-              value={form.loanStatusId}
-              onChange={(e) => handleChange("loanStatusId", e.target.value)}
-              className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${
-                errors.loanStatusId
-                  ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
-                  : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
+              value={form.policyId}
+              onChange={(e) => handleChange("policyId", e.target.value)}
+              className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.policyId
+                ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
+                : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                }`}
             >
-              <option value="">Select status</option>
-              {loanStatuses.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.statusName}
+              <option value="">Select a policy</option>
+
+              {policies.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.policyNumber}
+                  {p.CustomerMaster
+                    ? ` — ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName}`
+                    : ""}
                 </option>
               ))}
             </select>
-            {errors.loanStatusId && (
-              <p className="mt-1 text-xs text-rose-600">{errors.loanStatusId}</p>
+
+            {errors.policyId && (
+              <p className="mt-1 text-xs text-rose-600">
+                {errors.policyId}
+              </p>
             )}
           </div>
-        </div>
-      </div>
 
-      <div className="flex items-center justify-end gap-3 mt-6">
-        <button
-          type="button"
-          onClick={() => router.push("/dashboard/loans")}
-          className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md disabled:opacity-60"
-        >
-          {isSubmitting ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Save size={16} />
-          )}
-          {mode === "create" ? "Create Loan" : "Save Changes"}
-        </button>
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <Input
+              label="Loan Number"
+              placeholder="e.g. LN-2026-001"
+              value={form.loanNumber}
+              onChange={(e) => handleChange("loanNumber", e.target.value)}
+              error={errors.loanNumber}
+            />
+
+            <Input
+              label="Loan Date"
+              type="date"
+              value={form.loanDate}
+              onChange={(e) => handleChange("loanDate", e.target.value)}
+              error={errors.loanDate}
+            />
+
+            <Input
+              label="Loan Amount (₹)"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="e.g. 50000"
+              value={form.loanAmount}
+              onChange={(e) => handleChange("loanAmount", e.target.value)}
+              error={errors.loanAmount}
+            />
+
+            <Input
+              label="Interest Rate (%)"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="e.g. 9.5"
+              value={form.interestRate}
+              onChange={(e) => handleChange("interestRate", e.target.value)}
+              error={errors.interestRate}
+            />
+
+            <Input
+              label="Loan Tenure (Months)"
+              type="number"
+              min="1"
+              placeholder="e.g. 12"
+              value={form.loanTenure}
+              onChange={(e) => handleChange("loanTenure", e.target.value)}
+            />
+
+            <div>
+              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Loan Status
+              </label>
+
+              <select
+                value={form.loanStatusId}
+                onChange={(e) => handleChange("loanStatusId", e.target.value)}
+                className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.loanStatusId
+                  ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
+                  : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  }`}
+              >
+                <option value="">Select status</option>
+
+                {loanStatuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.statusName}
+                  </option>
+                ))}
+              </select>
+
+              {errors.loanStatusId && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.loanStatusId}
+                </p>
+              )}
+            </div>
+
+
+
+            <div className="sm:col-span-2">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Remarks (Optional)
+              </label>
+
+              <textarea
+                rows={3}
+                placeholder="Enter any remarks..."
+                value={form.remarks}
+                onChange={(e) => handleChange("remarks", e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/loans")}
+            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+
+            {mode === "create" ? "Create Loan" : "Save Changes"}
+          </button>
+
+        </div>
+
       </div>
     </form>
   );

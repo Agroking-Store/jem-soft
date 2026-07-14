@@ -428,10 +428,11 @@ model PolicyLoan {
 
   loanNumber String?
   loanAmount Decimal
-
   interestRate Decimal?
-
   loanDate DateTime
+
+  loanTenure Int?
+  remarks String?
 
   loanStatusId String
 
