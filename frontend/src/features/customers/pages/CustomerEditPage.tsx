@@ -73,6 +73,64 @@ const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
   phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
   password: z.string().optional().or(z.literal("")),
+}).superRefine((data, ctx) => {
+  if (data.prefCommAddress === "Residence") {
+    const hasAddressLine = !!(
+      data.resAddressLine1?.trim() ||
+      data.resAddressLine2?.trim() ||
+      data.resAddressLine3?.trim() ||
+      data.resAddressLine4?.trim()
+    );
+    if (!hasAddressLine) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one Residence Address Line is required",
+        path: ["resAddressLine1"],
+      });
+    }
+    if (!data.resCity?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "City is required for Residence Address",
+        path: ["resCity"],
+      });
+    }
+    if (!data.resPin?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pin Code is required for Residence Address",
+        path: ["resPin"],
+      });
+    }
+  } else if (data.prefCommAddress === "Office") {
+    const hasAddressLine = !!(
+      data.offAddressLine1?.trim() ||
+      data.offAddressLine2?.trim() ||
+      data.offAddressLine3?.trim() ||
+      data.offAddressLine4?.trim()
+    );
+    if (!hasAddressLine) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one Office Address Line is required",
+        path: ["offAddressLine1"],
+      });
+    }
+    if (!data.offCity?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "City is required for Office Address",
+        path: ["offCity"],
+      });
+    }
+    if (!data.offPin?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pin Code is required for Office Address",
+        path: ["offPin"],
+      });
+    }
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -358,13 +416,13 @@ export default function CustomerEditPage() {
                 <Home size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Residence</h3>
               </div>
-              <FormInput label="Address Line 1" placeholder="House / Flat No." {...register("resAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Colony" {...register("resAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("resAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("resAddressLine4")} />
+              <FormInput label="Address Line 1" required placeholder="House / Flat No." error={errors.resAddressLine1?.message} {...register("resAddressLine1")} />
+              <FormInput label="Address Line 2" placeholder="Street / Colony" error={errors.resAddressLine2?.message} {...register("resAddressLine2")} />
+              <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.resAddressLine3?.message} {...register("resAddressLine3")} />
+              <FormInput label="Address Line 4" placeholder="Landmark" error={errors.resAddressLine4?.message} {...register("resAddressLine4")} />
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="City" placeholder="City" {...register("resCity")} />
-                <FormInput label="Pin Code" placeholder="400001" {...register("resPin")} />
+                <FormInput label="City" required placeholder="City" error={errors.resCity?.message} {...register("resCity")} />
+                <FormInput label="Pin Code" required placeholder="400001" error={errors.resPin?.message} {...register("resPin")} />
               </div>
               <FormSelect label="Country" {...register("resCountry")}><option>India</option><option>Other</option></FormSelect>
               <FormSelect label="State" {...register("resState")}>
@@ -379,13 +437,13 @@ export default function CustomerEditPage() {
                 <Building size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Office</h3>
               </div>
-              <FormInput label="Address Line 1" placeholder="Office / Building No." {...register("offAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Road" {...register("offAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register("offAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" {...register("offAddressLine4")} />
+              <FormInput label="Address Line 1" required placeholder="Office / Building No." error={errors.offAddressLine1?.message} {...register("offAddressLine1")} />
+              <FormInput label="Address Line 2" placeholder="Street / Road" error={errors.offAddressLine2?.message} {...register("offAddressLine2")} />
+              <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.offAddressLine3?.message} {...register("offAddressLine3")} />
+              <FormInput label="Address Line 4" placeholder="Landmark" error={errors.offAddressLine4?.message} {...register("offAddressLine4")} />
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="City" placeholder="City" {...register("offCity")} />
-                <FormInput label="Pin Code" placeholder="400001" {...register("offPin")} />
+                <FormInput label="City" required placeholder="City" error={errors.offCity?.message} {...register("offCity")} />
+                <FormInput label="Pin Code" required placeholder="400001" error={errors.offPin?.message} {...register("offPin")} />
               </div>
               <FormSelect label="Country" {...register("offCountry")}><option>India</option><option>Other</option></FormSelect>
               <FormSelect label="State" {...register("offState")}>
