@@ -16,7 +16,9 @@ import {
   MessageSquare,
   TrendingUp,
   ShieldPlus,
+  Landmark,
 } from "lucide-react";
+import { fetchLoans } from "@/features/loans/loanSlice";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -31,12 +33,20 @@ export default function DashboardPage() {
     (state: RootState) => state.customerMaster
   );
 
+  const { loans, isLoading: isLoadingLoans } = useSelector(
+    (state: RootState) => state.loans
+  );
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
+
     dispatch(fetchPolicies());
     dispatch(fetchCustomersMaster());
+    dispatch(fetchLoans());
+
   }, [dispatch]);
+
 
   if (authLoading) {
     return (
@@ -51,7 +61,7 @@ export default function DashboardPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">
-          Welcome back, {isMounted ? user?.name : "User"}! 
+          Welcome back, {isMounted ? user?.name : "User"}!
         </h1>
         <p className="text-slate-500">
           You are signed in as{" "}
@@ -100,6 +110,36 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+
+
+        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Loans
+              </p>
+
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {!isMounted || isLoadingLoans ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  loans.length
+                )}
+              </p>
+            </div>
+
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <Landmark className="w-6 h-6 text-[#E8C77A]" />
+            </div>
+
+          </div>
+        </div>
+
+
+
+
       </div>
     </div>
   );
