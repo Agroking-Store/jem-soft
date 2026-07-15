@@ -255,6 +255,13 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
       },
     });
 
+    // Delete Policy Loan
+    await tx.policyLoan.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
     //Delete Policy Attribute
     await tx.policyAttribute.deleteMany({
       where: {
