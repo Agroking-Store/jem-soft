@@ -1,83 +1,16 @@
 export const productsData = [
   // LIC Products
-
-  {
-    productName: "Single Premium Endowment Plan",
-    productCode: "512N283V03",
-    planNumber: "717",
-    providerCode: "LIC",
-    productType: "Endowment",
-  },
-  {
-    productName: "LIC's New Endowment Plan",
-    productCode: "512N277V03",
-    planNumber: "714",
-    providerCode: "LIC",
-    productType: "Endowment",
-  },
-  {
-    productName: "LIC's New Jeevan Anand",
-    productCode: "512N279V03",
-    planNumber: "715",
-    providerCode: "LIC",
-    productType: "Savings + Whole Life",
-  },
-  {
-    productName: "LIC Jeevan Lakshya",
-    productCode: "512N297V03",
-    planNumber: "733",
-    providerCode: "LIC",
-    productType: "Child Savings Plan",
-  },
-  {
-    productName: "LIC Jeevan Labh",
-    productCode: "512N304V03",
-    planNumber: "736",
-    providerCode: "LIC",
-    productType: "Endowment Savings Plan",
-  },
-  {
-    productName: "LIC Amritbaal",
-    productCode: "512N365V02",
-    planNumber: "774",
-    providerCode: "LIC",
-    productType: "Child Saving Plan",
-  },
-  {
-    productName: "LIC Bima Jyoti",
-    productCode: "512N339V03",
-    planNumber: "760",
-    providerCode: "LIC",
-    productType: "Savings Plan",
-  },
-  {
-    productName: "LIC Nav Jeevan Shree",
-    productCode: "512N387V02",
-    planNumber: "912",
-    providerCode: "LIC",
-    productType: "Savings Plan",
-  },
-  {
-    productName: "LIC Bima Lakshmi",
-    productCode: "512N389V01",
-    planNumber: "881",
-    providerCode: "LIC",
-    productType: "Women Savings Plan",
-  },
-  {
-    productName: "LIC New Jeevan Sathi Single Premium",
-    productCode: "512N393V01",
-    planNumber: "888",
-    providerCode: "LIC",
-    productType: "Joint Life Savings Plan",
-  },
-  {
-    productName: "LIC New Jeevan Sathi Limited Premium",
-    productCode: "512N394V01",
-    planNumber: "889",
-    providerCode: "LIC",
-    productType: "Joint Life Savings Plan",
-  },
+  { productName: 'Single Premium Endowment Plan', productCode: '512N283V03', planNumber: '717', providerCode: 'LIC', productType: 'Endowment' },
+  { productName: 'LIC\'s New Endowment Plan', productCode: '512N277V03', planNumber: '714', providerCode: 'LIC', productType: 'Endowment' },
+  { productName: 'LIC\'s New Jeevan Anand', productCode: '512N279V03', planNumber: '715', providerCode: 'LIC', productType: 'Savings + Whole Life' },
+  { productName: 'LIC Jeevan Lakshya', productCode: '512N297V03', planNumber: '733', providerCode: 'LIC', productType: 'Child Saving Plan' },
+  { productName: 'LIC Jeevan Labh', productCode: '512N304V03', planNumber: '736', providerCode: 'LIC', productType: 'Endowment Savings Plan' },
+  { productName: 'LIC Amritbaal', productCode: '512N365V02', planNumber: '774', providerCode: 'LIC', productType: 'Child Saving Plan' },
+  { productName: 'LIC Bima Jyoti', productCode: '512N339V03', planNumber: '760', providerCode: 'LIC', productType: 'Savings Plan' },
+  { productName: 'LIC Nav Jeevan Shree', productCode: '512N387V02', planNumber: '912', providerCode: 'LIC', productType: 'Savings Plan' },
+  { productName: 'LIC Bima Lakshmi', productCode: '512N389V01', planNumber: '881', providerCode: 'LIC', productType: 'Women Savings Plan' },
+  { productName: 'LIC New Jeevan Sathi Single Premium', productCode: '512N393V01', planNumber: '888', providerCode: 'LIC', productType: 'Joint Life Savings Plan' },
+  { productName: 'LIC New Jeevan Sathi Limited Premium', productCode: '512N394V01', planNumber: '889', providerCode: 'LIC', productType: 'Joint Life Savings Plan' },
 
   // Whole Life Plans
   {
@@ -1105,7 +1038,7 @@ export const productsData = [
     productType: "Rider",
   },
   {
-    productName: "LICs New Term Assurance Rider",
+    productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V02",
     planNumber: "-",
     providerCode: "LIC",
@@ -1622,7 +1555,7 @@ export const productsData = [
     productCode: "512N297V03",
     planNumber: "733",
     providerCode: "LIC",
-    productType: "Child Savings Plan",
+    productType: "Child Saving Plan",
   },
   {
     productName: "LIC Jeevan Labh",
@@ -1699,7 +1632,7 @@ export const productsData = [
     productCode: "512N297V03",
     planNumber: "733",
     providerCode: "LIC",
-    productType: "Child Savings Plan",
+    productType: "Child Saving Plan",
   },
   {
     productName: "LIC Jeevan Labh",
@@ -3513,7 +3446,7 @@ export const productsData = [
     productType: "Rider",
   },
   {
-    productName: "LICs New Term Assurance Rider",
+    productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V02",
     planNumber: "-",
     providerCode: "LIC",

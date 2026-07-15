@@ -163,6 +163,7 @@ const riderSchema = z.object({
         (val) => (val === "" ? null : val),
         z.coerce.number().positive("Must be positive").nullable()
     ),
+    mode: z.string().optional(),
 });
 
 const policySchema = z.object({
@@ -341,6 +342,7 @@ export default function EditLICPolicyPage() {
                     sum: r.riderAmount,
                     premium: r.riderPremium,
                     term: "",
+                    mode: r.rider.mode,
                     ppt: "",
                 })) ?? [],
         });
@@ -368,6 +370,7 @@ export default function EditLICPolicyPage() {
     const watchAdvisorId = watch("advisorId");
     const watchBasicYearlyPremium = watch("basicYearlyPremium");
     const watchTotalRiderPremium = watch("totalRiderPremium");
+    const watchRiders = watch("riders");
 
 
     const selectedGroup = useMemo(() => groups.find(g => g.id === watchGroupId), [watchGroupId, groups]);
@@ -456,6 +459,42 @@ export default function EditLICPolicyPage() {
             total > 0 ? total : undefined
         );
     }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
+
+    // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
+    useEffect(() => {
+        if (watchRiders) {
+            let totalRiderPremium = 0;
+            watchRiders.forEach((rider, index) => {
+                const sum = parseFloat(String(rider.sum)) || 0;
+                const term = parseFloat(String(rider.term)) || 0;
+                const ppt = parseFloat(String(rider.ppt)) || 0;
+                const mode = rider.mode;
+                let currentPremium = parseFloat(String(rider.premium)) || 0;
+
+                if (sum > 0 && term > 0 && ppt > 0 && mode) {
+                    // Placeholder: Assume yearly premium is 1% of sum assured.
+                    const yearlyRiderPremium = sum * 0.01;
+                    let installmentRiderPremium = 0;
+
+                    // Apply mode factors to calculate installment premium for the rider
+                    switch (mode) {
+                        case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
+                        case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
+                        case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
+                        case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
+                        default: installmentRiderPremium = 0;
+                    }
+                    const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
+                    if (finalRiderPremium !== currentPremium) {
+                        setValue(`riders.${index}.premium`, finalRiderPremium);
+                        currentPremium = finalRiderPremium;
+                    }
+                }
+                totalRiderPremium += currentPremium;
+            });
+            setValue("totalRiderPremium", totalRiderPremium > 0 ? totalRiderPremium : undefined);
+        }
+    }, [JSON.stringify(watchRiders), setValue]);
 
     const onSubmit = async (data: PolicyFormValues) => {
         setIsSubmitting(true);
@@ -907,6 +946,7 @@ export default function EditLICPolicyPage() {
                                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Sum</th>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Term</th>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">PPT</th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Mode</th>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Premium</th>
                                             <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">Action</th>
                                         </tr>
@@ -914,7 +954,7 @@ export default function EditLICPolicyPage() {
                                     <tbody className="divide-y divide-slate-200">
                                         {riderFields.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-4 py-6 text-center text-slate-500 text-sm">
+                                                <td colSpan={7} className="px-4 py-6 text-center text-slate-500 text-sm">
                                                     No Rider to Show
                                                 </td>
                                             </tr>
@@ -943,6 +983,17 @@ export default function EditLICPolicyPage() {
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" {...register(`riders.${index}.ppt`)} placeholder="PPT" className="w-20 text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
                                                         {errors.riders?.[index]?.ppt && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.ppt?.message}</p>}
+                                                    </td>
+                                                    <td className="px-2 py-1.5">
+                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500">
+                                                            <option value="">Mode</option>
+                                                            {modes.map(mode => (
+                                                                <option key={mode.id} value={mode.modeName}>
+                                                                    {mode.modeName}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        {errors.riders?.[index]?.mode && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>}
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
