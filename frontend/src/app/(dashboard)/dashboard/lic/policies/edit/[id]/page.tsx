@@ -167,80 +167,84 @@ const riderSchema = z.object({
 });
 
 const policySchema = z.object({
-  groupId: z.string().min(1, "Group is required"),
-  groupCode: z.string().optional(),
-  lifeAssuredId: z.string().min(1, "Life Assured is required"),
-  dob: z.string().optional(),
-  age: z.string().optional(),
-  gender: z.string().optional(),
-  pan: z.string().optional(),
+    groupId: z.string().min(1, "Group is required"),
+    groupCode: z.string().optional(),
+    lifeAssuredId: z.string().min(1, "Life Assured is required"),
+    dob: z.string().optional(),
+    age: z.string().optional(),
+    gender: z.string().optional(),
+    pan: z.string().optional(),
 
-  providerType: z.string().min(1, "Provider type is required"),
-  productType: z.string().optional(),
-  providerId: z.string().min(1, "Provider is required"),
-  policyNumber: z.string().min(1, "Policy number is required"),
-  productId: z.string().min(1, "Plan is required"),
-  mode: z.string().min(1, "Mode is required"),
-  commencementDate: z.string().min(1, "Commencement date is required"),
-  completionDate: z.string().min(1, "Completion date is required"),
+    providerType: z.string().min(1, "Provider type is required"),
+    productType: z.string().optional(),
+    providerId: z.string().min(1, "Provider is required"),
+    policyNumber: z
+        .string()
+        .trim()
+        .min(1, "Policy number is required")
+        .regex(/^\d{9}$/, "Policy number must be exactly 9 digits"),
+    productId: z.string().min(1, "Plan is required"),
+    mode: z.string().min(1, "Mode is required"),
+    commencementDate: z.string().min(1, "Commencement date is required"),
+    completionDate: z.string().min(1, "Completion date is required"),
 
-  term: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().int().nonnegative().optional()
-  ),
+    term: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().int().nonnegative().optional()
+    ),
 
-  ppt: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().int().nonnegative().optional()
-  ),
+    ppt: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().int().nonnegative().optional()
+    ),
 
-  extraClass: z.string().optional(),
+    extraClass: z.string().optional(),
 
-  ratePercent: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    ratePercent: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  sumAssured: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    sumAssured: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  basicYearlyPremium: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    basicYearlyPremium: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  totalYearlyPremium: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    totalYearlyPremium: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  totalRiderPremium: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    totalRiderPremium: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  installmentPremium: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    installmentPremium: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  gst: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    gst: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  totalInstallmentPremium: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().nonnegative().optional()
-  ),
+    totalInstallmentPremium: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.coerce.number().nonnegative().optional()
+    ),
 
-  riders: z.array(riderSchema).optional(),
+    riders: z.array(riderSchema).optional(),
 
-  advisorId: z.string().optional(),
-  agentCode: z.string().optional(),
-  branchId: z.string().optional(),
+    advisorId: z.string().optional(),
+    agentCode: z.string().optional(),
+    branchId: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -287,7 +291,6 @@ export default function EditLICPolicyPage() {
     const { branches: licBranches, isLoading: licBranchesLoading } = useSelector((s: RootState) => s.licBranch);
 
     const [activeSection, setActiveSection] = useState("policy-holder");
-    const [showAdvanced, setShowAdvanced] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [glowingSection, setGlowingSection] = useState<string | null>(null);
 
@@ -322,7 +325,7 @@ export default function EditLICPolicyPage() {
             lifeAssuredId: selectedPolicy.CustomerMasterId,
 
             providerType:
-            selectedPolicy.provider?.type ?? "",
+                selectedPolicy.provider?.type ?? "",
 
             providerId: selectedPolicy.providerId,
             productId: selectedPolicy.productId,
@@ -341,7 +344,7 @@ export default function EditLICPolicyPage() {
             completionDate: selectedPolicy.maturityDate
                 ? selectedPolicy.maturityDate.substring(0, 10)
                 : "",
-            
+
             productType: selectedPolicy.product?.productType ?? "",
 
             advisorId: selectedPolicy.advisorId ?? "",
@@ -477,7 +480,7 @@ export default function EditLICPolicyPage() {
         return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
     }, [watchProviderId, watchProductType, products]);
 
-  
+
 
     useEffect(() => {
         const advisor = advisors.find(a => a.id === watchAdvisorId);
@@ -751,9 +754,13 @@ export default function EditLICPolicyPage() {
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Gender
                             </label>
-                            <select {...register("gender")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" disabled>
+
+                            <select
+                                {...register("gender")}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                                disabled
+                            >
                                 <option value="">Select Gender</option>
-                                <option value={watch("gender")} disabled>{watch("gender")}</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
@@ -1173,178 +1180,173 @@ export default function EditLICPolicyPage() {
                     className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${glowingSection === 'advanced' ? 'shadow-lg shadow-blue-500/20' : ''
                         }`}
                 >
-                    <button
-                        type="button"
-                        onClick={() => setShowAdvanced(prev => !prev)}
-                        className="flex items-center justify-between w-full text-left"
-                    >
+                    <div className="flex items-center">
                         <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                             <Settings size={20} className="text-blue-600" />
                             Advanced Options
                         </h2>
-                        {showAdvanced ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-                    </button>
+                    </div>
 
-                    {showAdvanced && (
-                        <div className="mt-6 grid grid-cols-1 gap-6">
-                            {/* Current Status */}
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Current Status</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Policy Status</label>
-                                        <select
-                                            {...register("statusId")}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                        >
-                                            <option value="">Select Status</option>
 
-                                            {statuses.map((status) => (
-                                                <option
-                                                    key={status.id}
-                                                    value={status.id}
-                                                >
-                                                    {status.statusName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Premium Adjusted</label>
-                                        <input type="text" placeholder="Premium adjusted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Loan Taken</label>
-                                        <input type="text" placeholder="Loan taken" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
+                    <div className="mt-6 grid grid-cols-1 gap-6">
+                        {/* Current Status */}
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Current Status</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Policy Status</label>
+                                    <select
+                                        {...register("statusId")}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                    >
+                                        <option value="">Select Status</option>
+
+                                        {statuses.map((status) => (
+                                            <option
+                                                key={status.id}
+                                                value={status.id}
+                                            >
+                                                {status.statusName}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
-
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Check Current Status of Policy</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                                            First Unpaid Premium (F.U.P) Date
-                                        </label>
-
-                                        <input
-                                            type="date"
-                                            {...register("fupDate")}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Premium Adjusted</label>
+                                    <input type="text" placeholder="Premium adjusted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
                                 </div>
-                            </div>
-
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Nomination Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Annuity Details</label>
-                                        <input type="text" placeholder="Annuity details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Other Information</label>
-                                        <input type="text" placeholder="Other information" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                </div>
-                                <button className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium">Add / Edit Nomination Details</button>
-                                <p className="text-xs text-slate-400 mt-1">This will be enable for Annuity Policies</p>
-                            </div>
-
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Advisor Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Controller
-                                            name="advisorId"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={advisors} />
-                                            )}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Agent Code</label>
-                                        <input
-                                            {...register("agentCode")}
-                                            type="text" placeholder="Auto-filled"
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" readOnly
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">NACH & NEFT Details</h3>
-                                <p className="text-sm text-slate-500 mb-4">Provide NACH / NEFT Details for bank transactions</p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
-                                        <input type="text" placeholder="Enter bank name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Account Number</label>
-                                        <input type="text" placeholder="Enter account number" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">IFSC Code</label>
-                                        <input type="text" placeholder="Enter IFSC code" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
-                                        <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="border border-slate-200 rounded-lg p-4">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Additional Fields</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                                        <select {...register("branchId")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                            <option value="">Select Branch</option>
-                                            {licBranches.map((branch) => (
-                                                <option key={branch.branchCode} value={branch.branchCode}>{branch.branchCode} - {branch.branchName}</option>
-                                            ))}
-                                        </select>
-                                        {errors.branchId && <p className="text-xs text-red-500 mt-1">{errors.branchId.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Medical</label>
-                                        <input type="text" placeholder="Medical details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Sales Channel</label>
-                                        <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                            <option value="direct">Direct</option>
-                                            <option value="agent">Agent</option>
-                                            <option value="broker">Broker</option>
-                                            <option value="online">Online</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Age Admitted</label>
-                                        <input type="number" placeholder="Age admitted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Tax Beneficiary</label>
-                                        <input type="text" placeholder="Tax beneficiary" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    </div>
-                                    <div className="lg:col-span-3">
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                                        <textarea
-                                            placeholder="Add notes"
-                                            rows={2}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-y"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Loan Taken</label>
+                                    <input type="text" placeholder="Loan taken" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Check Current Status of Policy</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        First Unpaid Premium (F.U.P) Date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        {...register("fupDate")}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Nomination Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Annuity Details</label>
+                                    <input type="text" placeholder="Annuity details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Other Information</label>
+                                    <input type="text" placeholder="Other information" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                            </div>
+                            <button className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium">Add / Edit Nomination Details</button>
+                            <p className="text-xs text-slate-400 mt-1">This will be enable for Annuity Policies</p>
+                        </div>
+
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Advisor Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Controller
+                                        name="advisorId"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={advisors} />
+                                        )}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Agent Code</label>
+                                    <input
+                                        {...register("agentCode")}
+                                        type="text" placeholder="Auto-filled"
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" readOnly
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">NACH & NEFT Details</h3>
+                            <p className="text-sm text-slate-500 mb-4">Provide NACH / NEFT Details for bank transactions</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
+                                    <input type="text" placeholder="Enter bank name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Number</label>
+                                    <input type="text" placeholder="Enter account number" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">IFSC Code</label>
+                                    <input type="text" placeholder="Enter IFSC code" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
+                                    <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border border-slate-200 rounded-lg p-4">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Additional Fields</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
+                                    <select {...register("branchId")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+                                        <option value="">Select Branch</option>
+                                        {licBranches.map((branch) => (
+                                            <option key={branch.branchCode} value={branch.branchCode}>{branch.branchCode} - {branch.branchName}</option>
+                                        ))}
+                                    </select>
+                                    {errors.branchId && <p className="text-xs text-red-500 mt-1">{errors.branchId.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Medical</label>
+                                    <input type="text" placeholder="Medical details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Sales Channel</label>
+                                    <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+                                        <option value="direct">Direct</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="broker">Broker</option>
+                                        <option value="online">Online</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Age Admitted</label>
+                                    <input type="number" placeholder="Age admitted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Tax Beneficiary</label>
+                                    <input type="text" placeholder="Tax beneficiary" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                </div>
+                                <div className="lg:col-span-3">
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                                    <textarea
+                                        placeholder="Add notes"
+                                        rows={2}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-y"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </form>
 
