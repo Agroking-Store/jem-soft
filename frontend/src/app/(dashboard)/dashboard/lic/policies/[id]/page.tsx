@@ -274,12 +274,44 @@ export default function ViewLICPolicyPage() {
         ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
         : "",
       premiumAdjusted: selectedPolicy.premium?.extraClass?.toString() ?? "",
+      dob: selectedPolicy.CustomerMaster?.dob
+        ? new Date(selectedPolicy.CustomerMaster.dob)
+            .toISOString()
+            .substring(0, 10)
+        : "",
+      age: selectedPolicy.CustomerMaster?.dob
+        ? Math.floor(
+            (Date.now() -
+              new Date(selectedPolicy.CustomerMaster.dob).getTime()) /
+              (365.25 * 24 * 60 * 60 * 1000),
+          ).toString()
+        : "",
+      gender: selectedPolicy.CustomerMaster?.gender ?? "",
+      pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
       loanTaken: "",
-      annuityDetails: "",
+      annuityDetails:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "annuityDetails",
+        )?.value ?? "",
       otherInformation: selectedPolicy.remarks ?? "",
-      bankName: "",
-      accountNumber: "",
-      ifscCode: "",
+      bankName:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankName ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
+        "",
+      accountNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
+        "",
+      ifscCode:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.ifscCode ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
+        "",
       accountHolderName: "",
       branchName: selectedPolicy.branch?.branchName ?? "",
       medical: "",
@@ -439,36 +471,28 @@ export default function ViewLICPolicyPage() {
   return (
     <div className="max-w-7xl mx-auto pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.push("/dashboard/lic/policies")}
-            className="p-2 hover:bg-slate-100 rounded-lg transition"
-          >
-            <ChevronLeft size={20} className="text-slate-600" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Link
-                href="/dashboard/lic/policies"
-                className="hover:text-blue-600"
-              >
-                Policies
-              </Link>
-              <ChevronRight size={16} />
-              <span className="font-medium text-slate-700">View Policy</span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 mt-1">
-              View LIC Policy
-            </h1>
-          </div>
-        </div>
+      <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => router.push("/dashboard/lic/policies")}
-          className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm"
+          className="p-2 hover:bg-slate-100 rounded-lg transition"
         >
-          Back
+          <ChevronLeft size={20} className="text-slate-600" />
         </button>
+        <div>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Link
+              href="/dashboard/lic/policies"
+              className="hover:text-blue-600"
+            >
+              Policies
+            </Link>
+            <ChevronRight size={16} />
+            <span className="font-medium text-slate-700">View Policy</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mt-1">
+            View LIC Policy
+          </h1>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
