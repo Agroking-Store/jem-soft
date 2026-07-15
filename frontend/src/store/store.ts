@@ -15,6 +15,7 @@ import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch
 import agencyReducer from "@/features/agency/agencySlice"; // Added agency reducer
 import loanReducer from "@/features/loans/loanSlice";
 import loanStatusMasterReducer from "@/features/loans/loanStatusMasterSlice";
+import claimReducer from "@/features/claim/claimSlice"; // Added claim reducer
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     productAttributeValues: productAttributeValueReducer,
     loans: loanReducer,
     loanStatuses: loanStatusMasterReducer,
+    claims : claimReducer,
   },
 });
 

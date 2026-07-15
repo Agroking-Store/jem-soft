@@ -10,6 +10,21 @@ export const getClaims = async (req: Request, res: Response) => {
     }
 };
 
+export const getClaimById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const claim = await claimService.getClaimById(id);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        claim,
+      },
+    });
+  }
+;
+
+
 export const addClaim = async (req: Request, res: Response) => {
     try {
         const newClaim = await claimService.createClaim(req.body, req.user!.id);
