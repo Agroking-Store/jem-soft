@@ -12,6 +12,7 @@ interface RiderData {
   term: number | null;
   ppt: number | null;
   premium: number | null;
+  mode?: string;
 }
 
 interface NomineeData {
@@ -136,6 +137,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
+              mode: riderData.mode,
             },
           });
         }
@@ -159,7 +161,6 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     });
 
    // Save Policy Attributes using values entered in the form
-   console.log("Received attributes:", data.attributes);
 if (data.attributes && Object.keys(data.attributes).length > 0) {
   const productAttributes = await tx.productAttributeMaster.findMany({
     where: {
@@ -249,6 +250,27 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
 
     // Delete related riders
     await tx.policyRider.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
+    // Delete Policy Loan
+    await tx.policyLoan.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
+    //Delete Policy Attribute
+    await tx.policyAttribute.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
+    //Delete Nominne
+    await tx.nominee.deleteMany({
       where: {
         policyId,
       },
@@ -390,6 +412,7 @@ export const updatePolicy = async (
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
+              mode: riderData.mode,
             },
           });
         }
