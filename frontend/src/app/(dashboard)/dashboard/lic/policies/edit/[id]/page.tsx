@@ -167,40 +167,80 @@ const riderSchema = z.object({
 });
 
 const policySchema = z.object({
-    groupId: z.string().min(1, "Group is required"),
-    groupCode: z.string().optional(),
-    lifeAssuredId: z.string().min(1, "Life Assured is required"),
-    dob: z.string().optional(),
-    age: z.string().optional(),
-    gender: z.string().optional(),
-    pan: z.string().optional(),
+  groupId: z.string().min(1, "Group is required"),
+  groupCode: z.string().optional(),
+  lifeAssuredId: z.string().min(1, "Life Assured is required"),
+  dob: z.string().optional(),
+  age: z.string().optional(),
+  gender: z.string().optional(),
+  pan: z.string().optional(),
 
-    providerType: z.string().min(1, "Provider type is required"),
-    productType: z.string().optional(),
-    providerId: z.string().min(1, "Provider is required"),
-    policyNumber: z.string().min(1, "Policy number is required"),
-    productId: z.string().min(1, "Plan is required"),
-    mode: z.string().min(1, "Mode is required"),
-    commencementDate: z.string().min(1, "Commencement date is required"),
-    completionDate: z.string().min(1, "Completion date is required"),
-    term: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().positive().optional()),
-    ppt: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().int().positive().optional()),
-    extraClass: z.string().optional(),
-    ratePercent: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
+  providerType: z.string().min(1, "Provider type is required"),
+  productType: z.string().optional(),
+  providerId: z.string().min(1, "Provider is required"),
+  policyNumber: z.string().min(1, "Policy number is required"),
+  productId: z.string().min(1, "Plan is required"),
+  mode: z.string().min(1, "Mode is required"),
+  commencementDate: z.string().min(1, "Commencement date is required"),
+  completionDate: z.string().min(1, "Completion date is required"),
 
-    sumAssured: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    basicYearlyPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    totalYearlyPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    totalRiderPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    installmentPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    gst: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
-    totalInstallmentPremium: z.preprocess((val) => (val === "" ? undefined : val), z.coerce.number().positive().optional()),
+  term: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().nonnegative().optional()
+  ),
 
-    riders: z.array(riderSchema).optional(),
+  ppt: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().nonnegative().optional()
+  ),
 
-    advisorId: z.string().optional(),
-    agentCode: z.string().optional(),
-    branchId: z.string().optional(),
+  extraClass: z.string().optional(),
+
+  ratePercent: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  sumAssured: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  basicYearlyPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  totalYearlyPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  totalRiderPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  installmentPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  gst: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  totalInstallmentPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().nonnegative().optional()
+  ),
+
+  riders: z.array(riderSchema).optional(),
+
+  advisorId: z.string().optional(),
+  agentCode: z.string().optional(),
+  branchId: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
