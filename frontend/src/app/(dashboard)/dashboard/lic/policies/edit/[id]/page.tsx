@@ -477,12 +477,7 @@ export default function EditLICPolicyPage() {
         return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
     }, [watchProviderId, watchProductType, products]);
 
-    useEffect(() => {
-        setValue("providerId", "");
-        if (!isLicProviderSelected) {
-            setValue("productType", "");
-        }
-    }, [watchProviderType, setValue, isLicProviderSelected]);
+  
 
     useEffect(() => {
         const advisor = advisors.find(a => a.id === watchAdvisorId);
