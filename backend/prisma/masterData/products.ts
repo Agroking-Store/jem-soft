@@ -1,83 +1,16 @@
 export const productsData = [
   // LIC Products
-
-  {
-    productName: "Single Premium Endowment Plan",
-    productCode: "512N283V03",
-    planNumber: "717",
-    providerCode: "LIC",
-    productType: "Endowment",
-  },
-  {
-    productName: "LIC's New Endowment Plan",
-    productCode: "512N277V03",
-    planNumber: "714",
-    providerCode: "LIC",
-    productType: "Endowment",
-  },
-  {
-    productName: "LIC's New Jeevan Anand",
-    productCode: "512N279V03",
-    planNumber: "715",
-    providerCode: "LIC",
-    productType: "Savings + Whole Life",
-  },
-  {
-    productName: "LIC Jeevan Lakshya",
-    productCode: "512N297V03",
-    planNumber: "733",
-    providerCode: "LIC",
-    productType: "Child Savings Plan",
-  },
-  {
-    productName: "LIC Jeevan Labh",
-    productCode: "512N304V03",
-    planNumber: "736",
-    providerCode: "LIC",
-    productType: "Endowment Savings Plan",
-  },
-  {
-    productName: "LIC Amritbaal",
-    productCode: "512N365V02",
-    planNumber: "774",
-    providerCode: "LIC",
-    productType: "Child Saving Plan",
-  },
-  {
-    productName: "LIC Bima Jyoti",
-    productCode: "512N339V03",
-    planNumber: "760",
-    providerCode: "LIC",
-    productType: "Savings Plan",
-  },
-  {
-    productName: "LIC Nav Jeevan Shree",
-    productCode: "512N387V02",
-    planNumber: "912",
-    providerCode: "LIC",
-    productType: "Savings Plan",
-  },
-  {
-    productName: "LIC Bima Lakshmi",
-    productCode: "512N389V01",
-    planNumber: "881",
-    providerCode: "LIC",
-    productType: "Women Savings Plan",
-  },
-  {
-    productName: "LIC New Jeevan Sathi Single Premium",
-    productCode: "512N393V01",
-    planNumber: "888",
-    providerCode: "LIC",
-    productType: "Joint Life Savings Plan",
-  },
-  {
-    productName: "LIC New Jeevan Sathi Limited Premium",
-    productCode: "512N394V01",
-    planNumber: "889",
-    providerCode: "LIC",
-    productType: "Joint Life Savings Plan",
-  },
+  { productName: 'Single Premium Endowment Plan', productCode: '512N283V03', planNumber: '717', providerCode: 'LIC', productType: 'Endowment' },
+  { productName: 'LIC\'s New Endowment Plan', productCode: '512N277V03', planNumber: '714', providerCode: 'LIC', productType: 'Endowment' },
+  { productName: 'LIC\'s New Jeevan Anand', productCode: '512N279V03', planNumber: '715', providerCode: 'LIC', productType: 'Savings + Whole Life' },
+  { productName: 'LIC Jeevan Lakshya', productCode: '512N297V03', planNumber: '733', providerCode: 'LIC', productType: 'Child Saving Plan' },
+  { productName: 'LIC Jeevan Labh', productCode: '512N304V03', planNumber: '736', providerCode: 'LIC', productType: 'Endowment Savings Plan' },
+  { productName: 'LIC Amritbaal', productCode: '512N365V02', planNumber: '774', providerCode: 'LIC', productType: 'Child Saving Plan' },
+  { productName: 'LIC Bima Jyoti', productCode: '512N339V03', planNumber: '760', providerCode: 'LIC', productType: 'Savings Plan' },
+  { productName: 'LIC Nav Jeevan Shree', productCode: '512N387V02', planNumber: '912', providerCode: 'LIC', productType: 'Savings Plan' },
+  { productName: 'LIC Bima Lakshmi', productCode: '512N389V01', planNumber: '881', providerCode: 'LIC', productType: 'Women Savings Plan' },
+  { productName: 'LIC New Jeevan Sathi Single Premium', productCode: '512N393V01', planNumber: '888', providerCode: 'LIC', productType: 'Joint Life Savings Plan' },
+  { productName: 'LIC New Jeevan Sathi Limited Premium', productCode: '512N394V01', planNumber: '889', providerCode: 'LIC', productType: 'Joint Life Savings Plan' },
 
   // Whole Life Plans
   {
@@ -1105,7 +1038,7 @@ export const productsData = [
     productType: "Rider",
   },
   {
-    productName: "LICs New Term Assurance Rider",
+    productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V02",
     planNumber: "-",
     providerCode: "LIC",
@@ -1622,7 +1555,7 @@ export const productsData = [
     productCode: "512N297V03",
     planNumber: "733",
     providerCode: "LIC",
-    productType: "Child Savings Plan",
+    productType: "Child Saving Plan",
   },
   {
     productName: "LIC Jeevan Labh",
@@ -1699,7 +1632,7 @@ export const productsData = [
     productCode: "512N297V03",
     planNumber: "733",
     providerCode: "LIC",
-    productType: "Child Savings Plan",
+    productType: "Child Saving Plan",
   },
   {
     productName: "LIC Jeevan Labh",
@@ -3513,7 +3446,7 @@ export const productsData = [
     productType: "Rider",
   },
   {
-    productName: "LICs New Term Assurance Rider",
+    productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V02",
     planNumber: "-",
     providerCode: "LIC",
@@ -4649,14 +4582,12 @@ export const productsData = [
     planNumber: "ICICIPRU026",
     providerCode: "ICICI_PRU",
     productType: "Retirement and Pension Plans",
-    productType: "Retirement and Pension Plans",
   },
   {
     productName: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
     productCode: "105N185V17",
     planNumber: "ICICIPRU027",
     providerCode: "ICICI_PRU",
-    productType: "NM",
     productType: "NM",
   },
   {
@@ -4665,14 +4596,12 @@ export const productsData = [
     planNumber: "ICICIPRU028",
     providerCode: "ICICI_PRU",
     productType: "Retirement and Pension Plans",
-    productType: "Retirement and Pension Plans",
   },
   {
     productName: "ICICI Pru Sukh Samruddhi",
     productCode: "105N188V03",
     planNumber: "ICICIPRU029",
     providerCode: "ICICI_PRU",
-    productType: "NM",
     productType: "NM",
   },
   {
@@ -4681,14 +4610,12 @@ export const productsData = [
     planNumber: "ICICIPRU030",
     providerCode: "ICICI_PRU",
     productType: "ULIP",
-    productType: "ULIP",
   },
   {
     productName: "ICICI Pru Gold",
     productCode: "105N190V06",
     planNumber: "ICICIPRU031",
     providerCode: "ICICI_PRU",
-    productType: "Guaranteed Savings Plans",
     productType: "Guaranteed Savings Plans",
   },
   {
@@ -4697,14 +4624,12 @@ export const productsData = [
     planNumber: "ICICIPRU032",
     providerCode: "ICICI_PRU",
     productType: "Term Insurance with Returns",
-    productType: "Term Insurance with Returns",
   },
   {
     productName: "ICICI Pru GIFT Pro",
     productCode: "105N201V05",
     planNumber: "ICICIPRU033",
     providerCode: "ICICI_PRU",
-    productType: "Guaranteed Savings Plans",
     productType: "Guaranteed Savings Plans",
   },
   {
@@ -4713,14 +4638,12 @@ export const productsData = [
     planNumber: "ICICIPRU034",
     providerCode: "ICICI_PRU",
     productType: "Retirement and Pension Plans",
-    productType: "Retirement and Pension Plans",
   },
   {
     productName: "ICICI Pru Platinum",
     productCode: "105L192V04",
     planNumber: "ICICIPRU035",
     providerCode: "ICICI_PRU",
-    productType: "ULIP",
     productType: "ULIP",
   },
   {
@@ -4729,14 +4652,12 @@ export const productsData = [
     planNumber: "ICICIPRU036",
     providerCode: "ICICI_PRU",
     productType: "Health Insurance Plans",
-    productType: "Health Insurance Plans",
   },
   {
     productName: "ICICI Pru Smart Insurance Plan Plus",
     productCode: "105L204V03",
     planNumber: "ICICIPRU037",
     providerCode: "ICICI_PRU",
-    productType: "ULIP",
     productType: "ULIP",
   },
   {
@@ -4745,14 +4666,12 @@ export const productsData = [
     planNumber: "ICICIPRU038",
     providerCode: "ICICI_PRU",
     productType: "Guaranteed Savings Plans",
-    productType: "Guaranteed Savings Plans",
   },
   {
     productName: "ICICI Pru Group Unit Linked Superannuation Plus",
     productCode: "105L200V02",
     planNumber: "ICICIPRU039",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4761,14 +4680,12 @@ export const productsData = [
     planNumber: "ICICIPRU040",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Group Unit Linked Superannuation",
     productCode: "105L136V03",
     planNumber: "ICICIPRU041",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4777,14 +4694,12 @@ export const productsData = [
     planNumber: "ICICIPRU042",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Group Unit Linked Employee Benefit Plan",
     productCode: "105L137V04",
     planNumber: "ICICIPRU043",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4794,14 +4709,12 @@ export const productsData = [
     planNumber: "ICICIPRU044",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Group Suraksha Plus",
     productCode: "105N147V03",
     planNumber: "ICICIPRU045",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4810,14 +4723,12 @@ export const productsData = [
     planNumber: "ICICIPRU046",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Group Loan Secure",
     productCode: "105N152V04",
     planNumber: "ICICIPRU047",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4826,14 +4737,12 @@ export const productsData = [
     planNumber: "ICICIPRU048",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Shubh Raksha One",
     productCode: "105N158V03",
     planNumber: "ICICIPRU049",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4842,14 +4751,12 @@ export const productsData = [
     planNumber: "ICICIPRU050",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Super Protect - Credit",
     productCode: "105N176V03",
     planNumber: "ICICIPRU051",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
   {
@@ -4858,14 +4765,12 @@ export const productsData = [
     planNumber: "ICICIPRU052",
     providerCode: "ICICI_PRU",
     productType: "Group Insurance Plans",
-    productType: "Group Insurance Plans",
   },
   {
     productName: "ICICI Pru Group Nischit Aay Yojna",
     productCode: "105N203V02",
     planNumber: "ICICIPRU053",
     providerCode: "ICICI_PRU",
-    productType: "Group Insurance Plans",
     productType: "Group Insurance Plans",
   },
 
@@ -4876,14 +4781,12 @@ export const productsData = [
     planNumber: "SUD-LI-001",
     providerCode: "SUD",
     productType: "Term Insurance Plans",
-    productType: "Term Insurance Plans",
   },
   {
     productName: "SUD Life Assured Term Plan",
     productCode: "142N102V01",
     planNumber: "SUD-LI-002",
     providerCode: "SUD",
-    productType: "Term Insurance Plans",
     productType: "Term Insurance Plans",
   },
   {
@@ -4892,14 +4795,12 @@ export const productsData = [
     planNumber: "SUD-LI-003",
     providerCode: "SUD",
     productType: "Term Insurance Plans",
-    productType: "Term Insurance Plans",
   },
   {
     productName: "SUD Life Smart Term Plan",
     productCode: "142N096V01",
     planNumber: "SUD-LI-004",
     providerCode: "SUD",
-    productType: "Term Insurance Plans",
     productType: "Term Insurance Plans",
   },
   {
@@ -4908,14 +4809,12 @@ export const productsData = [
     planNumber: "SUD-LI-005",
     providerCode: "SUD",
     productType: "Term Insurance Plans",
-    productType: "Term Insurance Plans",
   },
   {
     productName: "SUD Life e-Lifeline",
     productCode: "142N092V02",
     planNumber: "SUD-LI-006",
     providerCode: "SUD",
-    productType: "Term Insurance Plans",
     productType: "Term Insurance Plans",
   },
   {
@@ -4924,14 +4823,12 @@ export const productsData = [
     planNumber: "SUD-LI-007",
     providerCode: "SUD",
     productType: "Term Insurance Plans",
-    productType: "Term Insurance Plans",
   },
   {
     productName: "SUD Life E-Wealth Royale Plan",
     productCode: "142L082V03",
     planNumber: "SUD-LI-008",
     providerCode: "SUD",
-    productType: "ULIP - Market-Linked-Plans",
     productType: "ULIP - Market-Linked-Plans",
   },
   {
@@ -4940,14 +4837,12 @@ export const productsData = [
     planNumber: "SUD-LI-009",
     providerCode: "SUD",
     productType: "ULIP - Market-Linked-Plans",
-    productType: "ULIP - Market-Linked-Plans",
   },
   {
     productName: "SUD LIFE Wealth Creator",
     productCode: "142L077V01",
     planNumber: "SUD-LI-010",
     providerCode: "SUD",
-    productType: "ULIP - Market-Linked-Plans",
     productType: "ULIP - Market-Linked-Plans",
   },
   {
@@ -4956,14 +4851,12 @@ export const productsData = [
     planNumber: "SUD-LI-011",
     providerCode: "SUD",
     productType: "ULIP - Market-Linked-Plans",
-    productType: "ULIP - Market-Linked-Plans",
   },
   {
     productName: "SUD Life Immediate Annuity Plus",
     productCode: "142N048V08",
     planNumber: "SUD-LI-012",
     providerCode: "SUD",
-    productType: "Retirement Plans",
     productType: "Retirement Plans",
   },
   {
@@ -4972,14 +4865,12 @@ export const productsData = [
     planNumber: "SUD-LI-013",
     providerCode: "SUD",
     productType: "Retirement Plans",
-    productType: "Retirement Plans",
   },
   {
     productName: "SUD Life Retirement Royale",
     productCode: "142L099V02",
     planNumber: "SUD-LI-014",
     providerCode: "SUD",
-    productType: "Retirement Plans",
     productType: "Retirement Plans",
   },
   {
@@ -4988,14 +4879,12 @@ export const productsData = [
     planNumber: "SUD-LI-015",
     providerCode: "SUD",
     productType: "Retirement Plans",
-    productType: "Retirement Plans",
   },
   {
     productName: "SUD Life Smart Guaranteed Pension Plan",
     productCode: "142N123V01",
     planNumber: "SUD-LI-016",
     providerCode: "SUD",
-    productType: "Retirement Plans",
     productType: "Retirement Plans",
   },
   {
@@ -5004,14 +4893,12 @@ export const productsData = [
     planNumber: "SUD-LI-017",
     providerCode: "SUD",
     productType: "Health Plans",
-    productType: "Health Plans",
   },
   {
     productName: "SUD Life Health Assure",
     productCode: "142N098V01",
     planNumber: "SUD-LI-018",
     providerCode: "SUD",
-    productType: "Health Plans",
     productType: "Health Plans",
   },
   {
@@ -5020,14 +4907,12 @@ export const productsData = [
     planNumber: "SUD-LI-019",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Century Star",
     productCode: "142N075V04",
     planNumber: "SUD-LI-020",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5036,14 +4921,12 @@ export const productsData = [
     planNumber: "SUD-LI-021",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Century Plus",
     productCode: "142N074V05",
     planNumber: "SUD-LI-022",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5052,14 +4935,12 @@ export const productsData = [
     planNumber: "SUD-LI-023",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "POS – SUD Life Sanchay",
     productCode: "142N058V05",
     planNumber: "SUD-LI-024",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5068,14 +4949,12 @@ export const productsData = [
     planNumber: "SUD-LI-025",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Century Royale",
     productCode: "142N083V05",
     planNumber: "SUD-LI-026",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5084,14 +4963,12 @@ export const productsData = [
     planNumber: "SUD-LI-027",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Guarantee Royale",
     productCode: "142N122V01",
     planNumber: "SUD-LI-028",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5100,14 +4977,12 @@ export const productsData = [
     planNumber: "SUD-LI-029",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Centurion",
     productCode: "142N101V02",
     planNumber: "SUD-LI-030",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
   {
@@ -5116,14 +4991,12 @@ export const productsData = [
     planNumber: "SUD-LI-031",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Sampoorna Loan Suraksha Plus",
     productCode: "142N084V02",
     planNumber: "SUD-LI-032",
     providerCode: "SUD",
-    productType: "Credit Life Plans",
     productType: "Credit Life Plans",
   },
   {
@@ -5132,14 +5005,12 @@ export const productsData = [
     planNumber: "SUD-LI-033",
     providerCode: "SUD",
     productType: "Group Term Plans",
-    productType: "Group Term Plans",
   },
   {
     productName: "SUD Life Group Term Insurance Plus",
     productCode: "142N046V04",
     planNumber: "SUD-LI-034",
     providerCode: "SUD",
-    productType: "Group Term Plans",
     productType: "Group Term Plans",
   },
   {
@@ -5148,14 +5019,12 @@ export const productsData = [
     planNumber: "SUD-LI-035",
     providerCode: "SUD",
     productType: "Group Term Plans",
-    productType: "Group Term Plans",
   },
   {
     productName: "SUD Life Group Retirement Benefit Plan",
     productCode: "142L049V01",
     planNumber: "SUD-LI-036",
     providerCode: "SUD",
-    productType: "Group Retirement Plans",
     productType: "Group Retirement Plans",
   },
   {
@@ -5164,7 +5033,6 @@ export const productsData = [
     planNumber: "SUD-LI-037",
     providerCode: "SUD",
     productType: "Group Employee Benefit Plans",
-    productType: "Group Employee Benefit Plans",
   },
   {
     productName: "SUD Life Fortune Plus",
@@ -5172,14 +5040,12 @@ export const productsData = [
     planNumber: "SUD-LI-038",
     providerCode: "SUD",
     productType: "Savings Plans",
-    productType: "Savings Plans",
   },
   {
     productName: "SUD Life Aadarsh",
     productCode: "142N054V04",
     planNumber: "SUD-LI-039",
     providerCode: "SUD",
-    productType: "Savings Plans",
     productType: "Savings Plans",
   },
 
@@ -5190,14 +5056,12 @@ export const productsData = [
     planNumber: "IF-LI-001",
     providerCode: "INDIAFIRST",
     productType: "Term Insurance",
-    productType: "Term Insurance",
   },
   {
     productName: "IndiaFirst Life Super Protection Plan",
     productCode: "143N075V01",
     planNumber: "IF-LI-002",
     providerCode: "INDIAFIRST",
-    productType: "Term Insurance",
     productType: "Term Insurance",
   },
   {
@@ -5206,14 +5070,12 @@ export const productsData = [
     planNumber: "IF-LI-003",
     providerCode: "INDIAFIRST",
     productType: "Term Insurance",
-    productType: "Term Insurance",
   },
   {
     productName: "IndiaFirst Life Saral Jeevan Bima Plan",
     productCode: "143N061V01",
     planNumber: "IF-LI-004",
     providerCode: "INDIAFIRST",
-    productType: "Term Insurance",
     productType: "Term Insurance",
   },
   {
@@ -5222,14 +5084,12 @@ export const productsData = [
     planNumber: "IF-LI-005",
     providerCode: "INDIAFIRST",
     productType: "Term Insurance",
-    productType: "Term Insurance",
   },
   {
     productName: "IndiaFirst Life Assured Income For Milestones Plan",
     productCode: "143N101V01",
     planNumber: "IF-LI-006",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5238,14 +5098,12 @@ export const productsData = [
     planNumber: "IF-LI-007",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life Growth of Life Dreams Plus Plan",
     productCode: "143N093V02",
     planNumber: "IF-LI-008",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5254,14 +5112,12 @@ export const productsData = [
     planNumber: "IF-LI-009",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life Fortune Plus Plan",
     productCode: "143N065V03",
     planNumber: "IF-LI-010",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5270,14 +5126,12 @@ export const productsData = [
     planNumber: "IF-LI-011",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life Cash Back Plan",
     productCode: "143N024V05",
     planNumber: "IF-LI-012",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5286,14 +5140,12 @@ export const productsData = [
     planNumber: "IF-LI-013",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Simple Benefit Plan",
     productCode: "143N019V03",
     planNumber: "IF-LI-014",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5302,14 +5154,12 @@ export const productsData = [
     planNumber: "IF-LI-015",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life Smart Pay Plan",
     productCode: "143N051V04",
     planNumber: "IF-LI-016",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5318,14 +5168,12 @@ export const productsData = [
     planNumber: "IF-LI-017",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life Micro Bachat Plan",
     productCode: "143N052V02",
     planNumber: "IF-LI-018",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5334,14 +5182,12 @@ export const productsData = [
     planNumber: "IF-LI-019",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life CSC Shubhlabh Plan",
     productCode: "143N023V01",
     planNumber: "IF-LI-020",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5351,14 +5197,12 @@ export const productsData = [
     planNumber: "IF-LI-021",
     providerCode: "INDIAFIRST",
     productType: "Savings  Plan",
-    productType: "Savings  Plan",
   },
   {
     productName: "IndiaFirst Life POS Cash Back Plan",
     productCode: "143N034V01",
     planNumber: "IF-LI-022",
     providerCode: "INDIAFIRST",
-    productType: "Savings  Plan",
     productType: "Savings  Plan",
   },
   {
@@ -5367,14 +5211,12 @@ export const productsData = [
     planNumber: "IF-LI-023",
     providerCode: "INDIAFIRST",
     productType: "ULIP Plans",
-    productType: "ULIP Plans",
   },
   {
     productName: "IndiaFirst Life Wealth Maximizer Plan",
     productCode: "143L029V05",
     planNumber: "IF-LI-024",
     providerCode: "INDIAFIRST",
-    productType: "ULIP Plans",
     productType: "ULIP Plans",
   },
   {
@@ -5383,14 +5225,12 @@ export const productsData = [
     planNumber: "IF-LI-025",
     providerCode: "INDIAFIRST",
     productType: "ULIP Plans",
-    productType: "ULIP Plans",
   },
   {
     productName: "IndiaFirst Smart Save Plan",
     productCode: "143L010V04",
     planNumber: "IF-LI-026",
     providerCode: "INDIAFIRST",
-    productType: "ULIP Plans",
     productType: "ULIP Plans",
   },
   {
@@ -5399,14 +5239,12 @@ export const productsData = [
     planNumber: "IF-LI-027",
     providerCode: "INDIAFIRST",
     productType: "Guaranteed Returns Plans",
-    productType: "Guaranteed Returns Plans",
   },
   {
     productName: "IndiaFirst Life Little Champ Plan",
     productCode: "143N035V02",
     planNumber: "IF-LI-028",
     providerCode: "INDIAFIRST",
-    productType: "Child Insurance Plans",
     productType: "Child Insurance Plans",
   },
   {
@@ -5415,14 +5253,12 @@ export const productsData = [
     planNumber: "IF-LI-029",
     providerCode: "INDIAFIRST",
     productType: "Retirement & Pension Plans",
-    productType: "Retirement & Pension Plans",
   },
   {
     productName: "IndiaFirst Guaranteed Retirement Plan",
     productCode: "143N026V02",
     planNumber: "IF-LI-030",
     providerCode: "INDIAFIRST",
-    productType: "Retirement & Pension Plans",
     productType: "Retirement & Pension Plans",
   },
   {
@@ -5431,14 +5267,12 @@ export const productsData = [
     planNumber: "IF-LI-031",
     providerCode: "INDIAFIRST",
     productType: "Retirement & Pension Plans",
-    productType: "Retirement & Pension Plans",
   },
   {
     productName: "IndiaFirst Life Guaranteed Pension Plan",
     productCode: "143N066V05",
     planNumber: "IF-LI-032",
     providerCode: "INDIAFIRST",
-    productType: "Retirement & Pension Plans",
     productType: "Retirement & Pension Plans",
   },
   {
@@ -5447,14 +5281,12 @@ export const productsData = [
     planNumber: "IF-LI-033",
     providerCode: "INDIAFIRST",
     productType: "Retirement & Pension Plans",
-    productType: "Retirement & Pension Plans",
   },
   {
     productName: "IndiaFirst Life Group Living Benefits Plan",
     productCode: "143N040V02",
     planNumber: "IF-LI-034",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5463,14 +5295,12 @@ export const productsData = [
     planNumber: "IF-LI-035",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "Group Credit Life Plus Plan",
     productCode: "143N036V02",
     planNumber: "IF-LI-036",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5479,14 +5309,12 @@ export const productsData = [
     planNumber: "IF-LI-037",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "IndiaFirst Life Group Loan Protect Plan",
     productCode: "143N055V02",
     planNumber: "IF-LI-038",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5495,14 +5323,12 @@ export const productsData = [
     planNumber: "IF-LI-039",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "IndiaFirst Life Group Critical Illness Rider Plan",
     productCode: "143B002V02",
     planNumber: "IF-LI-040",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5511,14 +5337,12 @@ export const productsData = [
     planNumber: "IF-LI-041",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "Group Disability Rider",
     productCode: "143B004V02",
     planNumber: "IF-LI-042",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5527,14 +5351,12 @@ export const productsData = [
     planNumber: "IF-LI-043",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "Superannuation Plan",
     productCode: "143N020V03",
     planNumber: "IF-LI-044",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
   {
@@ -5543,14 +5365,12 @@ export const productsData = [
     planNumber: "IF-LI-045",
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
-    productType: "Group & Corporate Life Insurance Plans",
   },
   {
     productName: "IndiaFirst Employee Benefit Plan",
     productCode: "143L013V02",
     planNumber: "IF-LI-046",
     providerCode: "INDIAFIRST",
-    productType: "Group & Corporate Life Insurance Plans",
     productType: "Group & Corporate Life Insurance Plans",
   },
 
