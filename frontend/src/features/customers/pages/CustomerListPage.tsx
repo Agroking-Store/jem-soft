@@ -29,9 +29,11 @@ import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { deleteCustomer, fetchCustomers } from "@/features/customers/customerSlice";
 import { deleteCustomerMaster, fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { fetchFamilyHistories } from "@/features/customers/familyHistorySlice";
 import FamilyHistoryForm from "./FamilyHistoryForm";
 import FamilyHistoryList from "./FamilyHistoryList";
 import FamilyHistoryView from "./FamilyHistoryView";
+import MedicalHistoryForm from "./MedicalHistoryForm";
 import CustomerCreatePage from "./CustomerCreatePage";
 import CustomerDetailsPage from "./CustomerDetailsPage";
 import CustomerEditPage from "./CustomerEditPage";
@@ -318,6 +320,10 @@ export default function CustomerListPage() {
         entry = { key, type, memberId: id, groupId: extraId };
       } else if (type === "master-create") {
         entry = { key, type, groupId: id };
+      } else if (type === "medical-create") {
+        entry = { key, type, memberId: id || "" };
+      } else if (type === "medical-edit") {
+        entry = { key, type, id: id || "", memberId: extraId || "" };
       } else {
         entry = { key, type, ...(id ? { id } : {}) } as any;
       }
@@ -336,6 +342,7 @@ export default function CustomerListPage() {
   const handleModalMutation = () => {
     dispatch(fetchCustomers());
     dispatch(fetchCustomersMaster());
+    dispatch(fetchFamilyHistories());
     closeTopModal();
   };
 
@@ -489,7 +496,7 @@ export default function CustomerListPage() {
                     <TableHeadCell align="center">Members</TableHeadCell>
                     <TableHeadCell align="center">Open</TableHeadCell>
                     <TableHeadCell align="center">Photo</TableHeadCell>
-                    {isClient && canEdit && <TableHeadCell align="right" />}
+                    {isClient && canEdit && <TableHeadCell align="right">Actions</TableHeadCell>}
                   </tr>
                 </thead>
                 <tbody>
@@ -666,7 +673,7 @@ export default function CustomerListPage() {
                   <TableHeadCell>Contact</TableHeadCell>
                   <TableHeadCell>Type</TableHeadCell>
                   <TableHeadCell align="center">Status</TableHeadCell>
-                  {isClient && canEdit && <TableHeadCell align="right" />}
+                  {isClient && canEdit && <TableHeadCell align="right">Actions</TableHeadCell>}
                 </tr>
               </thead>
               <tbody>
@@ -711,7 +718,7 @@ export default function CustomerListPage() {
                         {customer.group ? (
                           <button
                             type="button"
-                            onClick={() => openModal("group-details", customer.group.id)}
+                            onClick={() => customer.group && openModal("group-details", customer.group.id)}
                             className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
                           >
                             <Building2 size={11} />
@@ -829,6 +836,7 @@ export default function CustomerListPage() {
             onClose={closeTopModal}
             onDeleted={handleModalMutation}
             onOpenModal={openModal}
+            modalStackLength={modalStack.length}
           />
         );
       case "group-edit":
@@ -857,6 +865,7 @@ export default function CustomerListPage() {
             onClose={closeTopModal}
             onDeleted={handleModalMutation}
             onOpenModal={openModal}
+            modalStackLength={modalStack.length}
           />
         );
       case "master-edit":
@@ -886,6 +895,21 @@ export default function CustomerListPage() {
         );
       case "family-edit":
         return <FamilyHistoryForm recordId={modal.id} onClose={handleModalMutation} />;
+      case "medical-create":
+        return (
+          <MedicalHistoryForm
+            memberId={"memberId" in modal ? modal.memberId : ""}
+            onClose={handleModalMutation}
+          />
+        );
+      case "medical-edit":
+        return (
+          <MedicalHistoryForm
+            recordId={modal.id}
+            memberId={"memberId" in modal ? modal.memberId : ""}
+            onClose={handleModalMutation}
+          />
+        );
     }
   };
 

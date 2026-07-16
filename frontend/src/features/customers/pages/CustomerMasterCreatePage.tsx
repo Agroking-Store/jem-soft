@@ -265,6 +265,14 @@ function GroupAutoComplete({
   );
 }
 
+interface CustomerMasterCreatePageProps {
+  isModal?: boolean;
+  onClose?: () => void;
+  onSaved?: () => void;
+  onOpenGroupCreate?: () => void;
+  groupId?: string;
+}
+
 // ─── Main Component ───────────────────────────────────────────────
 export default function CustomerMasterCreatePage({ isModal = false, onClose, onSaved, onOpenGroupCreate, groupId }: CustomerMasterCreatePageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();

@@ -9,7 +9,7 @@ import { useRouter, useParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomer, deleteCustomer } from "@/features/customers/customerSlice";
-import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { fetchCustomersMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
 import {
   ArrowLeft,
   Mail,
@@ -30,6 +30,7 @@ import {
   XCircle,
   AlertCircle,
   FileText,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -39,7 +40,8 @@ interface CustomerDetailsPageProps {
   customerId?: string;
   onClose?: () => void;
   onDeleted?: () => void;
-  onOpenModal?: (type: CustomerModalEntry["type"], id?: string) => void;
+  onOpenModal?: (type: CustomerModalEntry["type"], id?: string, extraId?: string) => void;
+  modalStackLength?: number;
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
@@ -56,17 +58,22 @@ function SectionCard({
   title,
   icon,
   children,
+  headerActions,
 }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
+  headerActions?: React.ReactNode;
 }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[#0B1220]/5 text-[#0B1220]">{icon}</span>
-        <h2 className="font-serif text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
+      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+        <div className="flex items-center gap-2.5">
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#0B1220] shrink-0">{icon}</span>
+          <h2 className="font-serif text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
+        </div>
+        {headerActions}
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -123,6 +130,7 @@ export default function CustomerDetailsPage({
   onClose,
   onDeleted,
   onOpenModal,
+  modalStackLength,
 }: CustomerDetailsPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -135,13 +143,28 @@ export default function CustomerDetailsPage({
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState<"overview" | "members">("overview");
 
   useEffect(() => {
     if (id) {
       dispatch(fetchCustomer(id));
       dispatch(fetchCustomersMaster());
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, modalStackLength]);
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (confirm(`Are you sure you want to delete ${memberName}?`)) {
+      try {
+        await dispatch(deleteCustomerMaster(memberId)).unwrap();
+        toast.success("Member deleted successfully");
+        if (id) {
+          dispatch(fetchCustomer(id));
+        }
+      } catch (err: any) {
+        toast.error(err || "Failed to delete member");
+      }
+    }
+  };
 
   const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
   const groupMembers = masterCustomers.filter((customer) => customer.groupId === id);
@@ -285,282 +308,341 @@ export default function CustomerDetailsPage({
         </div>
       </div>
 
-      <SectionCard title="Contact Information" icon={<Phone size={16} />}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <InfoRow label="Mobile Personal" value={currentCustomer.mobilePersonal} />
-          <InfoRow label="E-Mail Personal" value={currentCustomer.emailPersonal} />
-          <InfoRow label="Mobile Business" value={currentCustomer.mobileBusiness} />
-          <InfoRow label="E-Mail Business" value={currentCustomer.emailBusiness} />
-          <InfoRow label="Portal Email" value={currentCustomer.email} />
-          <InfoRow label="Portal Phone" value={currentCustomer.phone} />
+      {/* Sub tabs for Group Details */}
+      <div className="flex border-b border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab("overview")}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+            activeSubTab === "overview"
+              ? "border-[#B8873A] text-[#0B1220]"
+              : "border-transparent text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSubTab("members")}
+          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+            activeSubTab === "members"
+              ? "border-[#B8873A] text-[#0B1220]"
+              : "border-transparent text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          Members ({groupMembers.length})
+        </button>
+      </div>
+
+      {activeSubTab === "overview" && (
+        <div className="space-y-6">
+          <SectionCard title="Contact Information" icon={<Phone size={16} />}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <InfoRow label="Mobile Personal" value={currentCustomer.mobilePersonal} />
+              <InfoRow label="E-Mail Personal" value={currentCustomer.emailPersonal} />
+              <InfoRow label="Mobile Business" value={currentCustomer.mobileBusiness} />
+              <InfoRow label="E-Mail Business" value={currentCustomer.emailBusiness} />
+              <InfoRow label="Portal Email" value={currentCustomer.email} />
+              <InfoRow label="Portal Phone" value={currentCustomer.phone} />
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Addresses" icon={<MapPin size={16} />}>
+            <div className="space-y-5">
+              {/* Residence */}
+              <div className="border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  <Home size={13} />
+                  Residence
+                </div>
+
+                <div className="space-y-1 text-sm text-slate-700">
+                  {residenceAddress.length ? (
+                    residenceAddress.map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))
+                  ) : (
+                    <p>-</p>
+                  )}
+
+                  <p>
+                    {[
+                      currentCustomer.resCity,
+                      currentCustomer.resState,
+                      currentCustomer.resCountry,
+                      currentCustomer.resPin,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <InfoRow label="City" value={currentCustomer.resCity} />
+                  <InfoRow label="Area" value={currentCustomer.resArea} />
+                </div>
+              </div>
+
+              {/* Office */}
+              <div className="border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  <Briefcase size={13} />
+                  Office
+                </div>
+
+                <div className="space-y-1 text-sm text-slate-700">
+                  {officeAddress.length ? (
+                    officeAddress.map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))
+                  ) : (
+                    <p>-</p>
+                  )}
+
+                  <p>
+                    {[
+                      currentCustomer.offCity,
+                      currentCustomer.offState,
+                      currentCustomer.offCountry,
+                      currentCustomer.offPin,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <InfoRow label="City" value={currentCustomer.offCity} />
+                  <InfoRow label="Area" value={currentCustomer.offArea} />
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Group Policies" icon={<FileText size={16} />}>
+            {!currentCustomer.policies || currentCustomer.policies.length === 0 ? (
+              <div className="text-center py-10">
+                <FileText size={28} className="text-slate-300 mx-auto mb-3" />
+                <h3 className="text-sm font-semibold text-slate-800 mb-1">No policies found</h3>
+                <p className="text-sm text-slate-500 mb-4">No policies are mapped to this customer group.</p>
+                {canEdit && (
+                  <Link
+                    href="/dashboard/lic/policies/new"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Create Policy
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      <th className="py-3 px-4 text-left">Policy Number</th>
+                      <th className="py-3 px-4 text-left">Life Assured</th>
+                      <th className="py-3 px-4 text-left">Provider / Product</th>
+                      <th className="py-3 px-4 text-right">Sum Assured</th>
+                      <th className="py-3 px-4 text-right">Installment Premium</th>
+                      <th className="py-3 px-4 text-center">Commencement Date</th>
+                      <th className="py-3 px-4 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {currentCustomer.policies.map((policy: any) => {
+                      const memberName = policy.CustomerMaster
+                        ? [policy.CustomerMaster.salutation, policy.CustomerMaster.firstName, policy.CustomerMaster.middleName, policy.CustomerMaster.lastName]
+                            .filter(Boolean)
+                            .join(" ")
+                        : "—";
+
+                      const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
+                      const StatusIcon = statusDetails.icon;
+
+                      return (
+                        <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                          <td className="py-3 px-4 font-semibold text-slate-900">
+                            {canEdit ? (
+                              <Link
+                                href={`/dashboard/lic/policies/edit/${policy.id}`}
+                                className="text-[#0B1220] hover:text-[#16294D] hover:underline"
+                              >
+                                {policy.policyNumber}
+                              </Link>
+                            ) : (
+                              policy.policyNumber
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 font-medium">{memberName}</td>
+                          <td className="py-3 px-4">
+                            <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
+                            <div className="text-xs text-slate-500">
+                              {policy.product?.productName || "—"} {policy.product?.planNumber ? `(Plan: ${policy.product.planNumber})` : ""}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                            {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                            {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
+                            <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center text-slate-600 font-medium">
+                            {policy.commencementDate ? new Date(policy.commencementDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
+                              <StatusIcon size={11} />
+                              {policy.status?.statusName || "Active"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Record Details" icon={<Calendar size={16} />}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Created At</p>
+                  <p className="text-slate-900 font-medium mt-0.5">{formatDate(currentCustomer.createdAt)}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Last Updated</p>
+                  <p className="text-slate-900 font-medium mt-0.5">{formatDate(currentCustomer.updatedAt)}</p>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
         </div>
-      </SectionCard>
+      )}
 
-      <SectionCard title="Addresses" icon={<MapPin size={16} />}>
-        <div className="space-y-5">
-          {/* Residence */}
-          <div className="border border-slate-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-              <Home size={13} />
-              Residence
-            </div>
-
-            <div className="space-y-1 text-sm text-slate-700">
-              {residenceAddress.length ? (
-                residenceAddress.map((line, index) => (
-                  <p key={index}>{line}</p>
-                ))
-              ) : (
-                <p>-</p>
-              )}
-
-              <p>
-                {[
-                  currentCustomer.resCity,
-                  currentCustomer.resState,
-                  currentCustomer.resCountry,
-                  currentCustomer.resPin,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <InfoRow label="City" value={currentCustomer.resCity} />
-              <InfoRow label="Area" value={currentCustomer.resArea} />
-            </div>
-          </div>
-
-          {/* Office */}
-          <div className="border border-slate-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-              <Briefcase size={13} />
-              Office
-            </div>
-
-            <div className="space-y-1 text-sm text-slate-700">
-              {officeAddress.length ? (
-                officeAddress.map((line, index) => (
-                  <p key={index}>{line}</p>
-                ))
-              ) : (
-                <p>-</p>
-              )}
-
-              <p>
-                {[
-                  currentCustomer.offCity,
-                  currentCustomer.offState,
-                  currentCustomer.offCountry,
-                  currentCustomer.offPin,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <InfoRow label="City" value={currentCustomer.offCity} />
-              <InfoRow label="Area" value={currentCustomer.offArea} />
-            </div>
-          </div>
-        </div>
-      </SectionCard>
-
-
-      <SectionCard title="Group Members" icon={<Users size={16} />}>
-        {groupMembers.length === 0 ? (
-          <div className="text-center py-10">
-            <Users size={28} className="text-slate-300 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-800 mb-1">No members mapped</h3>
-            <p className="text-sm text-slate-500 mb-4">Create an individual customer and select this group.</p>
-            {canEdit && (
+      {activeSubTab === "members" && (
+        <SectionCard
+          title="Group Members"
+          icon={<Users size={16} />}
+          headerActions={
+            canEdit && (
               <button
                 type="button"
-                onClick={() => (isModal ? onOpenModal?.("master-create") : router.push("/dashboard/customers/master/new"))}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
+                onClick={() => onOpenModal?.("master-create", currentCustomer.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
               >
-                Add Customer
+                <Plus size={12} /> Add Member
               </button>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Relation</th>
-                  <th className="py-3 px-4 text-left">Contact</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {groupMembers.map((member) => {
-                  const fullName = getFullName(member);
-                  return (
-                    <tr key={member.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
-                      <td className="py-3 px-4">
-                        <button
-                          type="button"
-                          onClick={() => (isModal ? onOpenModal?.("master-details", member.id) : router.push(`/dashboard/customers/master/${member.id}`))}
-                          className="font-semibold text-slate-900 hover:text-[#0B1220] transition-colors flex items-center gap-1 group"
-                        >
-                          {fullName}
-                          <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#0B1220]" />
-                        </button>
-                        <span className="text-xs text-slate-400">{member.customerType || "Customer"}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-600">{member.miscInfo?.relationToGroup || "-"}</td>
-                      <td className="py-3 px-4">
-                        <div className="space-y-1">
-                          {member.contactInfo?.mobile1 && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                              <Phone size={11} />
-                              {member.contactInfo.mobile1}
-                            </div>
-                          )}
-                          {member.contactInfo?.emailPersonal && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                              <Mail size={11} />
-                              {member.contactInfo.emailPersonal}
-                            </div>
-                          )}
-                          {!member.contactInfo?.mobile1 && !member.contactInfo?.emailPersonal && (
-                            <span className="text-xs text-slate-300">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {member.isGroupHead ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
-                            <Star size={11} />
-                            Head
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
-                            Member
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
-
-      <SectionCard title="Group Policies" icon={<FileText size={16} />}>
-        {!currentCustomer.policies || currentCustomer.policies.length === 0 ? (
-          <div className="text-center py-10">
-            <FileText size={28} className="text-slate-300 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-800 mb-1">No policies found</h3>
-            <p className="text-sm text-slate-500 mb-4">No policies are mapped to this customer group.</p>
-            {canEdit && (
-              <Link
-                href="/dashboard/lic/policies/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
-              >
-                Create Policy
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  <th className="py-3 px-4 text-left">Policy Number</th>
-                  <th className="py-3 px-4 text-left">Life Assured</th>
-                  <th className="py-3 px-4 text-left">Provider / Product</th>
-                  <th className="py-3 px-4 text-right">Sum Assured</th>
-                  <th className="py-3 px-4 text-right">Installment Premium</th>
-                  <th className="py-3 px-4 text-center">Commencement Date</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {currentCustomer.policies.map((policy: any) => {
-                  const memberName = policy.CustomerMaster
-                    ? [policy.CustomerMaster.salutation, policy.CustomerMaster.firstName, policy.CustomerMaster.middleName, policy.CustomerMaster.lastName]
-                        .filter(Boolean)
-                        .join(" ")
-                    : "—";
-
-                  const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
-                  const StatusIcon = statusDetails.icon;
-
-                  return (
-                    <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-900">
-                        {canEdit ? (
-                          <Link
-                            href={`/dashboard/lic/policies/edit/${policy.id}`}
-                            className="text-[#0B1220] hover:text-[#16294D] hover:underline"
+            )
+          }
+        >
+          {groupMembers.length === 0 ? (
+            <div className="text-center py-10">
+              <Users size={28} className="text-slate-300 mx-auto mb-3" />
+              <h3 className="text-sm font-semibold text-slate-800 mb-1">No members mapped</h3>
+              <p className="text-sm text-slate-500 mb-4">Create an individual customer and select this group.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <th className="py-3 px-4 text-left">Name</th>
+                    <th className="py-3 px-4 text-left">Relation</th>
+                    <th className="py-3 px-4 text-left">Contact</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    {canEdit && <th className="py-3 px-4 text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {groupMembers.map((member) => {
+                    const fullName = getFullName(member);
+                    return (
+                      <tr key={member.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                        <td className="py-3 px-4">
+                          <button
+                            type="button"
+                            onClick={() => onOpenModal?.("master-details", member.id)}
+                            className="font-semibold text-slate-900 hover:text-[#0B1220] transition-colors flex items-center gap-1 group"
                           >
-                            {policy.policyNumber}
-                          </Link>
-                        ) : (
-                          policy.policyNumber
+                            {fullName}
+                            <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#0B1220]" />
+                          </button>
+                          <span className="text-xs text-slate-400">{member.customerType || "Customer"}</span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">{member.miscInfo?.relationToGroup || "-"}</td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            {member.contactInfo?.mobile1 && (
+                              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <Phone size={11} />
+                                {member.contactInfo.mobile1}
+                              </div>
+                            )}
+                            {member.contactInfo?.emailPersonal && (
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                <Mail size={11} />
+                                {member.contactInfo.emailPersonal}
+                              </div>
+                            )}
+                            {!member.contactInfo?.mobile1 && !member.contactInfo?.emailPersonal && (
+                              <span className="text-xs text-slate-300">-</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {member.isGroupHead ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                              <Star size={11} />
+                              Head
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
+                              Member
+                            </span>
+                          )}
+                        </td>
+                        {canEdit && (
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => onOpenModal?.("master-edit", member.id)}
+                                className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                title="Edit Member"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMember(member.id, fullName)}
+                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                                title="Delete Member"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
                         )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-700 font-medium">{memberName}</td>
-                      <td className="py-3 px-4">
-                        <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
-                        <div className="text-xs text-slate-500">
-                          {policy.product?.productName || "—"} {policy.product?.planNumber ? `(Plan: ${policy.product.planNumber})` : ""}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right text-slate-900 font-medium">
-                        {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
-                      </td>
-                      <td className="py-3 px-4 text-right text-slate-900 font-medium">
-                        {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
-                        <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
-                      </td>
-                      <td className="py-3 px-4 text-center text-slate-600 font-medium">
-                        {policy.commencementDate ? new Date(policy.commencementDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
-                          <StatusIcon size={11} />
-                          {policy.status?.statusName || "Active"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
-
-      <SectionCard title="Record Details" icon={<Calendar size={16} />}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
-              <Calendar size={18} />
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <p className="text-xs text-slate-400">Created At</p>
-              <p className="text-slate-900 font-medium mt-0.5">{formatDate(currentCustomer.createdAt)}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
-              <Clock size={18} />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Last Updated</p>
-              <p className="text-slate-900 font-medium mt-0.5">{formatDate(currentCustomer.updatedAt)}</p>
-            </div>
-          </div>
-        </div>
-      </SectionCard>
+          )}
+        </SectionCard>
+      )}
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">

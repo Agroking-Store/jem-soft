@@ -12,7 +12,9 @@ export type CustomerModalEntry =
   | { key: string; type: "master-edit"; id: string }
   | { key: string; type: "family-create"; memberId?: string; groupId?: string }
   | { key: string; type: "family-details"; id: string }
-  | { key: string; type: "family-edit"; id: string };
+  | { key: string; type: "family-edit"; id: string }
+  | { key: string; type: "medical-create"; memberId: string }
+  | { key: string; type: "medical-edit"; id: string; memberId: string };
 
 export function getCustomerModalTitle(entry: CustomerModalEntry) {
   switch (entry.type) {
@@ -34,6 +36,10 @@ export function getCustomerModalTitle(entry: CustomerModalEntry) {
       return "Family History Details";
     case "family-edit":
       return "Edit Family History";
+    case "medical-create":
+      return "Add Medical History";
+    case "medical-edit":
+      return "Edit Medical History";
   }
 }
 
