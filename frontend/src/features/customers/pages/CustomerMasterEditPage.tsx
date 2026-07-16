@@ -5,7 +5,9 @@ import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { format } from "date-fns";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { RootState, AppDispatch } from "@/store/store";
@@ -397,7 +399,20 @@ export default function CustomerMasterEditPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormSelect label="Gender" required error={errors.gender?.message} {...register("gender")}><option value="">Select gender</option>{GENDERS.map((g) => <option key={g}>{g}</option>)}</FormSelect>
-              <FormInput label="Date of Birth" type="date" required error={errors.dob?.message} {...register("dob")} />
+              <div>
+                <FieldLabel label="Date of Birth" required />
+                <Controller
+                  control={control}
+                  name="dob"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+                {errors.dob && <p className="mt-1 text-xs text-rose-600">{errors.dob.message}</p>}
+              </div>
               <FormSelect label="Customer Type" {...register("customerType")}><option value="">Select type</option>{CUSTOMER_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -513,10 +528,52 @@ export default function CustomerMasterEditPage() {
           <div className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormSelect label="Relation to Group" {...register("relationToGroup")}><option value="">Select relation</option>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
-              <FormInput label="D.O.B (Greetings)" type="date" {...register("dobForGreetings")} />
+              <div>
+                <FieldLabel label="D.O.B (Greetings)" />
+                <Controller
+                  control={control}
+                  name="dobForGreetings"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <FormInput label="Referred By" placeholder="Name of referrer" {...register("referredBy")} />
-              <div className="space-y-2"><FormInput label="Marriage Date" type="date" {...register("marriageDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" /> Is Married</label></div>
-              <div className="space-y-2"><FormInput label="Demise Date" type="date" {...register("demiseDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" /> Is Deceased</label></div>
+              <div className="space-y-2">
+                <div>
+                  <FieldLabel label="Marriage Date" />
+                  <Controller
+                    control={control}
+                    name="marriageDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
+                    )}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" /> Is Married</label>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <FieldLabel label="Demise Date" />
+                  <Controller
+                    control={control}
+                    name="demiseDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
+                    )}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" /> Is Deceased</label>
+              </div>
               <FormInput label="Nationality" placeholder="Indian" {...register("nationality")} />
               <FormSelect label="Qualification" {...register("qualification")}>
                 <option value="">Select qualification</option>
@@ -553,7 +610,19 @@ export default function CustomerMasterEditPage() {
               <FormSelect label="Religion" {...register("religion")}><option value="">Select</option>{RELIGIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
               <FormInput label="CRM Groups" placeholder="Group tag" {...register("crmGroups")} />
               <FormInput label="Passport No." placeholder="Passport number" {...register("passportNumber")} />
-              <FormInput label="Passport Expiry" type="date" {...register("passportExpiryDate")} />
+              <div>
+                <FieldLabel label="Passport Expiry" />
+                <Controller
+                  control={control}
+                  name="passportExpiryDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <FormInput label="GST No." placeholder="GST number" {...register("gstNumber")} />
               <div className="sm:col-span-2 lg:col-span-3"><FormTextarea label="Special Note" placeholder="Any special notes..." {...register("specialNote")} /></div>
             </div>

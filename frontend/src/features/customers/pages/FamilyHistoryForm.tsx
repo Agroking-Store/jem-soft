@@ -13,7 +13,9 @@ import {
   FamilyHistoryRecordItem,
 } from "../familyHistorySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
-import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X, ChevronRight, Calendar, Users } from "lucide-react";
+import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X, ChevronRight, Users } from "lucide-react";
+import { format } from "date-fns";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import toast from "react-hot-toast";
 import { formatFamilyHistoryDate } from "./FamilyHistoryList";
 import { SearchableSelect } from "@/features/customers/components/CustomerUi";
@@ -417,19 +419,13 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
             {/* Family History Date */}
             <div>
               <FieldLabel label="Family History Date" required />
-              <div className="relative">
-                <Calendar size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="date"
-                  value={familyHistoryDate}
-                  onChange={(e) => {
-                    setFamilyHistoryDate(e.target.value);
-                    setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
-                  }}
-                  className={`w-full border rounded-lg py-2.5 pl-9 pr-3 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] cursor-pointer
-                    ${basicErrors.familyHistoryDate ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                />
-              </div>
+              <DatePicker
+                value={familyHistoryDate ? new Date(familyHistoryDate) : undefined}
+                onChange={(date) => {
+                  setFamilyHistoryDate(date ? format(date, "yyyy-MM-dd") : "");
+                  setBasicErrors((p) => ({ ...p, familyHistoryDate: "" }));
+                }}
+              />
               {basicErrors.familyHistoryDate && (
                 <p className="text-xs text-red-500 mt-1">{basicErrors.familyHistoryDate}</p>
               )}
