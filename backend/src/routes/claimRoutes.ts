@@ -1,5 +1,5 @@
 import express from 'express';
-import { getClaims, addClaim, updateClaim, deleteClaim } from '../controllers/claimController.js';
+import { getClaims,getClaimById, addClaim, updateClaim, deleteClaim } from '../controllers/claimController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -9,6 +9,7 @@ router.route('/')
     .post(protect, addClaim);
 
 router.route('/:id')
+    .get(getClaimById)
     .put(protect, updateClaim)
     .delete(protect, deleteClaim);
 

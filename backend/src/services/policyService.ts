@@ -4,14 +4,13 @@ import { AppError } from "../utils/AppError.js";
 import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
 
-
-
 interface RiderData {
   description: string;
   sum: number | null;
   term: number | null;
   ppt: number | null;
   premium: number | null;
+  mode?: string;
 }
 
 interface NomineeData {
@@ -82,8 +81,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   const status = statusId
     ? await prisma.policyStatusMaster.findUnique({ where: { id: statusId } })
     : await prisma.policyStatusMaster.findFirst({
-      where: { statusCode: { equals: 'ACTIVE', mode: 'insensitive' } },
-    });
+        where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
+      });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
@@ -116,9 +115,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           ? new Date(data.completionDate)
           : undefined,
 
-        nextPremiumDueDate: fupDate
-          ? new Date(fupDate)
-          : undefined,
+        nextPremiumDueDate: fupDate ? new Date(fupDate) : undefined,
         policyTerm: term,
         premiumPayingTerm: ppt,
       },
@@ -136,6 +133,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
+              mode: riderData.mode,
             },
           });
         }
@@ -158,48 +156,48 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       },
     });
 
-   // Save Policy Attributes using values entered in the form
-   console.log("Received attributes:", data.attributes);
-if (data.attributes && Object.keys(data.attributes).length > 0) {
-  const productAttributes = await tx.productAttributeMaster.findMany({
-    where: {
-      attributeCode: {
-        in: Object.keys(data.attributes),
-      },
-    },
-  });
+    // Save Policy Attributes using values entered in the form
+    console.log("Received attributes:", data.attributes);
+    if (data.attributes && Object.keys(data.attributes).length > 0) {
+      const productAttributes = await tx.productAttributeMaster.findMany({
+        where: {
+          attributeCode: {
+            in: Object.keys(data.attributes),
+          },
+        },
+      });
 
-  const policyAttributesToCreate = productAttributes
-    .filter((attr) => data.attributes![attr.attributeCode] !== undefined)
-    .map((attr) => ({
-      policyId: newPolicy.id,
-      attributeId: attr.id,
-      value: String(data.attributes![attr.attributeCode]),
-    }));
+      const policyAttributesToCreate = productAttributes
+        .filter((attr) => data.attributes![attr.attributeCode] !== undefined)
+        .map((attr) => ({
+          policyId: newPolicy.id,
+          attributeId: attr.id,
+          value: String(data.attributes![attr.attributeCode]),
+        }));
 
-  if (policyAttributesToCreate.length > 0) {
-    await tx.policyAttribute.createMany({
-      data: policyAttributesToCreate,
-    });
-  }
-}
+      if (policyAttributesToCreate.length > 0) {
+        await tx.policyAttribute.createMany({
+          data: policyAttributesToCreate,
+        });
+      }
+    }
 
-if (data.nominees && data.nominees.length > 0) {
-  await tx.nominee.createMany({
-    data: data.nominees.map((nominee) => ({
-      policyId: newPolicy.id,
-      nomineeName: nominee.nomineeName,
-      relationship: nominee.relationship,
-      dateOfBirth: nominee.dateOfBirth
-        ? new Date(nominee.dateOfBirth)
-        : null,
-      percentage: nominee.percentage,
-      phone: nominee.phone,
-      email: nominee.email,
-      address: nominee.address,
-    })),
-  });
-}
+    if (data.nominees && data.nominees.length > 0) {
+      await tx.nominee.createMany({
+        data: data.nominees.map((nominee) => ({
+          policyId: newPolicy.id,
+          nomineeName: nominee.nomineeName,
+          relationship: nominee.relationship,
+          dateOfBirth: nominee.dateOfBirth
+            ? new Date(nominee.dateOfBirth)
+            : null,
+          percentage: nominee.percentage,
+          phone: nominee.phone,
+          email: nominee.email,
+          address: nominee.address,
+        })),
+      });
+    }
 
     await createNotification(tx, {
       title: "Policy Created",
@@ -225,7 +223,6 @@ export const getAllPolicies = async (): Promise<any[]> => {
     },
   });
 };
-
 
 export const deletePolicy = async (policyId: string): Promise<Policy> => {
   // Check if policy exists
@@ -254,6 +251,27 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
       },
     });
 
+    // Delete Policy Loan
+    await tx.policyLoan.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
+    //Delete Policy Attribute
+    await tx.policyAttribute.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
+    //Delete Nominne
+    await tx.nominee.deleteMany({
+      where: {
+        policyId,
+      },
+    });
+
     // Delete the policy
     const deletedPolicy = await tx.policy.delete({
       where: {
@@ -272,14 +290,17 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
   });
 };
 
-
 export const getPolicyById = async (id: string): Promise<any> => {
   return prisma.policy.findUnique({
     where: {
       id,
     },
     include: {
-      CustomerMaster: true,
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
       customer: true,
       provider: true,
       product: true,
@@ -296,6 +317,11 @@ export const getPolicyById = async (id: string): Promise<any> => {
       policyRiders: {
         include: {
           rider: true,
+        },
+      },
+      policyAttributes: {
+        include: {
+          attribute: true,
         },
       },
     },
@@ -360,10 +386,7 @@ export const updatePolicy = async (
 
         statusId: data.statusId,
 
-        nextPremiumDueDate: data.fupDate
-          ? new Date(data.fupDate)
-          : null,
-
+        nextPremiumDueDate: data.fupDate ? new Date(data.fupDate) : null,
       },
     });
 
@@ -390,6 +413,7 @@ export const updatePolicy = async (
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
+              mode: riderData.mode,
             },
           });
         }
@@ -430,31 +454,28 @@ export const updatePolicy = async (
       });
 
       const policyAttributes = productAttributes
-  .filter((attr) => attributes[attr.attributeCode] !== undefined)
-  .map((attr) => ({
-    policyId: id,
-    attributeId: attr.id,
-    value: String(attributes[attr.attributeCode]),
-  }));
+        .filter((attr) => attributes[attr.attributeCode] !== undefined)
+        .map((attr) => ({
+          policyId: id,
+          attributeId: attr.id,
+          value: String(attributes[attr.attributeCode]),
+        }));
 
-for (const attribute of policyAttributes) {
-  await tx.policyAttribute.upsert({
-    where: {
-      policyId_attributeId: {
-        policyId: attribute.policyId,
-        attributeId: attribute.attributeId,
-      },
-    },
-    update: {
-      value: attribute.value,
-    },
-    create: attribute,
-  });
-}
+      for (const attribute of policyAttributes) {
+        await tx.policyAttribute.upsert({
+          where: {
+            policyId_attributeId: {
+              policyId: attribute.policyId,
+              attributeId: attribute.attributeId,
+            },
+          },
+          update: {
+            value: attribute.value,
+          },
+          create: attribute,
+        });
+      }
     }
-
-
-
 
     await createNotification(tx, {
       title: "Policy Updated",

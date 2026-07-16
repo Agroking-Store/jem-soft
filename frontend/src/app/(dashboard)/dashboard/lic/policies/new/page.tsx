@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "./DatePicker";
-import { format } from "date-fns";
+import { format, addYears, differenceInYears } from "date-fns";
 
 function getFullName(customer: {
   salutation?: string | null;
@@ -264,6 +264,70 @@ const AdvisorAutoComplete = ({
   );
 };
 
+const LifeAssuredAutoComplete = ({
+  value,
+  onChange,
+  members,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  members: {
+    id: string;
+    firstName: string;
+    middleName?: string | null;
+    lastName?: string | null;
+    salutation?: string | null;
+  }[];
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = members.find((m) => m.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = members
+    .filter((m) => {
+      const q = query.toLowerCase();
+      return getFullName(m).toLowerCase().includes(q);
+    })
+    .slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Life Assured <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
+        <input
+          value={selected ? getFullName(selected) : query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        />
+        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+      </div>
+      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((m) => (<button key={m.id} type="button" onClick={() => { onChange(m.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="text-sm font-medium text-slate-800">{getFullName(m)}</span></button>))}</div>)}
+    </div>
+  );
+};
+
 const BranchAutoComplete = ({
    value, 
    onChange, 
@@ -283,33 +347,31 @@ const BranchAutoComplete = ({
   const selected = branches.find((b) => b.id === value);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  const filtered = branches.filter((b) => {
-    const q = query.toLowerCase();
-    return (b.branchName.toLowerCase().includes(q) || b.branchCode.toLowerCase().includes(q));
-  }).slice(0, 10);
 
   return (
     <div ref={ref} className="relative">
       <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
-        <input
-          value={selected ? `[${selected.branchCode}] ${selected.branchName}` : query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
-          onFocus={() => setOpen(true)}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
           placeholder={placeholder || "Search branch by name or code..."}
           disabled={disabled}
-          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
-        />
+          className="w-full text-left px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        >
+          {selected ? `[${selected.branchCode}] ${selected.branchName}` : (placeholder || "Select a branch...")}
+        </button>
         {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
       </div>
-      {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
+      {open && branches.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{branches.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
       )}
     </div>
   );
@@ -376,6 +438,7 @@ const riderSchema = z.object({
     (val) => (val === "" ? null : val),
     z.coerce.number().positive("Must be positive").nullable(),
   ),
+  mode: z.string().optional(),
 });
 
 const nomineeSchema = z.object({
@@ -517,9 +580,7 @@ export default function NewLICPolicyPage() {
     (s: RootState) => s.productAttributeValues,
   );
 
-
   const [activeSection, setActiveSection] = useState("policy-holder");
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
@@ -545,12 +606,6 @@ export default function NewLICPolicyPage() {
     dispatch(fetchProductAttributeValues());
     setIsMounted(true);
   }, [dispatch]);
-
-  useEffect(() => {
-    if (activeSection === 'advanced') {
-      setShowAdvanced(true);
-    }
-  }, [activeSection]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
@@ -594,6 +649,21 @@ export default function NewLICPolicyPage() {
           return true;
         }, { message: `Term must be between ${minTerm || 'N/A'} and ${maxTerm || 'N/A'}.`, path: ["term"] });
       }
+
+      if (maxTerm) {
+        refinedSchema = refinedSchema.refine((data) => {
+          if (!data.commencementDate || !data.completionDate) return true;
+          try {
+            const startDate = new Date(data.commencementDate);
+            const endDate = new Date(data.completionDate);
+            const diffYears = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+            return diffYears <= Number(maxTerm);
+          } catch (e) {
+            return true; // Don't block if dates are invalid, other validators will catch it
+          }
+        }, { message: `The duration between commencement and completion cannot exceed the maximum term of ${maxTerm} years.`, path: ["completionDate"] });
+      }
+
 
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
       const maxSum = getAttributeValue("MAX_SUM_ASSURED");
@@ -666,10 +736,13 @@ export default function NewLICPolicyPage() {
   const watchBranchId = watch("branchId");
   const watchSumAssured = watch("sumAssured");
   const watchTerm = watch("term");
+  const watchCommencementDate = watch("commencementDate");
+  const watchCompletionDate = watch("completionDate");
   const watchPpt = watch("ppt");
   const watchMode = watch("mode");
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
+  const watchRiders = watch("riders");
 
   const watchProductId = watch("productId");
   const selectedGroup = useMemo(
@@ -782,6 +855,73 @@ export default function NewLICPolicyPage() {
     // Use setValue to update the form value
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
+
+  // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
+  useEffect(() => {
+    if (watchRiders) {
+      let totalRiderPremium = 0;
+      watchRiders.forEach((rider, index) => {
+        const sum = parseFloat(String(rider.sum)) || 0;
+        const term = parseFloat(String(rider.term)) || 0;
+        const ppt = parseFloat(String(rider.ppt)) || 0;
+        const mode = rider.mode;
+        let currentPremium = parseFloat(String(rider.premium)) || 0;
+
+        if (sum > 0 && term > 0 && ppt > 0 && mode) {
+          // Placeholder: Assume yearly premium is 1% of sum assured.
+          const yearlyRiderPremium = sum * 0.01;
+          let installmentRiderPremium = 0;
+
+          // Apply mode factors to calculate installment premium for the rider
+          switch (mode) {
+            case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
+            case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
+            case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
+            case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
+            default: installmentRiderPremium = 0;
+          }
+
+          const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
+
+          // Only update if the calculated value is different, to prevent re-renders
+          if (finalRiderPremium !== currentPremium) {
+            setValue(`riders.${index}.premium`, finalRiderPremium);
+            currentPremium = finalRiderPremium;
+          }
+        }
+        totalRiderPremium += currentPremium;
+      });
+      setValue("totalRiderPremium", totalRiderPremium > 0 ? totalRiderPremium : undefined);
+    }
+  }, [JSON.stringify(watchRiders), setValue]);
+
+  // Auto-calculate Completion Date
+  useEffect(() => {
+    const term = Number(watchTerm);
+    if (watchCommencementDate && term > 0) {
+      try {
+        const startDate = new Date(watchCommencementDate);
+        const completionDate = addYears(startDate, term);
+        setValue("completionDate", format(completionDate, "yyyy-MM-dd"));
+      } catch (e) {
+        // Do nothing if the date is invalid
+      }
+    }
+  }, [watchCommencementDate, watchTerm, setValue]);
+
+  // Auto-calculate Term from dates
+  useEffect(() => {
+    if (watchCommencementDate && watchCompletionDate) {
+      try {
+        const startDate = new Date(watchCommencementDate);
+        const endDate = new Date(watchCompletionDate);
+        const term = differenceInYears(endDate, startDate);
+        if (term >= 0) setValue("term", term);
+      } catch (e) {
+        // Do nothing if dates are invalid
+      }
+    }
+  }, [watchCommencementDate, watchCompletionDate, setValue]);
 
   useEffect(() => {
     const sum = parseFloat(String(watchSumAssured)) || 0;
@@ -930,19 +1070,15 @@ export default function NewLICPolicyPage() {
           window.pageYOffset +
           yOffset;
 
-      window.scrollTo({ top: y, behavior: 'smooth' });
-      
-      setActiveSection(sectionId);
+        window.scrollTo({ top: y, behavior: 'smooth' });
 
-      if (sectionId === 'advanced') {
-        setShowAdvanced(true);
+        setActiveSection(sectionId);
+
+        setGlowingSection(sectionId);
+        // Remove the glow after 1.5 seconds
+        setTimeout(() => setGlowingSection(null), 1500);
       }
-
-      setGlowingSection(sectionId);
-      // Remove the glow after 1.5 seconds
-      setTimeout(() => setGlowingSection(null), 1500);
-    }
-  }, [sectionRefs, setShowAdvanced]);
+    }, [sectionRefs]);
 
   if (!isMounted || authLoading || !canCreate) {
     return (
@@ -1079,27 +1215,19 @@ export default function NewLICPolicyPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Life Assured
-              </label>
-              <select
-                {...register("lifeAssuredId")}
-                disabled={!watchGroupId || groupMembers.length === 0}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {watchGroupId
-                    ? groupMembers.length > 0
-                      ? "Select a member"
-                      : "No members in group"
-                    : "Select a group first"}
-                </option>
-                {groupMembers.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {getFullName(member)}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="lifeAssuredId"
+                control={control}
+                render={({ field }) => (
+                  <LifeAssuredAutoComplete
+                    value={field.value}
+                    onChange={field.onChange}
+                    members={groupMembers}
+                    disabled={!watchGroupId || groupMembers.length === 0}
+                    placeholder={watchGroupId ? (groupMembers.length > 0 ? "Search member..." : "No members in group") : "Select a group first"}
+                  />
+                )}
+              />
               {errors.lifeAssuredId && (
                 <p className="text-xs text-red-500 mt-1">
                   {errors.lifeAssuredId.message}
@@ -1433,6 +1561,7 @@ export default function NewLICPolicyPage() {
                       description: "",
                       sum: null,
                       term: null,
+                      mode: "",
                       ppt: null,
                       premium: null,
                     })
@@ -1460,6 +1589,9 @@ export default function NewLICPolicyPage() {
                         PPT
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Mode
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
                         Premium
                       </th>
                       <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
@@ -1471,7 +1603,7 @@ export default function NewLICPolicyPage() {
                     {riderFields.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={7}
                           className="px-4 py-6 text-center text-slate-500 text-sm"
                         >
                           No Rider to Show
@@ -1527,6 +1659,7 @@ export default function NewLICPolicyPage() {
                               </p>
                             )}
                           </td>
+                          
                           <td className="px-2 py-1.5">
                             <input
                               type="text"
@@ -1538,6 +1671,22 @@ export default function NewLICPolicyPage() {
                               <p className="text-xs text-red-500 mt-1">
                                 {errors.riders[index]?.ppt?.message}
                               </p>
+                            )}
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select
+                              {...register(`riders.${index}.mode`)}
+                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                            >
+                              <option value="">Mode</option>
+                              {modes.map((mode) => (
+                                <option key={mode.id} value={mode.modeName}>
+                                  {mode.modeName}
+                                </option>
+                              ))}
+                            </select>
+                            {errors.riders?.[index]?.mode && (
+                              <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>
                             )}
                           </td>
                           <td className="px-2 py-1.5">
@@ -1722,24 +1871,15 @@ export default function NewLICPolicyPage() {
             glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""
           }`}
         >
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            type="button"
-            className="flex items-center justify-between w-full text-left"
-          >
+          <div className="flex items-center justify-between w-full text-left">
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <Settings size={20} className="text-blue-600" />
               Advanced Options
             </h2>
-            {showAdvanced ? (
-              <ChevronDown size={20} />
-            ) : (
-              <ChevronRight size={20} />
-            )}
-          </button>
+          </div>
 
-          {showAdvanced && (
-            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+
               {/* ================= LEFT COLUMN ================= */}
               <div className="space-y-6">
                 {/* ================= Current Status ================= */}
@@ -2220,8 +2360,7 @@ export default function NewLICPolicyPage() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
       </form>
     </div>
   );

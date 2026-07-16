@@ -29,6 +29,17 @@ export interface Policy {
     firstName: string;
     middleName?: string | null;
     lastName: string;
+    gender?: string | null;
+    dob?: string | null;
+    panNumber?: string | null;
+    bankDetails?: {
+      id: string;
+      isDefault: boolean;
+      bankName?: string | null;
+      accountNumber?: string | null;
+      ifscCode?: string | null;
+      accountHolderName?: string | null;
+    }[];
   } | null;
   customer?: {
     id: string;
@@ -39,6 +50,7 @@ export interface Policy {
   provider?: {
     id: string;
     name: string;
+    type?: string;
   } | null;
   product?: {
     id: string;
@@ -57,12 +69,26 @@ export interface Policy {
   premium?: {
     id: string;
     sumAssured: number;
+    basicYearlyPremium?: number;
+    totalYearlyPremium?: number;
     installmentPremium: number;
     totalInstallmentPremium: number;
+    gst?: number;
+    extraClass?: number;
   } | null;
   // Kept custom fields from the feature branch below:
   nominees?: any[];
   policyRiders?: any[];
+  policyAttributes?: {
+    id: string;
+    attributeId: string;
+    value: string;
+    attribute?: {
+      id: string;
+      attributeCode: string;
+      attributeName: string;
+    };
+  }[];
   advisor?: any;
   agentCode?: string;
   branch?: any;
@@ -102,7 +128,8 @@ api.interceptors.request.use((config) => {
 
 const getPoliciesApi = () => api.get(`${API_URL}/policies`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
-const createPolicyApi = (policyData: any) => api.post(`${API_URL}/policies`, policyData);
+const createPolicyApi = (policyData: any) =>
+  api.post(`${API_URL}/policies`, policyData);
 
 export const fetchPolicies = createAsyncThunk<
   Policy[],

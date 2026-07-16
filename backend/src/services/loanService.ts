@@ -9,6 +9,9 @@ export interface LoanData {
     interestRate?: number;
     loanDate: string;
     loanStatusId: string;
+
+    loanTenure?: number;
+    remarks?: string;
 }
 
 const loanInclude = {
@@ -48,26 +51,34 @@ export const getLoanById = async (id: string) => {
 };
 
 export const createLoan = async (data: LoanData) => {
-    return await prisma.policyLoan.create({
-        data: {
-            policyId: data.policyId,
-            loanNumber: data.loanNumber,
-            loanAmount: data.loanAmount,
-            interestRate: data.interestRate,
-            loanDate: new Date(data.loanDate),
-            loanStatusId: data.loanStatusId,
-        },
-        include: loanInclude,
-    });
+   return await prisma.policyLoan.create({
+    data: {
+        policyId: data.policyId,
+        loanNumber: data.loanNumber,
+        loanAmount: data.loanAmount,
+        interestRate: data.interestRate,
+        loanDate: new Date(data.loanDate),
+        loanStatusId: data.loanStatusId,
+
+        loanTenure: data.loanTenure,
+        remarks: data.remarks,
+    },
+    include: loanInclude,
+});
 };
 
 export const updateLoanById = async (id: string, data: Partial<LoanData>) => {
     return await prisma.policyLoan.update({
         where: { id },
-        data: {
-            ...data,
-            loanDate: data.loanDate ? new Date(data.loanDate) : undefined,
-        },
+       data: {
+    ...data,
+    loanDate: data.loanDate
+        ? new Date(data.loanDate)
+        : undefined,
+
+    loanTenure: data.loanTenure,
+    remarks: data.remarks,
+},
         include: loanInclude,
     });
 };

@@ -23,6 +23,8 @@ export interface Loan {
     statusName: string;
     statusCode: string;
   } | null;
+  loanTenure?: number;
+  remarks?: string;
 }
 
 export interface LoanInput {
@@ -32,6 +34,8 @@ export interface LoanInput {
   interestRate?: number;
   loanDate: string;
   loanStatusId: string;
+  loanTenure?: number;
+  remarks?: string;
 }
 
 interface LoanState {
