@@ -243,6 +243,13 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
                 >
                   <option value="">Select</option>
+                  <option value="Active">Active</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Fully Paid Up">Fully Paid Up</option>
+                  <option value="Lapsed">Lapsed</option>
+                  <option value="Maturity Claimed">Maturity Claimed</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Surrendered">Surrendered</option>
                   <option value="Death">Death</option>
                   <option value="Maturity">Maturity</option>
                   <option value="Rider">Rider</option>

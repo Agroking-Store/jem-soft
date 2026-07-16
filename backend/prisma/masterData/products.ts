@@ -6635,8 +6635,6 @@ export const productsData = [
     providerCode: "DHFL_PRAMERICA",
   },
 
-  //PERSONAL ACCIDENT INSURANCE (FUTURE GENERALI)
-
   // Postal Life Insurance
   {
     productName: "Whole Life Assurance (Suraksha)",
@@ -9979,6 +9977,49 @@ export const productsData = [
     planNumber: "RN022",
     providerCode: "RELIANCE_NIPPON",
     productType: "Group Term Assurance Plan",
+  },
+  //RELIANCE NIPPON LIFE - WITHDRAWN POLICIES (OFFICIAL WITHDRAWN LIST)
+  {
+    productName: "Reliance Nippon Life Digi-Term Insurance Plan (v1)",
+    productCode: "121N135V01",
+    planNumber: "RNW001",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
+  },
+  {
+    productName: "Reliance Nippon Life Digi-Term Insurance Plan (v2)",
+    productCode: "121N135V02",
+    planNumber: "RNW002",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
+  },
+  {
+    productName: "Reliance Nippon Life Nishchit Samrudhi Plus (v1)",
+    productCode: "121N156V01",
+    planNumber: "RNW003",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
+  },
+  {
+    productName: "Reliance Nippon Life Nishchit Samrudhi Plus (v2)",
+    productCode: "121N156V02",
+    planNumber: "RNW004",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
+  },
+  {
+    productName: "Reliance Nippon Life Term Plan",
+    productCode: "121N005V04",
+    planNumber: "RNW005",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
+  },
+  {
+    productName: "Reliance Nippon Life Bluechip Savings Insurance Plan (v1)",
+    productCode: "121N103V01",
+    planNumber: "RNW006",
+    providerCode: "RELIANCE_NIPPON",
+    productType: "Inactive",
   },
   // Exide Life Insurance Products
   {
