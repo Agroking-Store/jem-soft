@@ -6,7 +6,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { fetchFamilyHistories, deleteFamilyHistory, FamilyHistoryItem } from "../familyHistorySlice";
 import { Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { CustomerEmptyState, CustomerTableFrame } from "@/features/customers/components/CustomerUi";
+import { CustomerEmptyState, CustomerTableFrame, SearchableSelect } from "@/features/customers/components/CustomerUi";
 
 interface FamilyHistoryListProps {
   onAdd: () => void;
@@ -117,18 +117,14 @@ export default function FamilyHistoryList({ onAdd, onEdit, onView, searchTerm = 
         <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <span>Items per page:</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-700 outline-none"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+            <div className="w-[70px]">
+              <SearchableSelect
+                options={[{ value: "10", label: "10" }, { value: "20", label: "20" }, { value: "50", label: "50" }]}
+                value={String(itemsPerPage)}
+                onChange={(v) => { setItemsPerPage(Number(v)); setCurrentPage(1); }}
+                placeholder=""
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

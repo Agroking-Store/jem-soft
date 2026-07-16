@@ -12,6 +12,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createCustomer } from "@/features/customers/customerSlice";
 import { Button } from "@/shared/components/ui/Button";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 import {
   ArrowLeft,
   Hash,
@@ -148,6 +149,12 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface CustomerCreatePageProps {
+  isModal?: boolean;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
 // ─── Reusable field components ────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
@@ -196,26 +203,30 @@ function FormSelect({
   label,
   error,
   required,
-  children,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & {
+  options,
+  value,
+  onChange,
+  placeholder = "Select...",
+}: {
   label: string;
   error?: string;
   required?: boolean;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }) {
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select
-        {...props}
-        className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all cursor-pointer
-          focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
-          ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}
-      >
-        {children}
-      </select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={options}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
   );
 }
 
@@ -240,7 +251,7 @@ function SectionCard({
 }
 
 // ─── Main Component ───────────────────────────────────────────────
-export default function CustomerCreatePage() {
+export default function CustomerCreatePage({ isModal = false, onClose, onSaved }: CustomerCreatePageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
@@ -284,10 +295,11 @@ export default function CustomerCreatePage() {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -327,7 +339,8 @@ export default function CustomerCreatePage() {
         })
       ).unwrap();
       toast.success("Customer group created successfully!");
-      router.push("/dashboard/customers");
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers");
     } catch (err: any) {
       toast.error(err || "Failed to create customer group");
     }
@@ -344,20 +357,21 @@ export default function CustomerCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       {/* Header */}
         <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/customers"
+        <button
+          type="button"
+          onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
           className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
         >
           <ArrowLeft size={16} />
-        </Link>
+        </button>
         <div>
           <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers" className="hover:text-slate-600">Customer Group</Link>
+            <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600">Customer Group</button>
             <ChevronRight size={12} />
             <span className="text-slate-600 font-medium">New Group</span>
           </nav>
@@ -393,12 +407,12 @@ export default function CustomerCreatePage() {
 
             <FormSelect
               label="Category"
-              {...register("category")}
+              value={watch("category") || ""}
+              onChange={(value) => setValue("category", value, { shouldValidate: true })}
               error={errors.category?.message}
-            >
-              <option value="">Select category</option>
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-            </FormSelect>
+              placeholder="Select category"
+              options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+            />
           </div>
         </SectionCard>
 
@@ -489,17 +503,20 @@ export default function CustomerCreatePage() {
 
               <div className="grid grid-cols-2 gap-3">
 
-                <FormSelect label="State" {...register("resState")}>
-                  <option value="">Select state</option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </FormSelect>
+                <FormSelect
+                  label="State"
+                  value={watch("resState") || ""}
+                  onChange={(value) => setValue("resState", value, { shouldValidate: true })}
+                  placeholder="Select state"
+                  options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                />
 
-                <FormSelect label="Country" {...register("resCountry")}>
-                  <option>India</option>
-                  <option>Other</option>
-                </FormSelect>
+                <FormSelect
+                  label="Country"
+                  value={watch("resCountry") || ""}
+                  onChange={(value) => setValue("resCountry", value, { shouldValidate: true })}
+                  options={["India", "Other"].map((c) => ({ value: c, label: c }))}
+                />
 
 
 
@@ -534,18 +551,21 @@ export default function CustomerCreatePage() {
 
 
               <div className="grid grid-cols-2 gap-3">
-                <FormSelect label="State" {...register("offState")}>
-                  <option value="">Select state</option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </FormSelect>
+                <FormSelect
+                  label="State"
+                  value={watch("offState") || ""}
+                  onChange={(value) => setValue("offState", value, { shouldValidate: true })}
+                  placeholder="Select state"
+                  options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                />
 
 
-                <FormSelect label="Country" {...register("offCountry")}>
-                  <option>India</option>
-                  <option>Other</option>
-                </FormSelect>
+                <FormSelect
+                  label="Country"
+                  value={watch("offCountry") || ""}
+                  onChange={(value) => setValue("offCountry", value, { shouldValidate: true })}
+                  options={["India", "Other"].map((c) => ({ value: c, label: c }))}
+                />
 
               </div>
 
@@ -607,12 +627,13 @@ export default function CustomerCreatePage() {
 
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link
-            href="/dashboard/customers"
+          <button
+            type="button"
+            onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
           className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
         >
           Cancel
-        </Link>
+        </button>
         <Button
           type="submit"
           isLoading={isSubmitting}

@@ -32,7 +32,17 @@ import { deleteCustomerMaster, fetchCustomersMaster } from "@/features/customers
 import FamilyHistoryForm from "./FamilyHistoryForm";
 import FamilyHistoryList from "./FamilyHistoryList";
 import FamilyHistoryView from "./FamilyHistoryView";
+import CustomerCreatePage from "./CustomerCreatePage";
+import CustomerDetailsPage from "./CustomerDetailsPage";
+import CustomerEditPage from "./CustomerEditPage";
+import CustomerMasterCreatePage from "./CustomerMasterCreatePage";
+import CustomerMasterDetailsPage from "./CustomerMasterDetailsPage";
+import CustomerMasterEditPage from "./CustomerMasterEditPage";
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+import {
+  CustomerModalShell,
+  type CustomerModalEntry,
+} from "@/features/customers/components/CustomerModalStack";
 import {
   CustomerBreadcrumbs,
   CustomerEmptyState,
@@ -63,6 +73,8 @@ type HistoryView =
   | { type: "add"; recordId?: string }
   | { type: "edit"; recordId?: string }
   | { type: "view"; recordId?: string };
+
+type ModalType = CustomerModalEntry["type"];
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
@@ -187,6 +199,7 @@ export default function CustomerListPage() {
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [historyView, setHistoryView] = useState<HistoryView>({ type: "list" });
+  const [modalStack, setModalStack] = useState<CustomerModalEntry[]>([]);
   const showListChrome = activeTab !== "family" || historyView.type === "list";
 
   useEffect(() => {
@@ -297,22 +310,73 @@ export default function CustomerListPage() {
     else setSelectedIds(new Set(filteredCustomers.map((customer) => customer.id)));
   };
 
+  const openModal = (type: ModalType, id?: string, extraId?: string) => {
+    setModalStack((previous) => {
+      const key = `${type}-${id || "new"}-${Date.now()}`;
+      let entry: CustomerModalEntry;
+      if (type === "family-create") {
+        entry = { key, type, memberId: id, groupId: extraId };
+      } else if (type === "master-create") {
+        entry = { key, type, groupId: id };
+      } else {
+        entry = { key, type, ...(id ? { id } : {}) } as any;
+      }
+      return [...previous, entry];
+    });
+  };
+
+  const closeTopModal = () => {
+    setModalStack((previous) => previous.slice(0, -1));
+  };
+
+  const closeModalAt = (index: number) => {
+    setModalStack((previous) => previous.slice(0, index));
+  };
+
+  const handleModalMutation = () => {
+    dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
+    closeTopModal();
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const modalParam = params.get("modal");
+      const idParam = params.get("id");
+
+      if (modalParam) {
+        // Strip modal query parameters from the browser address bar immediately
+        params.delete("modal");
+        params.delete("id");
+        const newSearch = params.toString();
+        const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+        window.history.replaceState(null, "", newUrl);
+
+        // Open the modal
+        openModal(modalParam as ModalType, idParam || undefined);
+      }
+    }
+  }, [searchParams]);
+
   const heroActions = isClient && canEdit ? (
     <>
-      <Link
-        href="/dashboard/customers/new"
+      <button
+        type="button"
+        onClick={() => openModal("group-create")}
         className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15"
       >
         <Plus size={16} />
         Add Group
-      </Link>
-      <Link
-        href="/dashboard/customers/master/new"
+      </button>
+      <button
+        type="button"
+        onClick={() => openModal("master-create")}
         className="inline-flex items-center gap-2 rounded-xl bg-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-[#0B1220] transition-colors hover:bg-[#d8b65a]"
       >
         <UserCog size={16} />
         Add Customer
-      </Link>
+      </button>
     </>
   ) : undefined;
 
@@ -385,13 +449,14 @@ export default function CustomerListPage() {
               }
               action={
                 isClient && canEdit && !searchTerm ? (
-                  <Link
-                    href="/dashboard/customers/new"
+                  <button
+                    type="button"
+                    onClick={() => openModal("group-create")}
                     className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
                   >
                     <Plus size={16} />
                     Add First Group
-                  </Link>
+                  </button>
                 ) : undefined
               }
             />
@@ -432,13 +497,12 @@ export default function CustomerListPage() {
                     const dotColor = CATEGORY_DOT[customer.category || ""] ?? "bg-slate-400";
                     const memberCount = groupMemberCounts[customer.id] || 0;
                     const isSelected = selectedIds.has(customer.id);
-                    const groupHref = `/dashboard/customers/${customer.id}`;
                     const displayName = customer.groupName || customer.name;
 
                     return (
                       <tr
                         key={customer.id}
-                        onDoubleClick={() => router.push(groupHref)}
+                        onDoubleClick={() => openModal("group-details", customer.id)}
                         className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
                           isSelected ? "bg-[#B8873A]/[0.06]" : index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
                         }`}
@@ -452,15 +516,20 @@ export default function CustomerListPage() {
                           />
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <Link
-                            href={groupHref}
+                          <button
+                            type="button"
+                            onClick={() => openModal("group-details", customer.id)}
                             className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
                           >
                             {customer.groupCode || "-"}
-                          </Link>
+                          </button>
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <Link href={groupHref} className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => openModal("group-details", customer.id)}
+                            className="flex items-start gap-3 text-left"
+                          >
                             <Seal name={displayName} size={34} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
@@ -474,7 +543,7 @@ export default function CustomerListPage() {
                               </div>
                               {customer.email && <div className="mt-0.5 truncate text-xs text-slate-400">{customer.email}</div>}
                             </div>
-                          </Link>
+                          </button>
                         </td>
                         <td className="px-4 py-4 align-top">
                           {customer.category ? (
@@ -484,18 +553,23 @@ export default function CustomerListPage() {
                           )}
                         </td>
                         <td className="px-4 py-4 text-center align-top">
-                          <Link href={`${groupHref}?tab=members`} className="font-semibold text-[#0B1220] hover:underline">
+                          <button
+                            type="button"
+                            onClick={() => openModal("group-details", customer.id)}
+                            className="font-semibold text-[#0B1220] hover:underline"
+                          >
                             {memberCount}
-                          </Link>
+                          </button>
                         </td>
                         <td className="px-4 py-4 text-center align-top">
-                          <Link
-                            href={groupHref}
+                          <button
+                            type="button"
+                            onClick={() => openModal("group-details", customer.id)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-[#0B1220] hover:text-white"
                             title="View Group"
                           >
                             <Users size={14} />
-                          </Link>
+                          </button>
                         </td>
                         <td className="px-4 py-4 text-center align-top">
                           <button
@@ -509,13 +583,14 @@ export default function CustomerListPage() {
                         {isClient && canEdit && (
                           <td className="px-4 py-4 text-right align-top">
                             <div className="flex items-center justify-end gap-1.5">
-                              <Link
-                                href={`/dashboard/customers/${customer.id}/edit`}
+                              <button
+                                type="button"
+                                onClick={() => openModal("group-edit", customer.id)}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
                                 title="Edit"
                               >
                                 <Edit size={14} />
-                              </Link>
+                              </button>
                               <button
                                 onClick={() => setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name })}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
@@ -560,13 +635,14 @@ export default function CustomerListPage() {
             }
             action={
               isClient && canEdit && !searchTerm ? (
-                <Link
-                  href="/dashboard/customers/master/new"
+                <button
+                  type="button"
+                  onClick={() => openModal("master-create")}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
                 >
                   <Plus size={16} />
                   Add First Customer
-                </Link>
+                </button>
               ) : undefined
             }
           />
@@ -596,7 +672,6 @@ export default function CustomerListPage() {
               <tbody>
                 {filteredMasterCustomers.map((customer, index) => {
                   const fullName = getFullName(customer);
-                  const href = `/dashboard/customers/master/${customer.id}`;
                   const groupLabel = customer.group
                     ? `${customer.group.groupCode ? `[${customer.group.groupCode}] ` : ""}${customer.group.groupName || ""}`
                     : "Not mapped";
@@ -604,13 +679,17 @@ export default function CustomerListPage() {
                   return (
                     <tr
                       key={customer.id}
-                      onDoubleClick={() => router.push(href)}
+                      onDoubleClick={() => openModal("master-details", customer.id)}
                       className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
                         index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
                       }`}
                     >
                       <td className="px-4 py-4 align-top">
-                        <Link href={href} className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => openModal("master-details", customer.id)}
+                          className="flex items-start gap-3 text-left"
+                        >
                           <Seal name={fullName || "Customer"} size={34} />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -626,17 +705,18 @@ export default function CustomerListPage() {
                               {[customer.gender, customer.panNumber].filter(Boolean).join(" | ") || "Individual record"}
                             </div>
                           </div>
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-4 py-4 align-top">
                         {customer.group ? (
-                          <Link
-                            href={`/dashboard/customers/${customer.group.id}`}
+                          <button
+                            type="button"
+                            onClick={() => openModal("group-details", customer.group.id)}
                             className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
                           >
                             <Building2 size={11} />
                             {groupLabel}
-                          </Link>
+                          </button>
                         ) : (
                           <span className="text-xs text-slate-300">Not mapped</span>
                         )}
@@ -677,13 +757,14 @@ export default function CustomerListPage() {
                       {isClient && canEdit && (
                         <td className="px-4 py-4 text-right align-top">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              href={`/dashboard/customers/master/${customer.id}/edit`}
+                            <button
+                              type="button"
+                              onClick={() => openModal("master-edit", customer.id)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
                               title="Edit"
                             >
                               <Edit size={14} />
-                            </Link>
+                            </button>
                             <button
                               onClick={() => setDeleteTarget({ id: customer.id, type: "master", label: fullName })}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
@@ -702,36 +783,19 @@ export default function CustomerListPage() {
           </CustomerTableFrame>
         )}
       </CustomerSectionCard>
-    ) : activeTab === "family" && historyView.type === "list" ? (
+    ) : activeTab === "family" ? (
       <CustomerSectionCard
         title="Family History"
         subtitle="Track family history records with a cleaner review flow and direct access to add, edit, and view actions."
         icon={ShieldAlert}
       >
         <FamilyHistoryList
-          onAdd={() => setHistoryView({ type: "add" })}
-          onEdit={(recordId) => setHistoryView({ type: "edit", recordId })}
-          onView={(recordId) => setHistoryView({ type: "view", recordId })}
+          onAdd={() => openModal("family-create")}
+          onEdit={(recordId) => openModal("family-edit", recordId)}
+          onView={(recordId) => openModal("family-details", recordId)}
           searchTerm={searchTerm}
         />
       </CustomerSectionCard>
-    ) : activeTab === "family" ? (
-      // Add / Edit / View own their full page header (breadcrumb, golden accent, title) —
-      // matching the Customer Group / Master form pages — so they aren't nested under a
-      // second "Family History" title bar.
-      <>
-        {historyView.type === "add" && <FamilyHistoryForm onClose={() => setHistoryView({ type: "list" })} />}
-        {historyView.type === "edit" && historyView.recordId && (
-          <FamilyHistoryForm recordId={historyView.recordId} onClose={() => setHistoryView({ type: "list" })} />
-        )}
-        {historyView.type === "view" && historyView.recordId && (
-          <FamilyHistoryView
-            recordId={historyView.recordId}
-            onClose={() => setHistoryView({ type: "list" })}
-            onEdit={(recordId) => setHistoryView({ type: "edit", recordId })}
-          />
-        )}
-      </>
     ) : (
       <CustomerSectionCard
         title="Medical History"
@@ -752,6 +816,78 @@ export default function CustomerListPage() {
         />
       </CustomerSectionCard>
     );
+
+  const renderModalContent = (modal: CustomerModalEntry) => {
+    switch (modal.type) {
+      case "group-create":
+        return <CustomerCreatePage isModal onClose={closeTopModal} onSaved={handleModalMutation} />;
+      case "group-details":
+        return (
+          <CustomerDetailsPage
+            isModal
+            customerId={modal.id}
+            onClose={closeTopModal}
+            onDeleted={handleModalMutation}
+            onOpenModal={openModal}
+          />
+        );
+      case "group-edit":
+        return (
+          <CustomerEditPage
+            isModal
+            customerId={modal.id}
+            onClose={closeTopModal}
+            onSaved={handleModalMutation}
+          />
+        );
+      case "master-create":
+        return (
+          <CustomerMasterCreatePage
+            isModal
+            groupId={"groupId" in modal ? modal.groupId : undefined}
+            onClose={closeTopModal}
+            onSaved={handleModalMutation}
+          />
+        );
+      case "master-details":
+        return (
+          <CustomerMasterDetailsPage
+            isModal
+            customerId={modal.id}
+            onClose={closeTopModal}
+            onDeleted={handleModalMutation}
+            onOpenModal={openModal}
+          />
+        );
+      case "master-edit":
+        return (
+          <CustomerMasterEditPage
+            isModal
+            customerId={modal.id}
+            onClose={closeTopModal}
+            onSaved={handleModalMutation}
+          />
+        );
+      case "family-create":
+        return (
+          <FamilyHistoryForm
+            preselectedMemberId={"memberId" in modal ? modal.memberId : undefined}
+            preselectedGroupId={"groupId" in modal ? modal.groupId : undefined}
+            onClose={handleModalMutation}
+          />
+        );
+      case "family-details":
+        return (
+          <FamilyHistoryView
+            recordId={modal.id}
+            onClose={closeTopModal}
+            onEdit={(recordId) => openModal("family-edit", recordId)}
+          />
+        );
+      case "family-edit":
+        return <FamilyHistoryForm recordId={modal.id} onClose={handleModalMutation} />;
+    }
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
@@ -831,18 +967,19 @@ export default function CustomerListPage() {
           )}
 
           {isClient && canEdit && (activeTab === "group" || activeTab === "master") && (
-            <Link
-              href={activeTab === "group" ? "/dashboard/customers/new" : "/dashboard/customers/master/new"}
+            <button
+              type="button"
+              onClick={() => openModal(activeTab === "group" ? "group-create" : "master-create")}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
             >
               <Plus size={16} />
               {activeTab === "group" ? "New Group" : "New Customer"}
-            </Link>
+            </button>
           )}
 
           {isClient && canEdit && activeTab === "family" && historyView.type === "list" && (
             <button
-              onClick={() => setHistoryView({ type: "add" })}
+              onClick={() => openModal("family-create")}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
             >
               <Plus size={16} />
@@ -888,6 +1025,18 @@ export default function CustomerListPage() {
           </div>
         </div>
       )}
+
+      {modalStack.map((modal, index) => (
+        <CustomerModalShell
+          key={modal.key}
+          entry={modal}
+          depth={index}
+          isTop={index === modalStack.length - 1}
+          onClose={() => closeModalAt(index)}
+        >
+          {renderModalContent(modal)}
+        </CustomerModalShell>
+      ))}
     </div>
   );
 }

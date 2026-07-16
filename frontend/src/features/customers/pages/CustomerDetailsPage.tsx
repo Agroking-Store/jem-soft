@@ -1,6 +1,7 @@
 "use client";
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+import type { CustomerModalEntry } from "@/features/customers/components/CustomerModalStack";
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,6 +33,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+
+interface CustomerDetailsPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onDeleted?: () => void;
+  onOpenModal?: (type: CustomerModalEntry["type"], id?: string) => void;
+}
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -108,11 +117,17 @@ const getStatusBadge = (status: string) => {
   };
 };
 
-export default function CustomerDetailsPage() {
+export default function CustomerDetailsPage({
+  isModal = false,
+  customerId,
+  onClose,
+  onDeleted,
+  onOpenModal,
+}: CustomerDetailsPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = customerId || (params.id as string);
 
   const { user } = useAuth();
   const { currentCustomer, isLoading, error } = useSelector((s: RootState) => s.customers);
@@ -136,7 +151,8 @@ export default function CustomerDetailsPage() {
     try {
       await dispatch(deleteCustomer(id)).unwrap();
       toast.success("Customer group deleted successfully");
-      router.push("/dashboard/customers");
+      if (isModal) onDeleted?.();
+      else router.push("/dashboard/customers");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to delete customer group");
     } finally {
@@ -158,12 +174,13 @@ export default function CustomerDetailsPage() {
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer Group</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link
-          href="/dashboard/customers"
+        <button
+          type="button"
+          onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
           className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors"
         >
           Back to Customers
-        </Link>
+        </button>
       </div>
     );
   }
@@ -187,20 +204,21 @@ export default function CustomerDetailsPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/customers"
+          <button
+            type="button"
+            onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
           >
             <ArrowLeft size={16} />
-          </Link>
+          </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers" className="hover:text-slate-600">Customer Group</Link>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600">Customer Group</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{groupName}</span>
             </nav>
@@ -210,13 +228,14 @@ export default function CustomerDetailsPage() {
 
         {canEdit && (
           <div className="flex items-center gap-2">
-            <Link
-              href={`/dashboard/customers/${currentCustomer.id}/edit`}
+            <button
+              type="button"
+              onClick={() => (isModal ? onOpenModal?.("group-edit", currentCustomer.id) : router.push(`/dashboard/customers/${currentCustomer.id}/edit`))}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors"
             >
               <Edit size={14} />
               Edit
-            </Link>
+            </button>
             <button
               onClick={() => setShowDeleteModal(true)}
               className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50"
@@ -357,12 +376,13 @@ export default function CustomerDetailsPage() {
             <h3 className="text-sm font-semibold text-slate-800 mb-1">No members mapped</h3>
             <p className="text-sm text-slate-500 mb-4">Create an individual customer and select this group.</p>
             {canEdit && (
-              <Link
-                href="/dashboard/customers/master/new"
+              <button
+                type="button"
+                onClick={() => (isModal ? onOpenModal?.("master-create") : router.push("/dashboard/customers/master/new"))}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-sm font-semibold transition-colors"
               >
                 Add Customer
-              </Link>
+              </button>
             )}
           </div>
         ) : (
@@ -382,13 +402,14 @@ export default function CustomerDetailsPage() {
                   return (
                     <tr key={member.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
                       <td className="py-3 px-4">
-                        <Link
-                          href={`/dashboard/customers/master/${member.id}`}
+                        <button
+                          type="button"
+                          onClick={() => (isModal ? onOpenModal?.("master-details", member.id) : router.push(`/dashboard/customers/master/${member.id}`))}
                           className="font-semibold text-slate-900 hover:text-[#0B1220] transition-colors flex items-center gap-1 group"
                         >
                           {fullName}
                           <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#0B1220]" />
-                        </Link>
+                        </button>
                         <span className="text-xs text-slate-400">{member.customerType || "Customer"}</span>
                       </td>
                       <td className="py-3 px-4 text-slate-600">{member.miscInfo?.relationToGroup || "-"}</td>

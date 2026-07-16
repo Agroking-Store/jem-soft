@@ -2,7 +2,7 @@
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 
 const SALUTATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Er.", "CA", "Adv."];
 const GENDERS = ["Male", "Female", "Other"];
@@ -141,13 +142,36 @@ function FormInput({ label, error, required, icon, ...props }: React.InputHTMLAt
   );
 }
 
-function FormSelect({ label, error, required, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
+function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
+  return (Array.isArray(children) ? children : [children]).flatMap((child) => {
+    if (!child || typeof child !== "object" || !("props" in child)) return [];
+    const option = child as { props?: { value?: string; children?: React.ReactNode } };
+    const labelText = String(option.props?.children || option.props?.value || "");
+    const valueText = String(option.props?.value ?? labelText);
+    if (!valueText) return [];
+    return [{ value: valueText, label: labelText }];
+  });
+}
+
+function FormSelect({
+  label, error, required, children, value, onChange, name, ...rest
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
+  const [internal, setInternal] = React.useState(String(value || rest.defaultValue || ""));
+  React.useEffect(() => { if (value !== undefined) setInternal(String(value)); }, [value]);
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={optionChildrenToOptions(children)}
+      value={internal}
+      onChange={(v) => {
+        setInternal(v);
+        onChange?.({ target: { name, value: v } } as any);
+      }}
+      placeholder="Select..."
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
   );
 }
 
@@ -242,11 +266,18 @@ function formatDateForInput(dateStr?: string | null): string {
   try { return new Date(dateStr).toISOString().split("T")[0]; } catch { return ""; }
 }
 
-export default function CustomerMasterEditPage() {
+interface CustomerMasterEditPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = customerId ?? (params?.id as string);
 
   const { user, isLoading: authLoading } = useAuth();
   const { currentCustomer, isLoading: customerLoading } = useSelector((s: RootState) => s.customerMaster);
@@ -273,10 +304,11 @@ export default function CustomerMasterEditPage() {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   useEffect(() => {
     if (currentCustomer && isMounted) {
@@ -351,7 +383,8 @@ export default function CustomerMasterEditPage() {
         },
       })).unwrap();
       toast.success("Customer updated successfully!");
-      router.push("/dashboard/customers?tab=master");
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to update customer");
     } finally {
@@ -365,22 +398,24 @@ export default function CustomerMasterEditPage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
-            <ChevronRight size={12} />
-            <span className="text-slate-600 font-medium">Edit</span>
-          </nav>
-          <h1 className="text-xl font-bold text-slate-900">Edit Customer</h1>
+      {!isModal && (
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <ChevronRight size={12} />
+              <span className="text-slate-600 font-medium">Edit</span>
+            </nav>
+            <h1 className="text-xl font-bold text-slate-900">Edit Customer</h1>
+          </div>
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         {/* Personal Details */}
@@ -646,7 +681,11 @@ export default function CustomerMasterEditPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
+          {isModal ? (
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</button>
+          ) : (
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
+          )}
           <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>

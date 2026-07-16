@@ -1,6 +1,7 @@
 "use client";
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
+import type { CustomerModalEntry } from "@/features/customers/components/CustomerModalStack";
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,13 +9,22 @@ import { useRouter, useParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
+import { fetchFamilyHistories, type FamilyHistoryItem } from "@/features/customers/familyHistorySlice";
 import {
   ArrowLeft, Phone, MapPin, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
-  CheckCircle, XCircle,
+  CheckCircle, XCircle, Heart, Plus,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+
+interface CustomerMasterDetailsPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onDeleted?: () => void;
+  onOpenModal?: (type: CustomerModalEntry["type"], id?: string, extraId?: string) => void;
+}
 
 function InfoRow({ label, value }: { label: string; value?: string | null | boolean }) {
   if (value === undefined || value === null || value === "") return null;
@@ -45,11 +55,17 @@ function formatDate(dateStr?: string | null): string {
   catch { return "—"; }
 }
 
-export default function CustomerMasterDetailsPage() {
+export default function CustomerMasterDetailsPage({
+  isModal = false,
+  customerId,
+  onClose,
+  onDeleted,
+  onOpenModal,
+}: CustomerMasterDetailsPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = customerId || (params.id as string);
 
   const { user } = useAuth();
   const { currentCustomer, isLoading, error } = useSelector((s: RootState) => s.customerMaster);
@@ -57,10 +73,16 @@ export default function CustomerMasterDetailsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryItem[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
     if (id) dispatch(fetchCustomerMaster(id));
+    dispatch(fetchFamilyHistories()).then((action) => {
+      if (fetchFamilyHistories.fulfilled.match(action)) {
+        setFamilyRecords((action.payload as FamilyHistoryItem[]).filter((r) => r.memberId === id));
+      }
+    });
   }, [dispatch, id]);
 
   const canEdit = isMounted && (user?.role === "ADMIN" || user?.role === "ADVISOR");
@@ -70,7 +92,8 @@ export default function CustomerMasterDetailsPage() {
     try {
       await dispatch(deleteCustomerMaster(id)).unwrap();
       toast.success("Customer deleted successfully");
-      router.push("/dashboard/customers?tab=master");
+      if (isModal) onDeleted?.();
+      else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to delete customer");
     } finally {
@@ -88,7 +111,7 @@ export default function CustomerMasterDetailsPage() {
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">Back to Customers</Link>
+        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">Back to Customers</button>
       </div>
     );
   }
@@ -99,18 +122,18 @@ export default function CustomerMasterDetailsPage() {
   const fullName = [c.salutation, c.firstName, c.middleName, c.lastName].filter(Boolean).join(" ");
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50">
+          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50">
             <ArrowLeft size={16} />
-          </Link>
+          </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="hover:text-slate-600">Customer Master</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{fullName}</span>
             </nav>
@@ -119,9 +142,9 @@ export default function CustomerMasterDetailsPage() {
         </div>
         {canEdit && (
           <div className="flex items-center gap-2">
-            <Link href={`/dashboard/customers/master/${id}/edit`} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
+            <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
               <Edit size={14} /> Edit
-            </Link>
+            </button>
             <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50">
               <Trash2 size={14} /> Delete
             </button>
@@ -289,6 +312,43 @@ export default function CustomerMasterDetailsPage() {
           </div>
         </SectionCard>
       )}
+
+      {/* Family History */}
+      <SectionCard title="Family History" icon={<Heart size={16} />}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-slate-500">{familyRecords.length} record{familyRecords.length !== 1 ? "s" : ""} on file</p>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => onOpenModal?.("family-create", id, c.groupId || undefined)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors"
+              >
+                <Plus size={12} /> Add Record
+              </button>
+            )}
+          </div>
+          {familyRecords.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">No family history records found for this member.</p>
+          ) : (
+            familyRecords.map((fh) => {
+              const memberName = [fh.member.salutation, fh.member.firstName, fh.member.middleName, fh.member.lastName].filter(Boolean).join(" ");
+              return (
+                <div key={fh.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{memberName}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{fh.records?.length ?? 0} relation{(fh.records?.length ?? 0) !== 1 ? "s" : ""} &bull; {formatDate(fh.date)}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button type="button" onClick={() => onOpenModal?.("family-details", fh.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors">View</button>
+                    {canEdit && <button type="button" onClick={() => onOpenModal?.("family-edit", fh.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors"><Edit size={11} /> Edit</button>}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </SectionCard>
 
       {/* Delete Modal */}
       {showDeleteModal && (

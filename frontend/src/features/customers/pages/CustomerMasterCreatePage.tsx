@@ -266,14 +266,14 @@ function GroupAutoComplete({
 }
 
 // ─── Main Component ───────────────────────────────────────────────
-export default function CustomerMasterCreatePage() {
+export default function CustomerMasterCreatePage({ isModal = false, onClose, onSaved, onOpenGroupCreate, groupId }: CustomerMasterCreatePageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { customers: groups } = useSelector((s: RootState) => s.customers);
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState(groupId || "");
 
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
@@ -293,16 +293,21 @@ export default function CustomerMasterCreatePage() {
   useEffect(() => {
     setIsMounted(true);
     dispatch(fetchCustomers());
-  }, [dispatch]);
+    if (groupId) {
+      setSelectedGroupId(groupId);
+      setValue("groupId", groupId);
+    }
+  }, [dispatch, groupId, setValue]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -366,23 +371,25 @@ export default function CustomerMasterCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
-            <ChevronRight size={12} />
-            <span className="text-slate-600 font-medium">New Customer</span>
-          </nav>
-          <h1 className="text-xl font-bold text-slate-900">Add Customer</h1>
+      {!isModal && (
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <ChevronRight size={12} />
+              <span className="text-slate-600 font-medium">New Customer</span>
+            </nav>
+            <h1 className="text-xl font-bold text-slate-900">Add Customer</h1>
+          </div>
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
 
@@ -743,9 +750,15 @@ export default function CustomerMasterCreatePage() {
 
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
-            Cancel
-          </Link>
+          {isModal ? (
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+              Cancel
+            </button>
+          ) : (
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+              Cancel
+            </Link>
+          )}
           <button type="submit" disabled={isSubmitting}
             className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}

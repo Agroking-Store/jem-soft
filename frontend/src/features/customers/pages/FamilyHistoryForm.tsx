@@ -23,6 +23,8 @@ import { SearchableSelect } from "@/features/customers/components/CustomerUi";
 interface FamilyHistoryFormProps {
   recordId?: string;
   onClose: () => void;
+  preselectedMemberId?: string;
+  preselectedGroupId?: string;
 }
 
 const RELATIONS = [
@@ -71,7 +73,7 @@ function SectionCard({
   );
 }
 
-export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFormProps) {
+export default function FamilyHistoryForm({ recordId, onClose, preselectedMemberId, preselectedGroupId }: FamilyHistoryFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const isEditMode = !!recordId;
 
@@ -119,6 +121,13 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     };
   }, [dispatch, isEditMode, recordId]);
 
+  // Pre-select group/member when props are provided (create mode from detail page)
+  useEffect(() => {
+    if (!isEditMode && preselectedGroupId) {
+      dispatch(fetchGroupById(preselectedGroupId));
+    }
+  }, [isEditMode, preselectedGroupId, dispatch]);
+
   // Sync data when edit record is loaded
   useEffect(() => {
     if (isEditMode && currentRecord) {
@@ -143,14 +152,19 @@ export default function FamilyHistoryForm({ recordId, onClose }: FamilyHistoryFo
     if (currentGroup) {
       const name = currentGroup.groupName || currentGroup.name || "";
       setGroupName(name);
+      setGroupCode(currentGroup.groupCode || "");
       setGroupId(currentGroup.id);
       setMembersList(currentGroup.members || []);
-      // If we are editing, keep the memberId. Otherwise, reset memberId if it's not in the new group.
+      // If we are editing, keep the memberId. Otherwise, pre-select if provided, or reset.
       if (!isEditMode) {
-        setMemberId("");
+        if (preselectedMemberId && (currentGroup.members || []).some((m: any) => m.id === preselectedMemberId)) {
+          setMemberId(preselectedMemberId);
+        } else {
+          setMemberId("");
+        }
       }
     }
-  }, [currentGroup, isEditMode]);
+  }, [currentGroup, isEditMode, preselectedMemberId]);
 
   // Handle selecting a group from the SearchableSelect dropdown
   const handleSelectGroup = (g: any) => {
