@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
-  Camera,
   ChevronRight,
   Edit,
+  Eye,
   Filter,
   Mail,
   Phone,
@@ -413,8 +413,6 @@ export default function CustomerListPage() {
                     <TableHeadCell>Group Name</TableHeadCell>
                     <TableHeadCell>Category</TableHeadCell>
                     <TableHeadCell align="center">Members</TableHeadCell>
-                    <TableHeadCell align="center">Open</TableHeadCell>
-                    <TableHeadCell align="center">Photo</TableHeadCell>
                     {isClient && canEdit && <TableHeadCell align="right">Actions</TableHeadCell>}
                   </tr>
                 </thead>
@@ -428,7 +426,7 @@ export default function CustomerListPage() {
                     return (
                       <tr
                         key={customer.id}
-                        onDoubleClick={() => openModal("group-details", customer.id)}
+                        onClick={() => openModal("group-details", customer.id)}
                         className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
                           isSelected ? "bg-[#B8873A]/[0.06]" : index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
                         }`}
@@ -438,24 +436,17 @@ export default function CustomerListPage() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelect(customer.id)}
+                            onClick={(e) => e.stopPropagation()}
                             className="rounded border-slate-300 text-[#0B1220] focus:ring-[#B8873A]/20"
                           />
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <button
-                            type="button"
-                            onClick={() => openModal("group-details", customer.id)}
-                            className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
-                          >
+                          <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                             {customer.groupCode || "-"}
-                          </button>
+                          </span>
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <button
-                            type="button"
-                            onClick={() => openModal("group-details", customer.id)}
-                            className="flex items-start gap-3 text-left"
-                          >
+                          <div className="flex items-start gap-3 text-left">
                             <Seal name={displayName} size={34} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
@@ -469,7 +460,7 @@ export default function CustomerListPage() {
                               </div>
                               {customer.email && <div className="mt-0.5 truncate text-xs text-slate-400">{customer.email}</div>}
                             </div>
-                          </button>
+                          </div>
                         </td>
                         <td className="px-4 py-4 align-top">
                           {customer.category ? (
@@ -479,46 +470,38 @@ export default function CustomerListPage() {
                           )}
                         </td>
                         <td className="px-4 py-4 text-center align-top">
-                          <button
-                            type="button"
-                            onClick={() => openModal("group-details", customer.id)}
-                            className="font-semibold text-[#0B1220] hover:underline"
-                          >
-                            {memberCount}
-                          </button>
-                        </td>
-                        <td className="px-4 py-4 text-center align-top">
-                          <button
-                            type="button"
-                            onClick={() => openModal("group-details", customer.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-[#0B1220] hover:text-white"
-                            title="View Group"
-                          >
-                            <Users size={14} />
-                          </button>
-                        </td>
-                        <td className="px-4 py-4 text-center align-top">
-                          <button
-                            type="button"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-[#B8873A]/15 hover:text-[#B8873A]"
-                            title="Upload Photo"
-                          >
-                            <Camera size={14} />
-                          </button>
+                          <span className="font-semibold text-[#0B1220]">{memberCount}</span>
                         </td>
                         {isClient && canEdit && (
                           <td className="px-4 py-4 text-right align-top">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
-                                onClick={() => openModal("group-edit", customer.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openModal("group-details", customer.id);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                title="View"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openModal("group-edit", customer.id);
+                                }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
                                 title="Edit"
                               >
                                 <Edit size={14} />
                               </button>
                               <button
-                                onClick={() => setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name })}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name });
+                                }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
                                 title="Delete"
                               >
@@ -603,105 +586,121 @@ export default function CustomerListPage() {
                     : "Not mapped";
 
                   return (
-                    <tr
-                      key={customer.id}
-                      onDoubleClick={() => openModal("master-details", customer.id)}
-                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
-                        index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
-                      }`}
-                    >
-                      <td className="px-4 py-4 align-top">
-                        <button
-                          type="button"
-                          onClick={() => openModal("master-details", customer.id)}
-                          className="flex items-start gap-3 text-left"
-                        >
-                          <Seal name={fullName || "Customer"} size={34} />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#0B1220]">
-                                {fullName}
-                              </span>
-                              <ChevronRight
-                                size={13}
-                                className="text-[#B8873A] opacity-0 transition-opacity group-hover:opacity-100"
-                              />
+                      <tr
+                        key={customer.id}
+                        onClick={() => openModal("master-details", customer.id)}
+                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                        }`}
+                      >
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex items-start gap-3 text-left">
+                            <Seal name={fullName || "Customer"} size={34} />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#0B1220]">
+                                  {fullName}
+                                </span>
+                                <ChevronRight
+                                  size={13}
+                                  className="text-[#B8873A] opacity-0 transition-opacity group-hover:opacity-100"
+                                />
+                              </div>
+                              <div className="mt-0.5 text-xs text-slate-400">
+                                {[customer.gender, customer.panNumber].filter(Boolean).join(" | ") || "Individual record"}
+                              </div>
                             </div>
-                            <div className="mt-0.5 text-xs text-slate-400">
-                              {[customer.gender, customer.panNumber].filter(Boolean).join(" | ") || "Individual record"}
-                            </div>
-                          </div>
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        {customer.group ? (
-                          <button
-                            type="button"
-                            onClick={() => customer.group && openModal("group-details", customer.group.id)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
-                          >
-                            <Building2 size={11} />
-                            {groupLabel}
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-300">Not mapped</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 align-top text-sm text-slate-600">
-                        {customer.miscInfo?.relationToGroup || "-"}
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        <div className="space-y-1">
-                          {customer.contactInfo?.mobile1 && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                              <Phone size={11} />
-                              {customer.contactInfo.mobile1}
-                            </div>
-                          )}
-                          {customer.contactInfo?.emailPersonal && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                              <Mail size={11} />
-                              {customer.contactInfo.emailPersonal}
-                            </div>
-                          )}
-                          {!customer.contactInfo?.mobile1 && !customer.contactInfo?.emailPersonal && (
-                            <span className="text-xs text-slate-300">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-top text-sm text-slate-700">{customer.customerType || "-"}</td>
-                      <td className="px-4 py-4 align-top text-center">
-                        {customer.isGroupHead ? (
-                          <Chip dotColor="bg-[#B8873A]">
-                            <Star size={11} className="text-[#B8873A]" />
-                            Head
-                          </Chip>
-                        ) : (
-                          <Chip dotColor="bg-slate-300">Member</Chip>
-                        )}
-                      </td>
-                      {isClient && canEdit && (
-                        <td className="px-4 py-4 text-right align-top">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => openModal("master-edit", customer.id)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
-                              title="Edit"
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget({ id: customer.id, type: "master", label: fullName })}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                              title="Delete"
-                            >
-                              <Trash2 size={14} />
-                            </button>
                           </div>
                         </td>
-                      )}
-                    </tr>
+                        <td className="px-4 py-4 align-top">
+                          {customer.group ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openModal("group-details", customer.group!.id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
+                            >
+                              <Building2 size={11} />
+                              {groupLabel}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-300">Not mapped</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 align-top text-sm text-slate-600">
+                          {customer.miscInfo?.relationToGroup || "-"}
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <div className="space-y-1">
+                            {customer.contactInfo?.mobile1 && (
+                              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <Phone size={11} />
+                                {customer.contactInfo.mobile1}
+                              </div>
+                            )}
+                            {customer.contactInfo?.emailPersonal && (
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                <Mail size={11} />
+                                {customer.contactInfo.emailPersonal}
+                              </div>
+                            )}
+                            {!customer.contactInfo?.mobile1 && !customer.contactInfo?.emailPersonal && (
+                              <span className="text-xs text-slate-300">-</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 align-top text-sm text-slate-700">{customer.customerType || "-"}</td>
+                        <td className="px-4 py-4 align-top text-center">
+                          {customer.isGroupHead ? (
+                            <Chip dotColor="bg-[#B8873A]">
+                              <Star size={11} className="text-[#B8873A]" />
+                              Head
+                            </Chip>
+                          ) : (
+                            <Chip dotColor="bg-slate-300">Member</Chip>
+                          )}
+                        </td>
+                        {isClient && canEdit && (
+                          <td className="px-4 py-4 text-right align-top">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openModal("master-details", customer.id);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                title="View"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openModal("master-edit", customer.id);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                title="Edit"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ id: customer.id, type: "master", label: fullName });
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                                title="Delete"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
                   );
                 })}
               </tbody>

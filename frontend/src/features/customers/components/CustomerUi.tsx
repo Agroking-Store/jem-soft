@@ -213,16 +213,16 @@ export interface SelectOption {
   sublabel?: string;
 }
 
-function useOutsideClose(onClose: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
+function useOutsideClose(onClose: () => void, refs: React.RefObject<HTMLElement>[]) {
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Node;
+      const isInside = refs.some((r) => r.current && r.current.contains(target));
+      if (!isInside) onClose();
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
-  }, [onClose]);
-  return ref;
+  }, [onClose, refs]);
 }
 
 function DropdownPanel({
@@ -233,6 +233,7 @@ function DropdownPanel({
   value,
   onSelect,
   style,
+  panelRef,
 }: {
   query: string;
   onQueryChange: (v: string) => void;
@@ -241,6 +242,7 @@ function DropdownPanel({
   value?: string;
   onSelect: (value: string) => void;
   style: React.CSSProperties;
+  panelRef: React.RefObject<HTMLDivElement>;
 }) {
   const filtered = options.filter((o) =>
     `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
@@ -252,6 +254,7 @@ function DropdownPanel({
   if (typeof document === "undefined") return null;
   return createPortal(
     <div
+      ref={panelRef}
       style={style}
       className="absolute z-[1000] mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
     >
@@ -318,11 +321,15 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [pos, setPos] = useState<React.CSSProperties>({});
-  const ref = useOutsideClose(() => {
-    setOpen(false);
-    setQuery("");
-  });
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const ref = useOutsideClose(
+    () => {
+      setOpen(false);
+      setQuery("");
+    },
+    [triggerRef, panelRef]
+  );
 
   // Compute fixed position from the trigger's rect so the portal panel
   // overlays above any overflow:hidden parent instead of being clipped.
@@ -382,6 +389,7 @@ export function SearchableSelect({
             setQuery("");
           }}
           style={pos}
+          panelRef={panelRef}
         />
       )}
     </div>
@@ -422,11 +430,15 @@ export function FilterSelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [pos, setPos] = useState<React.CSSProperties>({});
-  const ref = useOutsideClose(() => {
-    setOpen(false);
-    setQuery("");
-  });
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const ref = useOutsideClose(
+    () => {
+      setOpen(false);
+      setQuery("");
+    },
+    [triggerRef, panelRef]
+  );
 
   // Compute fixed position from the trigger's rect so the portal panel
   // overlays above any overflow:hidden parent instead of being clipped.
@@ -475,6 +487,7 @@ export function FilterSelect({
             setQuery("");
           }}
           style={pos}
+          panelRef={panelRef}
         />
       )}
     </div>

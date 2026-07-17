@@ -12,6 +12,7 @@ import { fetchCustomer, deleteCustomer } from "@/features/customers/customerSlic
 import { fetchCustomersMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
 import {
   ArrowLeft,
+  Eye,
   Mail,
   Phone,
   Calendar,
@@ -529,6 +530,14 @@ export default function CustomerDetailsPage({
                         {canEdit && (
                           <td className="py-3 px-4 text-right">
                             <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => onOpenModal?.("master-details", member.id)}
+                                className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                title="View Member"
+                              >
+                                <Eye size={14} />
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => onOpenModal?.("master-edit", member.id)}

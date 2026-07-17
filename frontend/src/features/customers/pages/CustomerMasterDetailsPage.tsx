@@ -22,7 +22,7 @@ import {
 } from "@/features/customers/medicalHistorySlice";
 import { fetchPoliciesByMember } from "@/features/policy/policySlice";
 import {
-  ArrowLeft, Phone, MapPin, CreditCard, Info, Settings,
+  ArrowLeft, Eye, Phone, MapPin, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
   CheckCircle, XCircle, Heart, Plus, Activity, FileText,
 } from "lucide-react";
@@ -434,11 +434,17 @@ export default function CustomerMasterDetailsPage({
                       <p className="text-xs text-slate-400 mt-0.5">{fh.records?.length ?? 0} relation{(fh.records?.length ?? 0) !== 1 ? "s" : ""} &bull; {formatDate(fh.date)}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={() => onOpenModal?.("family-details", fh.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer">View</button>
+                      <button type="button" onClick={() => onOpenModal?.("family-details", fh.id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="View">
+                        <Eye size={14} />
+                      </button>
                       {canEdit && (
                         <>
-                          <button type="button" onClick={() => onOpenModal?.("family-edit", fh.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Edit size={11} /> Edit</button>
-                          <button type="button" onClick={() => handleDeleteFamily(fh.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Trash2 size={11} /> Delete</button>
+                          <button type="button" onClick={() => onOpenModal?.("family-edit", fh.id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="Edit">
+                            <Edit size={14} />
+                          </button>
+                          <button type="button" onClick={() => handleDeleteFamily(fh.id)} className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer" title="Delete">
+                            <Trash2 size={14} />
+                          </button>
                         </>
                       )}
                     </div>
@@ -491,10 +497,17 @@ export default function CustomerMasterDetailsPage({
                       {rec.majorIllness && <p className="text-xs text-slate-500 italic mt-1 bg-slate-50 p-1.5 rounded">Major Illness: {rec.majorIllness}</p>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="View">
+                        <Eye size={14} />
+                      </button>
                       {canEdit && (
                         <>
-                          <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Edit size={11} /> Edit</button>
-                          <button type="button" onClick={() => handleDeleteMedical(med.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Trash2 size={11} /> Delete</button>
+                          <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="Edit">
+                            <Edit size={14} />
+                          </button>
+                          <button type="button" onClick={() => handleDeleteMedical(med.id)} className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer" title="Delete">
+                            <Trash2 size={14} />
+                          </button>
                         </>
                       )}
                     </div>
