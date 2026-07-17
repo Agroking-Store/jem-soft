@@ -21,7 +21,7 @@ import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchProductAttributeValues } from "@/features/insurance/productAttributeValueSlice";
 import { useNotificationStore } from "@/store/notificationStore";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -391,27 +391,69 @@ const PlanAutoComplete = ({ value, onChange, products, disabled, placeholder }: 
 
   const filtered = products.filter((p) => {
     const q = query.toLowerCase();
-    return (p.productName.toLowerCase().includes(q) || (p.planNumber && p.planNumber.toLowerCase().includes(q)));
-  }).slice(0, 10);
+    return (
+      p.productName.toLowerCase().includes(q) ||
+      (p.planNumber && p.planNumber.toLowerCase().includes(q))
+    );
+  });
+
+  const selectedProductLabel = selected
+    ? `${selected.planNumber ? `[${selected.planNumber}] ` : ""}${selected.productName}`
+    : "";
 
   return (
     <div ref={ref} className="relative">
-      <label className="block text-sm font-medium text-slate-700 mb-1">
-        Plan <span className="text-red-500">*</span>
-      </label>
+      
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
         <input
-          value={selected ? `${selected.planNumber ? `[${selected.planNumber}] ` : ""}${selected.productName}` : query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+          value={selected ? selectedProductLabel : query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+            if (!e.target.value) onChange("");
+          }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder || "Search plan by name or number..."}
           disabled={disabled}
           className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
-        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={13} />
+          </button>
+        )}
       </div>
-      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((p) => (<button key={p.id} type="button" onClick={() => { onChange(p.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{p.planNumber || "N/A"}</span><span className="text-sm font-medium text-slate-800">{p.productName}</span></button>))}</div>)}
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => {
+                onChange(p.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+            >
+              <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                {p.planNumber || "N/A"}
+              </span>
+              <span className="text-sm font-medium text-slate-800">
+                {p.productName}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -543,6 +585,7 @@ type PolicyFormValues = z.infer<typeof policySchema>;
 
 export default function NewLICPolicyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -590,7 +633,8 @@ export default function NewLICPolicyPage() {
     ppt: '',
     sumAssured: '',
   });
-
+  const policyTypeParam = searchParams.get("policyType")?.toLowerCase();
+  const selectedPolicyType = policyTypeParam === "other" ? "other" : policyTypeParam === "lic" ? "lic" : null;
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -728,9 +772,6 @@ export default function NewLICPolicyPage() {
 
   const watchGroupId = watch("groupId");
   const watchLifeAssuredId = watch("lifeAssuredId");
-  const watchProviderType = watch("providerType");
-  const watchProviderId = watch("providerId");
-  const watchProductType = watch("productType");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
   const watchBranchId = watch("branchId");
@@ -791,32 +832,26 @@ export default function NewLICPolicyPage() {
     }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
 
-  const providerTypes = useMemo(() => {
-    return [...new Set(providers.map((p) => p.type))];
-  }, [providers]);
+  const availableProducts = useMemo(() => {
+    return [...products]
+      .filter((product) => {
+        const provider = providers.find((provider) => provider.id === product.providerId);
+        const providerCode = provider?.code?.toLowerCase();
 
-  const filteredProviders = useMemo(() => {
-    if (!watchProviderType) return [];
-    return providers.filter((p) => p.type === watchProviderType);
-  }, [watchProviderType, providers]);
+        const isLICProvider = providerCode === "lic";
 
-  const productTypesForProvider = useMemo(() => {
-    if (!watchProviderId) return [];
-    const providerProducts = products.filter(p => p.providerId === watchProviderId);
-    const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
-    return types.sort();
-  }, [watchProviderId, products]);
+        if (selectedPolicyType === "lic") {
+          return isLICProvider;
+        }
 
-  const filteredProducts = useMemo(() => {
-    if (!watchProviderId) return [];
+        if (selectedPolicyType === "other") {
+          return providerCode ? providerCode !== "lic" : false;
+        }
 
-    let providerProducts = products.filter((p) => p.providerId === watchProviderId);
-
-    if (watchProductType) {
-      providerProducts = providerProducts.filter(p => p.productType === watchProductType);
-    }
-    return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
-  }, [watchProviderId, watchProductType, products]);
+        return true;
+      })
+      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+  }, [products, providers, selectedPolicyType]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -824,9 +859,20 @@ export default function NewLICPolicyPage() {
   }, [watchAgencyId, advisors]);
 
   useEffect(() => {
-    setValue("providerId", "");
-    setValue("productType", "");
-  }, [watchProviderType, setValue]);
+    if (!watch("mode") && modes.length > 0) {
+      setValue("mode", modes[0].modeName, { shouldValidate: true });
+    }
+  }, [modes, watch("mode"), setValue]);
+
+  useEffect(() => {
+    if (selectedPolicyType === "lic") {
+      setValue("providerType", "LIC", { shouldValidate: true });
+    } else if (selectedPolicyType === "other") {
+      setValue("providerType", "OTHER", { shouldValidate: true });
+    } else {
+      setValue("providerType", "", { shouldValidate: true });
+    }
+  }, [selectedPolicyType, setValue]);
 
   useEffect(() => {
     const agency = agencies.find(a => a.id === watchAgencyId);
@@ -940,29 +986,25 @@ export default function NewLICPolicyPage() {
       let installmentPremium = 0;
       switch (mode) {
         case "Yearly":
+        case "Single":
           installmentPremium = basicYearlyPremium;
           break;
         case "Half-yearly":
-          installmentPremium = basicYearlyPremium * 0.51; // Example factor
+        case "Half-Yearly":
+          installmentPremium = basicYearlyPremium * 0.51; // Example factor for half-yearly
           break;
         case "Quarterly":
-          installmentPremium = basicYearlyPremium * 0.26; // Example factor
+          installmentPremium = basicYearlyPremium * 0.26; // Example factor for quarterly
           break;
         case "Monthly":
-          installmentPremium = basicYearlyPremium * 0.088; // Example factor
+          installmentPremium = basicYearlyPremium * 0.088; // Example factor for monthly
           break;
         default:
           installmentPremium = 0;
       }
       setValue("installmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
-
-      // Calculate GST (e.g., 4.5% for first year, 2.25% for subsequent years - using a simple 4.5%)
-      const gst = installmentPremium * 0.045;
-      setValue("gst", gst > 0 ? parseFloat(gst.toFixed(2)) : undefined);
-
-      // Calculate total installment premium
-      const totalInstallmentPremium = installmentPremium + gst;
-      setValue("totalInstallmentPremium", totalInstallmentPremium > 0 ? parseFloat(totalInstallmentPremium.toFixed(2)) : undefined);
+      setValue("gst", undefined);
+      setValue("totalInstallmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
     }
 
   }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
@@ -1020,8 +1062,6 @@ export default function NewLICPolicyPage() {
 
     MIN_SUM_ASSURED: data.sumAssured,
     MAX_SUM_ASSURED: data.sumAssured,
-
-    GST_RATE: data.gst,
         },
       };
       const result = await dispatch(createPolicy(payload)).unwrap();
@@ -1307,66 +1347,10 @@ export default function NewLICPolicyPage() {
                 Policy Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Provider Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register("providerType")}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  >
-                    <option value="">Select Provider Type</option>
-                    {providerTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.providerType && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.providerType.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Provider Name <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register("providerId")}
-                    disabled={!watchProviderType}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                  >
-                    <option value="">Select Provider</option>
-                    {filteredProviders.map((provider) => (
-                      <option key={provider.id} value={provider.id}>
-                        {provider.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.providerId && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.providerId.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Product Type
-                  </label>
-                  <select
-                    {...register("productType")}
-                    disabled={!watchProviderId || productTypesForProvider.length === 0}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                  >
-                    <option value="">All Product Types</option>
-                    {productTypesForProvider.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input type="hidden" {...register("providerType")} />
+                <input type="hidden" {...register("providerId")} />
+                <input type="hidden" {...register("productType")} />
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Policy Number <span className="text-red-500">*</span>
@@ -1387,47 +1371,37 @@ export default function NewLICPolicyPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Plan <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register("productId")}
-                    disabled={!watchProviderId || filteredProducts.length === 0}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                  >
-                    <option value="">
-                      {watchProviderId
-                        ? filteredProducts.length > 0
-                          ? "Select a plan"
-                          : "No plans for this provider"
-                        : "Select a provider first"}
-                    </option>
-                    {filteredProducts.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.planNumber ? `[${product.planNumber}] ` : ""}
-                        {product.productName}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    control={control}
+                    name="productId"
+                    render={({ field }) => (
+                      <PlanAutoComplete
+                        value={field.value}
+                        onChange={(selectedId) => {
+                          field.onChange(selectedId);
+                          const selectedProduct = products.find((product) => product.id === selectedId);
+                          if (selectedProduct) {
+                            setValue("providerId", selectedProduct.providerId || "", { shouldValidate: true });
+                            const provider = providers.find((item) => item.id === selectedProduct.providerId);
+                            setValue("providerType", provider?.type || "", { shouldValidate: true });
+                            setValue("productType", selectedProduct.productType || "", { shouldValidate: true });
+                          } else {
+                            setValue("providerId", "", { shouldValidate: true });
+                            setValue("providerType", "", { shouldValidate: true });
+                            setValue("productType", "", { shouldValidate: true });
+                          }
+                        }}
+                        products={availableProducts}
+                        disabled={availableProducts.length === 0}
+                        placeholder={
+                          availableProducts.length > 0
+                            ? "Search plan by name or number..."
+                            : "No plans available"
+                        }
+                      />
+                    )}
+                  />
                   {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Mode <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register("mode")}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  >
-                    <option value="">Select Mode</option>
-                    {modes.map((mode) => (
-                      <option key={mode.id} value={mode.modeName}>
-                        {mode.modeName}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.mode && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.mode.message}
-                    </p>
-                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1448,6 +1422,27 @@ export default function NewLICPolicyPage() {
                   {errors.commencementDate && (
                     <p className="text-xs text-red-500 mt-1">
                       {errors.commencementDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Mode <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    {...register("mode")}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                  >
+                    <option value="">Select Mode</option>
+                    {modes.map((mode) => (
+                      <option key={mode.id} value={mode.modeName}>
+                        {mode.modeName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.mode && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.mode.message}
                     </p>
                   )}
                 </div>
@@ -1509,33 +1504,6 @@ export default function NewLICPolicyPage() {
                   )}
                   {attributeHints.ppt && !errors.ppt && (
                     <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Extra Class
-                  </label>
-                  <input
-                    type="text"
-                    {...register("extraClass")}
-                    placeholder="Extra class"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Rate %
-                  </label>
-                  <input
-                    type="text"
-                    {...register("ratePercent")}
-                    placeholder="Rate %"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  />
-                  {errors.ratePercent && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.ratePercent.message}
-                    </p>
                   )}
                 </div>
               </div>
@@ -1835,28 +1803,12 @@ export default function NewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    GST
-                  </label>
-                  <input
-                    type="text"
-                    {...register("gst")}
-                    placeholder="Enter GST"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                  />
-                  {errors.gst && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.gst.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Total Installment Premium
                   </label>
                   <input
                     type="text"
                     {...register("totalInstallmentPremium")}
-                    placeholder="Total with GST"
+                    placeholder="Total installment premium"
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
                   />
                 </div>
