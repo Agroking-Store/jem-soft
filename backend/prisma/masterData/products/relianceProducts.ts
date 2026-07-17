@@ -1,0 +1,137 @@
+export const relianceProducts = [
+    
+  //RELIANCE NIPPON LIFE (INDUSIND NIPPON LIFE)
+
+  {
+    productName: "Reliance Nippon Life Digi-Term Insurance Plan",
+    productCode: "121N135V03",
+    planNumber: "RN001",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Protection Plus",
+    productCode: "121N137V01",
+    planNumber: "RN002",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Super Suraksha Plus",
+    productCode: "121N144V01",
+    planNumber: "RN003",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Saral Jeevan Bima",
+    productCode: "121N141V01",
+    planNumber: "RN004",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Guaranteed Advantage Income Plan",
+    productCode: "121N150V01",
+    planNumber: "RN005",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Nishchit Samrudhi Plus",
+    productCode: "121N156V03",
+    planNumber: "RN006",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Super Endowment Plan",
+    productCode: "121N110V02",
+    planNumber: "RN007",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Increasing Income Insurance Plan",
+    productCode: "121N115V02",
+    planNumber: "RN008",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Bluechip Savings Plan",
+    productCode: "121N103V01",
+    planNumber: "RN009",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Smart Total Advantage Return",
+    productCode: "121N128V02",
+    planNumber: "RN010",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Fixed Money Back Plan",
+    productCode: "121N108V02",
+    planNumber: "RN011",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Prosperity Plus",
+    productCode: "121L134V03",
+    planNumber: "RN012",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Classic Plan II",
+    productCode: "121L114V02",
+    planNumber: "RN013",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Smart Savings Insurance Plan",
+    productCode: "121L117V02",
+    planNumber: "RN014",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Premier Wealth Insurance Plan",
+    productCode: "121L120V02",
+    planNumber: "RN015",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Smart Pension Plan",
+    productCode: "121L122V02",
+    planNumber: "RN016",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Nishchit Pension",
+    productCode: "121N158V03",
+    planNumber: "RN017",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Immediate Annuity Plan",
+    productCode: "121N126V03",
+    planNumber: "RN018",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Saral Pension Plan",
+    productCode: "121N141V01",
+    planNumber: "RN019",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Child Plan",
+    productCode: "121N107V02",
+    planNumber: "RN020",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Education Plan",
+    productCode: "121N106V02",
+    planNumber: "RN021",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "Reliance Nippon Life Group Term Assurance Plus",
+    productCode: "121N093V02",
+    planNumber: "RN022",
+    providerCode: "RELIANCE_NIPPON",
+  },
+];

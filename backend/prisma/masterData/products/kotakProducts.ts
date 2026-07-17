@@ -1,0 +1,111 @@
+export const kotakProducts = [
+      // Kotak Life Insurance Products
+  {
+    productName: "Kotak e-Term",
+    productCode: "KLI-001",
+    planNumber: "KLI-001",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Signature Term Plan",
+    productCode: "KLI-002",
+    planNumber: "KLI-002",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Gen2Gen Protect",
+    productCode: "KLI-003",
+    planNumber: "KLI-003",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak e-Invest Plus",
+    productCode: "KLI-004",
+    planNumber: "KLI-004",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak T.U.L.I.P",
+    productCode: "KLI-005",
+    planNumber: "KLI-005",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Invest Maxima",
+    productCode: "KLI-006",
+    planNumber: "KLI-006",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Single Invest Advantage",
+    productCode: "KLI-007",
+    planNumber: "KLI-007",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Platinum",
+    productCode: "KLI-008",
+    planNumber: "KLI-008",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Wealth Optima",
+    productCode: "KLI-009",
+    planNumber: "KLI-009",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Classic Endowment Plan",
+    productCode: "KLI-010",
+    planNumber: "KLI-010",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Premier Endowment Plan",
+    productCode: "KLI-011",
+    planNumber: "KLI-011",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Assured Income Accelerator",
+    productCode: "KLI-012",
+    planNumber: "KLI-012",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak e-Invest Retire Rich",
+    productCode: "KLI-013",
+    planNumber: "KLI-013",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Confident Retirement Builder",
+    productCode: "KLI-014",
+    planNumber: "KLI-014",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Confident Retirement Savings Plan",
+    productCode: "KLI-015",
+    planNumber: "KLI-015",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak e-Invest Rising Star",
+    productCode: "KLI-016",
+    planNumber: "KLI-016",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Gen2Gen Income",
+    productCode: "KLI-017",
+    planNumber: "KLI-017",
+    providerCode: "KOTAK",
+  },
+  {
+    productName: "Kotak Personal Accident Insurance",
+    productCode: "KLI-018",
+    planNumber: "KLI-018",
+    providerCode: "KOTAK",
+  },
+];

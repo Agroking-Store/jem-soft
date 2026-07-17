@@ -1,0 +1,124 @@
+export const bhartiaxaProducts = [
+    
+  // Bharti AXA Products
+  {
+    productName: "Bharti AXA Life eProtect",
+    productCode: "BAXAL001",
+    planNumber: "BAXAL001",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Smart Jeevan",
+    productCode: "BAXAL002",
+    planNumber: "BAXAL002",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Flexi Term Plan",
+    productCode: "BAXAL003",
+    planNumber: "BAXAL003",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Smart Swadhan Neo",
+    productCode: "BAXAL004",
+    planNumber: "BAXAL004",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Future Invest",
+    productCode: "BAXAL005",
+    planNumber: "BAXAL005",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Wealth Maxima",
+    productCode: "BAXAL006",
+    planNumber: "BAXAL006",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Grow Wealth",
+    productCode: "BAXAL007",
+    planNumber: "BAXAL007",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Wealth Secure",
+    productCode: "BAXAL008",
+    planNumber: "BAXAL008",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Guaranteed Income Pro",
+    productCode: "BAXAL009",
+    planNumber: "BAXAL009",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Secure Income Plan",
+    productCode: "BAXAL010",
+    planNumber: "BAXAL010",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Monthly Advantage Plan",
+    productCode: "BAXAL011",
+    planNumber: "BAXAL011",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Super Endowment Plan",
+    productCode: "BAXAL012",
+    planNumber: "BAXAL012",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Elite Advantage",
+    productCode: "BAXAL013",
+    planNumber: "BAXAL013",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Shining Stars",
+    productCode: "BAXAL014",
+    planNumber: "BAXAL014",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Child Advantage Plan",
+    productCode: "BAXAL015",
+    planNumber: "BAXAL015",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Pension Maximiser",
+    productCode: "BAXAL016",
+    planNumber: "BAXAL016",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Retire Smart",
+    productCode: "BAXAL017",
+    planNumber: "BAXAL017",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Group Term Insurance",
+    productCode: "BAXAL018",
+    planNumber: "BAXAL018",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Group Credit Shield",
+    productCode: "BAXAL019",
+    planNumber: "BAXAL019",
+    providerCode: "BHARTI_AXA",
+  },
+  {
+    productName: "Bharti AXA Life Critical Illness & Disability Shield",
+    productCode: "BAXAL020",
+    planNumber: "BAXAL020",
+    providerCode: "BHARTI_AXA",
+  },
+];
