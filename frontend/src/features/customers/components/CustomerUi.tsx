@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
 import { Check, ChevronDown, Search as SearchIcon } from "lucide-react";
 
@@ -231,6 +232,7 @@ function DropdownPanel({
   options,
   value,
   onSelect,
+  style,
 }: {
   query: string;
   onQueryChange: (v: string) => void;
@@ -238,13 +240,21 @@ function DropdownPanel({
   options: SelectOption[];
   value?: string;
   onSelect: (value: string) => void;
+  style: React.CSSProperties;
 }) {
   const filtered = options.filter((o) =>
     `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
   );
 
-  return (
-    <div className="absolute z-30 mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+  // Rendered in a portal to document.body so it overlays above any
+  // overflow:hidden / overflow:auto parent (cards, modal shells) instead of
+  // being clipped. Position is controlled by the `style` prop (fixed coords).
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      style={style}
+      className="absolute z-[1000] mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
+    >
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <SearchIcon size={14} className="shrink-0 text-slate-400" />
         <input
@@ -277,7 +287,8 @@ function DropdownPanel({
           ))
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -306,10 +317,26 @@ export function SearchableSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [pos, setPos] = useState<React.CSSProperties>({});
   const ref = useOutsideClose(() => {
     setOpen(false);
     setQuery("");
   });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Compute fixed position from the trigger's rect so the portal panel
+  // overlays above any overflow:hidden parent instead of being clipped.
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({
+        position: "fixed",
+        top: r.bottom + 6,
+        left: r.left,
+        width: r.width,
+      });
+    }
+  }, [open]);
 
   const selected = options.find((o) => o.value === value);
 
@@ -322,6 +349,7 @@ export function SearchableSelect({
         </label>
       )}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
@@ -353,10 +381,26 @@ export function SearchableSelect({
             setOpen(false);
             setQuery("");
           }}
+          style={pos}
         />
       )}
     </div>
   );
+}
+
+/** Shared date formatter for family history dates (dd-MMM-yyyy). */
+export function formatFamilyHistoryDate(dateStr: string) {
+  if (!dateStr) return "-";
+  try {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch {
+    return "-";
+  }
 }
 
 /** Compact pill-style dropdown for list-page toolbars, e.g. "All Statuses". */
@@ -377,10 +421,26 @@ export function FilterSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [pos, setPos] = useState<React.CSSProperties>({});
   const ref = useOutsideClose(() => {
     setOpen(false);
     setQuery("");
   });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Compute fixed position from the trigger's rect so the portal panel
+  // overlays above any overflow:hidden parent instead of being clipped.
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({
+        position: "fixed",
+        top: r.bottom + 6,
+        left: r.left,
+        width: r.width,
+      });
+    }
+  }, [open]);
 
   const selected = options.find((o) => o.value === value);
   const active = Boolean(selected);
@@ -388,6 +448,7 @@ export function FilterSelect({
   return (
     <div ref={ref} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all ${
@@ -413,6 +474,7 @@ export function FilterSelect({
             setOpen(false);
             setQuery("");
           }}
+          style={pos}
         />
       )}
     </div>

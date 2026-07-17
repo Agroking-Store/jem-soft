@@ -9,11 +9,22 @@ import { useRouter, useParams } from "next/navigation";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
-import { fetchFamilyHistories, deleteFamilyHistory, type FamilyHistoryItem } from "@/features/customers/familyHistorySlice";
+import {
+  fetchFamilyHistoriesByMember,
+  deleteFamilyHistory,
+  clearCurrentGroup,
+  type FamilyHistoryItem,
+} from "@/features/customers/familyHistorySlice";
+import {
+  fetchMedicalHistoriesByMember,
+  deleteMedicalHistory,
+  clearMedicalRecords,
+} from "@/features/customers/medicalHistorySlice";
+import { fetchPoliciesByMember } from "@/features/policy/policySlice";
 import {
   ArrowLeft, Phone, MapPin, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
-  CheckCircle, XCircle, Heart, Plus, Activity,
+  CheckCircle, XCircle, Heart, Plus, Activity, FileText,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -78,26 +89,21 @@ export default function CustomerMasterDetailsPage({
   const [isMounted, setIsMounted] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryItem[]>([]);
-  const [activeSubTab, setActiveSubTab] = useState<"overview" | "family" | "medical">("overview");
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [activeSubTab, setActiveSubTab] = useState<"overview" | "family" | "medical" | "policies">("overview");
 
-  const loadMedicalRecords = () => {
-    if (typeof window !== "undefined") {
-      const recordsKey = `medical_history_${id}`;
-      const records = JSON.parse(localStorage.getItem(recordsKey) ?? "[]");
-      setMedicalRecords(records);
-    }
-  };
+  // Lists are sourced from the Redux store (scoped to this member).
+  const familyRecords = useSelector((s: RootState) => s.familyHistory.records);
+  const medicalRecords = useSelector((s: RootState) => s.medicalHistory.records);
+  const memberPolicies = useSelector((s: RootState) => s.policies.policies);
 
-  const handleDeleteMedical = (medId: string) => {
+  const handleDeleteMedical = async (medId: string) => {
     if (confirm("Are you sure you want to delete this medical history record?")) {
-      const recordsKey = `medical_history_${id}`;
-      const existingRecords = JSON.parse(localStorage.getItem(recordsKey) ?? "[]");
-      const updated = existingRecords.filter((r: any) => r.id !== medId);
-      localStorage.setItem(recordsKey, JSON.stringify(updated));
-      setMedicalRecords(updated);
-      toast.success("Medical record deleted successfully");
+      try {
+        await dispatch(deleteMedicalHistory(medId)).unwrap();
+        toast.success("Medical record deleted successfully");
+      } catch (err: any) {
+        toast.error(err || "Failed to delete record");
+      }
     }
   };
 
@@ -106,12 +112,6 @@ export default function CustomerMasterDetailsPage({
       try {
         await dispatch(deleteFamilyHistory(fhId)).unwrap();
         toast.success("Family history record deleted successfully");
-        // Also refresh list
-        dispatch(fetchFamilyHistories()).then((action) => {
-          if (fetchFamilyHistories.fulfilled.match(action)) {
-            setFamilyRecords((action.payload as FamilyHistoryItem[]).filter((r) => r.memberId === id));
-          }
-        });
       } catch (err: any) {
         toast.error(err || "Failed to delete record");
       }
@@ -122,13 +122,16 @@ export default function CustomerMasterDetailsPage({
     setIsMounted(true);
     if (id) {
       dispatch(fetchCustomerMaster(id));
-      dispatch(fetchFamilyHistories()).then((action) => {
-        if (fetchFamilyHistories.fulfilled.match(action)) {
-          setFamilyRecords((action.payload as FamilyHistoryItem[]).filter((r) => r.memberId === id));
-        }
-      });
-      loadMedicalRecords();
+      dispatch(fetchFamilyHistoriesByMember(id));
+      dispatch(fetchMedicalHistoriesByMember(id));
+      dispatch(fetchPoliciesByMember(id));
     }
+    // Clear member-scoped history when this modal unmounts so a parent modal
+    // (e.g. the group) never shows stale data for a different member.
+    return () => {
+      dispatch(clearCurrentGroup());
+      dispatch(clearMedicalRecords());
+    };
   }, [dispatch, id, modalStackLength]);
 
   const canEdit = isMounted && (user?.role === "ADMIN" || user?.role === "ADVISOR");
@@ -421,7 +424,9 @@ export default function CustomerMasterDetailsPage({
               <p className="text-sm text-slate-400 text-center py-4">No family history records found for this member.</p>
             ) : (
               familyRecords.map((fh) => {
-                const memberName = [fh.member.salutation, fh.member.firstName, fh.member.middleName, fh.member.lastName].filter(Boolean).join(" ");
+                const memberName = fh.member
+                  ? [fh.member.salutation, fh.member.firstName, fh.member.middleName, fh.member.lastName].filter(Boolean).join(" ")
+                  : "Member";
                 return (
                   <div key={fh.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <div className="min-w-0">
@@ -465,34 +470,116 @@ export default function CustomerMasterDetailsPage({
             {medicalRecords.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">No medical history records found for this member.</p>
             ) : (
-              medicalRecords.map((med) => (
-                <div key={med.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{med.condition}</p>
-                      <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        med.status === "Active" ? "bg-red-50 text-red-600 border border-red-100" :
-                        med.status === "Controlled" ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                        "bg-green-50 text-green-600 border border-green-100"
-                      }`}>
-                        {med.status}
-                      </span>
+              medicalRecords.flatMap((med) =>
+                (med.records ?? []).map((rec, idx) => (
+                  <div key={`${med.id}-${rec.id ?? idx}`} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{rec.bloodGroup}</p>
+                        {rec.doctorName && (
+                          <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                            Dr. {rec.doctorName}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Exam Date: {formatDate(rec.medicalHistoryDate || med.date)}
+                        {rec.medicalExaminationDate ? ` &bull; Examined: ${formatDate(rec.medicalExaminationDate)}` : ""}
+                        {rec.bloodPressure ? ` &bull; BP: ${rec.bloodPressure}` : ""}
+                        {rec.pulse ? ` &bull; Pulse: ${rec.pulse}` : ""}
+                      </p>
+                      {rec.majorIllness && <p className="text-xs text-slate-500 italic mt-1 bg-slate-50 p-1.5 rounded">Major Illness: {rec.majorIllness}</p>}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Onset Age: {med.ageOfOnset} &bull; {med.treatment ? `Treatment: ${med.treatment}` : "No medication"} &bull; {formatDate(med.date)}
-                    </p>
-                    {med.notes && <p className="text-xs text-slate-500 italic mt-1 bg-slate-50 p-1.5 rounded">{med.notes}</p>}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {canEdit && (
+                        <>
+                          <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Edit size={11} /> Edit</button>
+                          <button type="button" onClick={() => handleDeleteMedical(med.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Trash2 size={11} /> Delete</button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {canEdit && (
-                      <>
-                        <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Edit size={11} /> Edit</button>
-                        <button type="button" onClick={() => handleDeleteMedical(med.id)} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"><Trash2 size={11} /> Delete</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))
+                ))
+              )
+            )}
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Policies — shown in the customer's Overview (no separate tab), so it
+          does NOT appear inside the Family History or Medical History tabs. */}
+      {activeSubTab === "overview" && (
+        <SectionCard
+          title="Policies"
+          icon={<FileText size={16} />}
+          headerActions={
+            canEdit && (
+              <Link
+                href="/dashboard/lic/policies/new"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
+              >
+                <Plus size={12} /> Create Policy
+              </Link>
+            )
+          }
+        >
+          <div className="space-y-3">
+            {memberPolicies.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-4">No policies found for this member.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      <th className="py-3 px-4 text-left">Policy Number</th>
+                      <th className="py-3 px-4 text-left">Provider / Product</th>
+                      <th className="py-3 px-4 text-right">Sum Assured</th>
+                      <th className="py-3 px-4 text-right">Installment Premium</th>
+                      <th className="py-3 px-4 text-center">Commencement Date</th>
+                      <th className="py-3 px-4 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {memberPolicies.map((policy: any) => {
+                      const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
+                      const StatusIcon = statusDetails.icon;
+                      return (
+                        <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                          <td className="py-3 px-4 font-semibold text-slate-900">
+                            {canEdit ? (
+                              <Link href={`/dashboard/lic/policies/edit/${policy.id}`} className="text-[#0B1220] hover:text-[#16294D] hover:underline">
+                                {policy.policyNumber}
+                              </Link>
+                            ) : (
+                              policy.policyNumber
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
+                            <div className="text-xs text-slate-500">{policy.product?.productName || "—"}</div>
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                            {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                            {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
+                            <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center text-slate-600 font-medium">
+                            {policy.commencementDate ? formatDate(policy.commencementDate) : "—"}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
+                              <StatusIcon size={11} />
+                              {policy.status?.statusName || "Active"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </SectionCard>

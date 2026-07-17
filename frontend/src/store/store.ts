@@ -10,6 +10,7 @@ import policyReducer from "@/features/policy/policySlice";
 import policyStatusMasterReducer from "@/features/policy/policyStatusMasterSlice";
 import premiumModeMasterReducer from "@/features/policy/premiumModeMasterSlice";
 import familyHistoryReducer from "@/features/customers/familyHistorySlice";
+import medicalHistoryReducer from "@/features/customers/medicalHistorySlice";
 import productAttributeValueReducer from "@/features/insurance/productAttributeValueSlice";
 import licBranchReducer from "@/features/lic/licBranchSlice"; // Added licBranch reducer
 import agencyReducer from "@/features/agency/agencySlice"; // Added agency reducer
@@ -32,6 +33,7 @@ export const store = configureStore({
     licBranch: licBranchReducer,
     agency: agencyReducer,
     familyHistory: familyHistoryReducer,
+    medicalHistory: medicalHistoryReducer,
     productAttributeValues: productAttributeValueReducer,
     loans: loanReducer,
     loanStatuses: loanStatusMasterReducer,

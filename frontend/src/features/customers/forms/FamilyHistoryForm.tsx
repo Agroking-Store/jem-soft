@@ -17,8 +17,7 @@ import { ArrowLeft, RotateCcw, Plus, Trash2, Save, X, ChevronRight, Users } from
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import toast from "react-hot-toast";
-import { formatFamilyHistoryDate } from "./FamilyHistoryList";
-import { SearchableSelect } from "@/features/customers/components/CustomerUi";
+import { formatFamilyHistoryDate, SearchableSelect } from "@/features/customers/components/CustomerUi";
 
 interface FamilyHistoryFormProps {
   recordId?: string;

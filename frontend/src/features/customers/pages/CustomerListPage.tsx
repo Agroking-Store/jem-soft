@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
   AlertTriangle,
   Building2,
@@ -19,9 +18,6 @@ import {
   Trash2,
   UserCog,
   Users,
-  ShieldAlert,
-  Heart,
-  Activity,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -29,11 +25,11 @@ import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { deleteCustomer, fetchCustomers } from "@/features/customers/customerSlice";
 import { deleteCustomerMaster, fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
-import { fetchFamilyHistories } from "@/features/customers/familyHistorySlice";
-import FamilyHistoryForm from "./FamilyHistoryForm";
-import FamilyHistoryList from "./FamilyHistoryList";
-import FamilyHistoryView from "./FamilyHistoryView";
-import MedicalHistoryForm from "./MedicalHistoryForm";
+import { fetchFamilyHistoriesByMember } from "@/features/customers/familyHistorySlice";
+import { fetchMedicalHistoriesByMember } from "@/features/customers/medicalHistorySlice";
+import FamilyHistoryForm from "../forms/FamilyHistoryForm";
+import FamilyHistoryView from "../forms/FamilyHistoryView";
+import MedicalHistoryForm from "../forms/MedicalHistoryForm";
 import CustomerCreatePage from "./CustomerCreatePage";
 import CustomerDetailsPage from "./CustomerDetailsPage";
 import CustomerEditPage from "./CustomerEditPage";
@@ -63,18 +59,12 @@ const CATEGORY_DOT: Record<string, string> = {
   Prospect: "bg-emerald-500",
 };
 
-type Tab = "group" | "master" | "family" | "medical";
+type Tab = "group" | "master";
 type DeleteTarget = {
   id: string;
-  type: Extract<Tab, "group" | "master">;
+  type: "group" | "master";
   label: string;
 } | null;
-
-type HistoryView =
-  | { type: "list" }
-  | { type: "add"; recordId?: string }
-  | { type: "edit"; recordId?: string }
-  | { type: "view"; recordId?: string };
 
 type ModalType = CustomerModalEntry["type"];
 
@@ -184,14 +174,7 @@ export default function CustomerListPage() {
   } = useSelector((s: RootState) => s.customerMaster);
 
   const paramTab = searchParams.get("tab");
-  const activeTab: Tab =
-    paramTab === "master"
-      ? "master"
-      : paramTab === "family"
-        ? "family"
-        : paramTab === "medical"
-          ? "medical"
-          : "group";
+  const activeTab: Tab = paramTab === "master" ? "master" : "group";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -200,9 +183,8 @@ export default function CustomerListPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [historyView, setHistoryView] = useState<HistoryView>({ type: "list" });
   const [modalStack, setModalStack] = useState<CustomerModalEntry[]>([]);
-  const showListChrome = activeTab !== "family" || historyView.type === "list";
+  const showListChrome = true;
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -269,9 +251,6 @@ export default function CustomerListPage() {
   useEffect(() => {
     setSearchTerm("");
     setSelectedIds(new Set());
-    if (activeTab === "family") {
-      setHistoryView({ type: "list" });
-    }
   }, [activeTab]);
 
   const handleDelete = async () => {
@@ -342,7 +321,6 @@ export default function CustomerListPage() {
   const handleModalMutation = () => {
     dispatch(fetchCustomers());
     dispatch(fetchCustomersMaster());
-    dispatch(fetchFamilyHistories());
     closeTopModal();
   };
 
@@ -408,8 +386,7 @@ export default function CustomerListPage() {
       ? "This will remove the customer and all linked contact, address, bank, and preference details."
       : "This will remove the customer group and related portal access.";
 
-  const activeContent =
-    activeTab === "group" || activeTab === "master" ? (
+  const activeContent = (
       <CustomerSectionCard
         title={activeTab === "group" ? "Customer Groups" : "Customer Directory"}
         subtitle={
@@ -790,38 +767,6 @@ export default function CustomerListPage() {
           </CustomerTableFrame>
         )}
       </CustomerSectionCard>
-    ) : activeTab === "family" ? (
-      <CustomerSectionCard
-        title="Family History"
-        subtitle="Track family history records with a cleaner review flow and direct access to add, edit, and view actions."
-        icon={ShieldAlert}
-      >
-        <FamilyHistoryList
-          onAdd={() => openModal("family-create")}
-          onEdit={(recordId) => openModal("family-edit", recordId)}
-          onView={(recordId) => openModal("family-details", recordId)}
-          searchTerm={searchTerm}
-        />
-      </CustomerSectionCard>
-    ) : (
-      <CustomerSectionCard
-        title="Medical History"
-        subtitle="This area is reserved for customer medical history workflows and can be extended without changing the module shell."
-        icon={ShieldAlert}
-      >
-        <CustomerEmptyState
-          title="Medical history workspace"
-          description="Medical history screens are routed through this module shell and can be added here without changing the broader customer layout."
-          action={
-            <Link
-              href="/dashboard/customers"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
-            >
-              Back to Customers
-            </Link>
-          }
-        />
-      </CustomerSectionCard>
     );
 
   const renderModalContent = (modal: CustomerModalEntry) => {
@@ -900,6 +845,11 @@ export default function CustomerListPage() {
           <MedicalHistoryForm
             memberId={"memberId" in modal ? modal.memberId : ""}
             onClose={handleModalMutation}
+            onSaved={() => {
+              if ("memberId" in modal && modal.memberId) {
+                dispatch(fetchMedicalHistoriesByMember(modal.memberId));
+              }
+            }}
           />
         );
       case "medical-edit":
@@ -908,6 +858,11 @@ export default function CustomerListPage() {
             recordId={modal.id}
             memberId={"memberId" in modal ? modal.memberId : ""}
             onClose={handleModalMutation}
+            onSaved={() => {
+              if ("memberId" in modal && modal.memberId) {
+                dispatch(fetchMedicalHistoriesByMember(modal.memberId));
+              }
+            }}
           />
         );
     }
@@ -950,9 +905,7 @@ export default function CustomerListPage() {
               placeholder={
                 activeTab === "group"
                   ? "Search by group name, code, or category..."
-                  : activeTab === "master"
-                    ? "Search by name, group, mobile, email, or type..."
-                    : "Search family history records..."
+                  : "Search by name, group, mobile, email, or type..."
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -998,16 +951,6 @@ export default function CustomerListPage() {
             >
               <Plus size={16} />
               {activeTab === "group" ? "New Group" : "New Customer"}
-            </button>
-          )}
-
-          {isClient && canEdit && activeTab === "family" && historyView.type === "list" && (
-            <button
-              onClick={() => openModal("family-create")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
-            >
-              <Plus size={16} />
-              Add Family History
             </button>
           )}
         </div>

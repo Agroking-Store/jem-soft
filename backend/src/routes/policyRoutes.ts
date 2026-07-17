@@ -3,6 +3,7 @@ import {
   createPolicy,
   getAllPolicies,
   getPolicyById,
+  getPoliciesByMember,
   updatePolicy,
   deletePolicy,
 } from "../controllers/policyController.js";
@@ -11,6 +12,10 @@ import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.use(protect);
+
+// Scoped to a specific member (life assured)
+router.get("/member/:memberId", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getPoliciesByMember);
+
 router
     .route("/")
     .get(getAllPolicies)

@@ -127,6 +127,8 @@ api.interceptors.request.use((config) => {
 });
 
 const getPoliciesApi = () => api.get(`${API_URL}/policies`);
+const getPoliciesByMemberApi = (memberId: string) =>
+  api.get(`${API_URL}/policies/member/${memberId}`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
 const createPolicyApi = (policyData: any) =>
   api.post(`${API_URL}/policies`, policyData);
@@ -142,6 +144,21 @@ export const fetchPolicies = createAsyncThunk<
   } catch (err: any) {
     return rejectWithValue(
       err.response?.data?.message ?? "Failed to fetch policies",
+    );
+  }
+});
+
+export const fetchPoliciesByMember = createAsyncThunk<
+  Policy[],
+  string,
+  { rejectValue: string }
+>("policies/fetchByMember", async (memberId, { rejectWithValue }) => {
+  try {
+    const response = await getPoliciesByMemberApi(memberId);
+    return response.data.data.policies;
+  } catch (err: any) {
+    return rejectWithValue(
+      err.response?.data?.message ?? "Failed to fetch member policies",
     );
   }
 });
