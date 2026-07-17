@@ -74,6 +74,7 @@ export default function LICPoliciesPage() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPolicyTypeModalOpen, setIsPolicyTypeModalOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isClient, setIsClient] = useState(false);
 
@@ -198,6 +199,11 @@ export default function LICPoliciesPage() {
     }
   };
 
+  const handleCreatePolicySelection = (type: "LIC" | "OTHER") => {
+    setIsPolicyTypeModalOpen(false);
+    router.push(`/dashboard/lic/policies/new?policyType=${type.toLowerCase()}`);
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
@@ -210,7 +216,7 @@ export default function LICPoliciesPage() {
         </div>
         {isClient && canEdit && (
           <button
-            onClick={() => router.push("/dashboard/lic/policies/new")}
+            onClick={() => setIsPolicyTypeModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
           >
             <Plus size={18} />
@@ -254,6 +260,44 @@ export default function LICPoliciesPage() {
           </p>
         </div>
       </div>
+
+      {isPolicyTypeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Select Policy Type
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsPolicyTypeModalOpen(false)}
+                className="text-sm text-slate-500 hover:text-slate-700"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-sm text-slate-500 mb-6">
+              Choose the policy category to continue with the right plan list.
+            </p>
+            <div className="grid gap-3">
+              <button
+                type="button"
+                onClick={() => handleCreatePolicySelection("LIC")}
+                className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+              >
+                LIC
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreatePolicySelection("OTHER")}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Other
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filter */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6">

@@ -1,0 +1,88 @@
+export const saharaProducts = [
+      //Sahara Life Insurance
+
+  {
+    productName: "Sahara Shrestha Nivesh Jeevan Bima",
+    productCode: "127N033V01",
+    planNumber: "SAHARA001",
+    providerCode: "SAHARA",
+    productType: "Endownment",
+  },
+  {
+    productName: "Sahara Shubh Nivesh-Jeevan Bima",
+    productCode: "127N028V01",
+    planNumber: "SAHARA002",
+    providerCode: "SAHARA",
+    productType: "Endownment",
+  },
+  {
+    productName: "Sahara Dhan Sanchay Jeevan Bima",
+    productCode: "127N029V01",
+    planNumber: "SAHARA003",
+    providerCode: "SAHARA",
+    productType: "Endownment",
+  },
+  {
+    productName: "Sahara Pay Back – Jeevan Bima",
+    productCode: "127N035V01",
+    planNumber: "SAHARA004",
+    providerCode: "SAHARA",
+    productType: "Money back",
+  },
+  {
+    productName: "Sahara Dhanvriddhi Jeevan Bima",
+    productCode: "127N034V01",
+    planNumber: "SAHARA005",
+    providerCode: "SAHARA",
+    productType: "Money back",
+  },
+  {
+    productName: "Sahara Dhanversha-Jeevan Bima",
+    productCode: "127N030V01",
+    planNumber: "SAHARA006",
+    providerCode: "SAHARA",
+    productType: "Money back",
+  },
+  {
+    productName: "SAHARA SANJEEVANI",
+    productCode: "127N004V01",
+    planNumber: "SAHARA007",
+    providerCode: "SAHARA",
+    productType: "Annuity",
+  },
+  {
+    productName: "SAHARA SANCHIT – JEEVAN BIMA",
+    productCode: "127L024V01",
+    planNumber: "SAHARA008",
+    providerCode: "SAHARA",
+    productType: "Unit Link",
+  },
+  {
+    productName: "SAHARA UTKARSH- JEEVAN BIMA",
+    productCode: "127L022V01",
+    planNumber: "SAHARA009",
+    providerCode: "SAHARA",
+    productType: "Unit Link",
+  },
+  {
+    productName: "SAHARA SUGAM - JEEVAN BIMA",
+    productCode: "127L023V01",
+    planNumber: "SAHARA010",
+    providerCode: "SAHARA",
+    productType: "Unit Link",
+  },
+  {
+    productName: "Sahara Samooh Suraksha",
+    productCode: "127N008V02",
+    planNumber: "SAHARA011",
+    providerCode: "SAHARA",
+    productType: "Group Insurance Scheme",
+  },
+  {
+    productName: "Sahara Accidental Death Benefit Rider",
+    productCode: "127B005V01",
+    planNumber: "SAHARA012",
+    providerCode: "SAHARA",
+    productType: "Rider plan",
+  },
+];

@@ -1,0 +1,217 @@
+export const digitProducts = [
+    
+  // Digit Life Insurance Products
+  {
+    productName: "Digit Glow Term Life Insurance",
+    productCode: "DL-001",
+    planNumber: "DL-001",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Glow Plus Term Life Insurance",
+    productCode: "DL-002",
+    planNumber: "DL-002",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Glow Lite Term Life Insurance",
+    productCode: "DL-003",
+    planNumber: "DL-003",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Glow Term Life Insurance – Increasing Cover",
+    productCode: "DL-004",
+    planNumber: "DL-004",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Glow Term Life Insurance – Whole Life Option",
+    productCode: "DL-005",
+    planNumber: "DL-005",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit ICON Guaranteed Returns Savings Plan – Income Benefit",
+    productCode: "DL-006",
+    planNumber: "DL-006",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit ICON Guaranteed Returns Savings Plan – Lumpsum Benefit",
+    productCode: "DL-007",
+    planNumber: "DL-007",
+    providerCode: "DIGIT",
+  },
+  {
+    productName:
+      "Digit ICON Guaranteed Returns Savings Plan – Income + Lumpsum",
+    productCode: "DL-008",
+    planNumber: "DL-008",
+    providerCode: "DIGIT",
+  },
+  {
+    productName:
+      "Digit ICON Guaranteed Returns Savings Plan – Whole Life Benefit",
+    productCode: "DL-009",
+    planNumber: "DL-009",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Single Premium Guaranteed Income Plan",
+    productCode: "DL-010",
+    planNumber: "DL-010",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Guaranteed Pension Plan",
+    productCode: "DL-011",
+    planNumber: "DL-011",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Unit Linked Pension Plan (ULPP)",
+    productCode: "DL-012",
+    planNumber: "DL-012",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life ULIP Plan – Growth Fund",
+    productCode: "DL-013",
+    planNumber: "DL-013",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life ULIP Plan – Balanced Fund",
+    productCode: "DL-014",
+    planNumber: "DL-014",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life ULIP Plan – Debt Fund",
+    productCode: "DL-015",
+    planNumber: "DL-015",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Term Life Insurance",
+    productCode: "DL-016",
+    planNumber: "DL-016",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Long Term Plan",
+    productCode: "DL-017",
+    planNumber: "DL-017",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Micro Term Life Insurance",
+    productCode: "DL-018",
+    planNumber: "DL-018",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Endowment Plan",
+    productCode: "DL-019",
+    planNumber: "DL-019",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Money Back Plan",
+    productCode: "DL-020",
+    planNumber: "DL-020",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Child Education Plan",
+    productCode: "DL-021",
+    planNumber: "DL-021",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Child ULIP Plan",
+    productCode: "DL-022",
+    planNumber: "DL-022",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Whole Life Insurance Plan",
+    productCode: "DL-023",
+    planNumber: "DL-023",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Critical Illness Rider",
+    productCode: "DL-024",
+    planNumber: "DL-024",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Accidental Death Benefit Rider",
+    productCode: "DL-025",
+    planNumber: "DL-025",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Waiver of Premium Rider",
+    productCode: "DL-026",
+    planNumber: "DL-026",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Terminal Illness Benefit Rider",
+    productCode: "DL-027",
+    planNumber: "DL-027",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Guaranteed Income Plan",
+    productCode: "DL-028",
+    planNumber: "DL-028",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Single Premium Guaranteed Income Plan",
+    productCode: "DL-029",
+    planNumber: "DL-029",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Glow Term Life Insurance – NRI Plan",
+    productCode: "DL-030",
+    planNumber: "DL-030",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Long Term Plan – Credit Linked",
+    productCode: "DL-031",
+    planNumber: "DL-031",
+    providerCode: "DIGIT",
+  },
+  {
+    productName:
+      "Digit ICON Guaranteed Returns – Customised Anniversary Payout",
+    productCode: "DL-032",
+    planNumber: "DL-032",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Retirement Income Plan",
+    productCode: "DL-033",
+    planNumber: "DL-033",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Joint Life Term Plan",
+    productCode: "DL-034",
+    planNumber: "DL-034",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Return of Premium Term Plan",
+    productCode: "DL-035",
+    planNumber: "DL-035",
+    providerCode: "DIGIT",
+  },
+];
