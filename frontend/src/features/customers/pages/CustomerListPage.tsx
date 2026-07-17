@@ -42,11 +42,8 @@ import {
   type CustomerModalEntry,
 } from "@/features/customers/components/CustomerModalStack";
 import {
-  CustomerBreadcrumbs,
   CustomerEmptyState,
-  CustomerPageHero,
   CustomerSectionCard,
-  CustomerStatCard,
   CustomerTableFrame,
   CustomerToolbar,
   FilterSelect,
@@ -207,25 +204,6 @@ export default function CustomerListPage() {
     return counts;
   }, [masterCustomers]);
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { Client: 0, Personal: 0, Prospect: 0, Others: 0 };
-    customers.forEach((customer) => {
-      const category = customer.category && counts[customer.category] !== undefined ? customer.category : "Others";
-      counts[category] = (counts[category] || 0) + 1;
-    });
-    return counts;
-  }, [customers]);
-
-  const masterStats = useMemo(() => {
-    const heads = masterCustomers.filter((customer) => customer.isGroupHead).length;
-    const unmapped = masterCustomers.filter((customer) => !customer.groupId).length;
-    return {
-      heads,
-      members: masterCustomers.length - heads,
-      unmapped,
-    };
-  }, [masterCustomers]);
-
   const filteredCustomers = customers.filter((customer) => {
     const query = searchTerm.toLowerCase();
     return (
@@ -343,42 +321,6 @@ export default function CustomerListPage() {
       }
     }
   }, [searchParams]);
-
-  const heroActions = isClient && canEdit ? (
-    <>
-      <button
-        type="button"
-        onClick={() => openModal("group-create")}
-        className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15"
-      >
-        <Plus size={16} />
-        Add Group
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("master-create")}
-        className="inline-flex items-center gap-2 rounded-xl bg-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-[#0B1220] transition-colors hover:bg-[#d8b65a]"
-      >
-        <UserCog size={16} />
-        Add Customer
-      </button>
-    </>
-  ) : undefined;
-
-  const stats =
-    activeTab === "group"
-      ? [
-          { label: "Client", value: categoryCounts.Client, icon: Users, tone: "accent" as const },
-          { label: "Personal", value: categoryCounts.Personal, icon: UserCog, tone: "warning" as const },
-          { label: "Prospect", value: categoryCounts.Prospect, icon: Star, tone: "success" as const },
-          { label: "Others", value: categoryCounts.Others, icon: AlertTriangle, tone: "neutral" as const },
-        ]
-      : [
-          { label: "Group Heads", value: masterStats.heads, icon: Star, tone: "accent" as const },
-          { label: "Members", value: masterStats.members, icon: Users, tone: "accent" as const },
-          { label: "Not Mapped", value: masterStats.unmapped, icon: AlertTriangle, tone: "warning" as const },
-          { label: "Total", value: masterCustomers.length, icon: UserCog, tone: "neutral" as const },
-        ];
 
   const deleteTitle = deleteTarget?.type === "master" ? "Delete Customer" : "Delete Customer Group";
   const deleteText =
@@ -870,30 +812,16 @@ export default function CustomerListPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerBreadcrumbs
-        items={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Customers" },
-        ]}
-      />
-
-      <CustomerPageHero
-        title="Customers"
-        subtitle="Manage customer groups, individual records, family history, and related account information from one structured workspace."
-        actions={heroActions}
-      />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
+            <Users size={20} />
+          </span>
+          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">Customers</h1>
+        </div>
+      </div>
 
       <CustomerModuleNav />
-
-      {/* Stat cards + search/filter toolbar only make sense on the list views —
-          hidden while a Family History add/edit/view form takes over the page. */}
-      {showListChrome && (
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {stats.map((stat) => (
-            <CustomerStatCard key={stat.label} label={stat.label} value={stat.value} icon={stat.icon} tone={stat.tone} />
-          ))}
-        </div>
-      )}
 
       {showListChrome && (
       <CustomerToolbar>
