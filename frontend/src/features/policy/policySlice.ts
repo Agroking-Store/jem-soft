@@ -278,6 +278,19 @@ const policySlice = createSlice({
         state.error = action.payload ?? "Failed to fetch";
       })
 
+      // Fetch policies for a specific member (Customer Master details)
+      .addCase(fetchPoliciesByMember.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchPoliciesByMember.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.policies = action.payload;
+      })
+      .addCase(fetchPoliciesByMember.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ?? "Failed to fetch member policies";
+      })
+
       // Create policy
       .addCase(createPolicy.pending, (state) => {
         state.isLoading = true;

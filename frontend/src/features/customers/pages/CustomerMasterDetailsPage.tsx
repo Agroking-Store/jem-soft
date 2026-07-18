@@ -25,6 +25,7 @@ import {
   ArrowLeft, Eye, Phone, MapPin, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
   CheckCircle, XCircle, Heart, Plus, Activity, FileText,
+  Clock, AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -70,6 +71,20 @@ function formatDate(dateStr?: string | null): string {
   catch { return "—"; }
 }
 
+function getStatusBadge(status: string) {
+  const statusMap = {
+    Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
+    Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
+    Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
+    Completed: { color: "bg-[#B8873A]/10 text-[#0B1220]", icon: CheckCircle },
+  };
+  const StatusIcon = statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
+  return {
+    className: statusMap[status as keyof typeof statusMap]?.color || "bg-gray-100 text-gray-700",
+    icon: StatusIcon,
+  };
+}
+
 export default function CustomerMasterDetailsPage({
   isModal = false,
   customerId,
@@ -89,8 +104,6 @@ export default function CustomerMasterDetailsPage({
   const [isMounted, setIsMounted] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<"overview" | "family" | "medical" | "policies">("overview");
-
   // Lists are sourced from the Redux store (scoped to this member).
   const familyRecords = useSelector((s: RootState) => s.familyHistory.records);
   const medicalRecords = useSelector((s: RootState) => s.medicalHistory.records);
@@ -242,45 +255,7 @@ export default function CustomerMasterDetailsPage({
         </div>
       </div>
 
-      {/* Sub tabs for Member Details */}
-      <div className="flex border-b border-slate-200">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab("overview")}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
-            activeSubTab === "overview"
-              ? "border-[#B8873A] text-[#0B1220]"
-              : "border-transparent text-slate-400 hover:text-slate-600"
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab("family")}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
-            activeSubTab === "family"
-              ? "border-[#B8873A] text-[#0B1220]"
-              : "border-transparent text-slate-400 hover:text-slate-600"
-          }`}
-        >
-          Family History ({familyRecords.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab("medical")}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
-            activeSubTab === "medical"
-              ? "border-[#B8873A] text-[#0B1220]"
-              : "border-transparent text-slate-400 hover:text-slate-600"
-          }`}
-        >
-          Medical History ({medicalRecords.length})
-        </button>
-      </div>
-
-      {activeSubTab === "overview" && (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Contact Info */}
           {c.contactInfo && (
             <SectionCard title="Contact Information" icon={<Phone size={16} />}>
@@ -401,11 +376,9 @@ export default function CustomerMasterDetailsPage({
             </SectionCard>
           )}
         </div>
-      )}
 
-      {activeSubTab === "family" && (
-        <SectionCard
-          title="Family History"
+      <SectionCard
+        title="Family History"
           icon={<Heart size={16} />}
           headerActions={
             canEdit && (
@@ -454,11 +427,9 @@ export default function CustomerMasterDetailsPage({
             )}
           </div>
         </SectionCard>
-      )}
 
-      {activeSubTab === "medical" && (
-        <SectionCard
-          title="Medical History"
+      <SectionCard
+        title="Medical History"
           icon={<Activity size={16} />}
           headerActions={
             canEdit && (
@@ -517,13 +488,10 @@ export default function CustomerMasterDetailsPage({
             )}
           </div>
         </SectionCard>
-      )}
 
-      {/* Policies — shown in the customer's Overview (no separate tab), so it
-          does NOT appear inside the Family History or Medical History tabs. */}
-      {activeSubTab === "overview" && (
-        <SectionCard
-          title="Policies"
+      {/* Policies */}
+      <SectionCard
+        title="Policies"
           icon={<FileText size={16} />}
           headerActions={
             canEdit && (
@@ -596,7 +564,6 @@ export default function CustomerMasterDetailsPage({
             )}
           </div>
         </SectionCard>
-      )}
 
       {/* Delete Modal */}
       {showDeleteModal && (
