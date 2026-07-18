@@ -461,4 +461,77 @@ export const absliProducts = [
       providerCode: "ABSLI",
       productType: "Group Insurance",
     },
+      {
+    productName: "ABSLI Fortune Elite Plan",
+    productCode: "109L090V05",
+    planNumber: "ABSLI067",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Group Assured Pension Plan",
+    productCode: "109L119V02",
+    planNumber: "ABSLI068",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Accidental Death And Disability Rider",
+    productCode: "109B018V03",
+    planNumber: "ABSLI069",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Critical Illness Rider",
+    productCode: "109B019V03",
+    planNumber: "ABSLI070",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Surgical Care Rider",
+    productCode: "109B015V03",
+    planNumber: "ABSLI071",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Hospital Care Rider",
+    productCode: "109B016V03",
+    planNumber: "ABSLI072",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Waiver Of Premium Rider",
+    productCode: "109A039V01",
+    planNumber: "ABSLI073",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Accidental Death Benefit Rider Plus",
+    productCode: "109A024V01",
+    planNumber: "ABSLI074",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Wealth Aspire Plan",
+    productCode: "109L100V03",
+    planNumber: "ABSLI075",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Wealth Aspire Plan",
+    productCode: "109L100V04",
+    planNumber: "ABSLI076",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Group Assured Pension Plan",
+    productCode: "109L119V01",
+    planNumber: "ABSLI077",
+    providerCode: "ABSLI",
+  },
+  {
+    productName: "ABSLI Wealth Assure Plus",
+    productCode: "109L120V01",
+    planNumber: "ABSLI078",
+    providerCode: "ABSLI",
+  },
+
   ];

@@ -371,4 +371,35 @@ export const iciciPruProducts = [
       providerCode: "ICICI_PRU",
       productType: "Group Insurance Plans",
     },
+      {
+    productName: "ICICI Pru Group Term Plus",
+    productCode: "105N119V08",
+    planNumber: "ICICIPRU026",
+    providerCode: "ICICI_PRU",
+  },
+  {
+    productName: "ICICI Pru iProtect Return of Premium",
+    productCode: "105N186V01",
+    planNumber: "ICICIPRU027",
+    providerCode: "ICICI_PRU",
+  },
+  {
+    productName: "ICICI Pru Elite Wealth Super",
+    productCode: "105L157V03",
+    planNumber: "ICICIPRU028",
+    providerCode: "ICICI_PRU",
+  },
+  {
+    productName: "ICICI Pru Gold",
+    productCode: "105N190V04",
+    planNumber: "ICICIPRU029",
+    providerCode: "ICICI_PRU",
+    productType: "Savings Plans",
+  },
+  {
+    productName: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
+    productCode: "105N185V17",
+    planNumber: "ICICIPRU030",
+    providerCode: "ICICI_PRU",
+  },
   ];
