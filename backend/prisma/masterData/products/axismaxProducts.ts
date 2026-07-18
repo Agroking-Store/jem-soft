@@ -1,5 +1,4 @@
 export const axismaxProducts = [
-    
   //AXIS MAX LIFE
 
   {
@@ -127,5 +126,91 @@ export const axismaxProducts = [
     productCode: "NBHHLIP23107V022223",
     planNumber: "AX021",
     providerCode: "NIVA_BUPA",
+  },
+  {
+    productName: "Axis Max Life Smart Wealth Annuity Guaranteed Pension Plan",
+    productCode: "104N137V13",
+    planNumber: "AX022",
+    providerCode: "AXIS_MAX",
+    productType: "Pension / Annuity",
+  },
+  {
+    productName: "Axis Max Life Smart Guaranteed Pension Plan",
+    productCode: "104N122V25",
+    planNumber: "AX023",
+    providerCode: "AXIS_MAX",
+    productType: "Pension / Retirement",
+  },
+  {
+    productName:
+      "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
+    productCode: "104N160V01",
+    planNumber: "AX024",
+    providerCode: "AXIS_MAX",
+    productType: "Retirement / Income",
+  },
+  {
+    productName: "Axis Max Life Saral Jeevan Bima",
+    productCode: "",
+    planNumber: "AX025",
+    providerCode: "AXIS_MAX",
+    productType: "Term Insurance",
+  },
+  {
+    productName: "Axis Max Life Smart Total Elite Protection Term Plan",
+    productCode: "104N125V09",
+    planNumber: "AX026",
+    providerCode: "AXIS_MAX",
+    productType: "Term Insurance",
+  },
+  {
+    productName: "Axis Max Life Shiksha Plus Super Plan",
+    productCode: "104L084V17",
+    planNumber: "AX027",
+    providerCode: "AXIS_MAX",
+    productType: "Child Plan",
+  },
+  //AXIS BANK LIFE - WITHDRAWN POLICIES (OFFICIAL WITHDRAWN LIST)
+  {
+    productName: "Axis Max Life Smart Fixed-return Digital Plan",
+    productCode: "104N123V06",
+    planNumber: "AX028",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "Axis Max Life Assured Wealth Plan",
+    productCode: "104N096V04",
+    planNumber: "AX029",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "Axis Max Life Forever Young Pension Plan",
+    productCode: "104L075V04",
+    planNumber: "AX030",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "Axis Max Life MAXIS Super",
+    productCode: "104L081V02",
+    planNumber: "AX031",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "Axis Max Life Life Gain Premier",
+    productCode: "104N079V03",
+    planNumber: "AX032",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "Axis Max Life Premium Return Protection Plan",
+    productCode: "104N079V01",
+    planNumber: "AX033",
+    providerCode: "AXIS_MAX",
+    productType: "Withdrawn",
   },
 ];

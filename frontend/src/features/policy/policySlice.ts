@@ -36,8 +36,12 @@ export interface Policy {
       id: string;
       isDefault: boolean;
       bankName?: string | null;
+      bankBranch?: string | null;
+      city?: string | null;
+      accountType?: string | null;
       accountNumber?: string | null;
       ifscCode?: string | null;
+      micrNumber?: string | null;
       accountHolderName?: string | null;
     }[];
   } | null;

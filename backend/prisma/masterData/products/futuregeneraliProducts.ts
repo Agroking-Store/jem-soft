@@ -1,5 +1,4 @@
 export const futuregeneraliProducts = [
-    
   // Future Generali Products
   {
     productName: "Accident Suraksha",
@@ -342,5 +341,33 @@ export const futuregeneraliProducts = [
     productCode: "IRDAN132RPMS0003V02201213",
     planNumber: "FG056",
     providerCode: "FUTURE_GENERALI",
+  },
+  {
+    productName: "Health Unlimited",
+    productCode: "GCIHLIP26041V012526",
+    planNumber: "FG057",
+    providerCode: "FUTURE_GENERALI",
+    productType: "Health Insurance",
+  },
+  {
+    productName: "Pet Health Pawlicy",
+    productCode: "IRDAN132RPMS0175V01202526",
+    planNumber: "FG058",
+    providerCode: "FUTURE_GENERALI",
+    productType: "Pet Insurance",
+  },
+  {
+    productName: "Dog Health Cover",
+    productCode: "IRDAN132RPMS0002V02202122",
+    planNumber: "FG059",
+    providerCode: "FUTURE_GENERALI",
+    productType: "Pet Insurance",
+  },
+  {
+    productName: "Products Liability Insurance",
+    productCode: "IRDAN132RP0019V01202223",
+    planNumber: "FG060",
+    providerCode: "FUTURE_GENERALI",
+    productType: "Liability Insurance",
   },
 ];
