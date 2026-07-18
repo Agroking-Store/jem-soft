@@ -761,6 +761,7 @@ export default function CustomerListPage() {
             customerId={modal.id}
             onClose={closeTopModal}
             onSaved={handleModalMutation}
+            onOpenModal={openModal}
           />
         );
       case "family-create":

@@ -15,8 +15,22 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, updateCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import {
+  fetchFamilyHistoriesByMember,
+  updateFamilyHistory,
+  createFamilyHistory,
+  type FamilyHistoryRecordItem,
+} from "@/features/customers/familyHistorySlice";
+import {
+  fetchMedicalHistoriesByMember,
+  updateMedicalHistory,
+  createMedicalHistory,
+  type MedicalHistoryRecordItem,
+} from "@/features/customers/medicalHistorySlice";
+import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
+import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
+import {
   ArrowLeft, User, Phone, MapPin, CreditCard, Info, Settings,
-  ChevronRight, Plus, Trash2, Star, Search, X,
+  ChevronRight, Plus, Trash2, Star, Search, X, Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -266,14 +280,29 @@ function formatDateForInput(dateStr?: string | null): string {
   try { return new Date(dateStr).toISOString().split("T")[0]; } catch { return ""; }
 }
 
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
 interface CustomerMasterEditPageProps {
   isModal?: boolean;
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
+  onOpenModal?: (type: "master-details", id: string) => void;
 }
 
-export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerMasterEditPageProps = {}) {
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
@@ -282,9 +311,21 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   const { user, isLoading: authLoading } = useAuth();
   const { currentCustomer, isLoading: customerLoading } = useSelector((s: RootState) => s.customerMaster);
   const { customers: groups } = useSelector((s: RootState) => s.customers);
+  const existingFamily = useSelector((s: RootState) => s.familyHistory.records);
+  const existingMedical = useSelector((s: RootState) => s.medicalHistory.records);
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
+
+  // Inline Family History + Medical History (most recent record) state.
+  const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryRecordItem[]>([]);
+  const [familyHistoryRecordId, setFamilyHistoryRecordId] = useState<string | null>(null);
+  const [medicalRecord, setMedicalRecord] = useState<MedicalHistoryRecordItem>({
+    medicalHistoryDate: new Date().toISOString().substring(0, 10),
+    bloodGroup: "",
+  });
+  const [medicalHistoryRecordId, setMedicalHistoryRecordId] = useState<string | null>(null);
 
   const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
@@ -297,7 +338,11 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   useEffect(() => {
     setIsMounted(true);
     dispatch(fetchCustomers());
-    if (id) dispatch(fetchCustomerMaster(id));
+    if (id) {
+      dispatch(fetchCustomerMaster(id));
+      dispatch(fetchFamilyHistoriesByMember(id));
+      dispatch(fetchMedicalHistoriesByMember(id));
+    }
   }, [dispatch, id]);
 
   useEffect(() => {
@@ -363,6 +408,58 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
     }
   }, [currentCustomer, isMounted, reset]);
 
+  // Populate the inline Family / Medical editors from the member's existing records.
+  useEffect(() => {
+    if (!isMounted || !id) return;
+
+    if (existingFamily.length > 0) {
+      const mostRecent = [...existingFamily].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      )[0];
+      setFamilyHistoryRecordId(mostRecent.id);
+      setFamilyHistoryDate(mostRecent.date.substring(0, 10));
+      setFamilyRecords(mostRecent.records || []);
+    }
+
+    if (existingMedical.length > 0) {
+      const mostRecent = [...existingMedical].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      )[0];
+      const rec = mostRecent.records?.[0];
+      if (rec) {
+        setMedicalHistoryRecordId(mostRecent.id);
+        setMedicalRecord({
+          id: rec.id,
+          medicalHistoryDate: (rec.medicalHistoryDate || mostRecent.date).substring(0, 10),
+          age: rec.age ?? null,
+          gender: rec.gender ?? null,
+          bloodGroup: rec.bloodGroup || "",
+          bloodPressure: rec.bloodPressure ?? null,
+          pulse: rec.pulse ?? null,
+          height: rec.height ?? null,
+          weight: rec.weight ?? null,
+          chest: rec.chest ?? null,
+          abdomen: rec.abdomen ?? null,
+          identificationMark: rec.identificationMark ?? null,
+          spectaclesDetails: rec.spectaclesDetails ?? null,
+          dentalDetails: rec.dentalDetails ?? null,
+          majorIllness: rec.majorIllness ?? null,
+          operationAccident: rec.operationAccident ?? null,
+          specialReport: rec.specialReport ?? null,
+          doctorName: rec.doctorName ?? null,
+          medicalExaminationDate: rec.medicalExaminationDate ? rec.medicalExaminationDate.substring(0, 10) : null,
+        });
+      }
+    }
+  }, [existingFamily, existingMedical, isMounted, id]);
+
+  const buildMedicalPayloadRecord = (): MedicalHistoryRecordItem => ({
+    ...medicalRecord,
+    age: calcAgeFromDob(currentCustomer?.dob),
+    gender: currentCustomer?.gender || null,
+    medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+  });
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -382,7 +479,61 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           preferences: { preferredCommAddress: data.preferredCommAddress || undefined, smsMarketing: data.smsMarketing, emailMarketing: data.emailMarketing },
         },
       })).unwrap();
-      toast.success("Customer updated successfully!");
+
+      const groupId = data.groupId || currentCustomer?.groupId;
+      let secondaryFailed = false;
+
+      // Family History — update existing, create if none existed, skip if empty.
+      if (familyHistoryRecordId) {
+        try {
+          await dispatch(updateFamilyHistory({
+            id: familyHistoryRecordId,
+            payload: { groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords },
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to update family history");
+        }
+      } else if (familyRecords.length > 0) {
+        try {
+          await dispatch(createFamilyHistory({
+            groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords,
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save family history");
+        }
+      }
+
+      // Medical History — update most recent, create if none existed, skip if empty.
+      const medRecord = buildMedicalPayloadRecord();
+      if (medicalHistoryRecordId) {
+        try {
+          await dispatch(updateMedicalHistory({
+            id: medicalHistoryRecordId,
+            payload: { memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord] },
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to update medical history");
+        }
+      } else if (medicalRecord.bloodGroup && medicalRecord.medicalHistoryDate) {
+        try {
+          await dispatch(createMedicalHistory({
+            memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord],
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save medical history");
+        }
+      }
+
+      if (secondaryFailed) {
+        toast("Customer updated, but some family/medical history failed to save. Retry from Member Details.");
+      } else {
+        toast.success("Customer updated successfully!");
+      }
+
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
@@ -551,6 +702,48 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               </div>
             )}
             <button type="button" onClick={() => appendBank({ isDefault: bankFields.length === 0, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" })} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#B8873A] bg-[#B8873A]/10 hover:bg-[#E8C77A]/20 border border-slate-200 rounded-lg transition-colors"><Plus size={14} /> Add Bank Account</button>
+          </div>
+        </div>
+
+        {/* Family History */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-[#B8873A]"><Heart size={16} /></span>
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Family History</h2>
+          </div>
+          <div className="p-5">
+            <FamilyHistoryRecordsEditor
+              familyHistoryDate={familyHistoryDate}
+              onFamilyHistoryDateChange={setFamilyHistoryDate}
+              records={familyRecords}
+              onChange={setFamilyRecords}
+            />
+          </div>
+        </div>
+
+        {/* Medical History (Initial Examination) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-[#B8873A]"><Activity size={16} /></span>
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Medical History (Initial Examination)</h2>
+          </div>
+          <div className="p-5 space-y-3">
+            <MedicalHistoryInlineEditor
+              record={medicalRecord}
+              onChange={setMedicalRecord}
+              derivedAge={calcAgeFromDob(currentCustomer?.dob)}
+              derivedGender={currentCustomer?.gender || null}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenModal) onOpenModal("master-details", id);
+                else router.push(`/dashboard/customers/master/${id}`);
+              }}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B8873A] hover:text-[#0B1220] transition-colors"
+            >
+              View all medical history records &rarr;
+            </button>
           </div>
         </div>
 

@@ -15,8 +15,19 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import {
+  createFamilyHistory,
+  type FamilyHistoryRecordItem,
+} from "@/features/customers/familyHistorySlice";
+import {
+  createMedicalHistory,
+  type MedicalHistoryRecordItem,
+} from "@/features/customers/medicalHistorySlice";
+import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
+import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
+import {
   ArrowLeft, User, Phone, MapPin, Building, CreditCard, Info,
   Settings, ChevronRight, Plus, Trash2, Star, Search, X,
+  Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -265,6 +276,20 @@ function GroupAutoComplete({
   );
 }
 
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
 interface CustomerMasterCreatePageProps {
   isModal?: boolean;
   onClose?: () => void;
@@ -298,6 +323,14 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
+  // Inline Family History + Medical History (first record) captured at create time.
+  const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryRecordItem[]>([]);
+  const [medicalRecord, setMedicalRecord] = useState<MedicalHistoryRecordItem>({
+    medicalHistoryDate: new Date().toISOString().substring(0, 10),
+    bloodGroup: "",
+  });
+
   useEffect(() => {
     setIsMounted(true);
     dispatch(fetchCustomers());
@@ -320,7 +353,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      await dispatch(createCustomerMaster({
+      const created = await dispatch(createCustomerMaster({
         groupId: data.groupId || undefined,
         salutation: data.salutation || undefined,
         firstName: data.firstName,
@@ -364,8 +397,54 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
           smsMarketing: data.smsMarketing, emailMarketing: data.emailMarketing,
         },
       })).unwrap();
-      toast.success("Customer created successfully!");
-      router.push("/dashboard/customers?tab=master");
+
+      const memberId = (created as { id?: string })?.id;
+      if (!memberId) throw new Error("Created member id was not returned by the server.");
+
+      let secondaryFailed = false;
+
+      // Family History — skip entirely if no relative rows were filled in.
+      if (familyRecords.length > 0) {
+        try {
+          await dispatch(createFamilyHistory({
+            groupId: data.groupId || undefined,
+            memberId,
+            date: new Date(familyHistoryDate).toISOString(),
+            records: familyRecords,
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save family history");
+        }
+      }
+
+      // Medical History — skip if required fields (bloodGroup + date) are empty.
+      if (medicalRecord.bloodGroup && medicalRecord.medicalHistoryDate) {
+        try {
+          await dispatch(createMedicalHistory({
+            memberId,
+            date: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+            records: [{
+              ...medicalRecord,
+              age: calcAgeFromDob(data.dob),
+              gender: data.gender || null,
+              medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+            }],
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save medical history");
+        }
+      }
+
+      if (secondaryFailed) {
+        toast("Customer was created, but family/medical history failed to save. You can retry those from the Member Details page.", { icon: "⚠️" });
+      } else {
+        toast.success("Customer created successfully!");
+      }
+
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to create customer");
     } finally {
@@ -601,6 +680,29 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               <Plus size={14} /> Add Bank Account
             </button>
           </div>
+        </SectionCard>
+
+        {/* ── Section: Family History ── */}
+        <SectionCard title="Family History" icon={<Heart size={16} />}>
+          <FamilyHistoryRecordsEditor
+            familyHistoryDate={familyHistoryDate}
+            onFamilyHistoryDateChange={setFamilyHistoryDate}
+            records={familyRecords}
+            onChange={setFamilyRecords}
+          />
+        </SectionCard>
+
+        {/* ── Section: Medical History (Initial Examination) ── */}
+        <SectionCard title="Medical History (Initial Examination)" icon={<Activity size={16} />}>
+          <MedicalHistoryInlineEditor
+            record={medicalRecord}
+            onChange={setMedicalRecord}
+            derivedAge={calcAgeFromDob(watch("dob"))}
+            derivedGender={watch("gender") || null}
+          />
+          <p className="mt-4 text-xs text-slate-400">
+            This captures the member's first medical record. After saving, use the Member Details page to view the full log or add additional past checkups.
+          </p>
         </SectionCard>
 
         {/* ── Section 5: Miscellaneous Info ── */}

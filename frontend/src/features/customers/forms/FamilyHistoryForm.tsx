@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import toast from "react-hot-toast";
 import { formatFamilyHistoryDate, SearchableSelect } from "@/features/customers/components/CustomerUi";
+import FamilyHistoryRecordsEditor from "./FamilyHistoryRecordsEditor";
 
 interface FamilyHistoryFormProps {
   recordId?: string;
@@ -25,21 +26,6 @@ interface FamilyHistoryFormProps {
   preselectedMemberId?: string;
   preselectedGroupId?: string;
 }
-
-const RELATIONS = [
-  "Self",
-  "Father",
-  "Mother",
-  "Brother",
-  "Sister",
-  "Spouse",
-  "Son",
-  "Daughter",
-  "Grandfather",
-  "Grandmother",
-  "Uncle",
-  "Aunt",
-];
 
 // Helper components matching theme
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
@@ -91,22 +77,12 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
   const [memberId, setMemberId] = useState("");
   const [membersList, setMembersList] = useState<any[]>([]);
 
-  // Form states - Relation detail input
-  const [relation, setRelation] = useState("");
-  const [age, setAge] = useState("");
-  const [stateOfHealth, setStateOfHealth] = useState("");
-  const [isDead, setIsDead] = useState(false);
-  const [ageAtDeath, setAgeAtDeath] = useState("");
-  const [causeOfDeath, setCauseOfDeath] = useState("");
-
   // Sub-records list
   const [tempRecords, setTempRecords] = useState<FamilyHistoryRecordItem[]>([]);
 
   // Validation state
   const [basicErrors, setBasicErrors] = useState<Record<string, string>>({});
-  const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Load record details and fetch customers for dropdown
   useEffect(() => {
@@ -177,32 +153,6 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
     dispatch(fetchGroupById(g.id));
   };
 
-  // Calculate current age dynamically based on history date and age when recorded
-  const calculateCurrentAge = (recordedAge: number, recordDate: string) => {
-    if (!recordDate) return recordedAge;
-    try {
-      const historyDate = new Date(recordDate);
-      const today = new Date();
-      const yearsDiff = today.getFullYear() - historyDate.getFullYear();
-      const historyAnniversary = new Date(today.getFullYear(), historyDate.getMonth(), historyDate.getDate());
-      const adjustedDiff = today >= historyAnniversary ? yearsDiff : yearsDiff - 1;
-      return Math.max(recordedAge, recordedAge + Math.max(0, adjustedDiff));
-    } catch {
-      return recordedAge;
-    }
-  };
-
-  const handleClearDetail = () => {
-    setRelation("");
-    setAge("");
-    setStateOfHealth("");
-    setIsDead(false);
-    setAgeAtDeath("");
-    setCauseOfDeath("");
-    setEditingIndex(null);
-    setDetailErrors({});
-  };
-
   // Reset form helper
   const handleReset = () => {
     if (isEditMode) {
@@ -226,75 +176,9 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
       setMemberId("");
       setMembersList([]);
       setTempRecords([]);
-      handleClearDetail();
       setBasicErrors({});
     }
     toast.success("Form reset successfully");
-  };
-
-  // Add sub-record details to list
-  const handleAddDetail = () => {
-    const errors: Record<string, string> = {};
-    if (!relation) errors.relation = "Relation is required";
-    if (!age) {
-      errors.age = "Age is required";
-    } else if (isNaN(Number(age)) || Number(age) <= 0) {
-      errors.age = "Invalid age";
-    }
-
-    if (!stateOfHealth.trim()) errors.stateOfHealth = "State of health is required";
-
-    if (isDead) {
-      if (!ageAtDeath) {
-        errors.ageAtDeath = "Age at death is required";
-      } else if (isNaN(Number(ageAtDeath)) || Number(ageAtDeath) <= 0) {
-        errors.ageAtDeath = "Invalid age at death";
-      } else if (Number(ageAtDeath) < Number(age)) {
-        errors.ageAtDeath = "Age at death cannot be less than age recorded";
-      }
-
-      if (!causeOfDeath.trim()) errors.causeOfDeath = "Cause of death is required";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setDetailErrors(errors);
-      return;
-    }
-
-    setDetailErrors({});
-
-    const newRecord: FamilyHistoryRecordItem = {
-      id: editingIndex !== null ? tempRecords[editingIndex].id : undefined,
-      relation,
-      age: Number(age),
-      stateOfHealth: stateOfHealth.trim(),
-      isDead,
-      ageAtDeath: isDead ? Number(ageAtDeath) : null,
-      causeOfDeath: isDead ? causeOfDeath.trim() : null,
-    };
-
-    if (editingIndex !== null) {
-      setTempRecords((prev) => {
-        const updated = [...prev];
-        updated[editingIndex] = newRecord;
-        return updated;
-      });
-      toast.success("Entry updated in table");
-      setEditingIndex(null);
-    } else {
-      setTempRecords((prev) => [...prev, newRecord]);
-      toast.success("Entry added to table");
-    }
-
-    handleClearDetail();
-  };
-
-  // Remove record from sub-table
-  const handleRemoveDetail = (index: number) => {
-    setTempRecords((prev) => prev.filter((_, i) => i !== index));
-    if (editingIndex === index) {
-      handleClearDetail();
-    }
   };
 
   // Submit form to backend
