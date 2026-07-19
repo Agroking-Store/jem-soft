@@ -299,10 +299,9 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
-  onOpenModal?: (type: "master-details", id: string) => void;
 }
 
-export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
@@ -734,16 +733,6 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               derivedAge={calcAgeFromDob(currentCustomer?.dob)}
               derivedGender={currentCustomer?.gender || null}
             />
-            <button
-              type="button"
-              onClick={() => {
-                if (onOpenModal) onOpenModal("master-details", id);
-                else router.push(`/dashboard/customers/master/${id}`);
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B8873A] hover:text-[#0B1220] transition-colors"
-            >
-              View all medical history records &rarr;
-            </button>
           </div>
         </div>
 

@@ -11,20 +11,18 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, deleteCustomerMaster } from "@/features/customers/customerMasterSlice";
 import {
   fetchFamilyHistoriesByMember,
-  deleteFamilyHistory,
   clearCurrentGroup,
   type FamilyHistoryItem,
 } from "@/features/customers/familyHistorySlice";
 import {
   fetchMedicalHistoriesByMember,
-  deleteMedicalHistory,
   clearMedicalRecords,
 } from "@/features/customers/medicalHistorySlice";
 import { fetchPoliciesByMember } from "@/features/policy/policySlice";
 import {
-  ArrowLeft, Eye, Phone, MapPin, CreditCard, Info, Settings,
+  ArrowLeft, Phone, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
-  CheckCircle, XCircle, Heart, Plus, Activity, FileText,
+  CheckCircle, XCircle, Heart, Activity, FileText,
   Clock, AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -108,28 +106,6 @@ export default function CustomerMasterDetailsPage({
   const familyRecords = useSelector((s: RootState) => s.familyHistory.records);
   const medicalRecords = useSelector((s: RootState) => s.medicalHistory.records);
   const memberPolicies = useSelector((s: RootState) => s.policies.policies);
-
-  const handleDeleteMedical = async (medId: string) => {
-    if (confirm("Are you sure you want to delete this medical history record?")) {
-      try {
-        await dispatch(deleteMedicalHistory(medId)).unwrap();
-        toast.success("Medical record deleted successfully");
-      } catch (err: any) {
-        toast.error(err || "Failed to delete record");
-      }
-    }
-  };
-
-  const handleDeleteFamily = async (fhId: string) => {
-    if (confirm("Are you sure you want to delete this family history record?")) {
-      try {
-        await dispatch(deleteFamilyHistory(fhId)).unwrap();
-        toast.success("Family history record deleted successfully");
-      } catch (err: any) {
-        toast.error(err || "Failed to delete record");
-      }
-    }
-  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -304,21 +280,8 @@ export default function CustomerMasterDetailsPage({
             </SectionCard>
           )}
 
-          {/* Policies — main focus, shown right after Contact & Address */}
-          <SectionCard
-            title="Policies"
-            icon={<FileText size={16} />}
-            headerActions={
-              canEdit && (
-                <Link
-                  href="/dashboard/lic/policies/new"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
-                >
-                  <Plus size={12} /> Create Policy
-                </Link>
-              )
-            }
-          >
+      {/* Policies — main focus, shown right after Contact & Address */}
+      <SectionCard title="Policies" icon={<FileText size={16} />}>
             <div className="space-y-3">
               {memberPolicies.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-4">No policies found for this member.</p>
@@ -463,117 +426,77 @@ export default function CustomerMasterDetailsPage({
           )}
         </div>
 
-      <SectionCard
-        title="Family History"
-          icon={<Heart size={16} />}
-          headerActions={
-            canEdit && (
-              <button
-                type="button"
-                onClick={() => onOpenModal?.("family-create", id, c.groupId || undefined)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
-              >
-                <Plus size={12} /> Add Record
-              </button>
-            )
-          }
-        >
-          <div className="space-y-3">
-            {familyRecords.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No family history records found for this member.</p>
-            ) : (
-              familyRecords.map((fh) => {
-                const memberName = fh.member
-                  ? [fh.member.salutation, fh.member.firstName, fh.member.middleName, fh.member.lastName].filter(Boolean).join(" ")
-                  : "Member";
-                return (
-                  <div key={fh.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{memberName}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{fh.records?.length ?? 0} relation{(fh.records?.length ?? 0) !== 1 ? "s" : ""} &bull; {formatDate(fh.date)}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={() => onOpenModal?.("family-details", fh.id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="View">
-                        <Eye size={14} />
-                      </button>
-                      {canEdit && (
-                        <>
-                          <button type="button" onClick={() => onOpenModal?.("family-edit", fh.id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="Edit">
-                            <Edit size={14} />
-                          </button>
-                          <button type="button" onClick={() => handleDeleteFamily(fh.id)} className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer" title="Delete">
-                            <Trash2 size={14} />
-                          </button>
-                        </>
-                      )}
-                    </div>
+      <SectionCard title="Family History" icon={<Heart size={16} />}>
+        {familyRecords.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-4">No family history records found for this member.</p>
+        ) : (
+          <div className="space-y-4">
+            {familyRecords.map((fh) => {
+              const memberName = fh.member
+                ? [fh.member.salutation, fh.member.firstName, fh.member.middleName, fh.member.lastName].filter(Boolean).join(" ")
+                : "Member";
+              return (
+                <div key={fh.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-slate-800">{memberName}</p>
+                    <span className="text-xs text-slate-400">{formatDate(fh.date)}</span>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </SectionCard>
-
-      <SectionCard
-        title="Medical History"
-          icon={<Activity size={16} />}
-          headerActions={
-            canEdit && (
-              <button
-                type="button"
-                onClick={() => onOpenModal?.("medical-create", id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
-              >
-                <Plus size={12} /> Add Record
-              </button>
-            )
-          }
-        >
-          <div className="space-y-3">
-            {medicalRecords.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No medical history records found for this member.</p>
-            ) : (
-              medicalRecords.flatMap((med) =>
-                (med.records ?? []).map((rec, idx) => (
-                  <div key={`${med.id}-${rec.id ?? idx}`} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{rec.bloodGroup}</p>
-                        {rec.doctorName && (
-                          <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                            Dr. {rec.doctorName}
-                          </span>
-                        )}
+                  <div className="mt-3 space-y-3">
+                    {(fh.records ?? []).map((rec, idx) => (
+                      <div key={idx} className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          <InfoRow label="Relation" value={rec.relation} />
+                          <InfoRow label="Age" value={rec.age} />
+                          <InfoRow label="State of Health" value={rec.stateOfHealth} />
+                          <InfoRow label="Is Dead" value={rec.isDead ? "Yes" : "No"} />
+                          {rec.isDead && <InfoRow label="Age at Death" value={rec.ageAtDeath} />}
+                          {rec.isDead && <InfoRow label="Cause of Death" value={rec.causeOfDeath} />}
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Exam Date: {formatDate(rec.medicalHistoryDate || med.date)}
-                        {rec.medicalExaminationDate ? ` &bull; Examined: ${formatDate(rec.medicalExaminationDate)}` : ""}
-                        {rec.bloodPressure ? ` &bull; BP: ${rec.bloodPressure}` : ""}
-                        {rec.pulse ? ` &bull; Pulse: ${rec.pulse}` : ""}
-                      </p>
-                      {rec.majorIllness && <p className="text-xs text-slate-500 italic mt-1 bg-slate-50 p-1.5 rounded">Major Illness: {rec.majorIllness}</p>}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="View">
-                        <Eye size={14} />
-                      </button>
-                      {canEdit && (
-                        <>
-                          <button type="button" onClick={() => onOpenModal?.("medical-edit", med.id, id)} className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer" title="Edit">
-                            <Edit size={14} />
-                          </button>
-                          <button type="button" onClick={() => handleDeleteMedical(med.id)} className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer" title="Delete">
-                            <Trash2 size={14} />
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))
-              )
-            )}
+                </div>
+              );
+            })}
           </div>
-        </SectionCard>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Medical History" icon={<Activity size={16} />}>
+        {medicalRecords.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-4">No medical history records found for this member.</p>
+        ) : (
+          <div className="space-y-4">
+            {medicalRecords.map((med) => (
+              <div key={med.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <span className="text-xs text-slate-400">{formatDate(med.date)}</span>
+                <div className="mt-3 space-y-4">
+                  {(med.records ?? []).map((rec, idx) => (
+                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <InfoRow label="Blood Group" value={rec.bloodGroup} />
+                      <InfoRow label="Blood Pressure" value={rec.bloodPressure} />
+                      <InfoRow label="Pulse" value={rec.pulse} />
+                      <InfoRow label="Height (cm)" value={rec.height} />
+                      <InfoRow label="Weight (kg)" value={rec.weight} />
+                      <InfoRow label="Chest (cm)" value={rec.chest} />
+                      <InfoRow label="Abdomen (cm)" value={rec.abdomen} />
+                      <InfoRow label="Identification Mark" value={rec.identificationMark} />
+                      <InfoRow label="Spectacles" value={rec.spectaclesDetails} />
+                      <InfoRow label="Dental Details" value={rec.dentalDetails} />
+                      <InfoRow label="Major Illness" value={rec.majorIllness} />
+                      <InfoRow label="Operation / Accident" value={rec.operationAccident} />
+                      <InfoRow label="Special Report" value={rec.specialReport} />
+                      <InfoRow label="Doctor Name" value={rec.doctorName} />
+                      <InfoRow label="Medical Exam Date" value={formatDate(rec.medicalExaminationDate)} />
+                      <InfoRow label="Medical History Date" value={formatDate(rec.medicalHistoryDate)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
 
       {/* Delete Modal */}
       {showDeleteModal && (
