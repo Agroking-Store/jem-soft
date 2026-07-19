@@ -142,12 +142,12 @@ const AdvisorAutoComplete = ({ value, onChange, advisors }: { value: string; onC
     );
 };
 
-
-
 interface Product {
     id: string;
     productName: string;
     planNumber?: string | number | null;
+    providerId: string;
+    productType?: string;
 }
 
 const PlanAutoComplete = ({
@@ -930,17 +930,31 @@ export default function EditLICPolicyPage() {
                                     {errors.policyNumber && <p className="text-xs text-red-500 mt-1">{errors.policyNumber.message}</p>}
                                 </div>
                                 <div>
-                                    <Controller
-                                        name="productId"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <PlanAutoComplete
-                                                value={field.value || ""}
-                                                onChange={field.onChange}
-                                                products={filteredProducts}
-                                            />
-                                        )}
-                                    />
+                                   <Controller
+    name="productId"
+    control={control}
+    render={({ field }) => (
+        <PlanAutoComplete
+            value={field.value || ""}
+            products={filteredProducts}
+            onChange={(productId) => {
+                field.onChange(productId);
+
+                const selectedProduct = products.find(
+                    (p) => p.id === productId
+                );
+
+                if (selectedProduct) {
+                    setValue("providerId", selectedProduct.providerId);
+
+                    if (selectedProduct.productType) {
+                        setValue("productType", selectedProduct.productType);
+                    }
+                }
+            }}
+        />
+    )}
+/>
 
                                     {errors.productId && (
                                         <p className="text-xs text-red-500 mt-1">
