@@ -2,14 +2,15 @@
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createCustomerMaster } from "@/features/customers/customerMasterSlice";
@@ -166,13 +167,51 @@ function FormInput({ label, error, required, icon, className: cls, ...props }: R
   );
 }
 
-function FormSelect({ label, error, required, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
+function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
+  // React.Children.toArray flattens nested arrays (e.g. options produced by
+  // .map()) and drops non-element nodes, so every <option> is processed.
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement(child)) return [];
+    const option = child as React.ReactElement<{ value?: string; children?: React.ReactNode }>;
+    const labelText = String(option.props?.children ?? option.props?.value ?? "");
+    const valueText = String(option.props?.value ?? labelText);
+    if (!valueText) return [];
+    return [{ value: valueText, label: labelText }];
+  });
+}
+
+function FormSelect({
+  label, error, required, children, name,
+}: {
+  label: string; error?: string; required?: boolean; children?: React.ReactNode; name: string;
+}) {
+  const { control } = useFormContext();
+  const { field } = useController({ name, control });
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={optionChildrenToOptions(children)}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select..."
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
+  );
+}
+
+function BankAccountTypeCell({ index }: { index: number }) {
+  const { control } = useFormContext();
+  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
+  return (
+    <SearchableSelect
+      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select"
+      searchPlaceholder="Search account type..."
+    />
   );
 }
 
@@ -308,7 +347,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(groupId || "");
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
+  const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       isGroupHead: false, isMarried: false, isDead: false,
@@ -319,6 +358,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       bankDetails: [],
     },
   });
+  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = methods;
 
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
@@ -478,6 +518,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         </div>
       )}
 
+      <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
 
         {/* ── Section 1: Personal Details ── */}
@@ -655,10 +696,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2">
-                          <select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white">
-                            <option value="">Select</option>
-                            {ACCOUNT_TYPES.map((t) => <option key={t}>{t}</option>)}
-                          </select>
+                          <BankAccountTypeCell index={idx} />
                         </td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
@@ -875,6 +913,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
           </button>
         </div>
       </form>
+      </FormProvider>
     </div>
   );
 }

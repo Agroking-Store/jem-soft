@@ -5,7 +5,7 @@ import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -157,10 +157,12 @@ function FormInput({ label, error, required, icon, ...props }: React.InputHTMLAt
 }
 
 function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
-  return (Array.isArray(children) ? children : [children]).flatMap((child) => {
-    if (!child || typeof child !== "object" || !("props" in child)) return [];
-    const option = child as { props?: { value?: string; children?: React.ReactNode } };
-    const labelText = String(option.props?.children || option.props?.value || "");
+  // React.Children.toArray flattens nested arrays (e.g. options produced by
+  // .map()) and drops non-element nodes, so every <option> is processed.
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement(child)) return [];
+    const option = child as React.ReactElement<{ value?: string; children?: React.ReactNode }>;
+    const labelText = String(option.props?.children ?? option.props?.value ?? "");
     const valueText = String(option.props?.value ?? labelText);
     if (!valueText) return [];
     return [{ value: valueText, label: labelText }];
@@ -168,23 +170,36 @@ function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
 }
 
 function FormSelect({
-  label, error, required, children, value, onChange, name, ...rest
-}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
-  const [internal, setInternal] = React.useState(String(value || rest.defaultValue || ""));
-  React.useEffect(() => { if (value !== undefined) setInternal(String(value)); }, [value]);
+  label, error, required, children, name,
+}: {
+  label: string; error?: string; required?: boolean; children?: React.ReactNode; name: string;
+}) {
+  const { control } = useFormContext();
+  const { field } = useController({ name, control });
   return (
     <SearchableSelect
       label={label}
       required={required}
       error={error}
       options={optionChildrenToOptions(children)}
-      value={internal}
-      onChange={(v) => {
-        setInternal(v);
-        onChange?.({ target: { name, value: v } } as any);
-      }}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
       placeholder="Select..."
       searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
+  );
+}
+
+function BankAccountTypeCell({ index }: { index: number }) {
+  const { control } = useFormContext();
+  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
+  return (
+    <SearchableSelect
+      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select"
+      searchPlaceholder="Search account type..."
     />
   );
 }
@@ -326,10 +341,11 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   });
   const [medicalHistoryRecordId, setMedicalHistoryRecordId] = useState<string | null>(null);
 
-  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
+  const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", qualification: "", addresses: [], bankDetails: [] },
   });
+  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = methods;
 
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
@@ -567,6 +583,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         </div>
       )}
 
+      <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         {/* Personal Details */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -690,7 +707,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankName`)} placeholder="Bank Name" className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white"><option value="">Select</option>{ACCOUNT_TYPES.map((t) => <option key={t}>{t}</option>)}</select></td>
+                        <td className="py-2 px-2"><BankAccountTypeCell index={idx} /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><button type="button" onClick={() => removeBank(idx)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><Trash2 size={13} /></button></td>
@@ -871,6 +888,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>
+      </FormProvider>
     </div>
   );
 }
