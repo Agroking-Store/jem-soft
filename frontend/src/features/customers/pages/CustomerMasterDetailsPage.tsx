@@ -256,43 +256,129 @@ export default function CustomerMasterDetailsPage({
       </div>
 
       <div className="space-y-6">
-          {/* Contact Info */}
-          {c.contactInfo && (
-            <SectionCard title="Contact Information" icon={<Phone size={16} />}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <InfoRow label="Mobile 1" value={c.contactInfo.mobile1} />
-                <InfoRow label="Mobile 2" value={c.contactInfo.mobile2} />
-                {(c.contactInfo.landline1Std || c.contactInfo.landline1Number) && (
-                  <InfoRow label="Landline 1" value={`${c.contactInfo.landline1Std || ""}-${c.contactInfo.landline1Number || ""}`} />
-                )}
-                {(c.contactInfo.landline2Std || c.contactInfo.landline2Number) && (
-                  <InfoRow label="Landline 2" value={`${c.contactInfo.landline2Std || ""}-${c.contactInfo.landline2Number || ""}`} />
-                )}
-                <InfoRow label="E-Mail Personal" value={c.contactInfo.emailPersonal} />
-                <InfoRow label="E-Mail Business" value={c.contactInfo.emailBusiness} />
-                <InfoRow label="Skype ID" value={c.contactInfo.skypeId} />
+          {/* Contact & Address — combined, compact */}
+          {(c.contactInfo || (c.addresses && c.addresses.length > 0)) && (
+            <SectionCard title="Contact & Address" icon={<Phone size={16} />}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contact</h3>
+                  {c.contactInfo ? (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      <InfoRow label="Mobile 1" value={c.contactInfo.mobile1} />
+                      <InfoRow label="Mobile 2" value={c.contactInfo.mobile2} />
+                      {(c.contactInfo.landline1Std || c.contactInfo.landline1Number) && (
+                        <InfoRow label="Landline 1" value={`${c.contactInfo.landline1Std || ""}-${c.contactInfo.landline1Number || ""}`} />
+                      )}
+                      {(c.contactInfo.landline2Std || c.contactInfo.landline2Number) && (
+                        <InfoRow label="Landline 2" value={`${c.contactInfo.landline2Std || ""}-${c.contactInfo.landline2Number || ""}`} />
+                      )}
+                      <InfoRow label="E-Mail Personal" value={c.contactInfo.emailPersonal} />
+                      <InfoRow label="E-Mail Business" value={c.contactInfo.emailBusiness} />
+                      <InfoRow label="Skype ID" value={c.contactInfo.skypeId} />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400">No contact information.</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Address</h3>
+                  {c.addresses && c.addresses.length > 0 ? (
+                    <div className="space-y-2">
+                      {c.addresses.map((addr, idx) => (
+                        <div key={idx} className="border border-slate-200 rounded-lg px-3 py-2">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{addr.addressType}</span>
+                            {addr.useGroupAddress && <span className="text-[10px] bg-[#B8873A]/10 text-[#B8873A] px-1.5 py-0.5 rounded-full font-medium">Group</span>}
+                          </div>
+                          <p className="text-xs text-slate-700 leading-snug">
+                            {[addr.addressLine1, addr.addressLine2, addr.addressLine3, addr.addressLine4, addr.city, addr.state, addr.country, addr.pin].filter(Boolean).join(", ")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400">No addresses.</p>
+                  )}
+                </div>
               </div>
             </SectionCard>
           )}
 
-          {/* Addresses */}
-          {c.addresses && c.addresses.length > 0 && (
-            <SectionCard title="Addresses" icon={<MapPin size={16} />}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {c.addresses.map((addr, idx) => (
-                  <div key={idx} className="border border-slate-200 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{addr.addressType}</span>
-                      {addr.useGroupAddress && <span className="text-xs bg-[#B8873A]/10 text-[#B8873A] px-2 py-0.5 rounded-full font-medium">Uses Group Address</span>}
-                    </div>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      {[addr.addressLine1, addr.addressLine2, addr.addressLine3, addr.addressLine4, addr.city, addr.state, addr.country, addr.pin].filter(Boolean).join(", ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          )}
+          {/* Policies — main focus, shown right after Contact & Address */}
+          <SectionCard
+            title="Policies"
+            icon={<FileText size={16} />}
+            headerActions={
+              canEdit && (
+                <Link
+                  href="/dashboard/lic/policies/new"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
+                >
+                  <Plus size={12} /> Create Policy
+                </Link>
+              )
+            }
+          >
+            <div className="space-y-3">
+              {memberPolicies.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">No policies found for this member.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        <th className="py-3 px-4 text-left">Policy Number</th>
+                        <th className="py-3 px-4 text-left">Provider / Product</th>
+                        <th className="py-3 px-4 text-right">Sum Assured</th>
+                        <th className="py-3 px-4 text-right">Installment Premium</th>
+                        <th className="py-3 px-4 text-center">Commencement Date</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {memberPolicies.map((policy: any) => {
+                        const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
+                        const StatusIcon = statusDetails.icon;
+                        return (
+                          <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                            <td className="py-3 px-4 font-semibold text-slate-900">
+                              {canEdit ? (
+                                <Link href={`/dashboard/lic/policies/edit/${policy.id}`} className="text-[#0B1220] hover:text-[#16294D] hover:underline">
+                                  {policy.policyNumber}
+                                </Link>
+                              ) : (
+                                policy.policyNumber
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
+                              <div className="text-xs text-slate-500">{policy.product?.productName || "—"}</div>
+                            </td>
+                            <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                              {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
+                            </td>
+                            <td className="py-3 px-4 text-right text-slate-900 font-medium">
+                              {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
+                              <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
+                            </td>
+                            <td className="py-3 px-4 text-center text-slate-600 font-medium">
+                              {policy.commencementDate ? formatDate(policy.commencementDate) : "—"}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
+                                <StatusIcon size={11} />
+                                {policy.status?.statusName || "Active"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </SectionCard>
 
           {/* Bank Details */}
           {c.bankDetails && c.bankDetails.length > 0 && (
@@ -485,82 +571,6 @@ export default function CustomerMasterDetailsPage({
                   </div>
                 ))
               )
-            )}
-          </div>
-        </SectionCard>
-
-      {/* Policies */}
-      <SectionCard
-        title="Policies"
-          icon={<FileText size={16} />}
-          headerActions={
-            canEdit && (
-              <Link
-                href="/dashboard/lic/policies/new"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] text-white rounded-lg text-xs font-semibold hover:bg-[#16294D] transition-colors cursor-pointer"
-              >
-                <Plus size={12} /> Create Policy
-              </Link>
-            )
-          }
-        >
-          <div className="space-y-3">
-            {memberPolicies.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">No policies found for this member.</p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      <th className="py-3 px-4 text-left">Policy Number</th>
-                      <th className="py-3 px-4 text-left">Provider / Product</th>
-                      <th className="py-3 px-4 text-right">Sum Assured</th>
-                      <th className="py-3 px-4 text-right">Installment Premium</th>
-                      <th className="py-3 px-4 text-center">Commencement Date</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {memberPolicies.map((policy: any) => {
-                      const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
-                      const StatusIcon = statusDetails.icon;
-                      return (
-                        <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
-                          <td className="py-3 px-4 font-semibold text-slate-900">
-                            {canEdit ? (
-                              <Link href={`/dashboard/lic/policies/edit/${policy.id}`} className="text-[#0B1220] hover:text-[#16294D] hover:underline">
-                                {policy.policyNumber}
-                              </Link>
-                            ) : (
-                              policy.policyNumber
-                            )}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-slate-900 font-semibold">{policy.provider?.name || "—"}</div>
-                            <div className="text-xs text-slate-500">{policy.product?.productName || "—"}</div>
-                          </td>
-                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
-                            {policy.premium?.sumAssured ? `₹${policy.premium.sumAssured.toLocaleString("en-IN")}` : "—"}
-                          </td>
-                          <td className="py-3 px-4 text-right text-slate-900 font-medium">
-                            {policy.premium?.installmentPremium ? `₹${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "—"}
-                            <span className="text-xs text-slate-400 block font-normal">{policy.premiumMode?.modeName || ""}</span>
-                          </td>
-                          <td className="py-3 px-4 text-center text-slate-600 font-medium">
-                            {policy.commencementDate ? formatDate(policy.commencementDate) : "—"}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusDetails.className}`}>
-                              <StatusIcon size={11} />
-                              {policy.status?.statusName || "Active"}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
             )}
           </div>
         </SectionCard>
