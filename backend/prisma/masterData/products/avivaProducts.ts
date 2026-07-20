@@ -234,4 +234,22 @@ export const avivaProducts = [
     providerCode: "AVIVA",
     productType: "Life",
   },
+  {
+    productName: "Aviva i-Life Secure",
+    productCode: "122N104V02",
+    planNumber: "AVIVA034",
+    providerCode: "AVIVA",
+  },
+  {
+    productName: "Aviva i-Life",
+    productCode: "122N093V02",
+    planNumber: "AVIVA035",
+    providerCode: "AVIVA",
+  },
+  {
+    productName: "Aviva i-Term Smart",
+    productCode: "122N131V01",
+    planNumber: "AVIVA036",
+    providerCode: "AVIVA",
+  },
 ];
