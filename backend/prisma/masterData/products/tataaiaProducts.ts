@@ -356,14 +356,5 @@ export const tataaiaProducts = [
     productCode: "TAFGP(EO)",
     planNumber: "TATA055",
     providerCode: "TATA_AIA",
-  },
-
-
-
-  
-
-
-
-
-
+  }
 ];
