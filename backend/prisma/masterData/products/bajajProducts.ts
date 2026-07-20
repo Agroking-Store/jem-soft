@@ -1,5 +1,5 @@
 export const bajajProducts = [
-      //BAJAJ LIFE INSURANCE - ACTIVE POLICIES
+  //BAJAJ LIFE INSURANCE - ACTIVE POLICIES
   {
     productName: "Bajaj Life eTouch II",
     productCode: "116N198V05",
@@ -260,5 +260,54 @@ export const bajajProducts = [
     planNumber: "BJA037",
     providerCode: "BAJAJ_ALLIANZ",
     productType: "Inactive",
+  },
+  {
+    productName: "Bajaj Life Group Superannuation Secure",
+    productCode: "116N115V04",
+    planNumber: "BJA038",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Group Sampoorna Suraksha Kavach",
+    productCode: "116N143V02",
+    planNumber: "BJA039",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Group Credit Protection Plus",
+    productCode: "116N094V07",
+    planNumber: "BJA040",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Group Term Plan",
+    productCode: "116N021V06",
+    planNumber: "BJA041",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Group Employee Benefit",
+    productCode: "116L161V02",
+    planNumber: "BJA042",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Group Sampoorna Jeevan Suraksha",
+    productCode: "116N166V01",
+    planNumber: "BJA043",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
+  },
+  {
+    productName: "Bajaj Life Superannuation Secure Plus",
+    productCode: "116N175V01",
+    planNumber: "BJA044",
+    providerCode: "BAJAJ_ALLIANZ",
+    productType: "Group Life Insurance",
   },
 ];

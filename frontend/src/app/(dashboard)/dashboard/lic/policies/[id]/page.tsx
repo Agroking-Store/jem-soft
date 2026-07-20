@@ -26,10 +26,8 @@ import {
   ChevronRight,
   Shield,
   Settings,
-  Search,
   AlertCircle,
 } from "lucide-react";
-import toast from "react-hot-toast";
 
 function getFullName(customer: {
   salutation?: string | null;
@@ -88,7 +86,7 @@ const AdvisorDisplay = ({
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">
-        Advisor
+        Advisor <span className="text-red-500">*</span>
       </label>
       <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
         {selected ? `[${selected.advisorCode}] ${selected.advisorName}` : "—"}
@@ -102,6 +100,7 @@ const riderSchema = z.object({
   sum: z.number().nullable().optional(),
   term: z.number().nullable().optional(),
   ppt: z.number().nullable().optional(),
+  mode: z.string().optional(),
   premium: z.number().nullable().optional(),
 });
 
@@ -138,16 +137,24 @@ const policySchema = z.object({
 
   advisorId: z.string().optional(),
   agentCode: z.string().optional(),
+  agencyId: z.string().optional(),
+  branchId: z.string().optional(),
 
   policyStatus: z.string().optional(),
+  statusId: z.string().optional(),
   fupDate: z.string().optional(),
+  fuliDate: z.string().optional(),
   premiumAdjusted: z.string().optional(),
   loanTaken: z.string().optional(),
   annuityDetails: z.string().optional(),
   otherInformation: z.string().optional(),
   bankName: z.string().optional(),
+  bankBranch: z.string().optional(),
+  city: z.string().optional(),
+  accountType: z.string().optional(),
   accountNumber: z.string().optional(),
   ifscCode: z.string().optional(),
+  micrNumber: z.string().optional(),
   accountHolderName: z.string().optional(),
   branchName: z.string().optional(),
   medical: z.string().optional(),
@@ -244,6 +251,8 @@ export default function ViewLICPolicyPage() {
         : "",
 
       advisorId: selectedPolicy.advisorId ?? "",
+      agencyId: selectedPolicy.advisor?.agencyId ?? "",
+      branchId: selectedPolicy.branchId ?? "",
 
       agentCode: selectedPolicy.agentCode ?? "",
 
@@ -269,10 +278,15 @@ export default function ViewLICPolicyPage() {
 
       gst: selectedPolicy.premium?.gst ?? undefined,
 
+      statusId: selectedPolicy.statusId ?? "",
       policyStatus: selectedPolicy.status?.statusName ?? "",
       fupDate: selectedPolicy.nextPremiumDueDate
         ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
         : "",
+      fuliDate:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "fuliDate",
+        )?.value ?? "",
       premiumAdjusted: selectedPolicy.premium?.extraClass?.toString() ?? "",
       dob: selectedPolicy.CustomerMaster?.dob
         ? new Date(selectedPolicy.CustomerMaster.dob)
@@ -300,6 +314,24 @@ export default function ViewLICPolicyPage() {
         )?.bankName ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
         "",
+      bankBranch:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankBranch ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
+        "",
+      city:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.city ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.city ??
+        "",
+      accountType:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountType ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountType ??
+        "",
       accountNumber:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
           (b: any) => b.isDefault,
@@ -311,6 +343,12 @@ export default function ViewLICPolicyPage() {
           (b: any) => b.isDefault,
         )?.ifscCode ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
+        "",
+      micrNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.micrNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.micrNumber ??
         "",
       accountHolderName: "",
       branchName: selectedPolicy.branch?.branchName ?? "",
@@ -327,6 +365,7 @@ export default function ViewLICPolicyPage() {
           premium: r.riderPremium,
           term: undefined,
           ppt: undefined,
+          mode: r.mode ?? "",
         })) ?? [],
     });
   }, [selectedPolicy, reset]);
@@ -386,6 +425,10 @@ export default function ViewLICPolicyPage() {
   const selectedLifeAssured = useMemo(
     () => masterCustomers.find((m) => m.id === watchLifeAssuredId),
     [watchLifeAssuredId, masterCustomers],
+  );
+  const selectedStatus = useMemo(
+    () => statuses.find((s) => s.id === watch("statusId")),
+    [watch("statusId"), statuses],
   );
 
   const handleSectionClick = (sectionId: keyof typeof sectionRefs) => {
@@ -532,7 +575,7 @@ export default function ViewLICPolicyPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <User size={20} className="text-blue-600" />
-              Policy Holder's Details
+              Policy Holders Details
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -555,7 +598,7 @@ export default function ViewLICPolicyPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Life Assured
+                Life Assured <span className="text-red-500">*</span>
               </label>
               <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                 {selectedLifeAssured ? getFullName(selectedLifeAssured) : "—"}
@@ -615,23 +658,7 @@ export default function ViewLICPolicyPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Provider Type
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("providerType") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Provider Name
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {selectedProvider?.name || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Policy Number
+                    Policy Number <span className="text-red-500">*</span>
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                     {watch("policyNumber") || "—"}
@@ -639,7 +666,7 @@ export default function ViewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Plan
+                    Plan <span className="text-red-500">*</span>
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                     {selectedProduct
@@ -649,15 +676,7 @@ export default function ViewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Mode
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {selectedMode?.modeName || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Commencement Date
+                    Commencement Date <span className="text-red-500">*</span>
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                     {watch("commencementDate") || "—"}
@@ -665,7 +684,15 @@ export default function ViewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Completion Date
+                    Mode <span className="text-red-500">*</span>
+                  </label>
+                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                    {selectedMode?.modeName || "—"}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Completion Date <span className="text-red-500">*</span>
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                     {watch("completionDate") || "—"}
@@ -685,22 +712,6 @@ export default function ViewLICPolicyPage() {
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
                     {watch("ppt") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Extra Class
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("extraClass") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Rate %
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("ratePercent") || "—"}
                   </div>
                 </div>
               </div>
@@ -730,6 +741,15 @@ export default function ViewLICPolicyPage() {
                         Sum
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Term
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        PPT
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Mode
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
                         Premium
                       </th>
                     </tr>
@@ -738,10 +758,10 @@ export default function ViewLICPolicyPage() {
                     {riderData.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={3}
+                          colSpan={6}
                           className="px-4 py-6 text-center text-slate-500 text-sm"
                         >
-                          No Riders
+                          No Rider to Show
                         </td>
                       </tr>
                     ) : (
@@ -752,6 +772,15 @@ export default function ViewLICPolicyPage() {
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-700">
                             {rider.sum || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700">
+                            {rider.term || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700">
+                            {rider.ppt || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-700">
+                            {rider.mode || "—"}
                           </td>
                           <td className="px-4 py-3 text-sm text-slate-700">
                             {rider.premium || "—"}
@@ -832,14 +861,6 @@ export default function ViewLICPolicyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    GST
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("gst") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Total Installment Premium
                   </label>
                   <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
@@ -873,225 +894,350 @@ export default function ViewLICPolicyPage() {
           </button>
 
           {showAdvanced && (
-            <div className="mt-6 grid grid-cols-1 gap-6">
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  Current Status
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Policy Status
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("policyStatus") || "—"}
+            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* ================= LEFT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Current Status ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">
+                        Current Status
+                      </h3>
+                    </div>
+                    <span className="text-sm text-slate-500">
+                      Check Current Status of Policy
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Policy Status
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {selectedStatus?.statusName ||
+                            watch("policyStatus") ||
+                            "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          First Unpaid Premium (F.U.P.) Date
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("fupDate") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Premium Adjusted
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("premiumAdjusted") || "—"}
+                        </div>
+                      </div>
+                      <div className="flex items-center pt-8">
+                        <input
+                          id="premiumDeposit"
+                          type="checkbox"
+                          className="h-5 w-5"
+                          disabled
+                        />
+                        <label
+                          htmlFor="premiumDeposit"
+                          className="ml-3 text-sm"
+                        >
+                          Create Premium Deposit Entries
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Loan Taken
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("loanTaken") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          First Unpaid Loan Int. (FULI) Date
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("fuliDate") || "—"}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Premium Adjusted
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("premiumAdjusted") || "—"}
-                    </div>
+                </div>
+                {/* ================= NACH & NEFT ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <h3 className="font-semibold text-slate-900">
+                      NACH & NEFT Details
+                    </h3>
+                    <span className="text-sm text-slate-500">
+                      Provide NACH / NEFT Details for Bank Transactions
+                    </span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Loan Taken
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("loanTaken") || "—"}
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Bank Name
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("bankName") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Account Number
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("accountNumber") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          IFSC Code
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("ifscCode") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Account Holder Name
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("accountHolderName") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Bank Branch
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("bankBranch") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          City
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("city") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Account Type
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("accountType") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          MICR Number
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("micrNumber") || "—"}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  Check Current Status of Policy
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      First Unpaid Premium (F.U.P.) Date
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("fupDate") || "—"}
-                    </div>
+              {/* ================= RIGHT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Nomination Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <h3 className="font-semibold text-slate-900">
+                      Nomination Details
+                    </h3>
                   </div>
-                </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  Nomination Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Annuity Details
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("annuityDetails") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Other Information
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("otherInformation") || "—"}
-                    </div>
-                  </div>
-                </div>
-                {selectedPolicy.nominees &&
-                  selectedPolicy.nominees.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-3">
-                        Nominee Summary
-                      </h4>
-                      <div className="space-y-3">
+                  <div className="p-5">
+                    {selectedPolicy.nominees &&
+                    selectedPolicy.nominees.length > 0 ? (
+                      <div className="space-y-4">
                         {selectedPolicy.nominees.map((nominee: any) => (
                           <div
                             key={nominee.id}
-                            className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+                            className="border border-slate-200 rounded-lg p-4 space-y-3"
                           >
-                            <div className="text-sm text-slate-700 font-semibold">
-                              {nominee.nomineeName}
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              {nominee.relationship} •{" "}
-                              {nominee.percentage ?? "—"}%
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Nominee Name
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.nomineeName || "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Relationship
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.relationship || "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Date of Birth
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.dateOfBirth
+                                    ? new Date(nominee.dateOfBirth)
+                                        .toISOString()
+                                        .substring(0, 10)
+                                    : "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Share %
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.percentage ?? "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Phone
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.phone || "—"}
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Email
+                                </label>
+                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                                  {nominee.email || "—"}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  Advisor Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Controller
-                      name="advisorId"
-                      control={control}
-                      render={({ field }) => (
-                        <AdvisorDisplay
-                          value={field.value || ""}
-                          advisors={advisors}
+                    ) : (
+                      <p className="text-sm text-slate-500 text-center py-4">
+                        No nominees added.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* ================= Annuity Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h3 className="font-semibold text-slate-900">
+                      Annuity Details
+                    </h3>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-sm text-slate-500">
+                      This will be enabled for Annuity Policies.
+                    </p>
+                  </div>
+                </div>
+                {/* ================= Other Information ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h3 className="font-semibold text-slate-900">
+                      Other Information
+                    </h3>
+                    <span className="text-sm text-slate-500">
+                      Agency, Branch, Notes & Other Policy Information
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Agency <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {selectedPolicy.advisor?.agency?.agencyName || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Branch
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {selectedPolicy.branch
+                            ? `[${selectedPolicy.branch.branchCode}] ${selectedPolicy.branch.branchName}`
+                            : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <Controller
+                          name="advisorId"
+                          control={control}
+                          render={({ field }) => (
+                            <AdvisorDisplay
+                              value={field.value || ""}
+                              advisors={advisors}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Agent Code
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("agentCode") || "—"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  NACH & NEFT Details
-                </h3>
-                <p className="text-sm text-slate-500 mb-4">
-                  Provide NACH / NEFT Details for Bank Transactions
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Bank Name
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("bankName") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Account Number
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("accountNumber") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      IFSC Code
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("ifscCode") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Account Holder Name
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("accountHolderName") || "—"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-base font-semibold text-slate-800 mb-4">
-                  Additional Fields
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Branch
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("branchName") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Medical
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("medical") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Sales Channel
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("salesChannel") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Age Admitted
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("ageAdmitted") || "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Tax Beneficiary
-                    </label>
-                    <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("taxBeneficiary") || "—"}
-                    </div>
-                  </div>
-                  <div className="lg:col-span-3">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Notes
-                    </label>
-                    <div className="w-full min-h-[90px] px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                      {watch("notes") || "—"}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Agent Code
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("agentCode") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Sales Channel
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("salesChannel") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Medical
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("medical") || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Tax Beneficiary
+                        </label>
+                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("taxBeneficiary") || "—"}
+                        </div>
+                      </div>
+                      <div className="flex items-center mt-8">
+                        <input
+                          id="ageAdmitted"
+                          type="checkbox"
+                          className="h-5 w-5"
+                          disabled
+                        />
+                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">
+                          Age Admitted
+                        </label>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">
+                          Notes
+                        </label>
+                        <div className="w-full min-h-[90px] px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
+                          {watch("notes") || "—"}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

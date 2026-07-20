@@ -1,5 +1,4 @@
 export const shriramProducts = [
-    
   //SHRIRAM LIFE INSURANCE - ACTIVE POLICIES
   {
     productName: "Shriram Life Flexi Shield Plan",
@@ -289,5 +288,26 @@ export const shriramProducts = [
     planNumber: "SLI001",
     providerCode: "SHRIRAM",
     productType: "Inactive",
+  },
+  {
+    productName: "Shriram Life Online Term Plan",
+    productCode: "128N072V01",
+    planNumber: "SLA041",
+    providerCode: "SHRIRAM",
+    productType: "Term/Protection Plans",
+  },
+  {
+    productName: "Shriram Life Smart Protection Plan SP",
+    productCode: "-",
+    planNumber: "SLA042",
+    providerCode: "SHRIRAM",
+    productType: "Term/Protection Plans",
+  },
+  {
+    productName: "Corona Rakshak Policy",
+    productCode: "-",
+    planNumber: "SLA043",
+    providerCode: "SHRIRAM",
+    productType: "Term/Protection Plans",
   },
 ];

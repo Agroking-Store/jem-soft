@@ -1,5 +1,195 @@
 export const canarahsbcProducts = [
-      //CANARA HSBC LIFE INSURANCE
+  //CANARA HSBC LIFE INSURANCE
+  {
+    productName: "Canara HSBC Life Insurance Alpha Wealth",
+    productCode: "136L088V02",
+    planNumber: "CH001",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance EZ Pension",
+    productCode: "136L094V01",
+    planNumber: "CH002",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Advantage Term Plus",
+    productCode: "136N077V02",
+    planNumber: "CH003",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Asset Secure",
+    productCode: "136N082V02",
+    planNumber: "CH004",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Secure",
+    productCode: "136N024V07",
+    planNumber: "CH005",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Secure Plus",
+    productCode: "136N090V01",
+    planNumber: "CH006",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Term Edge Plan",
+    productCode: "136N070V02",
+    planNumber: "CH007",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Traditional Plan",
+    productCode: "136N014V03",
+    planNumber: "CH008",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Guaranteed Assured Income",
+    productCode: "136N097V04",
+    planNumber: "CH009",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Guaranteed Fortune Plan",
+    productCode: "136N084V04",
+    planNumber: "CH010",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Guaranteed Suraksha Kavach",
+    productCode: "136N078V03",
+    planNumber: "CH011",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance IncomeNow",
+    productCode: "136N121V01",
+    planNumber: "CH012",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Legacy Builder",
+    productCode: "136L095V01",
+    planNumber: "CH013",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Pension4Life",
+    productCode: "136N071V11",
+    planNumber: "CH014",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName:
+      "Canara HSBC Life Insurance Pradhan Mantri Jeevan Jyoti Bima Yojana",
+    productCode: "136G046V01",
+    planNumber: "CH015",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise2Protect",
+    productCode: "136N091V01",
+    planNumber: "CH016",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise4Future",
+    productCode: "136N119V01",
+    planNumber: "CH017",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise4Growth",
+    productCode: "136L089V02",
+    planNumber: "CH018",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise4Growth Plus",
+    productCode: "136L093V01",
+    planNumber: "CH019",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise4Life",
+    productCode: "136N120V01",
+    planNumber: "CH020",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Promise4Wealth",
+    productCode: "136L096V01",
+    planNumber: "CH021",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Sampoorna Kavach Plan",
+    productCode: "136N022V03",
+    planNumber: "CH022",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Saral Jeevan Bima",
+    productCode: "136N075V02",
+    planNumber: "CH023",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Saral Pension",
+    productCode: "136N076V03",
+    planNumber: "CH024",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance SecureInvest",
+    productCode: "136L092V02",
+    planNumber: "CH025",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Smart Guaranteed Pension",
+    productCode: "136N086V03",
+    planNumber: "CH026",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Wealth Edge",
+    productCode: "136L085V04",
+    planNumber: "CH027",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Young Term Plan",
+    productCode: "136N087V03",
+    planNumber: "CH028",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance iSelect Guaranteed Future",
+    productCode: "136N081V07",
+    planNumber: "CH029",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance iSelect Guaranteed Future Plus",
+    productCode: "136N098V04",
+    planNumber: "CH030",
+    providerCode: "CANARA_HSBC",
+  },
+  {
+    productName: "Canara HSBC Life Insurance iSelect Smart360 Term Plan",
+    productCode: "136N080V02",
+    planNumber: "CH031",
+    providerCode: "CANARA_HSBC",
+    productType: "Term Insurance",
+  },
+
+  //CANARA HSBC LIFE INSURANCE - WITHDRAWN/INACTIVE POLICIES
   {
     productName: "Canara HSBC Life Insurance Alpha Wealth",
     productCode: "136L088V01",
@@ -1290,5 +1480,71 @@ export const canarahsbcProducts = [
     providerCode: "CANARA_HSBC",
     productType: "Inactive",
   },
+  // ACTIVE POLICIES - NEWLY VERIFIED (missing from original list)
+  {
+    productName: "Canara HSBC Life Insurance Future Dollar Investment Plan",
+    productCode: "2025L001V01",
+    planNumber: "CH032",
+    providerCode: "CANARA_HSBC",
+    productType: "Investment",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Accidental Benefit Rider (Linked)",
+    productCode: "136A016V01",
+    planNumber: "CH033",
+    providerCode: "CANARA_HSBC",
+    productType: "Rider",
+  },
+  {
+    productName:
+      "Canara HSBC Life Insurance Linked Critical Illness Benefit Rider",
+    productCode: "136A018V01",
+    planNumber: "CH034",
+    providerCode: "CANARA_HSBC",
+    productType: "Rider",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Critical Illness Rider",
+    productCode: "136B017V01",
+    planNumber: "CH035",
+    providerCode: "CANARA_HSBC",
+    productType: "Rider",
+  },
 
+  // WITHDRAWN/INACTIVE POLICIES
+  {
+    productName: "Canara HSBC Life Insurance Corporate Group Term Plan",
+    productCode: "136N020V01",
+    planNumber: "CHI185",
+    providerCode: "CANARA_HSBC",
+    productType: "Inactive",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Group Term Plan",
+    productCode: "136N008V01",
+    planNumber: "CHI186",
+    providerCode: "CANARA_HSBC",
+    productType: "Inactive",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Sampoorna Kavach Plan",
+    productCode: "136N022V01",
+    planNumber: "CHI187",
+    providerCode: "CANARA_HSBC",
+    productType: "Inactive",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Secure Smart Plan",
+    productCode: "136N017V02",
+    planNumber: "CHI188",
+    providerCode: "CANARA_HSBC",
+    productType: "Inactive",
+  },
+  {
+    productName: "Canara HSBC Life Insurance Smart Sanchay Plan",
+    productCode: "136N021V01",
+    planNumber: "CHI189",
+    providerCode: "CANARA_HSBC",
+    productType: "Inactive",
+  },
 ];
