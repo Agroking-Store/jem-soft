@@ -210,7 +210,7 @@ export default function ViewLICPolicyPage() {
   );
 
   const [activeSection, setActiveSection] = useState("policy-holder");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
 
   useEffect(() => {
