@@ -324,4 +324,43 @@ export const indiafirstProducts = [
     providerCode: "INDIAFIRST",
     productType: "Group & Corporate Life Insurance Plans",
   },
+  {
+    productName: "IndiaFirst Life TULIP Plan",
+    productCode: "ILTP",
+    planNumber: "IF-LI-047",
+    providerCode: "INDIAFIRST",
+  },
+{
+    productName: "IndiaFirst Life Guaranteed Income Plan",
+    productCode: "ILGIP",
+    planNumber: "IF-LI-048",
+    providerCode: "INDIAFIRST",
+  },
+  {
+    productName: "25K Salary Term Insurance Plan",
+    productCode: "2STIP",
+    planNumber: "IF-LI-049",
+    providerCode: "INDIAFIRST",
+  },
+  {
+    productName: "30K Salary Term Insurance Plan",
+    productCode: "3STIP",
+    planNumber: "IF-LI-050",
+    providerCode: "INDIAFIRST",
+  },
+  {
+    productName: "50K Salary Term Insurance Plan",
+    productCode: "5STIP",
+    planNumber: "IF-LI-051",
+    providerCode: "INDIAFIRST",
+  },
+  {
+    productName: "IndiaFirst Pradhan Mantri Jeevan Jyoti Bima Yojana",
+    productCode: "IPMJJBY",
+    planNumber: "IF-LI-052",
+    providerCode: "INDIAFIRST",
+  }
+  
+  
+
 ];

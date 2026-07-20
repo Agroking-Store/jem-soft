@@ -39,6 +39,7 @@ import {
 import toast from "react-hot-toast";
 import { useNotificationStore } from "@/store/notificationStore";
 
+
 function getFullName(customer: {
     salutation?: string | null;
     firstName: string;
@@ -140,6 +141,137 @@ const AdvisorAutoComplete = ({ value, onChange, advisors }: { value: string; onC
         </div>
     );
 };
+
+interface Product {
+    id: string;
+    productName: string;
+    planNumber?: string | number | null;
+    providerId: string;
+    productType?: string;
+}
+
+const PlanAutoComplete = ({
+    value,
+    onChange,
+    products,
+}: {
+    value: string;
+    onChange: (id: string) => void;
+    products: Product[];
+}) => {
+    const [query, setQuery] = useState("");
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    const selected = products.find((p) => p.id === value);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+
+    const filtered = products.filter((p) => {
+        const q = query.toLowerCase();
+
+        return (
+            p.productName.toLowerCase().includes(q) ||
+            String(p.planNumber ?? "")
+                .toLowerCase()
+                .includes(q)
+        );
+    });
+
+    return (
+        <div ref={ref} className="relative">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+                Plan <span className="text-red-500">*</span>
+            </label>
+
+            <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Search size={16} />
+                </span>
+
+                <input
+                    value={
+                        selected
+                            ? `${selected.planNumber ? `[${selected.planNumber}] ` : ""}${selected.productName}`
+                            : query
+                    }
+                    readOnly={!!selected}
+                    onClick={() => {
+                        setOpen(true);
+
+                        if (selected) {
+                            setQuery("");
+                            onChange("");
+                        }
+                    }}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                        setOpen(true);
+
+                        if (!e.target.value) {
+                            onChange("");
+                        }
+                    }}
+                    onFocus={() => setOpen(true)}
+                    placeholder="Search plan by name or number..."
+                    className="w-full pl-9 pr-9 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                />
+
+                {selected && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onChange("");
+                            setQuery("");
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
+            </div>
+
+            {open && filtered.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                    {filtered.map((product) => (
+                        <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => {
+                                onChange(product.id);
+                                setQuery("");
+                                setOpen(false);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors"
+                        >
+                            <div className="font-medium text-sm">
+                                {product.productName}
+                            </div>
+
+                            {product.planNumber && (
+                                <div className="text-xs text-slate-500">
+                                    Plan No. {product.planNumber}
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 
 const riderSchema = z.object({
     description: z.string().min(1, "Description is required"),
@@ -462,24 +594,12 @@ export default function EditLICPolicyPage() {
     }, [watchProviderId, providers]);
     const isLicProviderSelected = selectedProvider?.code === 'LIC';
 
-    const productTypesForProvider = useMemo(() => {
-        if (!watchProviderId) return [];
-        const providerProducts = products.filter(p => p.providerId === watchProviderId);
-        const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
-        return types.sort();
-    }, [watchProviderId, products]);
 
     const filteredProducts = useMemo(() => {
-        if (!watchProviderId) return [];
-
-        let providerProducts = products.filter((p) => p.providerId === watchProviderId);
-
-        if (watchProductType && isLicProviderSelected) {
-            providerProducts = providerProducts.filter(p => p.productType === watchProductType);
-        }
-        return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
-    }, [watchProviderId, watchProductType, products]);
-
+        return [...products].sort((a, b) =>
+            (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
+        );
+    }, [products]);
 
 
     useEffect(() => {
@@ -795,57 +915,8 @@ export default function EditLICPolicyPage() {
                                 Policy Details
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Provider Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("providerType")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    >
-                                        <option value="">Select Provider Type</option>
-                                        {providerTypes.map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </select>
-                                    {errors.providerType && <p className="text-xs text-red-500 mt-1">{errors.providerType.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Provider Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("providerId")}
-                                        disabled={!watchProviderType}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                    >
-                                        <option value="">Select Provider</option>
-                                        {filteredProviders.map((provider) => (
-                                            <option key={provider.id} value={provider.id}>{provider.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.providerId && <p className="text-xs text-red-500 mt-1">{errors.providerId.message}</p>}
-                                </div>
-                                {isLicProviderSelected && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                                            Product Type
-                                        </label>
-                                        <select
-                                            {...register("productType")}
-                                            disabled={!watchProviderId || productTypesForProvider.length === 0}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                        >
-                                            <option value="">All Product Types</option>
-                                            {productTypesForProvider.map((type) => (
-                                                <option key={type} value={type}>
-                                                    {type}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.productType && <p className="text-xs text-red-500 mt-1">{errors.productType.message}</p>}
-                                    </div>
-                                )}
+
+
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
                                         Policy Number <span className="text-red-500">*</span>
@@ -859,24 +930,37 @@ export default function EditLICPolicyPage() {
                                     {errors.policyNumber && <p className="text-xs text-red-500 mt-1">{errors.policyNumber.message}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Plan <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("productId")}
-                                        disabled={!watchProviderId || filteredProducts.length === 0}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                    >
-                                        <option value="">
-                                            {watchProviderId ? (filteredProducts.length > 0 ? "Select a plan" : "No plans for this provider") : "Select a provider first"}
-                                        </option>
-                                        {filteredProducts.map((product) => (
-                                            <option key={product.id} value={product.id}>
-                                                {product.planNumber ? `[${product.planNumber}] ` : ""}{product.productName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
+                                   <Controller
+    name="productId"
+    control={control}
+    render={({ field }) => (
+        <PlanAutoComplete
+            value={field.value || ""}
+            products={filteredProducts}
+            onChange={(productId) => {
+                field.onChange(productId);
+
+                const selectedProduct = products.find(
+                    (p) => p.id === productId
+                );
+
+                if (selectedProduct) {
+                    setValue("providerId", selectedProduct.providerId);
+
+                    if (selectedProduct.productType) {
+                        setValue("productType", selectedProduct.productType);
+                    }
+                }
+            }}
+        />
+    )}
+/>
+
+                                    {errors.productId && (
+                                        <p className="text-xs text-red-500 mt-1">
+                                            {errors.productId.message}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -935,29 +1019,6 @@ export default function EditLICPolicyPage() {
                                         className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
                                     />
                                     {errors.ppt && <p className="text-xs text-red-500 mt-1">{errors.ppt.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Extra Class
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("extraClass")}
-                                        placeholder="Extra class"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Rate %
-                                    </label>
-                                    <input
-                                        type="number"
-                                        {...register("ratePercent")}
-                                        placeholder="Rate %"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.ratePercent && <p className="text-xs text-red-500 mt-1">{errors.ratePercent.message}</p>}
                                 </div>
                             </div>
                         </div>
