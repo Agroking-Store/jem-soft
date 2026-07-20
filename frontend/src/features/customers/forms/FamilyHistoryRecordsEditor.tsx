@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
@@ -51,6 +51,24 @@ export interface FamilyHistoryRecordsEditorProps {
   onFamilyHistoryDateChange: (date: string) => void;
   records: FamilyHistoryRecordItem[];
   onChange: (records: FamilyHistoryRecordItem[]) => void;
+  /** Member's date of birth (yyyy-MM-dd). Used to auto-fill age for "Self". */
+  dob?: string | null;
+}
+
+/** Calculate age in years from a yyyy-MM-dd date of birth. */
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -64,6 +82,7 @@ export default function FamilyHistoryRecordsEditor({
   onFamilyHistoryDateChange,
   records,
   onChange,
+  dob,
 }: FamilyHistoryRecordsEditorProps) {
   // Detail input state
   const [relation, setRelation] = useState("");
@@ -74,6 +93,15 @@ export default function FamilyHistoryRecordsEditor({
   const [causeOfDeath, setCauseOfDeath] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
+
+  // When the member's DOB changes and the current relation is "Self",
+  // keep the age field auto-filled with the calculated age.
+  useEffect(() => {
+    if (relation === "Self") {
+      const calculated = calcAgeFromDob(dob);
+      if (calculated !== null) setAge(String(calculated));
+    }
+  }, [dob, relation]);
 
   const handleClearDetail = () => {
     setRelation("");
@@ -168,6 +196,11 @@ export default function FamilyHistoryRecordsEditor({
             onChange={(val) => {
               setRelation(val);
               setDetailErrors((p) => ({ ...p, relation: "" }));
+              // Auto-fill age from DOB when relation is "Self".
+              if (val === "Self") {
+                const calculated = calcAgeFromDob(dob);
+                if (calculated !== null) setAge(String(calculated));
+              }
             }}
             options={RELATIONS.map((r) => ({ value: r, label: r }))}
           />
