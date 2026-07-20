@@ -290,6 +290,22 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
   });
 };
 
+export const getPoliciesByMember = async (memberId: string): Promise<any[]> => {
+  return prisma.policy.findMany({
+    where: { CustomerMasterId: memberId },
+    include: {
+      CustomerMaster: true,
+      customer: true,
+      provider: true,
+      product: true,
+      status: true,
+      premiumMode: true,
+      premium: true,
+    },
+    orderBy: { commencementDate: "desc" },
+  });
+};
+
 export const getPolicyById = async (id: string): Promise<any> => {
   return prisma.policy.findUnique({
     where: {

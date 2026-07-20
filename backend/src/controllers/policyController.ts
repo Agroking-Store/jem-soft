@@ -57,6 +57,20 @@ export const getPolicyById = catchAsync(
   }
 );
 
+export const getPoliciesByMember = catchAsync(
+  async (req: Request, res: Response) => {
+    const { memberId } = req.params;
+    const policies = await policyService.getPoliciesByMember(memberId);
+    res.status(200).json({
+      status: "success",
+      results: policies.length,
+      data: {
+        policies,
+      },
+    });
+  }
+);
+
 export const updatePolicy = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;

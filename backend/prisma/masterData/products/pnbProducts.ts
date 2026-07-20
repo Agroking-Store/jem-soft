@@ -254,6 +254,7 @@ export const pnbProducts = [
     planNumber: "PM042",
     providerCode: "PNB_METLIFE",
   },
+
   {
     productName: "PNB MetLife 360 Health Saving Plan",
     productCode: "117L143V01",
@@ -318,4 +319,24 @@ export const pnbProducts = [
     providerCode: "PNB_METLIFE",
     productType: "Withdrawn",
   },
+   {
+    productName: "PNB MetLife Money Back Plan",
+    productCode: "117N081V03",
+    planNumber: "PM043",
+    providerCode: "PNB_METLIFE",
+  },
+  {
+    productName: "PNB MetLife Linked Accidental Death Benefit Rider",
+    productCode: "117A024V01",
+    planNumber: "PM044",
+    providerCode: "PNB_METLIFE",
+  },
+  {
+    productName: "PNB MetLife Goal Ensuring Multiplier with Value Fund",
+    productCode: "117L133V08",
+    planNumber: "PM045",
+    providerCode: "PNB_METLIFE",
+  },
+ 
 ];
+

@@ -2,10 +2,12 @@
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
+import { format } from "date-fns";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { RootState, AppDispatch } from "@/store/store";
@@ -13,11 +15,26 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, updateCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import {
+  fetchFamilyHistoriesByMember,
+  updateFamilyHistory,
+  createFamilyHistory,
+  type FamilyHistoryRecordItem,
+} from "@/features/customers/familyHistorySlice";
+import {
+  fetchMedicalHistoriesByMember,
+  updateMedicalHistory,
+  createMedicalHistory,
+  type MedicalHistoryRecordItem,
+} from "@/features/customers/medicalHistorySlice";
+import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
+import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
+import {
   ArrowLeft, User, Phone, MapPin, CreditCard, Info, Settings,
-  ChevronRight, Plus, Trash2, Star, Search, X,
+  ChevronRight, Plus, Trash2, Star, Search, X, Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 
 const SALUTATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Er.", "CA", "Adv."];
 const GENDERS = ["Male", "Female", "Other"];
@@ -139,13 +156,51 @@ function FormInput({ label, error, required, icon, ...props }: React.InputHTMLAt
   );
 }
 
-function FormSelect({ label, error, required, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
+function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
+  // React.Children.toArray flattens nested arrays (e.g. options produced by
+  // .map()) and drops non-element nodes, so every <option> is processed.
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement(child)) return [];
+    const option = child as React.ReactElement<{ value?: string; children?: React.ReactNode }>;
+    const labelText = String(option.props?.children ?? option.props?.value ?? "");
+    const valueText = String(option.props?.value ?? labelText);
+    if (!valueText) return [];
+    return [{ value: valueText, label: labelText }];
+  });
+}
+
+function FormSelect({
+  label, error, required, children, name,
+}: {
+  label: string; error?: string; required?: boolean; children?: React.ReactNode; name: string;
+}) {
+  const { control } = useFormContext();
+  const { field } = useController({ name, control });
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={optionChildrenToOptions(children)}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select..."
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
+  );
+}
+
+function BankAccountTypeCell({ index }: { index: number }) {
+  const { control } = useFormContext();
+  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
+  return (
+    <SearchableSelect
+      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select"
+      searchPlaceholder="Search account type..."
+    />
   );
 }
 
@@ -240,23 +295,57 @@ function formatDateForInput(dateStr?: string | null): string {
   try { return new Date(dateStr).toISOString().split("T")[0]; } catch { return ""; }
 }
 
-export default function CustomerMasterEditPage() {
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
+interface CustomerMasterEditPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = customerId ?? (params?.id as string);
 
   const { user, isLoading: authLoading } = useAuth();
   const { currentCustomer, isLoading: customerLoading } = useSelector((s: RootState) => s.customerMaster);
   const { customers: groups } = useSelector((s: RootState) => s.customers);
+  const existingFamily = useSelector((s: RootState) => s.familyHistory.records);
+  const existingMedical = useSelector((s: RootState) => s.medicalHistory.records);
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
 
-  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
+  // Inline Family History + Medical History (most recent record) state.
+  const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryRecordItem[]>([]);
+  const [familyHistoryRecordId, setFamilyHistoryRecordId] = useState<string | null>(null);
+  const [medicalRecord, setMedicalRecord] = useState<MedicalHistoryRecordItem>({
+    medicalHistoryDate: new Date().toISOString().substring(0, 10),
+    bloodGroup: "",
+  });
+  const [medicalHistoryRecordId, setMedicalHistoryRecordId] = useState<string | null>(null);
+
+  const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", qualification: "", addresses: [], bankDetails: [] },
   });
+  const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = methods;
 
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
@@ -264,17 +353,22 @@ export default function CustomerMasterEditPage() {
   useEffect(() => {
     setIsMounted(true);
     dispatch(fetchCustomers());
-    if (id) dispatch(fetchCustomerMaster(id));
+    if (id) {
+      dispatch(fetchCustomerMaster(id));
+      dispatch(fetchFamilyHistoriesByMember(id));
+      dispatch(fetchMedicalHistoriesByMember(id));
+    }
   }, [dispatch, id]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   useEffect(() => {
     if (currentCustomer && isMounted) {
@@ -329,6 +423,58 @@ export default function CustomerMasterEditPage() {
     }
   }, [currentCustomer, isMounted, reset]);
 
+  // Populate the inline Family / Medical editors from the member's existing records.
+  useEffect(() => {
+    if (!isMounted || !id) return;
+
+    if (existingFamily.length > 0) {
+      const mostRecent = [...existingFamily].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      )[0];
+      setFamilyHistoryRecordId(mostRecent.id);
+      setFamilyHistoryDate(mostRecent.date.substring(0, 10));
+      setFamilyRecords(mostRecent.records || []);
+    }
+
+    if (existingMedical.length > 0) {
+      const mostRecent = [...existingMedical].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      )[0];
+      const rec = mostRecent.records?.[0];
+      if (rec) {
+        setMedicalHistoryRecordId(mostRecent.id);
+        setMedicalRecord({
+          id: rec.id,
+          medicalHistoryDate: (rec.medicalHistoryDate || mostRecent.date).substring(0, 10),
+          age: rec.age ?? null,
+          gender: rec.gender ?? null,
+          bloodGroup: rec.bloodGroup || "",
+          bloodPressure: rec.bloodPressure ?? null,
+          pulse: rec.pulse ?? null,
+          height: rec.height ?? null,
+          weight: rec.weight ?? null,
+          chest: rec.chest ?? null,
+          abdomen: rec.abdomen ?? null,
+          identificationMark: rec.identificationMark ?? null,
+          spectaclesDetails: rec.spectaclesDetails ?? null,
+          dentalDetails: rec.dentalDetails ?? null,
+          majorIllness: rec.majorIllness ?? null,
+          operationAccident: rec.operationAccident ?? null,
+          specialReport: rec.specialReport ?? null,
+          doctorName: rec.doctorName ?? null,
+          medicalExaminationDate: rec.medicalExaminationDate ? rec.medicalExaminationDate.substring(0, 10) : null,
+        });
+      }
+    }
+  }, [existingFamily, existingMedical, isMounted, id]);
+
+  const buildMedicalPayloadRecord = (): MedicalHistoryRecordItem => ({
+    ...medicalRecord,
+    age: calcAgeFromDob(currentCustomer?.dob),
+    gender: currentCustomer?.gender || null,
+    medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+  });
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -348,8 +494,63 @@ export default function CustomerMasterEditPage() {
           preferences: { preferredCommAddress: data.preferredCommAddress || undefined, smsMarketing: data.smsMarketing, emailMarketing: data.emailMarketing },
         },
       })).unwrap();
-      toast.success("Customer updated successfully!");
-      router.push("/dashboard/customers?tab=master");
+
+      const groupId = data.groupId || currentCustomer?.groupId;
+      let secondaryFailed = false;
+
+      // Family History — update existing, create if none existed, skip if empty.
+      if (familyHistoryRecordId) {
+        try {
+          await dispatch(updateFamilyHistory({
+            id: familyHistoryRecordId,
+            payload: { groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords },
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to update family history");
+        }
+      } else if (familyRecords.length > 0) {
+        try {
+          await dispatch(createFamilyHistory({
+            groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords,
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save family history");
+        }
+      }
+
+      // Medical History — update most recent, create if none existed, skip if empty.
+      const medRecord = buildMedicalPayloadRecord();
+      if (medicalHistoryRecordId) {
+        try {
+          await dispatch(updateMedicalHistory({
+            id: medicalHistoryRecordId,
+            payload: { memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord] },
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to update medical history");
+        }
+      } else if (medicalRecord.bloodGroup && medicalRecord.medicalHistoryDate) {
+        try {
+          await dispatch(createMedicalHistory({
+            memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord],
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save medical history");
+        }
+      }
+
+      if (secondaryFailed) {
+        toast("Customer updated, but some family/medical history failed to save. Retry from Member Details.");
+      } else {
+        toast.success("Customer updated successfully!");
+      }
+
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to update customer");
     } finally {
@@ -363,23 +564,26 @@ export default function CustomerMasterEditPage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
-            <ChevronRight size={12} />
-            <span className="text-slate-600 font-medium">Edit</span>
-          </nav>
-          <h1 className="text-xl font-bold text-slate-900">Edit Customer</h1>
+      {!isModal && (
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <ChevronRight size={12} />
+              <span className="text-slate-600 font-medium">Edit</span>
+            </nav>
+            <h1 className="text-xl font-bold text-slate-900">Edit Customer</h1>
+          </div>
         </div>
-      </div>
+      )}
 
+      <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         {/* Personal Details */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -397,7 +601,20 @@ export default function CustomerMasterEditPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormSelect label="Gender" required error={errors.gender?.message} {...register("gender")}><option value="">Select gender</option>{GENDERS.map((g) => <option key={g}>{g}</option>)}</FormSelect>
-              <FormInput label="Date of Birth" type="date" required error={errors.dob?.message} {...register("dob")} />
+              <div>
+                <FieldLabel label="Date of Birth" required />
+                <Controller
+                  control={control}
+                  name="dob"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+                {errors.dob && <p className="mt-1 text-xs text-rose-600">{errors.dob.message}</p>}
+              </div>
               <FormSelect label="Customer Type" {...register("customerType")}><option value="">Select type</option>{CUSTOMER_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -490,7 +707,7 @@ export default function CustomerMasterEditPage() {
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankName`)} placeholder="Bank Name" className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white"><option value="">Select</option>{ACCOUNT_TYPES.map((t) => <option key={t}>{t}</option>)}</select></td>
+                        <td className="py-2 px-2"><BankAccountTypeCell index={idx} /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><button type="button" onClick={() => removeBank(idx)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><Trash2 size={13} /></button></td>
@@ -504,6 +721,38 @@ export default function CustomerMasterEditPage() {
           </div>
         </div>
 
+        {/* Family History */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-[#B8873A]"><Heart size={16} /></span>
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Family History</h2>
+          </div>
+          <div className="p-5">
+            <FamilyHistoryRecordsEditor
+              familyHistoryDate={familyHistoryDate}
+              onFamilyHistoryDateChange={setFamilyHistoryDate}
+              records={familyRecords}
+              onChange={setFamilyRecords}
+            />
+          </div>
+        </div>
+
+        {/* Medical History (Initial Examination) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-[#B8873A]"><Activity size={16} /></span>
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Medical History (Initial Examination)</h2>
+          </div>
+          <div className="p-5 space-y-3">
+            <MedicalHistoryInlineEditor
+              record={medicalRecord}
+              onChange={setMedicalRecord}
+              derivedAge={calcAgeFromDob(currentCustomer?.dob)}
+              derivedGender={currentCustomer?.gender || null}
+            />
+          </div>
+        </div>
+
         {/* Miscellaneous */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
@@ -513,10 +762,52 @@ export default function CustomerMasterEditPage() {
           <div className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormSelect label="Relation to Group" {...register("relationToGroup")}><option value="">Select relation</option>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
-              <FormInput label="D.O.B (Greetings)" type="date" {...register("dobForGreetings")} />
+              <div>
+                <FieldLabel label="D.O.B (Greetings)" />
+                <Controller
+                  control={control}
+                  name="dobForGreetings"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <FormInput label="Referred By" placeholder="Name of referrer" {...register("referredBy")} />
-              <div className="space-y-2"><FormInput label="Marriage Date" type="date" {...register("marriageDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" /> Is Married</label></div>
-              <div className="space-y-2"><FormInput label="Demise Date" type="date" {...register("demiseDate")} /><label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" /> Is Deceased</label></div>
+              <div className="space-y-2">
+                <div>
+                  <FieldLabel label="Marriage Date" />
+                  <Controller
+                    control={control}
+                    name="marriageDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
+                    )}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" /> Is Married</label>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <FieldLabel label="Demise Date" />
+                  <Controller
+                    control={control}
+                    name="demiseDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
+                    )}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" /> Is Deceased</label>
+              </div>
               <FormInput label="Nationality" placeholder="Indian" {...register("nationality")} />
               <FormSelect label="Qualification" {...register("qualification")}>
                 <option value="">Select qualification</option>
@@ -553,7 +844,19 @@ export default function CustomerMasterEditPage() {
               <FormSelect label="Religion" {...register("religion")}><option value="">Select</option>{RELIGIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
               <FormInput label="CRM Groups" placeholder="Group tag" {...register("crmGroups")} />
               <FormInput label="Passport No." placeholder="Passport number" {...register("passportNumber")} />
-              <FormInput label="Passport Expiry" type="date" {...register("passportExpiryDate")} />
+              <div>
+                <FieldLabel label="Passport Expiry" />
+                <Controller
+                  control={control}
+                  name="passportExpiryDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <FormInput label="GST No." placeholder="GST number" {...register("gstNumber")} />
               <div className="sm:col-span-2 lg:col-span-3"><FormTextarea label="Special Note" placeholder="Any special notes..." {...register("specialNote")} /></div>
             </div>
@@ -577,10 +880,15 @@ export default function CustomerMasterEditPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
+          {isModal ? (
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</button>
+          ) : (
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
+          )}
           <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>
+      </FormProvider>
     </div>
   );
 }
