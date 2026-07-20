@@ -12,6 +12,11 @@ export const getFamilyHistoryApi = async (id: string) => {
   return res.data;
 };
 
+export const getFamilyHistoriesByMemberApi = async (memberId: string) => {
+  const res = await axiosInstance.get(`${BASE}/member/${memberId}`);
+  return res.data;
+};
+
 export const createFamilyHistoryApi = async (payload: any) => {
   const res = await axiosInstance.post(BASE, payload);
   return res.data;
