@@ -589,6 +589,7 @@ model CustomerMaster {
   preferences     CustomerServicePreferences?
   policies        Policy[]
   familyHistories FamilyHistory[]
+  medicalHistories MedicalHistory[]
 }
 
 model CustomerContactInfo {
@@ -755,5 +756,50 @@ model FamilyHistoryRecord {
   updatedAt       DateTime      @updatedAt
 
   familyHistory   FamilyHistory @relation(fields: [familyHistoryId], references: [id], onDelete: Cascade)
+}
+
+model MedicalHistory {
+  id        String                 @id @default(uuid())
+  memberId  String
+  date      DateTime               @default(now())
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  member  CustomerMaster        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records MedicalHistoryRecord[]
+}
+
+model MedicalHistoryRecord {
+  id              String        @id @default(uuid())
+  medicalHistoryId String
+
+  // Basic details
+  medicalHistoryDate DateTime     @default(now())
+  age              Int? // derived from member DOB, read-only in UI
+  gender           String? // derived from member profile, read-only in UI
+
+  // Member's details
+  bloodGroup       String // A+, A-, B+, B-, AB+, AB-, O+, O-
+  bloodPressure    String? // mmHg
+  pulse            String? // bpm
+  height           Float? // Cms
+  weight           Float? // Kgs
+  chest            Float? // Cms
+  abdomen          Float? // Cms
+  identificationMark String?
+  spectaclesDetails String?
+  dentalDetails    String?
+
+  // Examination details
+  majorIllness     String?
+  operationAccident String?
+  specialReport    String?
+  doctorName       String?
+  medicalExaminationDate DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  medicalHistory  MedicalHistory @relation(fields: [medicalHistoryId], references: [id], onDelete: Cascade)
 }
 

@@ -2,19 +2,33 @@
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
+import { format } from "date-fns";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import {
+  createFamilyHistory,
+  type FamilyHistoryRecordItem,
+} from "@/features/customers/familyHistorySlice";
+import {
+  createMedicalHistory,
+  type MedicalHistoryRecordItem,
+} from "@/features/customers/medicalHistorySlice";
+import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
+import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
+import {
   ArrowLeft, User, Phone, MapPin, Building, CreditCard, Info,
   Settings, ChevronRight, Plus, Trash2, Star, Search, X,
+  Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -153,13 +167,51 @@ function FormInput({ label, error, required, icon, className: cls, ...props }: R
   );
 }
 
-function FormSelect({ label, error, required, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; required?: boolean }) {
+function optionChildrenToOptions(children: React.ReactNode): SelectOption[] {
+  // React.Children.toArray flattens nested arrays (e.g. options produced by
+  // .map()) and drops non-element nodes, so every <option> is processed.
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement(child)) return [];
+    const option = child as React.ReactElement<{ value?: string; children?: React.ReactNode }>;
+    const labelText = String(option.props?.children ?? option.props?.value ?? "");
+    const valueText = String(option.props?.value ?? labelText);
+    if (!valueText) return [];
+    return [{ value: valueText, label: labelText }];
+  });
+}
+
+function FormSelect({
+  label, error, required, children, name,
+}: {
+  label: string; error?: string; required?: boolean; children?: React.ReactNode; name: string;
+}) {
+  const { control } = useFormContext();
+  const { field } = useController({ name, control });
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select {...props} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}>{children}</select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={optionChildrenToOptions(children)}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select..."
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
+  );
+}
+
+function BankAccountTypeCell({ index }: { index: number }) {
+  const { control } = useFormContext();
+  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
+  return (
+    <SearchableSelect
+      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
+      value={String(field.value ?? "")}
+      onChange={field.onChange}
+      placeholder="Select"
+      searchPlaceholder="Search account type..."
+    />
   );
 }
 
@@ -263,17 +315,39 @@ function GroupAutoComplete({
   );
 }
 
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
+interface CustomerMasterCreatePageProps {
+  isModal?: boolean;
+  onClose?: () => void;
+  onSaved?: () => void;
+  onOpenGroupCreate?: () => void;
+  groupId?: string;
+}
+
 // ─── Main Component ───────────────────────────────────────────────
-export default function CustomerMasterCreatePage() {
+export default function CustomerMasterCreatePage({ isModal = false, onClose, onSaved, onOpenGroupCreate, groupId }: CustomerMasterCreatePageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { customers: groups } = useSelector((s: RootState) => s.customers);
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState(groupId || "");
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormInputValues, unknown, FormValues>({
+  const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       isGroupHead: false, isMarried: false, isDead: false,
@@ -284,28 +358,42 @@ export default function CustomerMasterCreatePage() {
       bankDetails: [],
     },
   });
+  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = methods;
 
   const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
+  // Inline Family History + Medical History (first record) captured at create time.
+  const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [familyRecords, setFamilyRecords] = useState<FamilyHistoryRecordItem[]>([]);
+  const [medicalRecord, setMedicalRecord] = useState<MedicalHistoryRecordItem>({
+    medicalHistoryDate: new Date().toISOString().substring(0, 10),
+    bloodGroup: "",
+  });
+
   useEffect(() => {
     setIsMounted(true);
     dispatch(fetchCustomers());
-  }, [dispatch]);
+    if (groupId) {
+      setSelectedGroupId(groupId);
+      setValue("groupId", groupId);
+    }
+  }, [dispatch, groupId, setValue]);
 
   useEffect(() => {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      await dispatch(createCustomerMaster({
+      const created = await dispatch(createCustomerMaster({
         groupId: data.groupId || undefined,
         salutation: data.salutation || undefined,
         firstName: data.firstName,
@@ -349,8 +437,54 @@ export default function CustomerMasterCreatePage() {
           smsMarketing: data.smsMarketing, emailMarketing: data.emailMarketing,
         },
       })).unwrap();
-      toast.success("Customer created successfully!");
-      router.push("/dashboard/customers?tab=master");
+
+      const memberId = (created as { id?: string })?.id;
+      if (!memberId) throw new Error("Created member id was not returned by the server.");
+
+      let secondaryFailed = false;
+
+      // Family History — skip entirely if no relative rows were filled in.
+      if (familyRecords.length > 0) {
+        try {
+          await dispatch(createFamilyHistory({
+            groupId: data.groupId || undefined,
+            memberId,
+            date: new Date(familyHistoryDate).toISOString(),
+            records: familyRecords,
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save family history");
+        }
+      }
+
+      // Medical History — skip if required fields (bloodGroup + date) are empty.
+      if (medicalRecord.bloodGroup && medicalRecord.medicalHistoryDate) {
+        try {
+          await dispatch(createMedicalHistory({
+            memberId,
+            date: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+            records: [{
+              ...medicalRecord,
+              age: calcAgeFromDob(data.dob),
+              gender: data.gender || null,
+              medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+            }],
+          })).unwrap();
+        } catch (err: any) {
+          secondaryFailed = true;
+          toast.error(err || "Failed to save medical history");
+        }
+      }
+
+      if (secondaryFailed) {
+        toast("Customer was created, but family/medical history failed to save. You can retry those from the Member Details page.", { icon: "⚠️" });
+      } else {
+        toast.success("Customer created successfully!");
+      }
+
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers?tab=master");
     } catch (err: any) {
       toast.error(err || "Failed to create customer");
     } finally {
@@ -364,24 +498,27 @@ export default function CustomerMasterCreatePage() {
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
-            <ChevronRight size={12} />
-            <span className="text-slate-600 font-medium">New Customer</span>
-          </nav>
-          <h1 className="text-xl font-bold text-slate-900">Add Customer</h1>
+      {!isModal && (
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <ChevronRight size={12} />
+              <span className="text-slate-600 font-medium">New Customer</span>
+            </nav>
+            <h1 className="text-xl font-bold text-slate-900">Add Customer</h1>
+          </div>
         </div>
-      </div>
+      )}
 
+      <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
 
         {/* ── Section 1: Personal Details ── */}
@@ -410,7 +547,20 @@ export default function CustomerMasterCreatePage() {
                 <option value="">Select gender</option>
                 {GENDERS.map((g) => <option key={g}>{g}</option>)}
               </FormSelect>
-              <FormInput label="Date of Birth" type="date" required error={errors.dob?.message} {...register("dob")} />
+              <div>
+                <FieldLabel label="Date of Birth" required />
+                <Controller
+                  control={control}
+                  name="dob"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+                {errors.dob && <p className="mt-1 text-xs text-rose-600">{errors.dob.message}</p>}
+              </div>
               <FormSelect label="Customer Type" {...register("customerType")}>
                 <option value="">Select type</option>
                 {CUSTOMER_TYPES.map((t) => <option key={t}>{t}</option>)}
@@ -546,10 +696,7 @@ export default function CustomerMasterCreatePage() {
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2">
-                          <select {...register(`bankDetails.${idx}.accountType`)} className="w-36 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white">
-                            <option value="">Select</option>
-                            {ACCOUNT_TYPES.map((t) => <option key={t}>{t}</option>)}
-                          </select>
+                          <BankAccountTypeCell index={idx} />
                         </td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
                         <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
@@ -573,6 +720,29 @@ export default function CustomerMasterCreatePage() {
           </div>
         </SectionCard>
 
+        {/* ── Section: Family History ── */}
+        <SectionCard title="Family History" icon={<Heart size={16} />}>
+          <FamilyHistoryRecordsEditor
+            familyHistoryDate={familyHistoryDate}
+            onFamilyHistoryDateChange={setFamilyHistoryDate}
+            records={familyRecords}
+            onChange={setFamilyRecords}
+          />
+        </SectionCard>
+
+        {/* ── Section: Medical History (Initial Examination) ── */}
+        <SectionCard title="Medical History (Initial Examination)" icon={<Activity size={16} />}>
+          <MedicalHistoryInlineEditor
+            record={medicalRecord}
+            onChange={setMedicalRecord}
+            derivedAge={calcAgeFromDob(watch("dob"))}
+            derivedGender={watch("gender") || null}
+          />
+          <p className="mt-4 text-xs text-slate-400">
+            This captures the member's first medical record. After saving, use the Member Details page to view the full log or add additional past checkups.
+          </p>
+        </SectionCard>
+
         {/* ── Section 5: Miscellaneous Info ── */}
         <SectionCard title="Miscellaneous Information" icon={<Info size={16} />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -580,17 +750,53 @@ export default function CustomerMasterCreatePage() {
               <option value="">Select relation</option>
               {RELATIONS.map((r) => <option key={r}>{r}</option>)}
             </FormSelect>
-            <FormInput label="D.O.B (Greetings)" type="date" {...register("dobForGreetings")} />
+            <div>
+              <FieldLabel label="D.O.B (Greetings)" />
+              <Controller
+                control={control}
+                name="dobForGreetings"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                  />
+                )}
+              />
+            </div>
             <FormInput label="Referred By" placeholder="Name of referrer" {...register("referredBy")} />
             <div className="space-y-2">
-              <FormInput label="Marriage Date" type="date" {...register("marriageDate")} />
+              <div>
+                <FieldLabel label="Marriage Date" />
+                <Controller
+                  control={control}
+                  name="marriageDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
                 <input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" />
                 Is Married
               </label>
             </div>
             <div className="space-y-2">
-              <FormInput label="Demise Date" type="date" {...register("demiseDate")} />
+              <div>
+                <FieldLabel label="Demise Date" />
+                <Controller
+                  control={control}
+                  name="demiseDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  )}
+                />
+              </div>
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
                 <input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" />
                 Is Deceased
@@ -644,7 +850,19 @@ export default function CustomerMasterCreatePage() {
             </FormSelect>
             <FormInput label="CRM Groups" placeholder="Group tag" {...register("crmGroups")} />
             <FormInput label="Passport No." placeholder="Passport number" {...register("passportNumber")} />
-            <FormInput label="Passport Expiry" type="date" {...register("passportExpiryDate")} />
+            <div>
+              <FieldLabel label="Passport Expiry" />
+              <Controller
+                control={control}
+                name="passportExpiryDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                  />
+                )}
+              />
+            </div>
             <FormInput label="GST No." placeholder="GST number" {...register("gstNumber")} />
             <div className="sm:col-span-2 lg:col-span-3">
               <FormTextarea label="Special Note" placeholder="Any special notes about this customer..." {...register("specialNote")} />
@@ -680,15 +898,22 @@ export default function CustomerMasterCreatePage() {
 
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
-            Cancel
-          </Link>
+          {isModal ? (
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+              Cancel
+            </button>
+          ) : (
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+              Cancel
+            </Link>
+          )}
           <button type="submit" disabled={isSubmitting}
             className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
         </div>
       </form>
+      </FormProvider>
     </div>
   );
 }
