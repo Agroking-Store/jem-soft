@@ -97,4 +97,77 @@ export const sbiProducts = [
     planNumber: "SBILIFE029",
     providerCode: "SBI_LIFE",
   },
+   {
+    productName: "SBI Life - eWealth Plus",
+    productCode: "111L147V01",
+    planNumber: "SBILIFE032",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Platina Plus",
+    productCode: "111N133V06",
+    planNumber: "SBILIFE033",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Annuity Plus",
+    productCode: "111N134V10",
+    planNumber: "SBILIFE034",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Platina Advantage",
+    productCode: "111N175V02",
+    planNumber: "SBILIFE035",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Shield Premier",
+    productCode: "111N145V01",
+    planNumber: "SBILIFE036",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Elite Plus",
+    productCode: "111L146V01",
+    planNumber: "SBILIFE037",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Scholar Plus",
+    productCode: "111L144V01",
+    planNumber: "SBILIFE038",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Platina Supreme",
+    productCode: "111N171V03",
+    planNumber: "SBILIFE039",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Poorna Suraksha",
+    productCode: "111N110V01",
+    planNumber: "SBILIFE040",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Smart Bachat",
+    productCode: "111N108V01",
+    planNumber: "SBILIFE041",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Sampoorn Cancer Suraksha",
+    productCode: "111N109V03",
+    planNumber: "SBILIFE042",
+    providerCode: "SBI_LIFE",
+  },
+  {
+    productName: "SBI Life - Annuity Plus",
+    productCode: "111N083V09",
+    planNumber: "SBILIFE043",
+    providerCode: "SBI_LIFE",
+  },
+ 
 ];
