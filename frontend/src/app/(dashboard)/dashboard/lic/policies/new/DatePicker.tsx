@@ -37,7 +37,7 @@ export default function DatePicker({
         yearDropdownItemNumber={100}
         scrollableYearDropdown
         disabled={readOnly}
-        className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
         calendarClassName="shadow-xl border rounded-lg"
       />
     </div>

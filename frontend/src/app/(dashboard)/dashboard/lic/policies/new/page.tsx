@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback, FC } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, type SubmitHandler, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
@@ -37,6 +37,11 @@ import {
   Shield,
   Settings,
   Search,
+  Hash,
+  CreditCard,
+  Banknote,
+  Building,
+  Home,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "./DatePicker";
@@ -48,15 +53,16 @@ function getFullName(customer: {
   middleName?: string | null;
   lastName?: string | null;
 }) {
-  return [
-    customer.salutation,
-    customer.firstName,
-    customer.middleName,
-    customer.lastName,
-  ]
+  return [customer.salutation, customer.firstName, customer.middleName, customer.lastName]
     .filter(Boolean)
     .join(" ");
 }
+
+import {
+  CustomerSectionCard,
+  SearchableSelect,
+  type SelectOption,
+} from "@/features/customers/components/CustomerUi";
 
 // A reusable component for selecting a customer group with search functionality.
 const GroupAutoComplete = ({
@@ -120,13 +126,13 @@ const GroupAutoComplete = ({
           }}
           onFocus={() => setOpen(true)}
           placeholder="Search group by name or code..."
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9"
         />
         {selected && (
           <button
             type="button"
             onClick={() => {
-              onChange("");
+              onChange(""); // Clear the value
               setQuery("");
             }}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -136,7 +142,7 @@ const GroupAutoComplete = ({
         )}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
             <button
               key={g.id}
@@ -146,7 +152,7 @@ const GroupAutoComplete = ({
                 setQuery("");
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
                 {g.groupCode || "—"}
@@ -222,7 +228,7 @@ const AdvisorAutoComplete = ({
           onFocus={() => setOpen(true)}
           placeholder={placeholder || "Search advisor by name or code..."}
           disabled={disabled}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
         {selected && (
           <button
@@ -238,7 +244,7 @@ const AdvisorAutoComplete = ({
         )}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((a) => (
             <button
               key={a.id}
@@ -248,7 +254,7 @@ const AdvisorAutoComplete = ({
                 setQuery("");
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
                 {a.advisorCode}
@@ -319,11 +325,11 @@ const LifeAssuredAutoComplete = ({
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
-        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={14} /></button>)}
       </div>
-      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((m) => (<button key={m.id} type="button" onClick={() => { onChange(m.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="text-sm font-medium text-slate-800">{getFullName(m)}</span></button>))}</div>)}
+      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((m) => (<button key={m.id} type="button" onClick={() => { onChange(m.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"><span className="text-sm font-medium text-slate-800">{getFullName(m)}</span></button>))}</div>)}
     </div>
   );
 };
@@ -362,16 +368,16 @@ const BranchAutoComplete = ({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          placeholder={placeholder || "Search branch by name or code..."}
           disabled={disabled}
-          className="w-full text-left px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          className="w-full text-left px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          aria-label={selected ? `[${selected.branchCode}] ${selected.branchName}` : placeholder || "Select a branch..."}
         >
           {selected ? `[${selected.branchCode}] ${selected.branchName}` : (placeholder || "Select a branch...")}
         </button>
-        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
+        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={14} /></button>)}
       </div>
-      {open && branches.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">{branches.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
+      {open && branches.length > 0 && ( // This should use the DropdownPanel component for consistency
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">{branches.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
       )}
     </div>
   );
@@ -416,7 +422,7 @@ const PlanAutoComplete = ({ value, onChange, products, disabled, placeholder }: 
           onFocus={() => setOpen(true)}
           placeholder={placeholder || "Search plan by name or number..."}
           disabled={disabled}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
         {selected && (
           <button
@@ -427,12 +433,12 @@ const PlanAutoComplete = ({ value, onChange, products, disabled, placeholder }: 
             }}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
           >
-            <X size={13} />
+            <X size={14} />
           </button>
         )}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((p) => (
             <button
               key={p.id}
@@ -442,7 +448,7 @@ const PlanAutoComplete = ({ value, onChange, products, disabled, placeholder }: 
                 setQuery("");
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
                 {p.planNumber || "N/A"}
@@ -670,8 +676,7 @@ export default function NewLICPolicyPage() {
     setValue,
     formState: { errors },
   } = useForm<PolicyFormValues>({
-    // The resolver is re-evaluated on each render, so it can access the latest dynamic schema.
-    resolver: (values, context, options) => {
+    resolver: async (values, context, options) => {
       const selectedProductAttributes = productAttributeValues.filter(
         (attr) => attr.productId === values.productId,
       );
@@ -736,7 +741,7 @@ export default function NewLICPolicyPage() {
         );
       }
 
-      return zodResolver(refinedSchema)(values, context, options);
+      return zodResolver(refinedSchema as any)(values as any, context as any, options as any) as any;
     },
     defaultValues: {
       riders: [],
@@ -859,12 +864,6 @@ export default function NewLICPolicyPage() {
   }, [watchAgencyId, advisors]);
 
   useEffect(() => {
-    if (!watch("mode") && modes.length > 0) {
-      setValue("mode", modes[0].modeName, { shouldValidate: true });
-    }
-  }, [modes, watch("mode"), setValue]);
-
-  useEffect(() => {
     if (selectedPolicyType === "lic") {
       setValue("providerType", "LIC", { shouldValidate: true });
     } else if (selectedPolicyType === "other") {
@@ -904,42 +903,45 @@ export default function NewLICPolicyPage() {
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
-    if (watchRiders) {
-      let totalRiderPremium = 0;
+    if (Array.isArray(watchRiders)) {
+      let totalInstallmentRiderPremium = 0;
+      let totalYearlyRiderPremium = 0;
+
       watchRiders.forEach((rider, index) => {
         const sum = parseFloat(String(rider.sum)) || 0;
         const term = parseFloat(String(rider.term)) || 0;
         const ppt = parseFloat(String(rider.ppt)) || 0;
         const mode = rider.mode;
         let currentPremium = parseFloat(String(rider.premium)) || 0;
+        let yearlyRiderPremium = 0;
 
         if (sum > 0 && term > 0 && ppt > 0 && mode) {
           // Placeholder: Assume yearly premium is 1% of sum assured.
-          const yearlyRiderPremium = sum * 0.01;
+          yearlyRiderPremium = sum * 0.01;
           let installmentRiderPremium = 0;
 
           // Apply mode factors to calculate installment premium for the rider
           switch (mode) {
             case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
             case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
+            case "Half-Yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
             case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
             case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
             default: installmentRiderPremium = 0;
           }
 
           const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
-
-          // Only update if the calculated value is different, to prevent re-renders
           if (finalRiderPremium !== currentPremium) {
             setValue(`riders.${index}.premium`, finalRiderPremium);
             currentPremium = finalRiderPremium;
           }
         }
-        totalRiderPremium += currentPremium;
+        totalInstallmentRiderPremium += currentPremium;
+        totalYearlyRiderPremium += yearlyRiderPremium;
       });
-      setValue("totalRiderPremium", totalRiderPremium > 0 ? totalRiderPremium : undefined);
+      setValue("totalRiderPremium", totalInstallmentRiderPremium > 0 ? totalInstallmentRiderPremium : undefined);
     }
-  }, [JSON.stringify(watchRiders), setValue]);
+  }, [watchRiders, setValue]);
 
   // Auto-calculate Completion Date
   useEffect(() => {
@@ -1009,10 +1011,14 @@ export default function NewLICPolicyPage() {
 
   }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
 
-  // When product changes, update the attribute hints instead of auto-filling fields.
+  // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
     if (!watchProductId || !productAttributeValues || !products.length) {
       setAttributeHints({ term: '', ppt: '', sumAssured: '' });
+      // Clear fields if product is deselected
+      setValue("term", undefined);
+      setValue("ppt", undefined);
+      setValue("sumAssured", undefined);
       return;
     }
   
@@ -1032,6 +1038,16 @@ export default function NewLICPolicyPage() {
     const minSum = getAttributeValue("MIN_SUM_ASSURED");
     const maxSum = getAttributeValue("MAX_SUM_ASSURED");
   
+    // Pre-fill with minimum values. The `z.coerce` in the schema will handle the type.
+    if (minTerm) setValue("term", minTerm as any);
+    else setValue("term", undefined);
+
+    if (minPpt) setValue("ppt", minPpt as any);
+    else setValue("ppt", undefined);
+
+    if (minSum) setValue("sumAssured", minSum as any);
+    else setValue("sumAssured", undefined);
+
     setAttributeHints({
       term: minTerm || maxTerm ? `Range: ${minTerm || 'N/A'} - ${maxTerm || 'N/A'}` : '',
       ppt: minPpt || maxPpt ? `Range: ${minPpt || 'N/A'} - ${maxPpt || 'N/A'}` : '',
@@ -1039,7 +1055,7 @@ export default function NewLICPolicyPage() {
     });
   }, [watchProductId, productAttributeValues, products, setValue]);
 
-  const onSubmit = async (data: PolicyFormValues) => {
+  const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
     const selectedProduct = products.find((p) => p.id === data.productId);
     if (selectedProduct && selectedProduct.productType === "Withdrawn") {
       toast.error(
@@ -1202,27 +1218,22 @@ export default function NewLICPolicyPage() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
         {/* Section 1: Policy Holder's Details */}
         <div
-          ref={sectionRefs["policy-holder"]}
-          className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-            glowingSection === "policy-holder"
-              ? "shadow-lg shadow-blue-500/20"
-              : ""
-          }`}
+          ref={sectionRefs["policy-holder"]} // Keep ref for scrolling
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <User size={20} className="text-blue-600" />
-              Policy Holders Details
-            </h2>
-            <Link
-              href="/dashboard/customers/new"
-              target="_blank"
-              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              <Plus size={16} />
-              Add New Group
-            </Link>
-          </div>
+          <CustomerSectionCard
+            title="Policy Holder's Details"
+            icon={User}
+            actions={
+              <Link
+                href="/dashboard/customers/new"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                <Plus size={14} />
+                New Group
+              </Link>
+            }
+          >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <Controller
@@ -1249,8 +1260,8 @@ export default function NewLICPolicyPage() {
               <input
                 type="text"
                 value={selectedGroup?.groupCode || ""}
-                placeholder="Auto-filled"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                placeholder="Autofilled"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 readOnly
               />
             </div>
@@ -1281,7 +1292,7 @@ export default function NewLICPolicyPage() {
               <input
                 {...register("dob")}
                 type="date"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 readOnly
               />
             </div>
@@ -1292,8 +1303,8 @@ export default function NewLICPolicyPage() {
               <input
                 {...register("age")}
                 type="number"
-                placeholder="Age"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                placeholder="Autofilled"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 readOnly
               />
             </div>
@@ -1303,7 +1314,7 @@ export default function NewLICPolicyPage() {
               </label>
               <select
                 {...register("gender")}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 disabled
               >
                 <option value="">Select Gender</option>
@@ -1322,12 +1333,13 @@ export default function NewLICPolicyPage() {
               <input
                 {...register("pan")}
                 type="text"
-                placeholder="Enter PAN number"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
+                placeholder="Autofilled"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 readOnly
               />
             </div>
           </div>
+          </CustomerSectionCard>
         </div>
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1335,20 +1347,11 @@ export default function NewLICPolicyPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Section 2: Policy Details */}
             <div
-              ref={sectionRefs["policy-details"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === "policy-details"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
+              ref={sectionRefs["policy-details"]} // Keep ref for scrolling
             >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <FileText size={20} className="text-blue-600" />
-                Policy Details
-              </h2>
+              <CustomerSectionCard title="Policy Details" icon={FileText}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <input type="hidden" {...register("providerType")} />
-                <input type="hidden" {...register("providerId")} />
                 <input type="hidden" {...register("productType")} />
 
                 <div>
@@ -1359,7 +1362,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("policyNumber")}
                     placeholder="Enter policy number"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.policyNumber && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1373,31 +1376,27 @@ export default function NewLICPolicyPage() {
                   </label>
                   <Controller
                     control={control}
-                    name="productId"
+                    name="productId" // Use Controller for custom components
                     render={({ field }) => (
-                      <PlanAutoComplete
+                      <SearchableSelect
+                        placeholder="Search plan..."
+                        searchPlaceholder="Search by name or number"
+                        options={availableProducts.map(p => ({
+                          value: p.id,
+                          label: p.productName,
+                          sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
+                        }))}
                         value={field.value}
-                        onChange={(selectedId) => {
-                          field.onChange(selectedId);
-                          const selectedProduct = products.find((product) => product.id === selectedId);
+                        onChange={(val) => {
+                          field.onChange(val);
+                          const selectedProduct = products.find((p) => p.id === val);
                           if (selectedProduct) {
-                            setValue("providerId", selectedProduct.providerId || "", { shouldValidate: true });
-                            const provider = providers.find((item) => item.id === selectedProduct.providerId);
-                            setValue("providerType", provider?.type || "", { shouldValidate: true });
-                            setValue("productType", selectedProduct.productType || "", { shouldValidate: true });
-                          } else {
-                            setValue("providerId", "", { shouldValidate: true });
-                            setValue("providerType", "", { shouldValidate: true });
-                            setValue("productType", "", { shouldValidate: true });
+                            setValue("providerId", selectedProduct.providerId || "");
+                            setValue("productType", selectedProduct.productType || "");
                           }
                         }}
-                        products={availableProducts}
-                        disabled={availableProducts.length === 0}
-                        placeholder={
-                          availableProducts.length > 0
-                            ? "Search plan by name or number..."
-                            : "No plans available"
-                        }
+                        error={errors.productId?.message}
+                        disabled={productsLoading}
                       />
                     )}
                   />
@@ -1431,7 +1430,7 @@ export default function NewLICPolicyPage() {
                   </label>
                   <select
                     {...register("mode")}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   >
                     <option value="">Select Mode</option>
                     {modes.map((mode) => (
@@ -1476,7 +1475,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("term")}
                     placeholder="Enter term"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.term && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1495,7 +1494,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("ppt")}
                     placeholder="Enter PPT"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.ppt && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1507,39 +1506,26 @@ export default function NewLICPolicyPage() {
                   )}
                 </div>
               </div>
+              </CustomerSectionCard>
             </div>
             {/* Section 4: Riders Details */}
             <div
-              ref={sectionRefs["riders"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === "riders"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
+              ref={sectionRefs["riders"]} // Keep ref for scrolling
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <Shield size={20} className="text-blue-600" />
-                  Riders Details
-                </h2>
-                <button
-                  type="button"
-                  onClick={() =>
-                    appendRider({
-                      description: "",
-                      sum: null,
-                      term: null,
-                      mode: "",
-                      ppt: null,
-                      premium: null,
-                    })
-                  }
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                >
-                  <Plus size={16} />
-                  Add Rider
-                </button>
-              </div>
+              <CustomerSectionCard
+                title="Riders Details"
+                icon={Shield}
+                actions={
+                  <button
+                    type="button"
+                    onClick={() => appendRider({ description: "", sum: null, term: null, mode: "", ppt: null, premium: null })}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={14} />
+                    Add Rider
+                  </button>
+                }
+              >
               <div className="border border-slate-200 rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-slate-50">
@@ -1583,7 +1569,7 @@ export default function NewLICPolicyPage() {
                           <td className="px-2 py-1.5 w-1/3">
                             <select
                               {...register(`riders.${index}.description`)}
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
                             >
                               <option value="">Select Rider</option>
                               {riders.map((rider) => (
@@ -1606,7 +1592,7 @@ export default function NewLICPolicyPage() {
                               type="text"
                               {...register(`riders.${index}.sum`)}
                               placeholder="Sum"
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
                             />
                             {errors.riders?.[index]?.sum && (
                               <p className="text-xs text-red-500 mt-1">
@@ -1619,7 +1605,7 @@ export default function NewLICPolicyPage() {
                               type="text"
                               {...register(`riders.${index}.term`)}
                               placeholder="Term"
-                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
                             />
                             {errors.riders?.[index]?.term && (
                               <p className="text-xs text-red-500 mt-1">
@@ -1633,7 +1619,7 @@ export default function NewLICPolicyPage() {
                               type="text"
                               {...register(`riders.${index}.ppt`)}
                               placeholder="PPT"
-                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
                             />
                             {errors.riders?.[index]?.ppt && (
                               <p className="text-xs text-red-500 mt-1">
@@ -1642,27 +1628,22 @@ export default function NewLICPolicyPage() {
                             )}
                           </td>
                           <td className="px-2 py-1.5">
-                            <select
-                              {...register(`riders.${index}.mode`)}
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                            >
-                              <option value="">Mode</option>
-                              {modes.map((mode) => (
-                                <option key={mode.id} value={mode.modeName}>
-                                  {mode.modeName}
-                                </option>
-                              ))}
+                            <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]">
+                                <option value="">Mode</option>
+                                {modes.map(mode => (
+                                    <option key={mode.id} value={mode.modeName}>
+                                        {mode.modeName}
+                                    </option>
+                                ))}
                             </select>
-                            {errors.riders?.[index]?.mode && (
-                              <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>
-                            )}
+                            {errors.riders?.[index]?.mode && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>}
                           </td>
                           <td className="px-2 py-1.5">
                             <input
                               type="text"
                               {...register(`riders.${index}.premium`)}
                               placeholder="Premium"
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
                             />
                             {errors.riders?.[index]?.premium && (
                               <p className="text-xs text-red-500 mt-1">
@@ -1686,24 +1667,15 @@ export default function NewLICPolicyPage() {
                   </tbody>
                 </table>
               </div>
+              </CustomerSectionCard>
             </div>
           </div>
 
           {/* Right Column */}
           <div className="lg:col-span-1">
             {/* Section 3: Policy Premium Calculation */}
-            <div
-              ref={sectionRefs["premium-calculation"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 sticky top-6 transition-all duration-500 ${
-                glowingSection === "premium-calculation"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
-            >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <IndianRupee size={20} className="text-blue-600" />
-                Policy Premium Calculation
-              </h2>
+            <div ref={sectionRefs["premium-calculation"]} className="sticky top-6">
+              <CustomerSectionCard title="Policy Premium Calculation" icon={Banknote}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1713,7 +1685,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("sumAssured")}
                     placeholder="Enter sum assured"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.sumAssured && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1732,7 +1704,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("basicYearlyPremium")}
                     placeholder="Enter basic yearly premium"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.basicYearlyPremium && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1748,7 +1720,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("totalYearlyPremium")}
                     placeholder="Enter total yearly premium"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                     readOnly
                   />
                   {errors.totalYearlyPremium && (
@@ -1766,7 +1738,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("totalRiderPremium")}
                     placeholder="Total rider premium"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.totalRiderPremium && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1782,7 +1754,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("installmentPremium")}
                     placeholder="Installment premium"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                   {errors.installmentPremium && (
                     <p className="text-xs text-red-500 mt-1">
@@ -1798,7 +1770,7 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("ratePercent")}
                     placeholder="Rate %"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                 </div>
                 <div>
@@ -1809,27 +1781,22 @@ export default function NewLICPolicyPage() {
                     type="text"
                     {...register("totalInstallmentPremium")}
                     placeholder="Total installment premium"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                   />
                 </div>
               </div>
-            </div>
+              </CustomerSectionCard>
+          </div>
           </div>
         </div>
-
+        
         <div
           ref={sectionRefs["advanced"]}
           className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${
             glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""
           }`}
         >
-          <div className="flex items-center justify-between w-full text-left">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <Settings size={20} className="text-blue-600" />
-              Advanced Options
-            </h2>
-          </div>
-
+          <CustomerSectionCard title="Advanced Options" icon={Settings}>
           <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
 
               {/* ================= LEFT COLUMN ================= */}
@@ -1849,7 +1816,7 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Policy Status</label>
+                        <label className="block text-sm font-medium mb-1.5">Policy Status</label>
                         <select {...register("statusId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                           {statuses.map((status) => (<option key={status.id} value={status.id}>{status.statusName}</option>))}
                         </select>
@@ -2015,11 +1982,11 @@ export default function NewLICPolicyPage() {
                       <label className="block text-sm font-medium mb-2">
                         Account Type
                       </label>
-                      <select {...register("accountType")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5">
-                        <option value="">Select Account Type</option>
-                        <option value="Savings">Savings</option>
-                        <option value="Current">Current</option>
-                      </select>
+                      <input
+                      {...register("accountType")} 
+                      placeholder="Account Type"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      />
                     </div>
                    
                     <div>
@@ -2066,7 +2033,7 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     {nomineeFields.length === 0 ? (
                       <p className="text-sm text-slate-500 text-center py-4">
-                        No nominees added. Click 'Add Nominee' to start.
+                        No nominees added. Click Add Nominee to start.
                       </p>
                     ) : (
                       <div className="space-y-4">
@@ -2247,7 +2214,7 @@ export default function NewLICPolicyPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          Agent Code
+                          Agent Code (Autofilled)
                         </label>
                         <input
                           {...register("agentCode")}
@@ -2312,8 +2279,11 @@ export default function NewLICPolicyPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </CustomerSectionCard>
+        </div>
+
       </form>
-    </div>
+  </div>
+  
   );
 }

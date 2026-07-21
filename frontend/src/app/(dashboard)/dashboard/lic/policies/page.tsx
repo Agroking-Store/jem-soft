@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -24,10 +24,19 @@ import {
   Shield,
   Repeat,
   Users,
+  BarChart,
   ChevronRight,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
+import {
+  CustomerEmptyState,
+  CustomerPageHero,
+  CustomerSectionCard,
+  CustomerStatCard,
+  CustomerToolbar,
+  FilterSelect,
+} from "@/features/customers/components/CustomerUi";
 
 const getStatusBadge = (status: string) => {
   const statusMap = {
@@ -46,10 +55,10 @@ const getStatusBadge = (status: string) => {
   };
 };
 
-function InfoPill({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) {
+function InfoPill({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500">{icon}</div>
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500"><Icon size={16} /></div>
       <div>
         <p className="text-xs text-slate-500">{label}</p>
         <p className="text-sm font-semibold text-slate-800">{value || "—"}</p>
@@ -57,6 +66,52 @@ function InfoPill({ icon, label, value }: { icon: React.ReactNode, label: string
     </div>
   );
 }
+
+function PolicyTypeModal({ isOpen, onClose, onSelect }: { isOpen: boolean, onClose: () => void, onSelect: (type: "LIC" | "OTHER") => void }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-900">Select Policy Type</h2>
+          <button type="button" onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700">Cancel</button>
+        </div>
+        <p className="text-sm text-slate-500 mb-6">Choose the policy category to continue with the right plan list.</p>
+        <div className="grid gap-3">
+          <button type="button" onClick={() => onSelect("LIC")} className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100">LIC</button>
+          <button type="button" onClick={() => onSelect("OTHER")} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100">Other</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmationModal({ target, isDeleting, onCancel, onConfirm }: { target: any, isDeleting: boolean, onCancel: () => void, onConfirm: () => void }) {
+  if (!target) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-red-50 rounded-xl"><AlertCircle size={22} className="text-red-500" /></div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Delete Policy</h3>
+            <p className="text-xs text-slate-400">This action cannot be undone</p>
+          </div>
+        </div>
+        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+          Are you sure you want to delete policy <strong>#{target.policyNumber}</strong>? This will permanently remove all associated data.
+        </p>
+        <div className="flex items-center justify-end gap-3">
+          <button disabled={isDeleting} onClick={onCancel} className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</button>
+          <button disabled={isDeleting} onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2">
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LICPoliciesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,7 +120,6 @@ export default function LICPoliciesPage() {
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
   const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
-
 
   const dispatch = useDispatch<AppDispatch>();
   const { fetchNotifications } = useNotificationStore();
@@ -119,13 +173,6 @@ export default function LICPoliciesPage() {
   }, [highlightId, policies]);
 
   useEffect(() => {
-    console.log("Highlight ID:", highlightId);
-    console.log("Policies:", policies);
-  }, [highlightId, policies]);
-
-
-
-  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // If the user is typing in an input, textarea, or select, do nothing.
       const target = event.target as HTMLElement;
@@ -148,40 +195,39 @@ export default function LICPoliciesPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const stats = useMemo(() => {
-    return {
+  const { stats, filteredPolicies } = useMemo(() => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    
+    const filtered = policies.filter((policy) => {
+      const lifeAssured = policy.CustomerMaster;
+      const matchesSearch =
+        policy.policyNumber.toLowerCase().includes(lowerCaseSearchTerm) ||
+        policy.product?.productName.toLowerCase().includes(lowerCaseSearchTerm) ||
+        (lifeAssured && `${lifeAssured.firstName} ${lifeAssured.lastName}`.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (policy.customer?.groupName && policy.customer.groupName.toLowerCase().includes(lowerCaseSearchTerm));
+
+      const matchesStatus = filterStatus === "All" || policy.status?.statusName === filterStatus;
+      return matchesSearch && matchesStatus;
+    });
+
+    const calculatedStats = {
       total: policies.length,
       active: policies.filter((p) => p.status?.statusName === "Active").length,
-      pending: policies.filter((p) => p.status?.statusName === "Pending")
-        .length,
+      pending: policies.filter((p) => p.status?.statusName === "Pending").length,
       lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
     };
-  }, [policies]);
 
-  const filteredPolicies = policies.filter((policy) => {
-    const lifeAssured = policy.CustomerMaster;
-    const matchesSearch =
-      policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      policy.product?.productName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (lifeAssured &&
-        `${lifeAssured.firstName} ${lifeAssured.lastName}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
-      (policy.customer?.groupName &&
-        policy.customer.groupName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()));
-
-    const matchesStatus =
-      filterStatus === "All" || policy.status?.statusName === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+    return { stats: calculatedStats, filteredPolicies: filtered };
+  }, [policies, searchTerm, filterStatus]);
 
   const statusOptions = ["All", "Active", "Pending", "Lapsed", "Completed"];
 
-  const handleDelete = async () => {
+  const filterStatusOptions = statusOptions.map(status => ({
+    value: status,
+    label: status,
+  }));
+
+  const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
@@ -197,150 +243,68 @@ export default function LICPoliciesPage() {
       setIsDeleting(false);
       setDeleteTarget(null);
     }
-  };
+  }, [deleteTarget, dispatch, fetchNotifications]);
 
-  const handleCreatePolicySelection = (type: "LIC" | "OTHER") => {
+  const handleCreatePolicySelection = useCallback((type: "LIC" | "OTHER") => {
     setIsPolicyTypeModalOpen(false);
     router.push(`/dashboard/lic/policies/new?policyType=${type.toLowerCase()}`);
-  };
+  }, [router]);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">LIC Policies</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Manage all LIC policies and their details
-          </p>
-        </div>
-        {isClient && canEdit && (
-          <button
-            onClick={() => setIsPolicyTypeModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
-          >
-            <Plus size={18} />
-            New Policy
-          </button>
-        )}
-      </div>
+      <CustomerPageHero
+        title="LIC Policies"
+        subtitle="Manage all LIC policies and their details"
+        actions={
+          isClient && canEdit && (
+            <button
+              onClick={() => setIsPolicyTypeModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+            >
+              <Plus size={16} />
+              <span>New Policy</span>
+            </button>
+          )
+        }
+      />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">
-            Total Policies
-          </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {isLoading ? "..." : stats.total}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">
-            Active
-          </p>
-          <p className="text-2xl font-bold text-green-600">
-            {isLoading ? "..." : stats.active}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">
-            Pending
-          </p>
-          <p className="text-2xl font-bold text-yellow-600">
-            {isLoading ? "..." : stats.pending}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">
-            Lapsed
-          </p>
-          <p className="text-2xl font-bold text-red-600">
-            {isLoading ? "..." : stats.lapsed}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CustomerStatCard label="Total Policies" value={isLoading ? "..." : stats.total} icon={BarChart} tone="accent" />
+        <CustomerStatCard label="Active" value={isLoading ? "..." : stats.active} icon={CheckCircle} tone="success" />
+        <CustomerStatCard label="Pending" value={isLoading ? "..." : stats.pending} icon={Clock} tone="warning" />
+        <CustomerStatCard label="Lapsed" value={isLoading ? "..." : stats.lapsed} icon={XCircle} tone="warning" />
       </div>
 
-      {isPolicyTypeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Select Policy Type
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsPolicyTypeModalOpen(false)}
-                className="text-sm text-slate-500 hover:text-slate-700"
-              >
-                Cancel
-              </button>
-            </div>
-            <p className="text-sm text-slate-500 mb-6">
-              Choose the policy category to continue with the right plan list.
-            </p>
-            <div className="grid gap-3">
-              <button
-                type="button"
-                onClick={() => handleCreatePolicySelection("LIC")}
-                className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100"
-              >
-                LIC
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCreatePolicySelection("OTHER")}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-              >
-                Other
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PolicyTypeModal isOpen={isPolicyTypeModalOpen} onClose={() => setIsPolicyTypeModalOpen(false)} onSelect={handleCreatePolicySelection} />
 
       {/* Search and Filter */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              size={18}
-            />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search by policy #, group name, or life assured..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-            />
-          </div>
-          <div className="flex gap-2">
-            <div className="relative">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 pr-8 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-sm appearance-none"
-              >
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                size={16}
-              />
-            </div>
-            <button className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition text-sm flex items-center gap-2">
-              <Filter size={16} />
-              Filters
-            </button>
-          </div>
+      <CustomerToolbar>
+        <div className="flex-1 relative">
+          <Search
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            size={16}
+          />
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search by policy #, group name, or life assured..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+          />
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Statuses"
+            options={filterStatusOptions}
+            value={filterStatus}
+            onChange={setFilterStatus}
+          />
+        </div>
+      </CustomerToolbar>
 
       {/* Card View */}
       <div className="space-y-4">
@@ -395,27 +359,27 @@ export default function LICPoliciesPage() {
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-5">
                   <InfoPill
-                    icon={<IndianRupee size={16} />}
+                    icon={IndianRupee}
                     label="Sum Assured"
                     value={`₹ ${policy.premium?.sumAssured?.toLocaleString("en-IN") || 'N/A'}`}
                   />
                   <InfoPill
-                    icon={<Shield size={16} />}
+                    icon={Shield}
                     label="Premium"
                     value={`₹ ${policy.premium?.installmentPremium?.toLocaleString("en-IN") || 'N/A'}`}
                   />
                   <InfoPill
-                    icon={<Repeat size={16} />}
+                    icon={Repeat}
                     label="Mode"
                     value={policy.premiumMode?.modeName}
                   />
                   <InfoPill
-                    icon={<Calendar size={16} />}
+                    icon={Calendar}
                     label="Term / PPT"
                     value={`${policy.policyTerm || 'N/A'}Y / ${policy.premiumPayingTerm || 'N/A'}Y`}
                   />
                   <InfoPill
-                    icon={<Calendar size={16} />}
+                    icon={Calendar}
                     label="FUP Date"
                     value={policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString("en-IN") : "N/A"}
                   />
@@ -446,60 +410,23 @@ export default function LICPoliciesPage() {
           <p className="mt-4 text-sm text-slate-500">Loading policies...</p>
         </div>
       ) : (
-        filteredPolicies.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-            <FileText size={48} className="mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              No Policies Found
-            </h3>
-            <p className="text-slate-500 text-sm">
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        )
+        filteredPolicies.length === 0 &&
+        (searchTerm || filterStatus !== "All" ? (
+          <CustomerEmptyState
+            title="No Policies Found"
+            description="Try adjusting your search or filter criteria to find what you're looking for."
+          />
+        ) : (
+          <CustomerEmptyState
+            title="No policies have been added yet"
+            description="Get started by creating a new policy record."
+            action={isClient && canEdit && <button onClick={() => setIsPolicyTypeModalOpen(true)} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"><Plus size={16} /><span>New Policy</span></button>}
+          />
+        ))
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-50 rounded-xl">
-                <AlertCircle size={22} className="text-red-500" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Delete Policy
-                </h3>
-                <p className="text-xs text-slate-400">
-                  This action cannot be undone
-                </p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to delete policy{" "}
-              <strong>#{deleteTarget.policyNumber}</strong>? This will
-              permanently remove all associated data.
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                disabled={isDeleting}
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={isDeleting}
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal target={deleteTarget} isDeleting={isDeleting} onCancel={() => setDeleteTarget(null)} onConfirm={handleDelete} />
     </div>
   );
 }
