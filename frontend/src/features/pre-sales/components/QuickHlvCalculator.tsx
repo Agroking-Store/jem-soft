@@ -66,6 +66,7 @@ export default function QuickHlvCalculator() {
   const [cashFlow, setCashFlow] = useState(0);
   const [addInsurance, setAddInsurance] = useState(0);
   const [tableData, setTableData] = useState<HlvRow[]>([]);
+  const [whatIfTableData, setWhatIfTableData] = useState<HlvRow[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -88,6 +89,7 @@ export default function QuickHlvCalculator() {
     setWhatIf(false);
     setShowResults(false);
     setTableData([]);
+    setWhatIfTableData([]);
     setValidationError(null);
   };
 
@@ -158,9 +160,39 @@ export default function QuickHlvCalculator() {
     setCashFlow(calcCash);
     setAddInsurance(calcAdd);
     setTableData(rows);
+
+    // ── Build What-If table (only when "Yes") ──────────────────────────
+    const whatIfRows: HlvRow[] = [];
+    if (whatIf) {
+      let balance = calcCash; // Starting Opening Balance = Cash Flow Arrangement
+      let expense = PMT;
+      let yr = new Date().getFullYear();
+      for (let i = 1; i <= n; i++) {
+        const open     = balance;
+        const req      = expense;
+        const closing  = open - req;
+        const interest = Math.round(closing * r);
+        const carry    = closing + interest;
+        whatIfRows.push({
+          year: yr,
+          openingBalance: Math.round(open),
+          amountRequired: Math.round(req),
+          closingBalance: Math.round(closing),
+          interest,
+          netBalance: Math.round(carry),
+        });
+        // Stopping rule: if net balance ≤ 0, include this row and stop
+        if (carry <= 0) break;
+        balance = carry;
+        expense = Math.round(expense * (1 + g));
+        yr++;
+      }
+    }
+    setWhatIfTableData(whatIfRows);
+
     setShowResults(true);
     return true;
-  }, [name, dob, age, retirement, annualIncome, expenses, inflation, savingRate, presentSavings, existingCover]);
+  }, [name, dob, age, retirement, annualIncome, expenses, inflation, savingRate, presentSavings, existingCover, whatIf]);
 
   // ── PDF download
   const handleDownloadPDF = async () => {
@@ -455,7 +487,7 @@ export default function QuickHlvCalculator() {
               {whatIf && (
                 <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs rounded-lg flex items-start gap-2">
                   <Info size={13} className="flex-shrink-0 mt-0.5" />
-                  <span><strong className="block mb-0.5">What If — Under Development</strong>Scenario modelling will be active in the next release.</span>
+                  <span><strong className="block mb-0.5">What If Analysis — Active</strong>The report will include a secondary table showing fund depletion without additional insurance.</span>
                 </div>
               )}
 
@@ -539,6 +571,58 @@ export default function QuickHlvCalculator() {
               </table>
             </div>
           </div>
+
+          {/* ── What-If Analysis Section ──────────────────────────────────── */}
+          {whatIf && whatIfTableData.length > 0 && (
+            <>
+              {/* What-If Narrative */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl shadow-sm p-6">
+                <h3 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-1.5">
+                  <Info size={16} className="text-amber-600" /> What If Analysis
+                </h3>
+                <p className="text-slate-700 text-sm leading-relaxed">
+                  The following chart gives the justified explanation that with a Cash Liquidity of <strong className="text-slate-900">₹ {fmt(cashFlow)}</strong>, in the absence of Bread Winner, his family can maintain the standard of living they are currently enjoying, for{" "}
+                  <strong className="text-slate-900">{whatIfTableData.length} years</strong> through this fund. An inflation rate of{" "}
+                  <strong className="text-slate-900">{inflation}% p.a.</strong> has been considered for computing the 3rd column in the chart below. And a tax free interest rate of{" "}
+                  <strong className="text-slate-900">{savingRate}% p.a.</strong> is assumed for investing the reducing insurance balance.
+                </p>
+              </div>
+
+              {/* What-If Table */}
+              <div className="bg-white border border-amber-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-amber-100 bg-amber-50/50 flex items-center justify-between">
+                  <h3 className="font-serif font-semibold text-amber-900">What If — Year-by-Year Fund Depletion</h3>
+                  <span className="text-xs text-amber-600 font-semibold">{whatIfTableData.length} row{whatIfTableData.length !== 1 ? "s" : ""}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-slate-600 border-collapse">
+                    <thead>
+                      <tr className="bg-amber-100/60 text-xs font-bold text-amber-800 border-b border-amber-200">
+                        <th className="py-3 px-5 text-left">Year</th>
+                        <th className="py-3 px-5 text-right">Opening Balance</th>
+                        <th className="py-3 px-5 text-right">Amount required by Family</th>
+                        <th className="py-3 px-5 text-right">Closing Balance</th>
+                        <th className="py-3 px-5 text-right">Interest @ {savingRate}%</th>
+                        <th className="py-3 px-5 text-right">Net Balance carried forward</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100">
+                      {whatIfTableData.map((row, i) => (
+                        <tr key={i} className="hover:bg-amber-50/50 transition">
+                          <td className="py-2.5 px-5 font-semibold text-slate-900">{row.year}</td>
+                          <td className="py-2.5 px-5 text-right font-mono">₹ {fmt(row.openingBalance)}</td>
+                          <td className="py-2.5 px-5 text-right font-mono text-red-600">₹ {fmt(row.amountRequired)}</td>
+                          <td className="py-2.5 px-5 text-right font-mono">₹ {fmt(row.closingBalance)}</td>
+                          <td className="py-2.5 px-5 text-right font-mono text-emerald-600">₹ {fmt(row.interest)}</td>
+                          <td className="py-2.5 px-5 text-right font-mono font-bold text-slate-950">₹ {fmt(row.netBalance)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -638,8 +722,42 @@ export default function QuickHlvCalculator() {
                 <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace", fontWeight: "700" }}>{fmt(row.netBalance)}</td>
               </tr>
             ))}
-          </tbody>
+        </tbody>
         </table>
+
+        {/* ── What-If Analysis Section (PDF) ──────────────────────────────── */}
+        {whatIf && whatIfTableData.length > 0 && (
+          <>
+            <div style={{ marginTop: "24px", borderTop: "2px solid #D9AE63", paddingTop: "14px", marginBottom: "12px" }}>
+              <strong style={{ fontSize: "14px", color: "#7a5200" }}>What If Analysis</strong>
+            </div>
+            <p style={{ margin: "0 0 12px", fontSize: "12px", lineHeight: "1.65", color: "#333" }}>
+              The following chart gives the justified explanation that with a Cash Liquidity of <strong>₹ {fmt(cashFlow)}</strong>, in the absence of Bread Winner, his family can maintain the standard of living they are currently enjoying, for{" "}
+              <strong>{whatIfTableData.length} years</strong> through this fund. An inflation rate of <strong>{inflation.toFixed(2)}% p.a.</strong> has been considered for computing the 3rd column in the chart below. And a tax free interest rate of <strong>{savingRate.toFixed(2)}% p.a.</strong> is assumed for investing the reducing insurance balance.
+            </p>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px", marginBottom: "16px" }}>
+              <thead>
+                <tr style={{ background: "#7a5200", color: "#fff" }}>
+                  {["Year", "Opening Balance (₹)", "Amount required by Family (₹)", "Closing Balance (₹)", `Interest @ ${savingRate}% (₹)`, "Net Balance carried forward (₹)"].map((h) => (
+                    <th key={h} style={{ padding: "8px 10px", textAlign: h === "Year" ? "left" : "right", fontWeight: "700", fontSize: "11px" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {whatIfTableData.map((row, i) => (
+                  <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#f8f8f8", borderBottom: "1px solid #e5e5e5" }}>
+                    <td style={{ padding: "6px 10px", fontWeight: "600" }}>{row.year}</td>
+                    <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace" }}>{fmt(row.openingBalance)}</td>
+                    <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace", color: "#b45309" }}>{fmt(row.amountRequired)}</td>
+                    <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace" }}>{fmt(row.closingBalance)}</td>
+                    <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace", color: "#15803d" }}>{fmt(row.interest)}</td>
+                    <td style={{ padding: "6px 10px", textAlign: "right", fontFamily: "monospace", fontWeight: "700" }}>{fmt(row.netBalance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
 
         {/* Footer */}
         <div style={{ marginTop: "32px", borderTop: "2px solid #0B1220", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#555", fontWeight: "600" }}>
