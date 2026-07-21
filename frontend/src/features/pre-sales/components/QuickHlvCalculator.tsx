@@ -51,7 +51,7 @@ export default function QuickHlvCalculator() {
   const [name, setName] = useState("");
   const [dob, setDob] = useState("");
   const [age, setAge] = useState<number | "">("");
-  const [retirement, setRetirement] = useState<number | "">(65);
+  const [retirement, setRetirement] = useState<number | "">("");
   const [annualIncome, setAnnualIncome] = useState<number | "">("");
   const [expenses, setExpenses] = useState<number | "">("");
   const [inflation, setInflation] = useState<number>(5);
@@ -79,7 +79,7 @@ export default function QuickHlvCalculator() {
     setName("");
     setDob("");
     setAge("");
-    setRetirement(65);
+    setRetirement("");
     setAnnualIncome("");
     setExpenses("");
     setInflation(5);
