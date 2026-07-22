@@ -254,13 +254,13 @@ export default function LICPoliciesPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <CustomerPageHero
-        title="LIC Policies"
-        subtitle="Manage all LIC policies and their details"
+        title="Policies"
+        subtitle="Manage all policies and their details"
         actions={
           isClient && canEdit && (
             <button
               onClick={() => setIsPolicyTypeModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-linear-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
             >
               <Plus size={16} />
               <span>New Policy</span>

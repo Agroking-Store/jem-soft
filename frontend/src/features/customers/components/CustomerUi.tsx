@@ -20,9 +20,6 @@ export function CustomerPageHero({
       <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E8C77A]">
-              Customer Module
-            </p>
             <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
               {title}
             </h1>
@@ -246,6 +243,16 @@ function DropdownPanel({
   style: React.CSSProperties;
   panelRef: React.RefObject<HTMLDivElement>;
 }) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the search input when the panel opens.
+  // A small timeout ensures the element is rendered and ready for focus.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
   const filtered = options.filter((o) =>
     `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
   );
@@ -263,11 +270,12 @@ function DropdownPanel({
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <SearchIcon size={14} className="shrink-0 text-slate-400" />
         <input
-          autoFocus
+          ref={searchInputRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder={searchPlaceholder}
           className="w-full text-sm text-slate-900 outline-none placeholder:text-slate-400"
+          
         />
       </div>
       <div className="max-h-60 overflow-y-auto py-1">
