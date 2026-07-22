@@ -1791,12 +1791,9 @@ export default function NewLICPolicyPage() {
         </div>
         
         <div
-          ref={sectionRefs["advanced"]}
-          className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${
-            glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""
-          }`}
+          ref={sectionRefs["advanced"]} // Ref is on the main container
         >
-          <CustomerSectionCard title="Advanced Options" icon={Settings}>
+          <CustomerSectionCard title="Advanced Options" icon={Settings} className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}>
           <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
 
               {/* ================= LEFT COLUMN ================= */}
