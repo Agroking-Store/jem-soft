@@ -166,7 +166,6 @@ if (!product) {
     });
 
     // Save Policy Attributes using values entered in the form
-    console.log("Received attributes:", data.attributes);
     if (data.attributes && Object.keys(data.attributes).length > 0) {
       const productAttributes = await tx.productAttributeMaster.findMany({
         where: {

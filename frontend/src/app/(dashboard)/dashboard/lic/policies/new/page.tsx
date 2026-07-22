@@ -13,7 +13,7 @@ import { fetchInsuranceProviders } from "@/features/insurance/insuranceProviderS
 import { fetchRiders } from "@/features/riders/riderMasterSlice";
 import { fetchProducts } from "@/features/insurance/productMasterSlice";
 import { fetchAdvisors } from "@/features/advisor/advisorSlice";
-import { createPolicy } from "@/features/policy/policySlice";
+import { createPolicy, fetchPolicies } from "@/features/policy/policySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
@@ -504,6 +504,7 @@ const policySchema = z.object({
   accountNumber: z.string().optional(),
   ifscCode: z.string().optional(),
   micrNumber: z.string().optional(),
+  accountHolderName: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -547,6 +548,9 @@ export default function NewLICPolicyPage() {
   const { values: productAttributeValues, isLoading: attributesLoading } = useSelector(
     (s: RootState) => s.productAttributeValues,
   );
+  const { policies, isLoading: policiesLoading } = useSelector(
+    (s: RootState) => s.policies,
+  );
 
   const [activeSection, setActiveSection] = useState("policy-holder");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -574,6 +578,7 @@ export default function NewLICPolicyPage() {
     dispatch(fetchLicBranches());
     dispatch(fetchAgencies());
     dispatch(fetchProductAttributeValues());
+    dispatch(fetchPolicies());
     setIsMounted(true);
   }, [dispatch]);
 
@@ -594,6 +599,8 @@ export default function NewLICPolicyPage() {
     control,
     watch,
     setValue,
+    clearErrors,
+    setError,
     formState: { errors },
   } = useForm<PolicyFormValues>({
     resolver: async (values, context, options) => {
@@ -709,6 +716,7 @@ export default function NewLICPolicyPage() {
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
   const watchRiders = watch("riders");
+  const watchPolicyNumber = watch("policyNumber");
 
   const watchProductId = watch("productId");
   const selectedGroup = useMemo(
@@ -720,6 +728,22 @@ export default function NewLICPolicyPage() {
     if (!watchGroupId) return [];
     return masterCustomers.filter((m) => m.groupId === watchGroupId);
   }, [watchGroupId, masterCustomers]);
+
+  useEffect(() => {
+    if (watchPolicyNumber && policies.length > 0) {
+      const policyExists = policies.some(
+        (policy) => policy.policyNumber === watchPolicyNumber,
+      );
+      if (policyExists) {
+        setError("policyNumber", {
+          type: "manual",
+          message: "Policy already exists with this number",
+        });
+      } else {
+        clearErrors("policyNumber");
+      }
+    }
+  }, [watchPolicyNumber, policies, setError, clearErrors]);
 
   useEffect(() => {
     setValue("groupCode", selectedGroup?.groupCode || "");
@@ -754,6 +778,10 @@ export default function NewLICPolicyPage() {
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
       }
+    }
+
+    if (member) {
+      setValue("accountHolderName", getFullName(member));
     }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
 
@@ -1092,7 +1120,9 @@ export default function NewLICPolicyPage() {
               </span>
             </div>
             <h1 className="text-2xl font-bold text-slate-900 mt-1">
-              Create a New LIC Policy
+              {selectedPolicyType === "lic"
+                ? "Create a New LIC Policy"
+                : "Create a New Policy"}
             </h1>
           </div>
         </div>
@@ -1875,7 +1905,7 @@ export default function NewLICPolicyPage() {
                         <input
                           type="text"
                           placeholder="Account Holder Name"
-                          // Assuming account holder name is same as customer name for now
+                          {...register("accountHolderName")}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
                         />
                       </div>
