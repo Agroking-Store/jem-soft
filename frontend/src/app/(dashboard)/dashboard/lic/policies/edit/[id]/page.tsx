@@ -1088,15 +1088,14 @@ export default function EditLICPolicyPage() {
                                                         {errors.riders?.[index]?.ppt && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.ppt?.message}</p>}
                                                     </td>
                                                     <td className="px-2 py-1.5">
-                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500">
-                                                            <option value="">Mode</option>
-                                                            {modes.map(mode => (
-                                                                <option key={mode.id} value={mode.modeName}>
-                                                                    {mode.modeName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        {errors.riders?.[index]?.mode && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>}
+                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" defaultValue="">
+                                                          <option value="">Mode</option>
+                                                          {modes.map(mode => (
+                                                              <option key={mode.id} value={mode.modeName}>
+                                                                  {mode.modeName}
+                                                              </option>
+                                                          ))}
+                                                      </select>
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
