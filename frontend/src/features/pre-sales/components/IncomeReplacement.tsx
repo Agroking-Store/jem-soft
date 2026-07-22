@@ -232,7 +232,7 @@ export default function IncomeReplacementCalculator() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-slate-900">Pre-Sales Tools</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-slate-900">Income Replacement Analysis</h1>
         <div className="flex items-center gap-2">
           <button onClick={handleReset} title="Reset" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
             <RotateCcw size={16} />
