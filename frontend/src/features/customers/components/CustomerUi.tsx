@@ -51,15 +51,17 @@ export function CustomerSectionCard({
   children,
   actions,
   subtitle,
+  className,
 }: {
   title: string;
   icon?: LucideIcon;
   children: ReactNode;
   actions?: ReactNode;
   subtitle?: string;
+  className?: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+    <section className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${className}`}>
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
         <div className="flex items-start gap-3">
