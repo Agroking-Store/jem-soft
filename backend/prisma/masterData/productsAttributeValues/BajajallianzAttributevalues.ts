@@ -891,6 +891,6 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life New Critical Illness Benefit Rider",
     attributeCode: "MAX_ENTRY_AGE",
-    value: "65",
+    value: "66",
   },
 ];

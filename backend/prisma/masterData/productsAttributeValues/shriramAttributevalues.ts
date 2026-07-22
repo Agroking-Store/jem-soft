@@ -872,8 +872,6 @@ export const shriramLifeProductAttributes = [
     value: "2500000",
   },
 
-  // Critical Illness Woman Rider
-  // -----------------------------------------------------------------
   {
     productCode: "Critical Illness Woman Rider",
     attributeCode: "MIN_SUM_ASSURED",
