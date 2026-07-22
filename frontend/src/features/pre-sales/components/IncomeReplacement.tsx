@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, RotateCcw, Download, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, RotateCcw, Download, Eye, AlertCircle, Loader2 } from "lucide-react";
 import PreSalesModuleNav from "./PreSalesModuleNav";
 import { SearchableSelect } from "@/features/customers/components/CustomerUi";
 
@@ -56,6 +56,7 @@ export default function IncomeReplacementCalculator() {
   const [cashFlow, setCashFlow] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   React.useEffect(() => setAge(computeAge(dob)), [dob]);
 
@@ -134,71 +135,91 @@ export default function IncomeReplacementCalculator() {
     return true;
   }, [name, dob, age, retirement, annualIncome, expenses, incomeGrowth, inflation, savingRate, presentSavings, existingCover]);
 
-  // ── PDF download — same row-safe pagination as the HLV calculator ──────
-  const handleDownloadPDF = async () => {
+  // ── Shared PDF builder — row-safe pagination, used by both View and Download ──
+  const buildPdf = async () => {
     const ok = calculate();
-    if (!ok) return;
+    if (!ok) return null;
     await new Promise((r) => setTimeout(r, 200));
-    if (!proposalRef.current) return;
+    if (!proposalRef.current) return null;
+
+    const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
+    ]);
+    const node = proposalRef.current;
+    const scale = 2;
+    const canvas = await html2canvas(node, { scale, useCORS: true, backgroundColor: "#ffffff", logging: false });
+
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const usableW = pageW - margin * 2;
+    const usableHmm = pageH - margin * 2 - 6;
+    const pxPerMm = canvas.width / usableW;
+    const pageHpx = usableHmm * pxPerMm;
+
+    const containerTop = node.getBoundingClientRect().top;
+    const atoms = Array.from(node.querySelectorAll("tr, [data-pdf-block]"));
+    const bounds = atoms
+      .map((el) => {
+        const r = (el as HTMLElement).getBoundingClientRect();
+        return { top: (r.top - containerTop) * scale, bottom: (r.bottom - containerTop) * scale };
+      })
+      .sort((a, b) => a.top - b.top);
+
+    function snapEnd(naiveEnd: number, startPx: number) {
+      if (naiveEnd >= canvas.height) return canvas.height;
+      const straddling = bounds.find((b) => b.top < naiveEnd && b.bottom > naiveEnd && b.top >= startPx);
+      if (!straddling) return naiveEnd;
+      return straddling.top > startPx ? straddling.top : naiveEnd;
+    }
+
+    const slices: { start: number; end: number }[] = [];
+    let cursor = 0;
+    while (cursor < canvas.height) {
+      const end = snapEnd(Math.min(cursor + pageHpx, canvas.height), cursor);
+      slices.push({ start: cursor, end });
+      cursor = end;
+    }
+    const totalPages = slices.length;
+
+    slices.forEach((slice, idx) => {
+      if (idx > 0) pdf.addPage();
+      const sliceHpx = slice.end - slice.start;
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHpx;
+      const ctx = sliceCanvas.getContext("2d")!;
+      ctx.drawImage(canvas, 0, slice.start, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+      const sliceHmm = sliceHpx / pxPerMm;
+      pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, usableW, sliceHmm);
+      pdf.setFontSize(8);
+      pdf.setTextColor(120);
+      pdf.text(`Pg. ${idx + 1} of ${totalPages}`, pageW - margin, pageH - 4, { align: "right" });
+    });
+
+    return pdf;
+  };
+
+  // ── View PDF — opens the report in a new tab before downloading ──
+  const handleViewPDF = async () => {
+    setPreviewing(true);
+    try {
+      const pdf = await buildPdf();
+      if (!pdf) return;
+      window.open(pdf.output("bloburl") as unknown as string, "_blank");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  // ── Download PDF
+  const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import("jspdf"),
-        import("html2canvas"),
-      ]);
-      const node = proposalRef.current;
-      const scale = 2;
-      const canvas = await html2canvas(node, { scale, useCORS: true, backgroundColor: "#ffffff", logging: false });
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const usableW = pageW - margin * 2;
-      const usableHmm = pageH - margin * 2 - 6;
-      const pxPerMm = canvas.width / usableW;
-      const pageHpx = usableHmm * pxPerMm;
-
-      const containerTop = node.getBoundingClientRect().top;
-      const atoms = Array.from(node.querySelectorAll("tr, [data-pdf-block]"));
-      const bounds = atoms
-        .map((el) => {
-          const r = (el as HTMLElement).getBoundingClientRect();
-          return { top: (r.top - containerTop) * scale, bottom: (r.bottom - containerTop) * scale };
-        })
-        .sort((a, b) => a.top - b.top);
-
-      function snapEnd(naiveEnd: number, startPx: number) {
-        if (naiveEnd >= canvas.height) return canvas.height;
-        const straddling = bounds.find((b) => b.top < naiveEnd && b.bottom > naiveEnd && b.top >= startPx);
-        if (!straddling) return naiveEnd;
-        return straddling.top > startPx ? straddling.top : naiveEnd;
-      }
-
-      const slices: { start: number; end: number }[] = [];
-      let cursor = 0;
-      while (cursor < canvas.height) {
-        const end = snapEnd(Math.min(cursor + pageHpx, canvas.height), cursor);
-        slices.push({ start: cursor, end });
-        cursor = end;
-      }
-      const totalPages = slices.length;
-
-      slices.forEach((slice, idx) => {
-        if (idx > 0) pdf.addPage();
-        const sliceHpx = slice.end - slice.start;
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceHpx;
-        const ctx = sliceCanvas.getContext("2d")!;
-        ctx.drawImage(canvas, 0, slice.start, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
-        const sliceHmm = sliceHpx / pxPerMm;
-        pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, usableW, sliceHmm);
-        pdf.setFontSize(8);
-        pdf.setTextColor(120);
-        pdf.text(`Pg. ${idx + 1} of ${totalPages}`, pageW - margin, pageH - 4, { align: "right" });
-      });
-
+      const pdf = await buildPdf();
+      if (!pdf) return;
       const clientName = name.trim() ? `${salutation}_${name.trim().replace(/\s+/g, "_")}` : "Income_Replacement";
       pdf.save(`${clientName}_Income_Replacement_Report.pdf`);
     } finally {
@@ -230,14 +251,24 @@ export default function IncomeReplacementCalculator() {
           <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
             Income Replacement Analysis
           </h2>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={downloading}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#0B1220] px-4 py-2 text-xs font-semibold text-white hover:bg-[#16294D] disabled:opacity-60"
-          >
-            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            {downloading ? "Generating..." : "Download PDF"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleViewPDF}
+              disabled={previewing || downloading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+            >
+              {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+              {previewing ? "Preparing..." : "View PDF"}
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloading || previewing}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0B1220] px-4 py-2 text-xs font-semibold text-white hover:bg-[#16294D] disabled:opacity-60"
+            >
+              {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {downloading ? "Generating..." : "Download PDF"}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
@@ -337,17 +368,17 @@ export default function IncomeReplacementCalculator() {
 
       {showResults && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Total Net Wealth</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-slate-900">₹ {fmt(totalNetWealth)}</p>
+            <p className="mt-1 break-words font-serif text-xl font-semibold text-slate-900">₹ {fmt(totalNetWealth)}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Insurance Recommended</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-slate-900">₹ {fmt(insuranceRecommended)}</p>
+            <p className="mt-1 break-words font-serif text-xl font-semibold text-slate-900">₹ {fmt(insuranceRecommended)}</p>
           </div>
-          <div className="rounded-2xl border border-[#B8873A]/30 bg-[#B8873A]/5 p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+          <div className="min-w-0 rounded-2xl border border-[#B8873A]/30 bg-[#B8873A]/5 p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#B8873A]">Additional Insurance Needed</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-[#0B1220]">₹ {fmt(additionalInsurance)}</p>
+            <p className="mt-1 break-words font-serif text-xl font-semibold text-[#0B1220]">₹ {fmt(additionalInsurance)}</p>
           </div>
         </div>
       )}

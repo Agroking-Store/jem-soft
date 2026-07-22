@@ -7,6 +7,7 @@ import {
   Play,
   RotateCcw,
   Download,
+  Eye,
   Info,
   Check,
   AlertCircle,
@@ -69,6 +70,7 @@ export default function QuickHlvCalculator() {
   const [whatIfTableData, setWhatIfTableData] = useState<HlvRow[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   // ── auto-age
   useEffect(() => setAge(computeAge(dob)), [dob]);
@@ -194,59 +196,108 @@ export default function QuickHlvCalculator() {
     return true;
   }, [name, dob, age, retirement, annualIncome, expenses, inflation, savingRate, presentSavings, existingCover, whatIf]);
 
-  // ── PDF download
-  const handleDownloadPDF = async () => {
+  // ── Shared PDF builder — used by both "View" and "Download" ──────────
+  // Runs calculate(), waits for the off-screen template to re-render, then
+  // returns a ready-to-use jsPDF instance (not yet saved/opened).
+  const buildPdf = async () => {
     const ok = calculate();
-    if (!ok) return;
+    if (!ok) return null;
 
     // Give React one tick to re-render with results
     await new Promise((r) => setTimeout(r, 200));
 
-    if (!proposalRef.current) return;
-    setDownloading(true);
+    if (!proposalRef.current) return null;
 
+    // Dynamic imports — keeps bundle lean
+    const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      import("jspdf"),
+      import("html2canvas"),
+    ]);
+
+    const node = proposalRef.current;
+    const scale = 2;
+    const canvas = await html2canvas(node, {
+      scale,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const usableW = pageW - margin * 2;
+    const usableHmm = pageH - margin * 2 - 6;
+    const pxPerMm = canvas.width / usableW;
+    const pageHpx = usableHmm * pxPerMm;
+
+    // ── Row-safe pagination — never cut a table row or info block across
+    // a page boundary. Same approach used by the other pre-sales PDFs.
+    const containerTop = node.getBoundingClientRect().top;
+    const atoms = Array.from(node.querySelectorAll("tr, [data-pdf-block]"));
+    const bounds = atoms
+      .map((el) => {
+        const r = (el as HTMLElement).getBoundingClientRect();
+        return { top: (r.top - containerTop) * scale, bottom: (r.bottom - containerTop) * scale };
+      })
+      .sort((a, b) => a.top - b.top);
+
+    function snapEnd(naiveEnd: number, startPx: number) {
+      if (naiveEnd >= canvas.height) return canvas.height;
+      const straddling = bounds.find((b) => b.top < naiveEnd && b.bottom > naiveEnd && b.top >= startPx);
+      if (!straddling) return naiveEnd;
+      return straddling.top > startPx ? straddling.top : naiveEnd;
+    }
+
+    const slices: { start: number; end: number }[] = [];
+    let cursor = 0;
+    while (cursor < canvas.height) {
+      const end = snapEnd(Math.min(cursor + pageHpx, canvas.height), cursor);
+      slices.push({ start: cursor, end });
+      cursor = end;
+    }
+    const totalPages = slices.length;
+
+    slices.forEach((slice, idx) => {
+      if (idx > 0) pdf.addPage();
+      const sliceHpx = slice.end - slice.start;
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHpx;
+      const ctx = sliceCanvas.getContext("2d")!;
+      ctx.drawImage(canvas, 0, slice.start, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+      const sliceHmm = sliceHpx / pxPerMm;
+      pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, usableW, sliceHmm);
+      pdf.setFontSize(8);
+      pdf.setTextColor(120);
+      pdf.text(`Pg. ${idx + 1} of ${totalPages}`, pageW - margin, pageH - 4, { align: "right" });
+    });
+
+    return pdf;
+  };
+
+  // ── View PDF — opens the generated report in a new tab so the user can
+  // check it before deciding to download.
+  const handleViewPDF = async () => {
+    setPreviewing(true);
     try {
-      // Dynamic imports — keeps bundle lean
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import("jspdf"),
-        import("html2canvas"),
-      ]);
+      const pdf = await buildPdf();
+      if (!pdf) return;
+      const blobUrl = pdf.output("bloburl");
+      window.open(blobUrl as unknown as string, "_blank");
+    } finally {
+      setPreviewing(false);
+    }
+  };
 
-      const canvas = await html2canvas(proposalRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const usableW = pageW - margin * 2;
-      const imgH = (canvas.height * usableW) / canvas.width;
-
-      // Multi-page support
-      let yPos = 0;
-      while (yPos < imgH) {
-        if (yPos > 0) pdf.addPage();
-        const srcY   = (yPos / imgH) * canvas.height;
-        const srcH   = Math.min((pageH / imgH) * canvas.height, canvas.height - srcY);
-        const sliceH = (srcH / canvas.height) * imgH;
-
-        // Crop slice from canvas
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width  = canvas.width;
-        sliceCanvas.height = srcH;
-        const ctx = sliceCanvas.getContext("2d")!;
-        ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-
-        pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, usableW, sliceH - margin);
-        yPos += pageH - margin * 2;
-      }
-
+  // ── Download PDF
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const pdf = await buildPdf();
+      if (!pdf) return;
       const clientName = name.trim() ? `${salutation}_${name.trim().replace(/\s+/g, "_")}` : "HLV_Proposal";
       pdf.save(`${clientName}_HLV_Report.pdf`);
     } finally {
@@ -304,8 +355,19 @@ export default function QuickHlvCalculator() {
           </button>
           <button
             type="button"
+            onClick={handleViewPDF}
+            disabled={previewing || downloading}
+            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-semibold text-sm rounded-lg transition disabled:opacity-60"
+          >
+            {previewing
+              ? <Loader2 size={14} className="animate-spin" />
+              : <Eye size={14} />}
+            {previewing ? "Preparing…" : "View PDF"}
+          </button>
+          <button
+            type="button"
             onClick={handleDownloadPDF}
-            disabled={downloading}
+            disabled={downloading || previewing}
             className="inline-flex items-center gap-1.5 px-3 py-2 border border-amber-600/30 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold text-sm rounded-lg transition disabled:opacity-60"
           >
             {downloading
@@ -496,7 +558,13 @@ export default function QuickHlvCalculator() {
                 Compute Human Life Value
               </button>
 
-              <button type="button" onClick={handleDownloadPDF} disabled={downloading}
+              <button type="button" onClick={handleViewPDF} disabled={previewing || downloading}
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
+                {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+                {previewing ? "Preparing…" : "View PDF Report"}
+              </button>
+
+              <button type="button" onClick={handleDownloadPDF} disabled={downloading || previewing}
                 className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
                 {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {downloading ? "Generating PDF…" : "Download PDF Report"}
@@ -516,9 +584,9 @@ export default function QuickHlvCalculator() {
               { label: "Cash Flow Arrangement",  value: `₹ ${fmt(cashFlow)}`, cls: "text-slate-600", bg: "bg-white" },
               { label: "Additional Cover Required", value: `₹ ${fmt(addInsurance)}`, cls: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
             ].map(({ label, value, cls, bg }) => (
-              <div key={label} className={`${bg} border border-slate-200 rounded-xl shadow-sm p-6 text-center`}>
+              <div key={label} className={`${bg} border border-slate-200 rounded-xl shadow-sm p-6 text-center min-w-0`}>
                 <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</span>
-                <span className={`block text-2xl font-serif font-extrabold ${cls}`}>{value}</span>
+                <span className={`block break-words text-2xl font-serif font-extrabold ${cls}`}>{value}</span>
               </div>
             ))}
           </div>
@@ -644,7 +712,7 @@ export default function QuickHlvCalculator() {
         }}
       >
         {/* Title row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderBottom: "2px solid #0B1220", paddingBottom: "8px", marginBottom: "20px" }}>
+        <div data-pdf-block style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderBottom: "2px solid #0B1220", paddingBottom: "8px", marginBottom: "20px" }}>
           <div>
             <div style={{ fontSize: "22px", fontWeight: "900", letterSpacing: "1px", textTransform: "uppercase" }}>Quick HLV</div>
             <div style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}>Human Life Value Proposal Report</div>
@@ -653,7 +721,7 @@ export default function QuickHlvCalculator() {
         </div>
 
         {/* Info Box 1 */}
-        <div style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "14px", background: "#fafafa" }}>
+        <div data-pdf-block style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "14px", background: "#fafafa" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "13px" }}>
             <div><strong>Insurance Proposal for:</strong> {salutation} {name}</div>
             <div style={{ textAlign: "right" }}><strong>Retirement Estimated at:</strong> {retirement} yrs.</div>
@@ -663,7 +731,7 @@ export default function QuickHlvCalculator() {
         </div>
 
         {/* Info Box 2 */}
-        <div style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "14px", background: "#fafafa" }}>
+        <div data-pdf-block style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "14px", background: "#fafafa" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "13px" }}>
             <div><strong>Annual Income (Post Tax):</strong> ₹ {fmt(incomeNum)}</div>
             <div style={{ textAlign: "right" }}><strong>Family Annual Expenses:</strong> ₹ {fmt(expensesNum)}</div>
@@ -673,12 +741,12 @@ export default function QuickHlvCalculator() {
         </div>
 
         {/* Breadwinner Notice */}
-        <div style={{ border: "1px solid #B8873A", borderRadius: "6px", padding: "10px 18px", marginBottom: "14px", background: "#fffbf2", textAlign: "center", fontSize: "13px", fontWeight: "700", color: "#7a5200" }}>
+        <div data-pdf-block style={{ border: "1px solid #B8873A", borderRadius: "6px", padding: "10px 18px", marginBottom: "14px", background: "#fffbf2", textAlign: "center", fontSize: "13px", fontWeight: "700", color: "#7a5200" }}>
           {salutation} {name} is considered as the Bread Winner of the family.
         </div>
 
         {/* Narrative */}
-        <div style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "16px", fontSize: "12.5px", lineHeight: "1.65", color: "#333" }}>
+        <div data-pdf-block style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "16px", fontSize: "12.5px", lineHeight: "1.65", color: "#333" }}>
           <p style={{ margin: "0 0 10px" }}>
             The following chart gives the justified explanation that a Cash Liquidity of <strong>₹ {fmt(hlv)}</strong> is required, to ensure that even in the absence of the Bread Winner, the family can maintain the standard of living they are currently enjoying through this fund.
             Since a cash flow arrangement of <strong>₹ {fmt(cashFlow)}</strong> is already made, an insurance cover of <strong>₹ {fmt(addInsurance)}</strong> is now being proposed for the Bread Winner.
@@ -689,7 +757,7 @@ export default function QuickHlvCalculator() {
         </div>
 
         {/* KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "16px" }}>
+        <div data-pdf-block style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "16px" }}>
           {[
             { label: "Human Life Value (HLV)", value: `₹ ${fmt(hlv)}`, accent: "#0B1220" },
             { label: "Cash Flow Arrangement",  value: `₹ ${fmt(cashFlow)}`, accent: "#444" },
@@ -728,13 +796,15 @@ export default function QuickHlvCalculator() {
         {/* ── What-If Analysis Section (PDF) ──────────────────────────────── */}
         {whatIf && whatIfTableData.length > 0 && (
           <>
-            <div style={{ marginTop: "24px", borderTop: "2px solid #D9AE63", paddingTop: "14px", marginBottom: "12px" }}>
-              <strong style={{ fontSize: "14px", color: "#7a5200" }}>What If Analysis</strong>
+            <div data-pdf-block>
+              <div style={{ marginTop: "24px", borderTop: "2px solid #D9AE63", paddingTop: "14px", marginBottom: "12px" }}>
+                <strong style={{ fontSize: "14px", color: "#7a5200" }}>What If Analysis</strong>
+              </div>
+              <p style={{ margin: "0 0 12px", fontSize: "12px", lineHeight: "1.65", color: "#333" }}>
+                The following chart gives the justified explanation that with a Cash Liquidity of <strong>₹ {fmt(cashFlow)}</strong>, in the absence of Bread Winner, his family can maintain the standard of living they are currently enjoying, for{" "}
+                <strong>{whatIfTableData.length} years</strong> through this fund. An inflation rate of <strong>{inflation.toFixed(2)}% p.a.</strong> has been considered for computing the 3rd column in the chart below. And a tax free interest rate of <strong>{savingRate.toFixed(2)}% p.a.</strong> is assumed for investing the reducing insurance balance.
+              </p>
             </div>
-            <p style={{ margin: "0 0 12px", fontSize: "12px", lineHeight: "1.65", color: "#333" }}>
-              The following chart gives the justified explanation that with a Cash Liquidity of <strong>₹ {fmt(cashFlow)}</strong>, in the absence of Bread Winner, his family can maintain the standard of living they are currently enjoying, for{" "}
-              <strong>{whatIfTableData.length} years</strong> through this fund. An inflation rate of <strong>{inflation.toFixed(2)}% p.a.</strong> has been considered for computing the 3rd column in the chart below. And a tax free interest rate of <strong>{savingRate.toFixed(2)}% p.a.</strong> is assumed for investing the reducing insurance balance.
-            </p>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px", marginBottom: "16px" }}>
               <thead>
                 <tr style={{ background: "#7a5200", color: "#fff" }}>
@@ -760,7 +830,7 @@ export default function QuickHlvCalculator() {
         )}
 
         {/* Footer */}
-        <div style={{ marginTop: "32px", borderTop: "2px solid #0B1220", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#555", fontWeight: "600" }}>
+        <div data-pdf-block style={{ marginTop: "32px", borderTop: "2px solid #0B1220", paddingTop: "10px", display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#555", fontWeight: "600" }}>
           <span>Insure And Be Secure</span>
           <span>Generated on {new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</span>
         </div>
