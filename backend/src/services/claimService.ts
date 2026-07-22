@@ -40,7 +40,10 @@ export const getClaimById = async (id: string): Promise<any> => {
     include: {
         policy : {
             include : {
-                product : true
+                product : true,
+                CustomerMaster : true,
+                status : true,
+                premium: true,
             }
         }
     },

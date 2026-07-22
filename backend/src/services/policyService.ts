@@ -27,7 +27,6 @@ interface PolicyData {
   groupId: string;
   lifeAssuredId: string;
 
-  providerId: string;
   productId: string;
   policyNumber: string;
   commencementDate: string;
@@ -72,8 +71,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     statusId,
     // Destructure only what's needed for this specific scope
     term,
-    ppt,
-    sumAssured: formSumAssured, // Rename to avoid conflict with `sumAssured` from premium
+    ppt,// Rename to avoid conflict with `sumAssured` from premium
     fupDate,
   } = data;
 
@@ -92,13 +90,24 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     throw new Error("Default policy status or premium mode not found.");
   }
 
+  const product = await prisma.productMaster.findUnique({
+  where: { id: data.productId },
+  select: {
+    providerId: true,
+  },
+});
+
+if (!product) {
+  throw new AppError("Product not found.", 404);
+}
+
   return prisma.$transaction(async (tx) => {
     const newPolicy = await tx.policy.create({
       data: {
         clientId: data.groupId,
         CustomerMasterId: data.lifeAssuredId,
 
-        providerId: data.providerId,
+        providerId: product.providerId,
         productId: data.productId,
 
         policyNumber: data.policyNumber,
@@ -157,7 +166,6 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     });
 
     // Save Policy Attributes using values entered in the form
-    console.log("Received attributes:", data.attributes);
     if (data.attributes && Object.keys(data.attributes).length > 0) {
       const productAttributes = await tx.productAttributeMaster.findMany({
         where: {
@@ -371,6 +379,17 @@ export const updatePolicy = async (
     throw new Error("Premium mode not found.");
   }
 
+  const product = await prisma.productMaster.findUnique({
+  where: { id: data.productId },
+  select: {
+    providerId: true,
+  },
+});
+
+if (!product) {
+  throw new AppError("Product not found.", 404);
+}
+
   return prisma.$transaction(async (tx) => {
     const updatedPolicy = await tx.policy.update({
       where: {
@@ -380,7 +399,7 @@ export const updatePolicy = async (
         clientId: data.groupId,
         CustomerMasterId: data.lifeAssuredId,
 
-        providerId: data.providerId,
+        providerId: product.providerId,
         productId: data.productId,
 
         policyNumber: data.policyNumber,
