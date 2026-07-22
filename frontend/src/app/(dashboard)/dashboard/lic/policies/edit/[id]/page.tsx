@@ -154,6 +154,7 @@ const policySchema = z.object({
 
     advisorId: z.string().optional(),
     agentCode: z.string().optional(),
+    accountHolderName: z.string().optional(),
     branchId: z.string().optional(),
 });
 
@@ -263,6 +264,10 @@ export default function EditLICPolicyPage() {
 
             branchId: policyBranch?.branchCode ?? "",
 
+            accountHolderName: selectedPolicy.CustomerMaster
+                ? getFullName(selectedPolicy.CustomerMaster)
+                : "",
+
             term: selectedPolicy.policyTerm ?? undefined,
 
             ppt:
@@ -356,6 +361,10 @@ export default function EditLICPolicyPage() {
         setValue("age", member?.dob ? String(new Date().getFullYear() - new Date(member.dob).getFullYear()) : "");
         setValue("gender", member?.gender || "");
         setValue("pan", member?.panNumber || "");
+
+        if (member) {
+            setValue("accountHolderName", getFullName(member));
+        }
     }, [watchLifeAssuredId, masterCustomers, setValue]);
 
     const providerTypes = useMemo(() => {
@@ -1148,6 +1157,11 @@ export default function EditLICPolicyPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
                                     <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                    <input
+                                        {...register("accountHolderName")}
+                                        type="text" placeholder="Enter account holder name"
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                    />
                                 </div>
                             </div>
                         </div>

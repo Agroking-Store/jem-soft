@@ -41,7 +41,7 @@ import {
 const getStatusBadge = (status: string) => {
   const statusMap = {
     Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
-    Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
+    Pending: { color: "bg-red-700 text-yellow-700", icon: Clock },
     Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
     Completed: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
   };
@@ -375,8 +375,13 @@ export default function LICPoliciesPage() {
                   />
                   <InfoPill
                     icon={Calendar}
-                    label="Term / PPT"
-                    value={`${policy.policyTerm || 'N/A'}Y / ${policy.premiumPayingTerm || 'N/A'}Y`}
+                    label="Term"
+                    value={`${policy.policyTerm || 'N/A'}Y`}
+                  />
+                  <InfoPill
+                    icon={Calendar}
+                    label="PPT"
+                    value={`${policy.premiumPayingTerm || 'N/A'}Y`}
                   />
                   <InfoPill
                     icon={Calendar}

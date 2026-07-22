@@ -20,11 +20,11 @@ export function CustomerPageHero({
       <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
+            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px]" style={{ color: "#e8c77a" }}>
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#e8c77a]/80">
                 {subtitle}
               </p>
             )}
