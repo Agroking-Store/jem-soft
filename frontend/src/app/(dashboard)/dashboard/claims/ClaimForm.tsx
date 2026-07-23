@@ -33,6 +33,10 @@ const claimSchema = z.object({
     .number()
     .positive("Claim amount must be greater than 0"),
   claimDate: z.string().min(1, "Claim date is required"),
+  reasonForClaim: z
+    .string()
+    .min(10, "Reason for claim must be at least 10 characters")
+    .max(500, "Reason for claim must not exceed 500 characters"),
 });
 
 type ClaimFormData = z.infer<typeof claimSchema>;
@@ -64,6 +68,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       claimType: "",
       claimAmount: 0,
       claimDate: "",
+      reasonForClaim: "",
     },
   });
 
@@ -82,6 +87,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         claimDate: initialClaim.claimDate
           ? new Date(initialClaim.claimDate).toISOString().slice(0, 10)
           : "",
+        reasonForClaim: initialClaim.reasonForClaim || "",
       });
 
       // Set selected policy
@@ -297,6 +303,22 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 />
                 <p className="text-xs text-red-500 mt-1">
                   {errors.claimAmount?.message}
+                </p>
+              </div>
+              <div className="flex-1">
+                <label className="block text-slate-500 font-semibold">
+                  Reason for Claim
+                  <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  {...register("reasonForClaim")}
+                  rows={3}
+                  placeholder="Enter reason for claim"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-none"
+                />
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.reasonForClaim?.message}
                 </p>
               </div>
             </div>
