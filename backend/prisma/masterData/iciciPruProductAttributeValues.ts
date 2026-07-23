@@ -36,48 +36,6 @@ export const iciciPruProductAttributeValues = [
     },
 
 
-
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MIN_PPT",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MAX_PPT",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "NM",
-    },
-    {
-        productCode: "ICICI Pru Protect N Gain Whole Life",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "NM",
-    },
-
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MIN_POLICY_TERM",
