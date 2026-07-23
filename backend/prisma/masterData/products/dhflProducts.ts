@@ -198,4 +198,20 @@ export const dhflProducts = [
     planNumber: "PL-GRP-004",
     providerCode: "DHFL_PRAMERICA",
   },
+
+  //Withdrawn plans
+
+  {productName :'Pramerica Life Smart Wealth Plus',productCode : '140L041V03',planNumber : 'DHFL_034',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Smart Invest 1 Up',productCode : '140L084V01',planNumber : 'DHFL_035',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Smart Income',productCode : '140N044V03',planNumber : 'DHFL_036',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Ezee Wealth+',productCode : '140L023V01',planNumber : 'DHFL_037',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Flexi E-Term',productCode : '140N055V02',planNumber : 'DHFL_038',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Corona Rakshak Policy, Pramerica Life',productCode : '140N063V01',planNumber : 'DHFL_039',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Dengue Shield',productCode : '140N051V02',planNumber : 'DHFL_040',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Group Health Kavach',productCode : '140N061V01',planNumber : 'DHFL_041',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Guaranteed Return on Wealth',productCode : '140N077V01',planNumber : 'DHFL_042',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Sampoorna Suraksha',productCode : '140N058V02',planNumber : 'DHFL_043',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life TruShield',productCode : '140N052V03',planNumber : 'DHFL_044',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Group COVID-19 Shield',productCode : '140N062V01',planNumber : 'DHFL_045',providerCode : 'DHFL_PRAMERICA'},
+  {productName :'Pramerica Life Group Traditional Employee Benefit Plan',productCode : '140N072V01',planNumber : 'DHFL_046',providerCode : 'DHFL_PRAMERICA'},
 ];
