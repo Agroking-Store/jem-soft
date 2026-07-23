@@ -727,6 +727,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             onFamilyHistoryDateChange={setFamilyHistoryDate}
             records={familyRecords}
             onChange={setFamilyRecords}
+            dob={watch("dob")}
           />
         </SectionCard>
 

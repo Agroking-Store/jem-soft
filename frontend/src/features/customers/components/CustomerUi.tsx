@@ -20,14 +20,11 @@ export function CustomerPageHero({
       <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E8C77A]">
-              Customer Module
-            </p>
-            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-white sm:text-[28px]">
+            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px]" style={{ color: "#e8c77a" }}>
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-white/70">
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#e8c77a]/80">
                 {subtitle}
               </p>
             )}
@@ -51,15 +48,17 @@ export function CustomerSectionCard({
   children,
   actions,
   subtitle,
+  className,
 }: {
   title: string;
   icon?: LucideIcon;
   children: ReactNode;
   actions?: ReactNode;
   subtitle?: string;
+  className?: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+    <section className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] ${className}`}>
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
         <div className="flex items-start gap-3">
@@ -244,6 +243,16 @@ function DropdownPanel({
   style: React.CSSProperties;
   panelRef: React.RefObject<HTMLDivElement>;
 }) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the search input when the panel opens.
+  // A small timeout ensures the element is rendered and ready for focus.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
   const filtered = options.filter((o) =>
     `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
   );
@@ -261,11 +270,12 @@ function DropdownPanel({
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <SearchIcon size={14} className="shrink-0 text-slate-400" />
         <input
-          autoFocus
+          ref={searchInputRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder={searchPlaceholder}
           className="w-full text-sm text-slate-900 outline-none placeholder:text-slate-400"
+          
         />
       </div>
       <div className="max-h-60 overflow-y-auto py-1">

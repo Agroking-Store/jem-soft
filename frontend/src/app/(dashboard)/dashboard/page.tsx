@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { fetchClaims } from "@/features/claim/claimSlice";
 import {
   Users,
   Activity,
@@ -17,6 +18,7 @@ import {
   TrendingUp,
   ShieldPlus,
   Landmark,
+  ShieldCheck
 } from "lucide-react";
 import { fetchLoans } from "@/features/loans/loanSlice";
 
@@ -34,7 +36,9 @@ export default function DashboardPage() {
   );
 
   const { loans, isLoading: isLoadingLoans } = useSelector(
-    (state: RootState) => state.loans
+    (state: RootState) => state.loans);
+  const { claims, isLoading, error } = useSelector(
+    (state: RootState) => state.claims
   );
 
   useEffect(() => {
@@ -45,6 +49,7 @@ export default function DashboardPage() {
     dispatch(fetchCustomersMaster());
     dispatch(fetchLoans());
 
+    dispatch(fetchClaims());
   }, [dispatch]);
 
 
@@ -140,6 +145,24 @@ export default function DashboardPage() {
 
 
 
+        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">Total Claims Raised</p>
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {!isMounted || isLoadingPolicies ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  claims.length
+                )}
+              </p>
+              {/* <p className="text-xs text-green-600 mt-1">↑ 8% this week</p> */}
+            </div>
+            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6  text-[#E8C77A]" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
