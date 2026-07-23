@@ -24,6 +24,7 @@ import { sbiProducts } from './products/sbiProducts';
 import { shriramProducts } from './products/shriramProducts';
 import { sudProducts } from './products/sudProducts';
 import { tataaiaProducts } from './products/tataaiaProducts';
+import { unitTrustOfIndiaProducts } from './products/unitTrustIndiaProducts';
 import { zurichproducts } from './products/zurichProducts';
 
 
@@ -54,5 +55,6 @@ export const productsData = [
     ...shriramProducts,
     ...sudProducts,
     ...tataaiaProducts,
+    ...unitTrustOfIndiaProducts,
     ...zurichproducts
   ];

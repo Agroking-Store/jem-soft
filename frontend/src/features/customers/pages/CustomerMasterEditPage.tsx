@@ -733,6 +733,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               onFamilyHistoryDateChange={setFamilyHistoryDate}
               records={familyRecords}
               onChange={setFamilyRecords}
+              dob={watch("dob")}
             />
           </div>
         </div>

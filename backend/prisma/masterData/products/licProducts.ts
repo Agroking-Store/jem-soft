@@ -118,7 +118,7 @@ export const licProducts = [
     productType: "Money Back Plan",
   },
   {
-    productName: "LIC New Money Back Plan – 25 Years",
+    productName: "LIC New Money Back Plan 25 Years",
     productCode: "512N278V03",
     planNumber: "721",
     providerCode: "LIC",
@@ -522,14 +522,14 @@ export const licProducts = [
     productType: "Withdrawn",
   },
   {
-    productName: "LIC's New Money Back Plan – 20 Years",
+    productName: "LIC's New Money Back Plan 20 Years",
     productCode: "512N280V02",
     planNumber: "920",
     providerCode: "LIC",
     productType: "Withdrawn",
   },
   {
-    productName: "LIC's New Money Back Plan – 25 Years",
+    productName: "LIC's New Money Back Plan 25 Years",
     productCode: "512N278V02",
     planNumber: "921",
     providerCode: "LIC",

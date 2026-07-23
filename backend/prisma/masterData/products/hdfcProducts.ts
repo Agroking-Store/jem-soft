@@ -1,368 +1,5038 @@
-export const hdfcProducts = [
-      //HDFC Life Insurance
+//Total 830 plans
 
-  {
-    productName: "HDFC Life Income Benefit on Accidental Disability Rider	",
-    productCode: "101B013V03",
-    planNumber: "HDFC_LIFE001	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+export const hdfcProducts = [
+      //HDFC Life Insurance active (52 plans)
+ {
+    productName: 'HDFC Life Income Benefit on Accidental Disability Rider',
+    productCode: '101B013V03',
+    planNumber: 'HDFC_LIFE001',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Group Term Insurance	",
-    productCode: "101N005V08",
-    planNumber: "HDFC_LIFE002	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Group Term Insurance',
+    productCode: '101N005V08',
+    planNumber: 'HDFC_LIFE002',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Click 2 Protect Elite Plus	",
-    productCode: "101N182V01",
-    planNumber: "HDFC_LIFE003	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Click 2 Protect Elite Plus',
+    productCode: '101N182V01',
+    planNumber: 'HDFC_LIFE003',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Click 2 Protect Life	",
-    productCode: "101N139V08",
-    planNumber: "HDFC_LIFE004	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Click 2 Protect Life',
+    productCode: '101N139V08',
+    planNumber: 'HDFC_LIFE004',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Sanchay Legacy	",
-    productCode: "101N177V04",
-    planNumber: "HDFC_LIFE005	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Sanchay Legacy',
+    productCode: '101N177V04',
+    planNumber: 'HDFC_LIFE005',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Click 2 Protect Ultimate	",
-    productCode: "101N179V01",
-    planNumber: "HDFC_LIFE006	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Click 2 Protect Ultimate',
+    productCode: '101N179V01',
+    planNumber: 'HDFC_LIFE006',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Pradhan Mantri Jeevan Jyoti Bima Yojana	",
-    productCode: "101G107V02",
-    planNumber: "HDFC_LIFE007	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Pradhan Mantri Jeevan Jyoti Bima Yojana',
+    productCode: '101G107V02',
+    planNumber: 'HDFC_LIFE007',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Group Jeevan Suraksha (Micro Insurance Product)	",
-    productCode: "101N113V06",
-    planNumber: "HDFC_LIFE008	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro Insurance Product)',
+    productCode: '101N113V06',
+    planNumber: 'HDFC_LIFE008',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Group Suraksha (Micro-Insurance Product)	",
-    productCode: "101N135V03",
-    planNumber: "HDFC_LIFE009	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Group Suraksha (Micro-Insurance Product)',
+    productCode: '101N135V03',
+    planNumber: 'HDFC_LIFE009',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "Hdfc Life Group Term Life	",
-    productCode: "101N169V03",
-    planNumber: "HDFC_LIFE010	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'Hdfc Life Group Term Life',
+    productCode: '101N169V03',
+    planNumber: 'HDFC_LIFE010',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Group Poorna Credit Suraksha	",
-    productCode: "101N138V03",
-    planNumber: "HDFC_LIFE011	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Group Poorna Credit Suraksha',
+    productCode: '101N138V03',
+    planNumber: 'HDFC_LIFE011',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Click 2 Protect Supreme Plus	",
-    productCode: "101N189V03",
-    planNumber: "HDFC_LIFE012	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Click 2 Protect Supreme Plus',
+    productCode: '101N189V03',
+    planNumber: 'HDFC_LIFE012',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Protect Plus Rider	",
-    productCode: "101B016V01",
-    planNumber: "HDFC_LIFE013	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Life Protect Plus Rider',
+    productCode: '101B016V01',
+    planNumber: 'HDFC_LIFE013',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Total and Partial Permanent Disability Benefit	",
-    productCode: "101B005V04",
-    planNumber: "HDFC_LIFE014	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Total and Partial Permanent Disability Benefit',
+    productCode: '101B005V04',
+    planNumber: 'HDFC_LIFE014',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Total Permanent Disability Benefit	",
-    productCode: "101B006V04",
-    planNumber: "HDFC_LIFE015	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC Total Permanent Disability Benefit',
+    productCode: '101B006V04',
+    planNumber: 'HDFC_LIFE015',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC  Accident Death Benefit	",
-    productCode: "101B008V04",
-    planNumber: "HDFC_LIFE016	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC  Accident Death Benefit',
+    productCode: '101B008V04',
+    planNumber: 'HDFC_LIFE016',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC  HPR (Health plus rider) Rider	",
-    productCode: "101NB031V01",
-    planNumber: "HDFC_LIFE017	",
-    providerCode: "HDFC_LIFE",
-    productType: "Protection Plans",
+    productName: 'HDFC  HPR (Health plus rider) Rider',
+    productCode: '101NB031V01',
+    planNumber: 'HDFC_LIFE017',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Protection Plans'
   },
   {
-    productName: "HDFC Life Sampoorn Nivesh Plus	",
-    productCode: "101L180V01",
-    planNumber: "HDFC_LIFE018	",
-    providerCode: "HDFC_LIFE",
-    productType: "ULIP Plans",
+    productName: 'HDFC Life Sampoorn Nivesh Plus',
+    productCode: '101L180V01',
+    planNumber: 'HDFC_LIFE018',
+    providerCode: 'HDFC_LIFE',
+    productType: 'ULIP Plans'
   },
   {
-    productName: "HDFC Life Click 2 Invest Plus	",
-    productCode: "101L191V01",
-    planNumber: "HDFC_LIFE019	",
-    providerCode: "HDFC_LIFE",
-    productType: "ULIP Plans",
+    productName: 'HDFC Life Click 2 Invest Plus',
+    productCode: '101L191V01',
+    planNumber: 'HDFC_LIFE019',
+    providerCode: 'HDFC_LIFE',
+    productType: 'ULIP Plans'
   },
   {
-    productName: "HDFC Life Click 2 Wealth	",
-    productCode: "101L133V03",
-    planNumber: "HDFC_LIFE020	",
-    providerCode: "HDFC_LIFE",
-    productType: "ULIP Plans",
+    productName: 'HDFC Life Click 2 Wealth',
+    productCode: '101L133V03',
+    planNumber: 'HDFC_LIFE020',
+    providerCode: 'HDFC_LIFE',
+    productType: 'ULIP Plans'
   },
   {
-    productName: "HDFC Life Smart Protect Plus	",
-    productCode: "101L187V03",
-    planNumber: "HDFC_LIFE021	",
-    providerCode: "HDFC_LIFE",
-    productType: "ULIP Plans",
+    productName: 'HDFC Life Smart Protect Plus',
+    productCode: '101L187V03',
+    planNumber: 'HDFC_LIFE021',
+    providerCode: 'HDFC_LIFE',
+    productType: 'ULIP Plans'
   },
   {
-    productName: "HDFC Life Uday	",
-    productCode: "101N105V05",
-    planNumber: "HDFC_LIFE022	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Uday',
+    productCode: '101N105V05',
+    planNumber: 'HDFC_LIFE022',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Sanchay Fixed Maturity Plan	",
-    productCode: "101N142V09",
-    planNumber: "HDFC_LIFE023	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V09',
+    planNumber: 'HDFC_LIFE023',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Guaranteed Wealth Plus	",
-    productCode: "101N165V13",
-    planNumber: "HDFC_LIFE024	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V13',
+    planNumber: 'HDFC_LIFE024',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Sampoorna Jeevan	",
-    productCode: "101N158V06",
-    planNumber: "HDFC_LIFE025	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V06',
+    planNumber: 'HDFC_LIFE025',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Saral Jeevan	",
-    productCode: "101N160V05",
-    planNumber: "HDFC_LIFE026	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Saral Jeevan',
+    productCode: '101N160V05',
+    planNumber: 'HDFC_LIFE026',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Click 2 Achieve Par Advantage Plan	",
-    productCode: "101N207V01",
-    planNumber: "HDFC_LIFE027	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Click 2 Achieve Par Advantage Plan',
+    productCode: '101N207V01',
+    planNumber: 'HDFC_LIFE027',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Guaranteed Savings Plan	",
-    productCode: "101N131V04",
-    planNumber: "HDFC_LIFE028	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Guaranteed Savings Plan',
+    productCode: '101N131V04',
+    planNumber: 'HDFC_LIFE028',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Smart Income Plan	",
-    productCode: "101N166V03",
-    planNumber: "HDFC_LIFE029	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Smart Income Plan',
+    productCode: '101N166V03',
+    planNumber: 'HDFC_LIFE029',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Assured Gain Plus	",
-    productCode: "101N151V04",
-    planNumber: "HDFC_LIFE030	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Assured Gain Plus',
+    productCode: '101N151V04',
+    planNumber: 'HDFC_LIFE030',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Guaranteed Income Insurance Plan	",
-    productCode: "101N146V10",
-    planNumber: "HDFC_LIFE031	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V10',
+    planNumber: 'HDFC_LIFE031',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Click 2 Achieve	",
-    productCode: "101N186V08",
-    planNumber: "HDFC_LIFE032	",
-    providerCode: "HDFC_LIFE",
-    productType: "Savings Plans",
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V08',
+    planNumber: 'HDFC_LIFE032',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Savings Plans'
   },
   {
-    productName: "HDFC Life Systematic Pension Plan	",
-    productCode: "101N144V05",
-    planNumber: "HDFC_LIFE033	",
-    providerCode: "HDFC_LIFE",
-    productType: "Annuity Plans",
+    productName: 'HDFC Life Systematic Pension Plan',
+    productCode: '101N144V05',
+    planNumber: 'HDFC_LIFE033',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Annuity Plans'
   },
   {
-    productName: "HDFC Life Pension Guaranteed Plan	",
-    productCode: "101N118V13",
-    planNumber: "HDFC_LIFE034	",
-    providerCode: "HDFC_LIFE",
-    productType: "Annuity Plans",
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V13',
+    planNumber: 'HDFC_LIFE034',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Annuity Plans'
   },
   {
-    productName: "HDFC Life Smart Pension Plus	",
-    productCode: "101N173V13",
-    planNumber: "HDFC_LIFE035	",
-    providerCode: "HDFC_LIFE",
-    productType: "Annuity Plans",
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V13',
+    planNumber: 'HDFC_LIFE035',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Annuity Plans'
   },
   {
-    productName: "HDFC Life Systematic Income Plan	",
-    productCode: "101N210V03",
-    planNumber: "HDFC_LIFE036	",
-    providerCode: "HDFC_LIFE",
-    productType: "Annuity Plans",
+    productName: 'HDFC Life Systematic Income Plan',
+    productCode: '101N210V03',
+    planNumber: 'HDFC_LIFE036',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Annuity Plans'
   },
   {
-    productName: "HDFC Life Systematic Retirement Plan	",
-    productCode: "101N143V10",
-    planNumber: "HDFC_LIFE037	",
-    providerCode: "HDFC_LIFE",
-    productType: "Annuity Plans",
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V10',
+    planNumber: 'HDFC_LIFE037',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Annuity Plans'
   },
   {
-    productName: "HDFC Life Group Traditional Secure Plan	",
-    productCode: "101N174V02",
-    planNumber: "HDFC_LIFE038	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Traditional Secure Plan',
+    productCode: '101N174V02',
+    planNumber: 'HDFC_LIFE038',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life New Group Unit Linked Plan	",
-    productCode: "101L094V03",
-    planNumber: "HDFC_LIFE039	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life New Group Unit Linked Plan',
+    productCode: '101L094V03',
+    planNumber: 'HDFC_LIFE039',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Gratuity Product	",
-    productCode: "101L170V02",
-    planNumber: "HDFC_LIFE040	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Gratuity Product',
+    productCode: '101L170V02',
+    planNumber: 'HDFC_LIFE040',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Unit Linked Pension Plan	",
-    productCode: "101L093V02",
-    planNumber: "HDFC_LIFE041	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Unit Linked Pension Plan',
+    productCode: '101L093V02',
+    planNumber: 'HDFC_LIFE041',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC SL Group Traditional Plan	",
-    productCode: "101N075V03",
-    planNumber: "HDFC_LIFE042	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC SL Group Traditional Plan',
+    productCode: '101N075V03',
+    planNumber: 'HDFC_LIFE042',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Variable Employee Benefit Plan	",
-    productCode: "101N095V04",
-    planNumber: "HDFC_LIFE043	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Variable Employee Benefit Plan',
+    productCode: '101N095V04',
+    planNumber: 'HDFC_LIFE043',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Unit Linked Future Secure Plan	",
-    productCode: "101L185V02",
-    planNumber: "HDFC_LIFE044	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Unit Linked Future Secure Plan',
+    productCode: '101L185V02',
+    planNumber: 'HDFC_LIFE044',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Guaranteed Pension Plan	",
-    productCode: "101N092V16",
-    planNumber: "HDFC_LIFE045	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V16',
+    planNumber: 'HDFC_LIFE045',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Sanchay Aajeevan Guaranteed Advantage Plan	",
-    productCode: "101N208V03",
-    planNumber: "HDFC_LIFE046	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Sanchay Aajeevan Guaranteed Advantage Plan',
+    productCode: '101N208V03',
+    planNumber: 'HDFC_LIFE046',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Aajeevan Growth Nivesh and Income	",
-    productCode: "101N209V01",
-    planNumber: "HDFC_LIFE047	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Aajeevan Growth Nivesh and Income',
+    productCode: '101N209V01',
+    planNumber: 'HDFC_LIFE047',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Smart Pension Plan	",
-    productCode: "101L164V08",
-    planNumber: "HDFC_LIFE048	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V08',
+    planNumber: 'HDFC_LIFE048',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Credit Protect Plus Insurance Plan	",
-    productCode: "101N096V07",
-    planNumber: "HDFC_LIFE049	",
-    providerCode: "HDFC_LIFE",
-    productType: "Pension Plans",
+    productName: 'HDFC Life Group Credit Protect Plus Insurance Plan',
+    productCode: '101N096V07',
+    planNumber: 'HDFC_LIFE049',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Pension Plans'
   },
   {
-    productName: "HDFC Life Group Health Shield	",
-    productCode: "101N116V05",
-    planNumber: "HDFC_LIFE050	",
-    providerCode: "HDFC_LIFE",
-    productType: "Health Plans",
+    productName: 'HDFC Life Group Health Shield',
+    productCode: '101N116V05',
+    planNumber: 'HDFC_LIFE050',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Health Plans'
   },
   {
-    productName: "HDFC Life Group Critical Illness Plus Rider	",
-    productCode: "101B015V04",
-    planNumber: "HDFC_LIFE051	",
-    providerCode: "HDFC_LIFE",
-    productType: "Health Plans",
+    productName: 'HDFC Life Group Critical Illness Plus Rider',
+    productCode: '101B015V04',
+    planNumber: 'HDFC_LIFE051',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Health Plans'
   },
   {
-    productName: "HDFC Life Critical Illness Plus Rider	",
-    productCode: "101B014V02",
-    planNumber: "HDFC_LIFE052	",
-    providerCode: "HDFC_LIFE",
-    productType: "Health Plans",
+    productName: 'HDFC Life Critical Illness Plus Rider',
+    productCode: '101B014V02',
+    planNumber: 'HDFC_LIFE052',
+    providerCode: 'HDFC_LIFE',
+    productType: 'Health Plans'
   },
+  {
+    productName: 'HDFC Life Health Assure Plan',
+    productCode: 'HLHAP',
+    planNumber: 'HDFC_LIFE053',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Invest Wise Plan',
+    productCode: 'HLIWP',
+    planNumber: 'HDFC_LIFE054',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Click 2 Protect Plan',
+    productCode: 'HC2PP',
+    planNumber: 'HDFC_LIFE055',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Protection Series',
+    productCode: 'HPS-1',
+    planNumber: 'HDFC_LIFE056',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Immediate Annuity Plan',
+    productCode: 'HIAP',
+    planNumber: 'HDFC_LIFE057',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC ClassicAssure Insurance Plan',
+    productCode: 'HCIP',
+    planNumber: 'HDFC_LIFE058',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samridhi Insurance Plan',
+    productCode: 'HLSSIP',
+    planNumber: 'HDFC_LIFE059',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Children Plan',
+    productCode: 'HCP',
+    planNumber: 'HDFC_LIFE060',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Gain Insurance Plan',
+    productCode: 'HEGIP',
+    planNumber: 'HDFC_LIFE061',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Assurance Plan',
+    productCode: 'HEAP',
+    planNumber: 'HDFC_LIFE062',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC New Money Back Plan',
+    productCode: 'HNMBP',
+    planNumber: 'HDFC_LIFE063',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Savings Assurance Plan',
+    productCode: 'HSAP',
+    planNumber: 'HDFC_LIFE064',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Assurance Plan',
+    productCode: 'HAP',
+    planNumber: 'HDFC_LIFE065',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Single Premium Whole of Life Insurance Plan',
+    productCode: 'HSPWoLIP',
+    planNumber: 'HDFC_LIFE066',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Premium Guarantee Plan',
+    productCode: 'HPGP',
+    planNumber: 'HDFC_LIFE067',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Home Loan Protection Plan',
+    productCode: 'HHLPP-2',
+    planNumber: 'HDFC_LIFE068',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Gramin Bima Kalyan Yojna',
+    productCode: 'HGBKY-2',
+    planNumber: 'HDFC_LIFE069',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plan',
+    productCode: 'HULEP-2',
+    planNumber: 'HDFC_LIFE070',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment',
+    productCode: 'HULE',
+    planNumber: 'HDFC_LIFE071',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Plan',
+    productCode: 'HULPP-2',
+    planNumber: 'HDFC_LIFE072',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension',
+    productCode: 'HULP',
+    planNumber: 'HDFC_LIFE073',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Plan',
+    productCode: 'HULYSP-3',
+    planNumber: 'HDFC_LIFE074',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star',
+    productCode: 'HULYS',
+    planNumber: 'HDFC_LIFE075',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Plus',
+    productCode: 'HULYSP-2',
+    planNumber: 'HDFC_LIFE076',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plus',
+    productCode: 'HULEP',
+    planNumber: 'HDFC_LIFE077',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Suvidha',
+    productCode: 'HULYSS',
+    planNumber: 'HDFC_LIFE078',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Suvidha Plus',
+    productCode: 'HULYSSP',
+    planNumber: 'HDFC_LIFE079',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Suvidha',
+    productCode: 'HULES',
+    planNumber: 'HDFC_LIFE080',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Suvidha Plus',
+    productCode: 'HULESP',
+    planNumber: 'HDFC_LIFE081',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Plus',
+    productCode: 'HULPP',
+    planNumber: 'HDFC_LIFE082',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Enhanced Life Protection II',
+    productCode: 'HULELPI',
+    planNumber: 'HDFC_LIFE083',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plus II',
+    productCode: 'HULEPI',
+    planNumber: 'HDFC_LIFE084',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked YoungStar Plus II',
+    productCode: 'HULYPI',
+    planNumber: 'HDFC_LIFE085',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SimpliLife',
+    productCode: 'HS',
+    planNumber: 'HDFC_LIFE086',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Wealth Maximiser Plus',
+    productCode: 'HWMP',
+    planNumber: 'HDFC_LIFE087',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star II',
+    productCode: 'HULYSI',
+    planNumber: 'HDFC_LIFE088',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment II',
+    productCode: 'HULEI',
+    planNumber: 'HDFC_LIFE089',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension II',
+    productCode: 'HULPI',
+    planNumber: 'HDFC_LIFE090',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Maximiser II',
+    productCode: 'HULPMI',
+    planNumber: 'HDFC_LIFE091',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Winner',
+    productCode: 'HULEW',
+    planNumber: 'HDFC_LIFE092',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Champion',
+    productCode: 'HULYSC',
+    planNumber: 'HDFC_LIFE093',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Wealth Multiplier',
+    productCode: 'HULWM',
+    planNumber: 'HDFC_LIFE094',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Super',
+    productCode: 'HPS-2',
+    planNumber: 'HDFC_LIFE095',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Super',
+    productCode: 'HYSS',
+    planNumber: 'HDFC_LIFE096',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Super',
+    productCode: 'HES-2',
+    planNumber: 'HDFC_LIFE097',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Super Suvidha',
+    productCode: 'HYSSS-2',
+    planNumber: 'HDFC_LIFE098',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Super Suvidha',
+    productCode: 'HESS-2',
+    planNumber: 'HDFC_LIFE099',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Supreme Suvidha',
+    productCode: 'HYSSS',
+    planNumber: 'HDFC_LIFE100',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Supreme Suvidha',
+    productCode: 'HESS',
+    planNumber: 'HDFC_LIFE101',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Wealth Builder',
+    productCode: 'HWB',
+    planNumber: 'HDFC_LIFE102',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Supreme',
+    productCode: 'HPS',
+    planNumber: 'HDFC_LIFE103',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Maximiser II',
+    productCode: 'HPMI',
+    planNumber: 'HDFC_LIFE104',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Champion',
+    productCode: 'HPC',
+    planNumber: 'HDFC_LIFE105',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Supreme',
+    productCode: 'HES',
+    planNumber: 'HDFC_LIFE106',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Champion Suvidha',
+    productCode: 'HYSCS',
+    planNumber: 'HDFC_LIFE107',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC YoungStar Supreme',
+    productCode: 'HYS',
+    planNumber: 'HDFC_LIFE108',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Champion Suvidha',
+    productCode: 'HECS',
+    planNumber: 'HDFC_LIFE109',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC pension Maximus',
+    productCode: 'HpM',
+    planNumber: 'HDFC_LIFE110',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Assurance',
+    productCode: 'HEA',
+    planNumber: 'HDFC_LIFE111',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Money Back',
+    productCode: 'HMB',
+    planNumber: 'HDFC_LIFE112',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Immediate Annuity',
+    productCode: 'HIA',
+    planNumber: 'HDFC_LIFE113',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Personal Pension Plan',
+    productCode: 'HPPP',
+    planNumber: 'HDFC_LIFE114',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Bima Bachat Yojana',
+    productCode: 'HBBY',
+    planNumber: 'HDFC_LIFE115',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Home Loan Protection Plan',
+    productCode: 'HHLPP',
+    planNumber: 'HDFC_LIFE116',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Critical Care Plan',
+    productCode: 'HCCP',
+    planNumber: 'HDFC_LIFE117',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Surgicare Plan',
+    productCode: 'HSP',
+    planNumber: 'HDFC_LIFE118',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Gramin Bima Kalyan Yojana',
+    productCode: 'HGBKY',
+    planNumber: 'HDFC_LIFE119',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Pension Insurance Plan',
+    productCode: 'HLCPIP',
+    planNumber: 'HDFC_LIFE120',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Youngstar Super II',
+    productCode: 'HYSI',
+    planNumber: 'HDFC_LIFE121',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Aashirvad',
+    productCode: 'HLA',
+    planNumber: 'HDFC_LIFE122',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Ace Life',
+    productCode: 'HLAL',
+    planNumber: 'HDFC_LIFE123',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Ace Pension',
+    productCode: 'HLAP',
+    planNumber: 'HDFC_LIFE124',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Returns',
+    productCode: 'HLAR',
+    planNumber: 'HDFC_LIFE125',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Best Years Retirement Plan',
+    productCode: 'HLBYRP',
+    planNumber: 'HDFC_LIFE126',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Conquering Life Critical Illness Plan',
+    productCode: 'HLCLCIP',
+    planNumber: 'HDFC_LIFE127',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Creating Life Child Protection Plan',
+    productCode: 'HLCLCPP',
+    planNumber: 'HDFC_LIFE128',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Creating Life Money Back Plan',
+    productCode: 'HLCLMBP',
+    planNumber: 'HDFC_LIFE129',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Creating Star',
+    productCode: 'HLCS',
+    planNumber: 'HDFC_LIFE130',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Creating Star Guaranteed Future',
+    productCode: 'HLCSGF',
+    planNumber: 'HDFC_LIFE131',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Easy Life',
+    productCode: 'HLEL',
+    planNumber: 'HDFC_LIFE132',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Elite Term',
+    productCode: 'HLET',
+    planNumber: 'HDFC_LIFE133',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Flexi Life',
+    productCode: 'HLFL',
+    planNumber: 'HDFC_LIFE134',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Flexi Life Plus',
+    productCode: 'HLFLP',
+    planNumber: 'HDFC_LIFE135',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Freedom Plan',
+    productCode: 'HLFP-2',
+    planNumber: 'HDFC_LIFE136',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Fulfilling Life Anticipated Whole Life Plan',
+    productCode: 'HLFLAWLP',
+    planNumber: 'HDFC_LIFE137',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Future Perfect',
+    productCode: 'HLFP',
+    planNumber: 'HDFC_LIFE138',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Future Perfect Plan',
+    productCode: 'HLFPP',
+    planNumber: 'HDFC_LIFE139',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Golden Life',
+    productCode: 'HLGL',
+    planNumber: 'HDFC_LIFE140',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Golden Years Retirement Plan',
+    productCode: 'HLGYRP',
+    planNumber: 'HDFC_LIFE141',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Growth',
+    productCode: 'HLGG',
+    planNumber: 'HDFC_LIFE142',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Savings Plan',
+    productCode: 'HLGSP',
+    planNumber: 'HDFC_LIFE143',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life High Life',
+    productCode: 'HLHL',
+    planNumber: 'HDFC_LIFE144',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life High Life Plus',
+    productCode: 'HLHLP',
+    planNumber: 'HDFC_LIFE145',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Immediate Annuity with return of purchase Price',
+    productCode: 'HLIAwropP',
+    planNumber: 'HDFC_LIFE146',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Jeevan Uday',
+    productCode: 'HLJU',
+    planNumber: 'HDFC_LIFE147',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Life Plus',
+    productCode: 'HLLP',
+    planNumber: 'HDFC_LIFE148',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Market Shield',
+    productCode: 'HLMS',
+    planNumber: 'HDFC_LIFE149',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Maximising Life Money back Plan',
+    productCode: 'HLMLMbP',
+    planNumber: 'HDFC_LIFE150',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Mera Aashirvad',
+    productCode: 'HLMA',
+    planNumber: 'HDFC_LIFE151',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Money Back Plan',
+    productCode: 'HLMMBP',
+    planNumber: 'HDFC_LIFE152',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Retirement Plan',
+    productCode: 'HLMRP',
+    planNumber: 'HDFC_LIFE153',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Term Insurance Plan',
+    productCode: 'HLMTIP',
+    planNumber: 'HDFC_LIFE154',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Best years Plan',
+    productCode: 'HLNByP',
+    planNumber: 'HDFC_LIFE155',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Creating Star',
+    productCode: 'HLNCS',
+    planNumber: 'HDFC_LIFE156',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Freedom Plan',
+    productCode: 'HLNFP',
+    planNumber: 'HDFC_LIFE157',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Future Perfect Plan',
+    productCode: 'HLNFPP',
+    planNumber: 'HDFC_LIFE158',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Golden Life',
+    productCode: 'HLNGL',
+    planNumber: 'HDFC_LIFE159',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity with Return of Purchase Price',
+    productCode: 'HLNIAwRoPP',
+    planNumber: 'HDFC_LIFE160',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New One Life Plan',
+    productCode: 'HLNOLP',
+    planNumber: 'HDFC_LIFE161',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Prime Life',
+    productCode: 'HLNPL',
+    planNumber: 'HDFC_LIFE162',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Nirmal Jeevan Insurance Plan',
+    productCode: 'HLNJIP',
+    planNumber: 'HDFC_LIFE163',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life One Advantage Retirement Plan',
+    productCode: 'HLOARP',
+    planNumber: 'HDFC_LIFE164',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life One Life Plan',
+    productCode: 'HLOLP-2',
+    planNumber: 'HDFC_LIFE165',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life One Life Plus',
+    productCode: 'HLOLP',
+    planNumber: 'HDFC_LIFE166',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Platinum Life Plan',
+    productCode: 'HLPLP-2',
+    planNumber: 'HDFC_LIFE167',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life POS Star Saver',
+    productCode: 'HLPSS',
+    planNumber: 'HDFC_LIFE168',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Positive Life',
+    productCode: 'HLPL-2',
+    planNumber: 'HDFC_LIFE169',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Powering Life Limited Payment Endowment Plan',
+    productCode: 'HLPLLPEP',
+    planNumber: 'HDFC_LIFE170',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Prime Life',
+    productCode: 'HLPL-3',
+    planNumber: 'HDFC_LIFE171',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Prospering Life',
+    productCode: 'HLPL',
+    planNumber: 'HDFC_LIFE172',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Prospering Life Plus',
+    productCode: 'HLPLP',
+    planNumber: 'HDFC_LIFE173',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Prospering Life SP',
+    productCode: 'HLPLS',
+    planNumber: 'HDFC_LIFE174',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Prospering Life Plus SP',
+    productCode: 'HLPLPS',
+    planNumber: 'HDFC_LIFE175',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Reassuring Life Endowment Plan',
+    productCode: 'HLRLEP',
+    planNumber: 'HDFC_LIFE176',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Reassuring Life Endowment Plan with Reversionary Bonus',
+    productCode: 'HLRLEPwRB',
+    planNumber: 'HDFC_LIFE177',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Rewarding Life Whole of Life Plan',
+    productCode: 'HLRLWoLP',
+    planNumber: 'HDFC_LIFE178',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Safal Jeevan Endowment Plan',
+    productCode: 'HLSJEP',
+    planNumber: 'HDFC_LIFE179',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Safal Jeevan Money Back Plan',
+    productCode: 'HLSJMBP',
+    planNumber: 'HDFC_LIFE180',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Securing Life Rural Endowment Plan',
+    productCode: 'HLSLREP',
+    planNumber: 'HDFC_LIFE181',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Future Insurance Plan',
+    productCode: 'HLSFIP',
+    planNumber: 'HDFC_LIFE182',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Term Plan',
+    productCode: 'HLSTP-2',
+    planNumber: 'HDFC_LIFE183',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Term Plus',
+    productCode: 'HLSTP',
+    planNumber: 'HDFC_LIFE184',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Star Life',
+    productCode: 'HLSL',
+    planNumber: 'HDFC_LIFE185',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Surakshit Jeevan Rural Endowment Plan',
+    productCode: 'HLSJREP',
+    planNumber: 'HDFC_LIFE186',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Term Life',
+    productCode: 'HLTL',
+    planNumber: 'HDFC_LIFE187',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Term Life Plus',
+    productCode: 'HLTLP',
+    planNumber: 'HDFC_LIFE188',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Term Plan',
+    productCode: 'HLTP',
+    planNumber: 'HDFC_LIFE189',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uttam Jeevan',
+    productCode: 'HLUJ',
+    planNumber: 'HDFC_LIFE190',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uttam Jeevan SP',
+    productCode: 'HLUJS',
+    planNumber: 'HDFC_LIFE191',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC CLICK 2 PROTECT HEALTH',
+    productCode: 'HC2PH',
+    planNumber: 'HDFC_LIFE192',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SAMPOORN SAMRIDHI PLUS HEALTH',
+    productCode: 'HSSPH',
+    planNumber: 'HDFC_LIFE193',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SUPER INCOME HEALTH',
+    productCode: 'HSIH',
+    planNumber: 'HDFC_LIFE194',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanjeevani',
+    productCode: 'HLS',
+    planNumber: 'HDFC_LIFE195',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Term Edge',
+    productCode: 'HLSTE',
+    planNumber: 'HDFC_LIFE196',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Click 2 Protect Corona Shield',
+    productCode: 'HC2PCS',
+    planNumber: 'HDFC_LIFE197',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Term Insurance Plan',
+    productCode: 'HGVTIP-2',
+    planNumber: 'HDFC_LIFE198',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan',
+    productCode: 'HGULP',
+    planNumber: 'HDFC_LIFE199',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan Option A',
+    productCode: 'HGULPOA',
+    planNumber: 'HDFC_LIFE200',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Leave Encashment Plan',
+    productCode: 'HLEP',
+    planNumber: 'HDFC_LIFE201',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan Option B',
+    productCode: 'HGULPOB',
+    planNumber: 'HDFC_LIFE202',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Option I',
+    productCode: 'HGULOI',
+    planNumber: 'HDFC_LIFE203',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Development Insurance Plan',
+    productCode: 'HDIP-2',
+    planNumber: 'HDFC_LIFE204',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Deposit Insurance Plan',
+    productCode: 'HDIP',
+    planNumber: 'HDFC_LIFE205',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Flexible Term Insurance',
+    productCode: 'HGFTI',
+    planNumber: 'HDFC_LIFE206',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Savings Plan',
+    productCode: 'HGSP',
+    planNumber: 'HDFC_LIFE207',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Conventional Plan',
+    productCode: 'HGCP',
+    planNumber: 'HDFC_LIFE208',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Traditional Plan',
+    productCode: 'HGTP',
+    planNumber: 'HDFC_LIFE209',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect',
+    productCode: 'HLGCP',
+    planNumber: 'HDFC_LIFE210',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Term Insurance',
+    productCode: 'HGTI',
+    planNumber: 'HDFC_LIFE211',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Term Insurance Plan',
+    productCode: 'HGVTIP',
+    planNumber: 'HDFC_LIFE212',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Generic Group Term Insurance for Social Sector',
+    productCode: 'HLGGTIfSS',
+    planNumber: 'HDFC_LIFE213',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Insurance Solutions - Single Premium Term Assurance',
+    productCode: 'HLGIS-SPTA',
+    planNumber: 'HDFC_LIFE214',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Superannuation Plan - Defined Contribution',
+    productCode: 'HLGSP-DC',
+    planNumber: 'HDFC_LIFE215',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Gratuity Plan',
+    productCode: 'HLGGP',
+    planNumber: 'HDFC_LIFE216',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Decreasing Mortgage Cover Plan',
+    productCode: 'HLGDMCP',
+    planNumber: 'HDFC_LIFE217',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Superannuation Plan - Defined Benefit Scheme',
+    productCode: 'HLGSP-DBS',
+    planNumber: 'HDFC_LIFE218',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Traditional Employee Benefit Plan',
+    productCode: 'HLGTEBP',
+    planNumber: 'HDFC_LIFE219',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Suraksha',
+    productCode: 'HLSS-2',
+    planNumber: 'HDFC_LIFE220',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Shield',
+    productCode: 'HLSS',
+    planNumber: 'HDFC_LIFE221',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC ULTRA LOAN SHIELD',
+    productCode: 'HULS',
+    planNumber: 'HDFC_LIFE222',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Assure Plan',
+    productCode: '101N087V01',
+    planNumber: 'HDFC_LIFE223',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Crest',
+    productCode: '101L064V01',
+    planNumber: 'HDFC_LIFE224',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Maximiser',
+    productCode: '101L067V01',
+    planNumber: 'HDFC_LIFE225',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Super II',
+    productCode: '101L066V01',
+    planNumber: 'HDFC_LIFE226',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Young Star Super Premium',
+    productCode: '101L068V01',
+    planNumber: 'HDFC_LIFE227',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Flexi',
+    productCode: '101L072V01',
+    planNumber: 'HDFC_LIFE228',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus',
+    productCode: '101L081V01',
+    planNumber: 'HDFC_LIFE229',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Women Plan',
+    productCode: '101L082V01',
+    planNumber: 'HDFC_LIFE230',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Invest Wise',
+    productCode: '101L083V01',
+    planNumber: 'HDFC_LIFE231',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Super Plus',
+    productCode: '101L085V01',
+    planNumber: 'HDFC_LIFE232',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Fulfilling Life Anticipated Whole Life Plan',
+    productCode: '114N024V01',
+    planNumber: 'HDFC_LIFE233',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Secured Income Insurance RP',
+    productCode: '114N060V01',
+    planNumber: 'HDFC_LIFE234',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Secured Income Insurance Plus',
+    productCode: '114N061V01',
+    planNumber: 'HDFC_LIFE235',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '114N067V01',
+    planNumber: 'HDFC_LIFE236',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Creating Life Insurance Plus',
+    productCode: '114N071V01',
+    planNumber: 'HDFC_LIFE237',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Creating Life Insurance Regular Pay',
+    productCode: '114N072V01',
+    planNumber: 'HDFC_LIFE238',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Gain Plus',
+    productCode: '114N073V01',
+    planNumber: 'HDFC_LIFE239',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Maxima',
+    productCode: '114L079V01',
+    planNumber: 'HDFC_LIFE240',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Star Saver',
+    productCode: '114N080V01',
+    planNumber: 'HDFC_LIFE241',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Advantage Plan',
+    productCode: '114N082V01',
+    planNumber: 'HDFC_LIFE242',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Elite',
+    productCode: '114L087V01',
+    planNumber: 'HDFC_LIFE243',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Assured Income Plan',
+    productCode: '114N105V01',
+    planNumber: 'HDFC_LIFE244',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Builder',
+    productCode: '114L106V01',
+    planNumber: 'HDFC_LIFE245',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '114N119V01',
+    planNumber: 'HDFC_LIFE246',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Insurance Solutions - Yearly Renewable Term Insurance',
+    productCode: '114N012V01',
+    planNumber: 'HDFC_LIFE247',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Gratuity Product',
+    productCode: '114L078V01',
+    planNumber: 'HDFC_LIFE248',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Loan Suraksha',
+    productCode: '114N084V01',
+    planNumber: 'HDFC_LIFE249',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Assurance',
+    productCode: '101N001V01',
+    planNumber: 'HDFC_LIFE250',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Assurance',
+    productCode: '101N001V02',
+    planNumber: 'HDFC_LIFE251',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Money Back',
+    productCode: '101N002V01',
+    planNumber: 'HDFC_LIFE252',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Development Insurance Plan',
+    productCode: '101N003V01',
+    planNumber: 'HDFC_LIFE253',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Development Insurance Plan',
+    productCode: '101N003V02',
+    planNumber: 'HDFC_LIFE254',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Single premium Whole of Life Insurance',
+    productCode: '101N004V01',
+    planNumber: 'HDFC_LIFE255',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Term Insurance',
+    productCode: '101N005V01',
+    planNumber: 'HDFC_LIFE256',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Term Insurance ',
+    productCode: '101N005V02',
+    planNumber: 'HDFC_LIFE257',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Term Insurance ',
+    productCode: '101N005V03',
+    planNumber: 'HDFC_LIFE258',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Insurance ',
+    productCode: '101N005V04',
+    planNumber: 'HDFC_LIFE259',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Insurance ',
+    productCode: '101N005V05',
+    planNumber: 'HDFC_LIFE260',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Insurance ',
+    productCode: '101N005V06',
+    planNumber: 'HDFC_LIFE261',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Insurance ',
+    productCode: '101N005V07',
+    planNumber: 'HDFC_LIFE262',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Protection Series',
+    productCode: '101N006V01',
+    planNumber: 'HDFC_LIFE263',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Protection Series',
+    productCode: '101N006V02',
+    planNumber: 'HDFC_LIFE264',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Protection Series',
+    productCode: '101N006V03',
+    planNumber: 'HDFC_LIFE265',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Protection Series',
+    productCode: '101N006V04',
+    planNumber: 'HDFC_LIFE266',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Immediate Annuity',
+    productCode: '101N007V01',
+    planNumber: 'HDFC_LIFE267',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Immediate Annuity',
+    productCode: '101N007V02',
+    planNumber: 'HDFC_LIFE268',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Personal Pension Plan',
+    productCode: '101N008V01',
+    planNumber: 'HDFC_LIFE269',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Bima Bachat Yojana ',
+    productCode: '101N009V01',
+    planNumber: 'HDFC_LIFE270',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Bima Bachat Yojana ',
+    productCode: '101N009V02',
+    planNumber: 'HDFC_LIFE271',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Childrens Plan',
+    productCode: '101N010V01',
+    planNumber: 'HDFC_LIFE272',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan',
+    productCode: '101L011V01',
+    planNumber: 'HDFC_LIFE273',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan Option A',
+    productCode: '101L011V02',
+    planNumber: 'HDFC_LIFE274',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Deposit Insurance Plan',
+    productCode: '101N012V01',
+    planNumber: 'HDFC_LIFE275',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Home Loan Protection Plan',
+    productCode: '101N013V01',
+    planNumber: 'HDFC_LIFE276',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Home Loan Protection Plan',
+    productCode: '101N013V02',
+    planNumber: 'HDFC_LIFE277',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Savings Assurance Plan',
+    productCode: '101N014V01',
+    planNumber: 'HDFC_LIFE278',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plan',
+    productCode: '101L015V01',
+    planNumber: 'HDFC_LIFE279',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment',
+    productCode: '101L015V02',
+    planNumber: 'HDFC_LIFE280',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Plan',
+    productCode: '101L016V01',
+    planNumber: 'HDFC_LIFE281',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension  ',
+    productCode: '101L016V02',
+    planNumber: 'HDFC_LIFE282',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Leave Encashment Plan',
+    productCode: '101L017V01',
+    planNumber: 'HDFC_LIFE283',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Assurance Plan',
+    productCode: '101N018V01',
+    planNumber: 'HDFC_LIFE284',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Plan',
+    productCode: '101L019V01',
+    planNumber: 'HDFC_LIFE285',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star',
+    productCode: '101L019V02',
+    planNumber: 'HDFC_LIFE286',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Flexible Term Insurance',
+    productCode: '101N020V01',
+    planNumber: 'HDFC_LIFE287',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Term Insurance',
+    productCode: '101N021V01',
+    planNumber: 'HDFC_LIFE288',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Term Insurance',
+    productCode: '101N021V02',
+    planNumber: 'HDFC_LIFE289',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan Option B',
+    productCode: '101L022V01',
+    planNumber: 'HDFC_LIFE290',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Unit Linked Plan Option B',
+    productCode: '101L022V02',
+    planNumber: 'HDFC_LIFE291',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Plus ',
+    productCode: '101L023V01',
+    planNumber: 'HDFC_LIFE292',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plus ',
+    productCode: '101L024V01',
+    planNumber: 'HDFC_LIFE293',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Suvidha',
+    productCode: '101L025V01',
+    planNumber: 'HDFC_LIFE294',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Suvidha Plus ',
+    productCode: '101L026V01',
+    planNumber: 'HDFC_LIFE295',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Suvidha',
+    productCode: '101L027V01',
+    planNumber: 'HDFC_LIFE296',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Suvidha Plus ',
+    productCode: '101L028V01',
+    planNumber: 'HDFC_LIFE297',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Plus  ',
+    productCode: '101L029V01',
+    planNumber: 'HDFC_LIFE298',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Enhanced Life Protection II ',
+    productCode: '101L030V01',
+    planNumber: 'HDFC_LIFE299',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Plus II ',
+    productCode: '101L031V01',
+    planNumber: 'HDFC_LIFE300',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked YoungStar Plus II ',
+    productCode: '101L032V01',
+    planNumber: 'HDFC_LIFE301',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SimpliLife',
+    productCode: '101L033V01',
+    planNumber: 'HDFC_LIFE302',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SimpliLife',
+    productCode: '101L033V02',
+    planNumber: 'HDFC_LIFE303',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SimpliLife',
+    productCode: '101L033V03',
+    planNumber: 'HDFC_LIFE304',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Wealth Maximiser Plus',
+    productCode: '101L034V01',
+    planNumber: 'HDFC_LIFE305',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Critical Care Plan',
+    productCode: '101N035V01',
+    planNumber: 'HDFC_LIFE306',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star II',
+    productCode: '101L036V01',
+    planNumber: 'HDFC_LIFE307',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Grameen Bima Mithra Yojana',
+    productCode: '101N037V01',
+    planNumber: 'HDFC_LIFE308',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment II',
+    productCode: '101L038V01',
+    planNumber: 'HDFC_LIFE309',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension II',
+    productCode: '101L039V01',
+    planNumber: 'HDFC_LIFE310',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Pension Maximiser II',
+    productCode: '101L040V01',
+    planNumber: 'HDFC_LIFE311',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Endowment Winner',
+    productCode: '101L041V01',
+    planNumber: 'HDFC_LIFE312',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Young Star Champion',
+    productCode: '101L042V01',
+    planNumber: 'HDFC_LIFE313',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Surgicare Plan',
+    productCode: '101N043V01',
+    planNumber: 'HDFC_LIFE314',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Unit Linked Wealth Multiplier',
+    productCode: '101L044V01',
+    planNumber: 'HDFC_LIFE315',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Gramin Bima Kalyan Yojana',
+    productCode: '101N045V01',
+    planNumber: 'HDFC_LIFE316',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Gramin Bima Kalyan Yojana',
+    productCode: '101N045V02',
+    planNumber: 'HDFC_LIFE317',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Premium Guarantee Plan',
+    productCode: '101N046V01',
+    planNumber: 'HDFC_LIFE318',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Super ',
+    productCode: '101L047V01',
+    planNumber: 'HDFC_LIFE319',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Super ',
+    productCode: '101L048V01',
+    planNumber: 'HDFC_LIFE320',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Super',
+    productCode: '101L049V01',
+    planNumber: 'HDFC_LIFE321',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Super Suvidha',
+    productCode: '101L050V01',
+    planNumber: 'HDFC_LIFE322',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Super Suvidha',
+    productCode: '101L051V01',
+    planNumber: 'HDFC_LIFE323',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Supreme Suvidha',
+    productCode: '101L052V01',
+    planNumber: 'HDFC_LIFE324',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Supreme Suvidha',
+    productCode: '101L053V01',
+    planNumber: 'HDFC_LIFE325',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Wealth Builder',
+    productCode: '101L054V01',
+    planNumber: 'HDFC_LIFE326',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Supreme',
+    productCode: '101L055V01',
+    planNumber: 'HDFC_LIFE327',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Maximiser II',
+    productCode: '101L056V01',
+    planNumber: 'HDFC_LIFE328',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Pension Champion',
+    productCode: '101L057V01',
+    planNumber: 'HDFC_LIFE329',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Supreme',
+    productCode: '101L058V01',
+    planNumber: 'HDFC_LIFE330',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Young Star Champion Suvidha ',
+    productCode: '101L059V01',
+    planNumber: 'HDFC_LIFE331',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC YoungStar Supreme',
+    productCode: '101L060V01',
+    planNumber: 'HDFC_LIFE332',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Endowment Champion Suvidha',
+    productCode: '101L061V01',
+    planNumber: 'HDFC_LIFE333',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Group Savings Plan',
+    productCode: '101N062V01',
+    planNumber: 'HDFC_LIFE334',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL New Money Back Plan',
+    productCode: '101N063V01',
+    planNumber: 'HDFC_LIFE335',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Sarvgrameen Bachat Yojana',
+    productCode: '101N069V01',
+    planNumber: 'HDFC_LIFE336',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Sarvgrameen Bachat Yojana',
+    productCode: '101N069V02',
+    planNumber: 'HDFC_LIFE337',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Sarvgrameen Bachat Yojana ( Micro Insurance Product)',
+    productCode: '101N069V03',
+    planNumber: 'HDFC_LIFE338',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Group Conventional Plan',
+    productCode: '101N070V01',
+    planNumber: 'HDFC_LIFE339',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Endowment Gain Insurance Plan',
+    productCode: '101N071V01',
+    planNumber: 'HDFC_LIFE340',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Group Traditional Plan',
+    productCode: '101N075V01',
+    planNumber: 'HDFC_LIFE341',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Group Traditional Plan',
+    productCode: '101N075V02',
+    planNumber: 'HDFC_LIFE342',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Classic Assure Insurance Plan',
+    productCode: '101N076V01',
+    planNumber: 'HDFC_LIFE343',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Pension Insurance Plan',
+    productCode: '101N077V01',
+    planNumber: 'HDFC_LIFE344',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samridhi Insurance Plan',
+    productCode: '101N078V01',
+    planNumber: 'HDFC_LIFE345',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect',
+    productCode: '101N079V01',
+    planNumber: 'HDFC_LIFE346',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect',
+    productCode: '101N079V02',
+    planNumber: 'HDFC_LIFE347',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect',
+    productCode: '101N079V03',
+    planNumber: 'HDFC_LIFE348',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Plan ',
+    productCode: '101N080V01',
+    planNumber: 'HDFC_LIFE349',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Plan ',
+    productCode: '101N080V02',
+    planNumber: 'HDFC_LIFE350',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V01',
+    planNumber: 'HDFC_LIFE351',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V02',
+    planNumber: 'HDFC_LIFE352',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V03',
+    planNumber: 'HDFC_LIFE353',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V04',
+    planNumber: 'HDFC_LIFE354',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V05',
+    planNumber: 'HDFC_LIFE355',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V06',
+    planNumber: 'HDFC_LIFE356',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V07',
+    planNumber: 'HDFC_LIFE357',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V08',
+    planNumber: 'HDFC_LIFE358',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V09',
+    planNumber: 'HDFC_LIFE359',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V10',
+    planNumber: 'HDFC_LIFE360',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V11',
+    planNumber: 'HDFC_LIFE361',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V12',
+    planNumber: 'HDFC_LIFE362',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V13',
+    planNumber: 'HDFC_LIFE363',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V14',
+    planNumber: 'HDFC_LIFE364',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V15',
+    planNumber: 'HDFC_LIFE365',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V16',
+    planNumber: 'HDFC_LIFE366',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V17',
+    planNumber: 'HDFC_LIFE367',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V18',
+    planNumber: 'HDFC_LIFE368',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V19',
+    planNumber: 'HDFC_LIFE369',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V20',
+    planNumber: 'HDFC_LIFE370',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V21',
+    planNumber: 'HDFC_LIFE371',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V22',
+    planNumber: 'HDFC_LIFE372',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V23',
+    planNumber: 'HDFC_LIFE373',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V24',
+    planNumber: 'HDFC_LIFE374',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V25',
+    planNumber: 'HDFC_LIFE375',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan ',
+    productCode: '101N084V26',
+    planNumber: 'HDFC_LIFE376',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V27',
+    planNumber: 'HDFC_LIFE377',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V28',
+    planNumber: 'HDFC_LIFE378',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V29',
+    planNumber: 'HDFC_LIFE379',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V30',
+    planNumber: 'HDFC_LIFE380',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V31',
+    planNumber: 'HDFC_LIFE381',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V32',
+    planNumber: 'HDFC_LIFE382',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V33',
+    planNumber: 'HDFC_LIFE383',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V34',
+    planNumber: 'HDFC_LIFE384',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V35',
+    planNumber: 'HDFC_LIFE385',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V36',
+    planNumber: 'HDFC_LIFE386',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V37',
+    planNumber: 'HDFC_LIFE387',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Immediate Annuity Plan',
+    productCode: '101N084V38',
+    planNumber: 'HDFC_LIFE388',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Health Assure Plan ',
+    productCode: '101N087V02',
+    planNumber: 'HDFC_LIFE389',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Assure',
+    productCode: '101N087V03',
+    planNumber: 'HDFC_LIFE390',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Assure',
+    productCode: '101N087V04',
+    planNumber: 'HDFC_LIFE391',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Pension Plan ',
+    productCode: '101N088V01',
+    planNumber: 'HDFC_LIFE392',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure plus',
+    productCode: '101N089V01',
+    planNumber: 'HDFC_LIFE393',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure plus',
+    productCode: '101N089V02',
+    planNumber: 'HDFC_LIFE394',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure plus',
+    productCode: '101N089V03',
+    planNumber: 'HDFC_LIFE395',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure plus',
+    productCode: '101N089V04',
+    planNumber: 'HDFC_LIFE396',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure plus',
+    productCode: '101N089V05',
+    planNumber: 'HDFC_LIFE397',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic Assure Plus',
+    productCode: '101N089V06',
+    planNumber: 'HDFC_LIFE398',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Savings Plan ',
+    productCode: '101N090V01',
+    planNumber: 'HDFC_LIFE399',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Personal Pension Plus',
+    productCode: '101N091V01',
+    planNumber: 'HDFC_LIFE400',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Personal Pension Plus',
+    productCode: '101N091V02',
+    planNumber: 'HDFC_LIFE401',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Personal Pension Plus',
+    productCode: '101N091V03',
+    planNumber: 'HDFC_LIFE402',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Personal Pension Plus',
+    productCode: '101N091V04',
+    planNumber: 'HDFC_LIFE403',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Personal Pension Plus',
+    productCode: '101N091V05',
+    planNumber: 'HDFC_LIFE404',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V01',
+    planNumber: 'HDFC_LIFE405',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V02',
+    planNumber: 'HDFC_LIFE406',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V03',
+    planNumber: 'HDFC_LIFE407',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V04',
+    planNumber: 'HDFC_LIFE408',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V05',
+    planNumber: 'HDFC_LIFE409',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V06',
+    planNumber: 'HDFC_LIFE410',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V07',
+    planNumber: 'HDFC_LIFE411',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V08',
+    planNumber: 'HDFC_LIFE412',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V09',
+    planNumber: 'HDFC_LIFE413',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V10',
+    planNumber: 'HDFC_LIFE414',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V11',
+    planNumber: 'HDFC_LIFE415',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V12',
+    planNumber: 'HDFC_LIFE416',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V13',
+    planNumber: 'HDFC_LIFE417',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V14',
+    planNumber: 'HDFC_LIFE418',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Pension Plan',
+    productCode: '101N092V15',
+    planNumber: 'HDFC_LIFE419',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Employee Benefit Plan',
+    productCode: '101N095V01',
+    planNumber: 'HDFC_LIFE420',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Employee Benefit Plan',
+    productCode: '101N095V02',
+    planNumber: 'HDFC_LIFE421',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Variable Employee Benefit Plan',
+    productCode: '101N095V03',
+    planNumber: 'HDFC_LIFE422',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Credit Protect Plus Insurance Plan',
+    productCode: '101N096V01',
+    planNumber: 'HDFC_LIFE423',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Credit Protect Plus Insurance Plan',
+    productCode: '101N096V02',
+    planNumber: 'HDFC_LIFE424',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Group Credit Protect Plus Insurance Plan',
+    productCode: '101N096V03',
+    planNumber: 'HDFC_LIFE425',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Ultra Loan Shield',
+    productCode: '101Y096V01',
+    planNumber: 'HDFC_LIFE426',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Ultra Loan Shield',
+    productCode: '101Y096V02',
+    planNumber: 'HDFC_LIFE427',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect Plus',
+    productCode: '101N096V04',
+    planNumber: 'HDFC_LIFE428',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect Plus',
+    productCode: '101N096V05',
+    planNumber: 'HDFC_LIFE429',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Protect Plus Insurance Plan',
+    productCode: '101N096V06',
+    planNumber: 'HDFC_LIFE430',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V01',
+    planNumber: 'HDFC_LIFE431',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V02',
+    planNumber: 'HDFC_LIFE432',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V03',
+    planNumber: 'HDFC_LIFE433',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V04',
+    planNumber: 'HDFC_LIFE434',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V05',
+    planNumber: 'HDFC_LIFE435',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V06',
+    planNumber: 'HDFC_LIFE436',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V07',
+    planNumber: 'HDFC_LIFE437',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V08',
+    planNumber: 'HDFC_LIFE438',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V09',
+    planNumber: 'HDFC_LIFE439',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V10',
+    planNumber: 'HDFC_LIFE440',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V11',
+    planNumber: 'HDFC_LIFE441',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay',
+    productCode: '101N097V12',
+    planNumber: 'HDFC_LIFE442',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V01',
+    planNumber: 'HDFC_LIFE443',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V02',
+    planNumber: 'HDFC_LIFE444',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V03',
+    planNumber: 'HDFC_LIFE445',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V04',
+    planNumber: 'HDFC_LIFE446',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V05',
+    planNumber: 'HDFC_LIFE447',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Health',
+    productCode: '101Y098V01',
+    planNumber: 'HDFC_LIFE448',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Health',
+    productCode: '101Y098V02',
+    planNumber: 'HDFC_LIFE449',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Health',
+    productCode: '101Y098V03',
+    planNumber: 'HDFC_LIFE450',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Super Income Plan',
+    productCode: '101N098V06',
+    planNumber: 'HDFC_LIFE451',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life YoungStar Udaan',
+    productCode: '101N099V01',
+    planNumber: 'HDFC_LIFE452',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life YoungStar Udaan',
+    productCode: '101N099V02',
+    planNumber: 'HDFC_LIFE453',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life YoungStar Udaan',
+    productCode: '101N099V03',
+    planNumber: 'HDFC_LIFE454',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life YoungStar Udaan',
+    productCode: '101N099V04',
+    planNumber: 'HDFC_LIFE455',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life YoungStar Udaan',
+    productCode: '101N099V05',
+    planNumber: 'HDFC_LIFE456',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Plus ',
+    productCode: '101N101V01',
+    planNumber: 'HDFC_LIFE457',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Plus ',
+    productCode: '101N101V02',
+    planNumber: 'HDFC_LIFE458',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Plus ',
+    productCode: '101N101V03',
+    planNumber: 'HDFC_LIFE459',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V01',
+    planNumber: 'HDFC_LIFE460',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V02',
+    planNumber: 'HDFC_LIFE461',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V03',
+    planNumber: 'HDFC_LIFE462',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V04',
+    planNumber: 'HDFC_LIFE463',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V05',
+    planNumber: 'HDFC_LIFE464',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samridhi Plus Health',
+    productCode: '101Y102V01',
+    planNumber: 'HDFC_LIFE465',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samridhi Plus Health',
+    productCode: '101Y102V02',
+    planNumber: 'HDFC_LIFE466',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samridhi Plus Health',
+    productCode: '101Y102V03',
+    planNumber: 'HDFC_LIFE467',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Samriddhi Plus',
+    productCode: '101N102V06',
+    planNumber: 'HDFC_LIFE468',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life  CSC Suraksha Plan ',
+    productCode: '101N104V01',
+    planNumber: 'HDFC_LIFE469',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life  CSC Suraksha Plan ',
+    productCode: '101N104V02',
+    planNumber: 'HDFC_LIFE470',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uday',
+    productCode: '101N105V01',
+    planNumber: 'HDFC_LIFE471',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uday',
+    productCode: '101N105V02',
+    planNumber: 'HDFC_LIFE472',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uday',
+    productCode: '101N105V03',
+    planNumber: 'HDFC_LIFE473',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Uday',
+    productCode: '101N105V04',
+    planNumber: 'HDFC_LIFE474',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Cancer Care',
+    productCode: '101N106V01',
+    planNumber: 'HDFC_LIFE475',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Cancer Care',
+    productCode: '101N106V02',
+    planNumber: 'HDFC_LIFE476',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Cancer Care',
+    productCode: '101N106V03',
+    planNumber: 'HDFC_LIFE477',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Cancer Care',
+    productCode: '101N106V04',
+    planNumber: 'HDFC_LIFE478',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pradhan Mantri Jeevan Jyoti Bima Yojana Plan ',
+    productCode: '101G107V01',
+    planNumber: 'HDFC_LIFE479',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Easy Health ',
+    productCode: '101N110V01',
+    planNumber: 'HDFC_LIFE480',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Easy Health ',
+    productCode: '101N110V02',
+    planNumber: 'HDFC_LIFE481',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Easy Health ',
+    productCode: '101N110V03',
+    planNumber: 'HDFC_LIFE482',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Suraksha (Micro Insurance Product) ',
+    productCode: '101N111V01',
+    planNumber: 'HDFC_LIFE483',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Credit Suraksha (Micro Insurance Product) ',
+    productCode: '101N111V02',
+    planNumber: 'HDFC_LIFE484',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro-Insurance Product) ',
+    productCode: '101N113V01',
+    planNumber: 'HDFC_LIFE485',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro-Insurance Product) ',
+    productCode: '101N113V02',
+    planNumber: 'HDFC_LIFE486',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro-Insurance Product) ',
+    productCode: '101N113V03',
+    planNumber: 'HDFC_LIFE487',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro-Insurance Product) ',
+    productCode: '101N113V04',
+    planNumber: 'HDFC_LIFE488',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Jeevan Suraksha (Micro-Insurance Product) ',
+    productCode: '101N113V05',
+    planNumber: 'HDFC_LIFE489',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pragati',
+    productCode: '101N114V01',
+    planNumber: 'HDFC_LIFE490',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pragati',
+    productCode: '101N114V02',
+    planNumber: 'HDFC_LIFE491',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pragati',
+    productCode: '101N114V03',
+    planNumber: 'HDFC_LIFE492',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pragati',
+    productCode: '101N114V04',
+    planNumber: 'HDFC_LIFE493',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pragati',
+    productCode: '101N114V05',
+    planNumber: 'HDFC_LIFE494',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V01',
+    planNumber: 'HDFC_LIFE495',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V02',
+    planNumber: 'HDFC_LIFE496',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V03',
+    planNumber: 'HDFC_LIFE497',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V04',
+    planNumber: 'HDFC_LIFE498',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V05',
+    planNumber: 'HDFC_LIFE499',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect 3D Plus',
+    productCode: '101N115V06',
+    planNumber: 'HDFC_LIFE500',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Health (Combi Product)',
+    productCode: '101Y115V01',
+    planNumber: 'HDFC_LIFE501',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Health (Combi Product)',
+    productCode: '101Y115V02',
+    planNumber: 'HDFC_LIFE502',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Health (Combi Product)',
+    productCode: '101Y115V03',
+    planNumber: 'HDFC_LIFE503',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Health (Combi Product)',
+    productCode: '101Y115V04',
+    planNumber: 'HDFC_LIFE504',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Health ',
+    productCode: '101Y115V05',
+    planNumber: 'HDFC_LIFE505',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Health Shield',
+    productCode: '101N116V01',
+    planNumber: 'HDFC_LIFE506',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Health Shield',
+    productCode: '101N116V02',
+    planNumber: 'HDFC_LIFE507',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Health Shield',
+    productCode: '101N116V03',
+    planNumber: 'HDFC_LIFE508',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Health Shield',
+    productCode: '101N116V04',
+    planNumber: 'HDFC_LIFE509',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Cardiac Care',
+    productCode: '101N117V01',
+    planNumber: 'HDFC_LIFE510',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Cardiac Care',
+    productCode: '101N117V02',
+    planNumber: 'HDFC_LIFE511',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Cardiac Care',
+    productCode: '101N117V03',
+    planNumber: 'HDFC_LIFE512',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V01',
+    planNumber: 'HDFC_LIFE513',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V02',
+    planNumber: 'HDFC_LIFE514',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V03',
+    planNumber: 'HDFC_LIFE515',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V04',
+    planNumber: 'HDFC_LIFE516',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V05',
+    planNumber: 'HDFC_LIFE517',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V06',
+    planNumber: 'HDFC_LIFE518',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V07',
+    planNumber: 'HDFC_LIFE519',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V08',
+    planNumber: 'HDFC_LIFE520',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V09',
+    planNumber: 'HDFC_LIFE521',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V10',
+    planNumber: 'HDFC_LIFE522',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V11',
+    planNumber: 'HDFC_LIFE523',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Guaranteed Plan',
+    productCode: '101N118V12',
+    planNumber: 'HDFC_LIFE524',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'Click 2 Protect Corona Kavach',
+    productCode: '101Y119V01',
+    planNumber: 'HDFC_LIFE525',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Corona Shield',
+    productCode: '101Y120V02',
+    planNumber: 'HDFC_LIFE526',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Optima Restore',
+    productCode: '101Y121V03',
+    planNumber: 'HDFC_LIFE527',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'Click 2 Protect Optima Restore',
+    productCode: '101Y121V04',
+    planNumber: 'HDFC_LIFE528',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Optima Secure',
+    productCode: '101Y122V02',
+    planNumber: 'HDFC_LIFE529',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'Click 2 Protect Optima Secure',
+    productCode: '101Y122V03',
+    planNumber: 'HDFC_LIFE530',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'Click 2 Protect Optima Secure',
+    productCode: '101Y122V04',
+    planNumber: 'HDFC_LIFE531',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'Click 2 Protect Optima Secure',
+    productCode: '101Y122V05',
+    planNumber: 'HDFC_LIFE532',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Savings Plan ',
+    productCode: '101N131V01',
+    planNumber: 'HDFC_LIFE533',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Savings Plan ',
+    productCode: '101N131V02',
+    planNumber: 'HDFC_LIFE534',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Savings Plan',
+    productCode: '101N131V03',
+    planNumber: 'HDFC_LIFE535',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V01',
+    planNumber: 'HDFC_LIFE536',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V02',
+    planNumber: 'HDFC_LIFE537',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V03',
+    planNumber: 'HDFC_LIFE538',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V04',
+    planNumber: 'HDFC_LIFE539',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V05',
+    planNumber: 'HDFC_LIFE540',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V06',
+    planNumber: 'HDFC_LIFE541',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V07',
+    planNumber: 'HDFC_LIFE542',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V08',
+    planNumber: 'HDFC_LIFE543',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V09',
+    planNumber: 'HDFC_LIFE544',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V10',
+    planNumber: 'HDFC_LIFE545',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V11',
+    planNumber: 'HDFC_LIFE546',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V12',
+    planNumber: 'HDFC_LIFE547',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V13',
+    planNumber: 'HDFC_LIFE548',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V14',
+    planNumber: 'HDFC_LIFE549',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V15',
+    planNumber: 'HDFC_LIFE550',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V16',
+    planNumber: 'HDFC_LIFE551',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V17',
+    planNumber: 'HDFC_LIFE552',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V18',
+    planNumber: 'HDFC_LIFE553',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V19',
+    planNumber: 'HDFC_LIFE554',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V20',
+    planNumber: 'HDFC_LIFE555',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V21',
+    planNumber: 'HDFC_LIFE556',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V22',
+    planNumber: 'HDFC_LIFE557',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V23',
+    planNumber: 'HDFC_LIFE558',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V24',
+    planNumber: 'HDFC_LIFE559',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V25',
+    planNumber: 'HDFC_LIFE560',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Plus',
+    productCode: '101N134V26',
+    planNumber: 'HDFC_LIFE561',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Suraksha (Micro-Inusrance Product)',
+    productCode: '101N135V01',
+    planNumber: 'HDFC_LIFE562',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Suraksha (Micro-Inusrance Product)',
+    productCode: '101N135V02',
+    planNumber: 'HDFC_LIFE563',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Par Advantage',
+    productCode: '101N136V01',
+    planNumber: 'HDFC_LIFE564',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Par Advantage',
+    productCode: '101N136V02',
+    planNumber: 'HDFC_LIFE565',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Par Advantage',
+    productCode: '101N136V03',
+    planNumber: 'HDFC_LIFE566',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Par Advantage',
+    productCode: '101N136V04',
+    planNumber: 'HDFC_LIFE567',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Poorna Suraksha',
+    productCode: '101N137V01',
+    planNumber: 'HDFC_LIFE568',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Poorna Suraksha',
+    productCode: '101N137V02',
+    planNumber: 'HDFC_LIFE569',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Poorna Suraksha',
+    productCode: '101N137V03',
+    planNumber: 'HDFC_LIFE570',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Poorna Credit Suraksha',
+    productCode: '101N138V02',
+    planNumber: 'HDFC_LIFE571',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Life ',
+    productCode: '101N139V01',
+    planNumber: 'HDFC_LIFE572',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Life ',
+    productCode: '101N139V02',
+    planNumber: 'HDFC_LIFE573',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Life ',
+    productCode: '101N139V03',
+    planNumber: 'HDFC_LIFE574',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Life ',
+    productCode: '101N139V04',
+    planNumber: 'HDFC_LIFE575',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Life ',
+    productCode: '101N139V05',
+    planNumber: 'HDFC_LIFE576',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC  Life Click 2 Protect Life',
+    productCode: '101N139V06',
+    planNumber: 'HDFC_LIFE577',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC  Life Click 2 Protect Life',
+    productCode: '101N139V07',
+    planNumber: 'HDFC_LIFE578',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan Bima',
+    productCode: '101N140V01',
+    planNumber: 'HDFC_LIFE579',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan Bima',
+    productCode: '101N140V02',
+    planNumber: 'HDFC_LIFE580',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Pension',
+    productCode: '101N141V01',
+    planNumber: 'HDFC_LIFE581',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Pension',
+    productCode: '101N141V02',
+    planNumber: 'HDFC_LIFE582',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Pension',
+    productCode: '101N141V03',
+    planNumber: 'HDFC_LIFE583',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V01',
+    planNumber: 'HDFC_LIFE584',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V02',
+    planNumber: 'HDFC_LIFE585',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V03',
+    planNumber: 'HDFC_LIFE586',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V04',
+    planNumber: 'HDFC_LIFE587',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V05',
+    planNumber: 'HDFC_LIFE588',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V06',
+    planNumber: 'HDFC_LIFE589',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V07',
+    planNumber: 'HDFC_LIFE590',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Fixed Maturity Plan',
+    productCode: '101N142V08',
+    planNumber: 'HDFC_LIFE591',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V01',
+    planNumber: 'HDFC_LIFE592',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V02',
+    planNumber: 'HDFC_LIFE593',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V03',
+    planNumber: 'HDFC_LIFE594',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V04',
+    planNumber: 'HDFC_LIFE595',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V05',
+    planNumber: 'HDFC_LIFE596',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V06',
+    planNumber: 'HDFC_LIFE597',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan',
+    productCode: '101N143V07',
+    planNumber: 'HDFC_LIFE598',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Retirement Plan ',
+    productCode: '101N143V08',
+    planNumber: 'HDFC_LIFE599',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Pension Plan',
+    productCode: '101N144V01',
+    planNumber: 'HDFC_LIFE600',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Pension Plan',
+    productCode: '101N144V02',
+    planNumber: 'HDFC_LIFE601',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Pension Plan',
+    productCode: '101N144V03',
+    planNumber: 'HDFC_LIFE602',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Systematic Pension Plan',
+    productCode: '101N144V04',
+    planNumber: 'HDFC_LIFE603',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V01',
+    planNumber: 'HDFC_LIFE604',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V02',
+    planNumber: 'HDFC_LIFE605',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V03',
+    planNumber: 'HDFC_LIFE606',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V04',
+    planNumber: 'HDFC_LIFE607',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V05',
+    planNumber: 'HDFC_LIFE608',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V06',
+    planNumber: 'HDFC_LIFE609',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V07',
+    planNumber: 'HDFC_LIFE610',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Super',
+    productCode: '101N145V08',
+    planNumber: 'HDFC_LIFE611',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V01',
+    planNumber: 'HDFC_LIFE612',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V02',
+    planNumber: 'HDFC_LIFE613',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V03',
+    planNumber: 'HDFC_LIFE614',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V04',
+    planNumber: 'HDFC_LIFE615',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V05',
+    planNumber: 'HDFC_LIFE616',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V06',
+    planNumber: 'HDFC_LIFE617',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V07',
+    planNumber: 'HDFC_LIFE618',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Income Insurance Plan',
+    productCode: '101N146V08',
+    planNumber: 'HDFC_LIFE619',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Secured Income Insurance Plan',
+    productCode: '101N147V01',
+    planNumber: 'HDFC_LIFE620',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Secured Income Insurance RP',
+    productCode: '101N148V01',
+    planNumber: 'HDFC_LIFE621',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Fulfilling Life',
+    productCode: '101N149V01',
+    planNumber: 'HDFC_LIFE622',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Fulfilling Life ',
+    productCode: '101N149V02',
+    planNumber: 'HDFC_LIFE623',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Creating Life Insurance Regular Pay ',
+    productCode: '101N150V01',
+    planNumber: 'HDFC_LIFE624',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Gain Plus',
+    productCode: '101N151V01',
+    planNumber: 'HDFC_LIFE625',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Gain Plus',
+    productCode: '101N151V02',
+    planNumber: 'HDFC_LIFE626',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Gain Plus',
+    productCode: '101N151V03',
+    planNumber: 'HDFC_LIFE627',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Advantage Plan',
+    productCode: '101N152V01',
+    planNumber: 'HDFC_LIFE628',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Advantage Plan',
+    productCode: '101N152V02',
+    planNumber: 'HDFC_LIFE629',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Advantage Plan',
+    productCode: '101N152V03',
+    planNumber: 'HDFC_LIFE630',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Term Edge',
+    productCode: '101N153V01',
+    planNumber: 'HDFC_LIFE631',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Assured Income Plan',
+    productCode: '101N155V01',
+    planNumber: 'HDFC_LIFE632',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life My Assured Income Plan',
+    productCode: '101N155V02',
+    planNumber: 'HDFC_LIFE633',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Bachat',
+    productCode: '101N157V01',
+    planNumber: 'HDFC_LIFE634',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V01',
+    planNumber: 'HDFC_LIFE635',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V02',
+    planNumber: 'HDFC_LIFE636',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V03',
+    planNumber: 'HDFC_LIFE637',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V04',
+    planNumber: 'HDFC_LIFE638',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorna Jeevan',
+    productCode: '101N158V05',
+    planNumber: 'HDFC_LIFE639',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Term Pro',
+    productCode: '101N159V01',
+    planNumber: 'HDFC_LIFE640',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan  ',
+    productCode: '101N160V01',
+    planNumber: 'HDFC_LIFE641',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan  ',
+    productCode: '101N160V02',
+    planNumber: 'HDFC_LIFE642',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan  ',
+    productCode: '101N160V03',
+    planNumber: 'HDFC_LIFE643',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Saral Jeevan',
+    productCode: '101N160V04',
+    planNumber: 'HDFC_LIFE644',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanjeevani ',
+    productCode: '101N161V01',
+    planNumber: 'HDFC_LIFE645',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Term with Return of Premium',
+    productCode: '101N163V01',
+    planNumber: 'HDFC_LIFE646',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V01',
+    planNumber: 'HDFC_LIFE647',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V02',
+    planNumber: 'HDFC_LIFE648',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V03',
+    planNumber: 'HDFC_LIFE649',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V04',
+    planNumber: 'HDFC_LIFE650',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V05',
+    planNumber: 'HDFC_LIFE651',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V06',
+    planNumber: 'HDFC_LIFE652',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V07',
+    planNumber: 'HDFC_LIFE653',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V08',
+    planNumber: 'HDFC_LIFE654',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V09',
+    planNumber: 'HDFC_LIFE655',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V10',
+    planNumber: 'HDFC_LIFE656',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V11',
+    planNumber: 'HDFC_LIFE657',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Guaranteed Wealth Plus',
+    productCode: '101N165V12',
+    planNumber: 'HDFC_LIFE658',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Income Plan',
+    productCode: '101N166V01',
+    planNumber: 'HDFC_LIFE659',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Income Plan',
+    productCode: '101N166V02',
+    planNumber: 'HDFC_LIFE660',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Star Saver',
+    productCode: '101N167V01',
+    planNumber: 'HDFC_LIFE661',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Star Saver',
+    productCode: '101N167V02',
+    planNumber: 'HDFC_LIFE662',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Creating Life Insurance Plus',
+    productCode: '101N168V01',
+    planNumber: 'HDFC_LIFE663',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Plus',
+    productCode: '101N169V01',
+    planNumber: 'HDFC_LIFE664',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Plus',
+    productCode: '101N169V02',
+    planNumber: 'HDFC_LIFE665',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Micro Term Insurance',
+    productCode: '101N171V01',
+    planNumber: 'HDFC_LIFE666',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Loan Suraksha',
+    productCode: '101N172V01',
+    planNumber: 'HDFC_LIFE667',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V01',
+    planNumber: 'HDFC_LIFE668',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V02',
+    planNumber: 'HDFC_LIFE669',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V03',
+    planNumber: 'HDFC_LIFE670',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V04',
+    planNumber: 'HDFC_LIFE671',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V05',
+    planNumber: 'HDFC_LIFE672',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V06',
+    planNumber: 'HDFC_LIFE673',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V07',
+    planNumber: 'HDFC_LIFE674',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V08',
+    planNumber: 'HDFC_LIFE675',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V09',
+    planNumber: 'HDFC_LIFE676',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V10',
+    planNumber: 'HDFC_LIFE677',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V11',
+    planNumber: 'HDFC_LIFE678',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plus',
+    productCode: '101N173V12',
+    planNumber: 'HDFC_LIFE679',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Traditional Secure Plan',
+    productCode: '101N174V01',
+    planNumber: 'HDFC_LIFE680',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Elite',
+    productCode: '101N176V01',
+    planNumber: 'HDFC_LIFE681',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Elite',
+    productCode: '101N176V02',
+    planNumber: 'HDFC_LIFE682',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Legacy',
+    productCode: '101N177V01',
+    planNumber: 'HDFC_LIFE683',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Legacy',
+    productCode: '101N177V02',
+    planNumber: 'HDFC_LIFE684',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Legacy',
+    productCode: '101N177V03',
+    planNumber: 'HDFC_LIFE685',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Protect Supreme',
+    productCode: '101N183V01',
+    planNumber: 'HDFC_LIFE686',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Term Insurance Plus',
+    productCode: '101N184V01',
+    planNumber: 'HDFC_LIFE687',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V01',
+    planNumber: 'HDFC_LIFE688',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V02',
+    planNumber: 'HDFC_LIFE689',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V03',
+    planNumber: 'HDFC_LIFE690',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V04',
+    planNumber: 'HDFC_LIFE691',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V05',
+    planNumber: 'HDFC_LIFE692',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Achieve',
+    productCode: '101N186V06',
+    planNumber: 'HDFC_LIFE693',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sanchay Aajeevan Guaranteed Advantage',
+    productCode: '101N208V01',
+    planNumber: 'HDFC_LIFE694',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Crest',
+    productCode: '101L064V02',
+    planNumber: 'HDFC_LIFE695',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Crest',
+    productCode: '101L064V03',
+    planNumber: 'HDFC_LIFE696',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Youngstar Super II',
+    productCode: '101L065V01',
+    planNumber: 'HDFC_LIFE697',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Super II',
+    productCode: '101L066V02',
+    planNumber: 'HDFC_LIFE698',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Super II',
+    productCode: '101L066V03',
+    planNumber: 'HDFC_LIFE699',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Super II',
+    productCode: '101L066V04',
+    planNumber: 'HDFC_LIFE700',
+    providerCode: 'HDFC_LIFE'
+  },
+   {
+    productName: 'HDFC SL ProGrowth Super II',
+    productCode: '101L066V05',
+    planNumber: 'HDFC_LIFE701',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Maximiser',
+    productCode: '101L067V02',
+    planNumber: 'HDFC_LIFE702',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Maximiser',
+    productCode: '101L067V03',
+    planNumber: 'HDFC_LIFE703',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Young Star Super Premium',
+    productCode: '101L068V02',
+    planNumber: 'HDFC_LIFE704',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Young Star Super Premium',
+    productCode: '101L068V03',
+    planNumber: 'HDFC_LIFE705',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Flexi',
+    productCode: '101L072V02',
+    planNumber: 'HDFC_LIFE706',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Flexi',
+    productCode: '101L072V03',
+    planNumber: 'HDFC_LIFE707',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Flexi',
+    productCode: '101L072V04',
+    planNumber: 'HDFC_LIFE708',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL ProGrowth Flexi',
+    productCode: '101L072V05',
+    planNumber: 'HDFC_LIFE709',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Group Unit Linked Option I',
+    productCode: '101L073V01',
+    planNumber: 'HDFC_LIFE710',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL pension Maximus',
+    productCode: '101L074V01',
+    planNumber: 'HDFC_LIFE711',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus ',
+    productCode: '101L081V02',
+    planNumber: 'HDFC_LIFE712',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus ',
+    productCode: '101L081V03',
+    planNumber: 'HDFC_LIFE713',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus ',
+    productCode: '101L081V04',
+    planNumber: 'HDFC_LIFE714',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus ',
+    productCode: '101L081V05',
+    planNumber: 'HDFC_LIFE715',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC SL Pro Growth Plus ',
+    productCode: '101L081V06',
+    planNumber: 'HDFC_LIFE716',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Women Plan ',
+    productCode: '101L082V02',
+    planNumber: 'HDFC_LIFE717',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Women Plan ',
+    productCode: '101L082V03',
+    planNumber: 'HDFC_LIFE718',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Invest Wise ',
+    productCode: '101L083V02',
+    planNumber: 'HDFC_LIFE719',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Super Plus ',
+    productCode: '101L085V02',
+    planNumber: 'HDFC_LIFE720',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Pension Super Plus ',
+    productCode: '101L085V03',
+    planNumber: 'HDFC_LIFE721',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Single Premium Pension  Super',
+    productCode: '101L086V01',
+    planNumber: 'HDFC_LIFE722',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Single Premium Pension  Super',
+    productCode: '101L086V02',
+    planNumber: 'HDFC_LIFE723',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Single Premium Pension  Super',
+    productCode: '101L086V03',
+    planNumber: 'HDFC_LIFE724',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Unit Linked Pension Plan',
+    productCode: '101L093V01',
+    planNumber: 'HDFC_LIFE725',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Group Unit Linked Plan',
+    productCode: '101L094V01',
+    planNumber: 'HDFC_LIFE726',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life New Group Unit Linked Plan',
+    productCode: '101L094V02',
+    planNumber: 'HDFC_LIFE727',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest - ULIP',
+    productCode: '101L100V01',
+    planNumber: 'HDFC_LIFE728',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest - ULIP',
+    productCode: '101L100V02',
+    planNumber: 'HDFC_LIFE729',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest - ULIP',
+    productCode: '101L100V03',
+    planNumber: 'HDFC_LIFE730',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest - ULIP',
+    productCode: '101L100V04',
+    planNumber: 'HDFC_LIFE731',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest - ULIP',
+    productCode: '101L100V05',
+    planNumber: 'HDFC_LIFE732',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Nivesh',
+    productCode: '101L103V01',
+    planNumber: 'HDFC_LIFE733',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Nivesh',
+    productCode: '101L103V02',
+    planNumber: 'HDFC_LIFE734',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Sampoorn Nivesh',
+    productCode: '101L103V03',
+    planNumber: 'HDFC_LIFE735',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Retire',
+    productCode: '101L108V01',
+    planNumber: 'HDFC_LIFE736',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Retire',
+    productCode: '101L108V02',
+    planNumber: 'HDFC_LIFE737',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Retire',
+    productCode: '101L108V03',
+    planNumber: 'HDFC_LIFE738',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Retire',
+    productCode: '101L108V04',
+    planNumber: 'HDFC_LIFE739',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Retire',
+    productCode: '101L108V05',
+    planNumber: 'HDFC_LIFE740',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Pension Plan',
+    productCode: '101L109V01',
+    planNumber: 'HDFC_LIFE741',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Pension Plan',
+    productCode: '101L109V02',
+    planNumber: 'HDFC_LIFE742',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Pension Plan',
+    productCode: '101L109V03',
+    planNumber: 'HDFC_LIFE743',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Pension Plan',
+    productCode: '101L109V04',
+    planNumber: 'HDFC_LIFE744',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Assured Pension Plan',
+    productCode: '101L109V05',
+    planNumber: 'HDFC_LIFE745',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Capital Shield ',
+    productCode: '101L112V01',
+    planNumber: 'HDFC_LIFE746',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Capital Shield ',
+    productCode: '101L112V02',
+    planNumber: 'HDFC_LIFE747',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic One ',
+    productCode: '101L132V01',
+    planNumber: 'HDFC_LIFE748',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic One ',
+    productCode: '101L132V02',
+    planNumber: 'HDFC_LIFE749',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Classic One ',
+    productCode: '101L132V03',
+    planNumber: 'HDFC_LIFE750',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Wealth',
+    productCode: '101L133V01',
+    planNumber: 'HDFC_LIFE751',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Wealth',
+    productCode: '101L133V02',
+    planNumber: 'HDFC_LIFE752',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Elite',
+    productCode: '101L154V01',
+    planNumber: 'HDFC_LIFE753',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Builder',
+    productCode: '101L156V01',
+    planNumber: 'HDFC_LIFE754',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Wealth Maxima',
+    productCode: '101L162V01',
+    planNumber: 'HDFC_LIFE755',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V01',
+    planNumber: 'HDFC_LIFE756',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V02',
+    planNumber: 'HDFC_LIFE757',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V03',
+    planNumber: 'HDFC_LIFE758',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V04',
+    planNumber: 'HDFC_LIFE759',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V05',
+    planNumber: 'HDFC_LIFE760',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V06',
+    planNumber: 'HDFC_LIFE761',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Pension Plan',
+    productCode: '101L164V07',
+    planNumber: 'HDFC_LIFE762',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Gratuity Product',
+    productCode: '101L170V01',
+    planNumber: 'HDFC_LIFE763',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V01',
+    planNumber: 'HDFC_LIFE764',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V02',
+    planNumber: 'HDFC_LIFE765',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V03',
+    planNumber: 'HDFC_LIFE766',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V04',
+    planNumber: 'HDFC_LIFE767',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V05',
+    planNumber: 'HDFC_LIFE768',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V06',
+    planNumber: 'HDFC_LIFE769',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V07',
+    planNumber: 'HDFC_LIFE770',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V08',
+    planNumber: 'HDFC_LIFE771',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V09',
+    planNumber: 'HDFC_LIFE772',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Smart Protect Plan',
+    productCode: '101L175V10',
+    planNumber: 'HDFC_LIFE773',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Click 2 Invest',
+    productCode: '101L178V01',
+    planNumber: 'HDFC_LIFE774',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Unit Linked Future Secure Plan',
+    productCode: '101L185V01',
+    planNumber: 'HDFC_LIFE775',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Benefit',
+    productCode: '101B001V01',
+    planNumber: 'HDFC_LIFE776',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Benefit',
+    productCode: '101B001V02',
+    planNumber: 'HDFC_LIFE777',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Benefit',
+    productCode: '101B001V03',
+    planNumber: 'HDFC_LIFE778',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Double Sum Assured Benefit',
+    productCode: '101B002V01',
+    planNumber: 'HDFC_LIFE779',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Additional Term Benefit',
+    productCode: '101B002V02',
+    planNumber: 'HDFC_LIFE780',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Waiver of Premium Benefit',
+    productCode: '101B003V01',
+    planNumber: 'HDFC_LIFE781',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit',
+    productCode: '101B004V01',
+    planNumber: 'HDFC_LIFE782',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit',
+    productCode: '101B004V02',
+    planNumber: 'HDFC_LIFE783',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit',
+    productCode: '101B004V03',
+    planNumber: 'HDFC_LIFE784',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total and Partial Permanent Disability Benefit',
+    productCode: '101B005V01',
+    planNumber: 'HDFC_LIFE785',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total and Partial Permanent Disability Benefit',
+    productCode: '101B005V02',
+    planNumber: 'HDFC_LIFE786',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total and Partial Permanent Disability Benefit',
+    productCode: '101B005V03',
+    planNumber: 'HDFC_LIFE787',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total and Partial Permanent Disability Benefit',
+    productCode: '101B005V05',
+    planNumber: 'HDFC_LIFE788',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total Permanent Disability Benefit',
+    productCode: '101B006V01',
+    planNumber: 'HDFC_LIFE789',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total Permanent Disability Benefit',
+    productCode: '101B006V02',
+    planNumber: 'HDFC_LIFE790',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Total Permanent Disability Benefit',
+    productCode: '101B006V03',
+    planNumber: 'HDFC_LIFE791',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit',
+    productCode: '101B007V01',
+    planNumber: 'HDFC_LIFE792',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit ',
+    productCode: '101B007V02',
+    planNumber: 'HDFC_LIFE793',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Benefit ',
+    productCode: '101B007V03',
+    planNumber: 'HDFC_LIFE794',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Benefit',
+    productCode: '101B008V01',
+    planNumber: 'HDFC_LIFE795',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accident Death Benefit ',
+    productCode: '101B008V02',
+    planNumber: 'HDFC_LIFE796',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accident Death Benefit ',
+    productCode: '101B008V03',
+    planNumber: 'HDFC_LIFE797',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Benefit Rider',
+    productCode: '101B008V05',
+    planNumber: 'HDFC_LIFE798',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Terminal Illness Benefit',
+    productCode: '101B009V01',
+    planNumber: 'HDFC_LIFE799',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Terminal Illness Benefit ',
+    productCode: '101B009V02',
+    planNumber: 'HDFC_LIFE800',
+    providerCode: 'HDFC_LIFE'
+  },
+   {
+    productName: 'HDFC Life Accelerated Sum Assured Benefit',
+    productCode: '101B010V01',
+    planNumber: 'HDFC_LIFE801',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accelerated Sum Assured Benefit',
+    productCode: '101B010V02',
+    planNumber: 'HDFC_LIFE802',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Accelerated Critical Illness Rider',
+    productCode: '101B011V01',
+    planNumber: 'HDFC_LIFE803',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Accelerated Critical Illness Rider',
+    productCode: '101B011V02',
+    planNumber: 'HDFC_LIFE804',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group ADB Rider',
+    productCode: '101B012V01',
+    planNumber: 'HDFC_LIFE805',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group ADB Rider',
+    productCode: '101B012V02',
+    planNumber: 'HDFC_LIFE806',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Benefit on Accidental Disability Rider',
+    productCode: '101B013V01',
+    planNumber: 'HDFC_LIFE807',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Benefit on Accidental Disability Rider',
+    productCode: '101B013V02',
+    planNumber: 'HDFC_LIFE808',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Critical Illness Plus Rider ',
+    productCode: '101B014V01',
+    planNumber: 'HDFC_LIFE809',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Critical Illness Plus Rider ',
+    productCode: '101B015V01',
+    planNumber: 'HDFC_LIFE810',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Critical Illness Plus Rider ',
+    productCode: '101B015V02',
+    planNumber: 'HDFC_LIFE811',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Critical Illness Plus Rider ',
+    productCode: '101B015V03',
+    planNumber: 'HDFC_LIFE812',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Accidental Death Disability and Dismemberment Benefit',
+    productCode: '101B017V01',
+    planNumber: 'HDFC_LIFE813',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Critical Illness Rider',
+    productCode: '101B018V01',
+    planNumber: 'HDFC_LIFE814',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Term Rider',
+    productCode: '101B019V01',
+    planNumber: 'HDFC_LIFE815',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Illness Rider',
+    productCode: '101B020V01',
+    planNumber: 'HDFC_LIFE816',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Group Illness Rider',
+    productCode: '101B020V02',
+    planNumber: 'HDFC_LIFE817',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Plus Rider',
+    productCode: '101B031V01',
+    planNumber: 'HDFC_LIFE818',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Plus Rider – Non Linked',
+    productCode: '101B031V02',
+    planNumber: 'HDFC_LIFE819',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Waiver of Premium Rider',
+    productCode: '101B032V01',
+    planNumber: 'HDFC_LIFE820',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Waiver of Premium Rider – Non Linked',
+    productCode: '101B032V02',
+    planNumber: 'HDFC_LIFE821',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life LiveWell Rider – Non Linked',
+    productCode: '101B033V01',
+    planNumber: 'HDFC_LIFE822',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Health Plus Rider – Linked',
+    productCode: '101A034V01',
+    planNumber: 'HDFC_LIFE823',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Waiver of Premium Rider – Linked',
+    productCode: '101A035V01',
+    planNumber: 'HDFC_LIFE824',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life LiveWell Rider – Linked',
+    productCode: '101A036V01',
+    planNumber: 'HDFC_LIFE825',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Protect Plus Rider - Linked',
+    productCode: '101A037V01',
+    planNumber: 'HDFC_LIFE826',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Benefit on Accidental Disability Rider-Linked',
+    productCode: '101A038V01',
+    planNumber: 'HDFC_LIFE827',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Daily Hospi Cash Benefit Rider',
+    productCode: '101B039V01',
+    planNumber: 'HDFC_LIFE828',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Protect Plus Rider – Non Linked',
+    productCode: '101B040V01',
+    planNumber: 'HDFC_LIFE829',
+    providerCode: 'HDFC_LIFE'
+  },
+  {
+    productName: 'HDFC Life Income Benefit on Accidental Disability Rider - Non-Linked',
+    productCode: '101B041V01',
+    planNumber: 'HDFC_LIFE830',
+    providerCode: 'HDFC_LIFE'
+  }
+  
 ];
