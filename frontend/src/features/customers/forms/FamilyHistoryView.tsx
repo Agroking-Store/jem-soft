@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchFamilyHistory, clearCurrentRecord } from "../familyHistorySlice";
 import { ArrowLeft, Edit2, ShieldAlert, ChevronRight, FileText } from "lucide-react";
-import { formatFamilyHistoryDate } from "./FamilyHistoryList";
-import { CustomerSectionCard, CustomerTableFrame } from "@/features/customers/components/CustomerUi";
+import { formatFamilyHistoryDate, CustomerSectionCard, CustomerTableFrame } from "@/features/customers/components/CustomerUi";
 
 interface FamilyHistoryViewProps {
   recordId: string;

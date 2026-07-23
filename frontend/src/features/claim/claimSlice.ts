@@ -15,8 +15,51 @@ export interface Claim {
   createdAt: string;
   updatedAt: string;
    policy: {
-    policyNumber: string;
+    id: string;
+  clientId: string;
+  CustomerMasterId: string;
+  providerId: string;
+  productId: string;
+  statusId: string;
+  premiumModeId: string;
+  advisorId?: string | null;
+  branchId?: string | null;
+  policyNumber: string;
+  proposalNumber?: string | null;
+  issueDate?: string | null;
+  commencementDate: string;
+  maturityDate?: string | null;
+  policyTerm?: number | null;
+  premiumPayingTerm?: number | null;
+  nextPremiumDueDate?: string | null;
+  remarks?: string | null;
+  createdAt: string;
+  updatedAt: string;
+    CustomerMaster: {
+    id: string;
+    salutation?: string | null;
+    firstName: string;
+    middleName?: string | null;
+    lastName: string;
+  } | null;
+  product?: {
+    id: string;
+    productName: string;
+    planNumber?: string | null;
+  } | null;
+  status?: {
+    id: string;
+    statusName: string;
+    statusCode: string;
+  } | null;
+  premium?: {
+    id: string;
+    sumAssured: number;
+    installmentPremium: number;
+    totalInstallmentPremium: number;
+  } | null;
   };
+   
 }
 
 export interface CreateClaimPayload {

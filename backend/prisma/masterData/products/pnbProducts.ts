@@ -1,5 +1,5 @@
 export const pnbProducts = [
-      //PNB METLIFE
+  //PNB METLIFE
 
   {
     productName: "PNB MetLife Group Term Life Plus",
@@ -254,6 +254,71 @@ export const pnbProducts = [
     planNumber: "PM042",
     providerCode: "PNB_METLIFE",
   },
+
+  {
+    productName: "PNB MetLife 360 Health Saving Plan",
+    productCode: "117L143V01",
+    planNumber: "PM043",
+    providerCode: "PNB_METLIFE",
+    productType: "ULIP / Health Savings",
+  },
+  //PNB WITHDRAWN POLICIES
+  {
+    productName: "PNB MetLife Family Income Protector Plus",
+    productCode: "117N086V04",
+    planNumber: "PM044",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Income Protection Plan",
+    productCode: "117N103V02",
+    planNumber: "PM045",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Mera Jeevan Suraksha Plan",
+    productCode: "117N102V02",
+    planNumber: "PM046",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Guaranteed Savings Plan",
+    productCode: "117N096V03",
+    planNumber: "PM047",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Guaranteed Income Plan",
+    productCode: "117N097V04",
+    planNumber: "PM048",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Endowment Savings Plan Plus",
+    productCode: "117N099V02",
+    planNumber: "PM049",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Mera Term Plan",
+    productCode: "117N092V03",
+    planNumber: "PM050",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
+  {
+    productName: "PNB MetLife Superannuation",
+    productCode: "117N078V02",
+    planNumber: "PM051",
+    providerCode: "PNB_METLIFE",
+    productType: "Withdrawn",
+  },
    {
     productName: "PNB MetLife Money Back Plan",
     productCode: "117N081V03",
@@ -274,3 +339,4 @@ export const pnbProducts = [
   },
  
 ];
+

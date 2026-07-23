@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNotificationStore } from "@/store/notificationStore";
+import { SearchableSelect } from "@/features/customers/components/CustomerUi";
+
 
 function getFullName(customer: {
     salutation?: string | null;
@@ -48,98 +50,6 @@ function getFullName(customer: {
     return [customer.salutation, customer.firstName, customer.middleName, customer.lastName].filter(Boolean).join(" ");
 }
 
-// A reusable component for selecting a customer group with search functionality.
-const GroupAutoComplete = ({ value, onChange, groups }: { value: string; onChange: (id: string) => void; groups: { id: string; groupCode?: string | null; groupName?: string | null }[] }) => {
-    const [query, setQuery] = useState("");
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-    const selected = groups.find((g) => g.id === value);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
-    const filtered = groups.filter((g) => {
-        const q = query.toLowerCase();
-        return (g.groupName?.toLowerCase().includes(q) || g.groupCode?.toLowerCase().includes(q));
-    }).slice(0, 10);
-
-
-    return (
-        <div ref={ref} className="relative">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-                Group Name <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
-                <input
-                    value={selected ? `${selected.groupCode ? `[${selected.groupCode}] ` : ""}${selected.groupName || ""}` : query}
-                    onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
-                    onFocus={() => setOpen(true)}
-                    placeholder="Search group by name or code..."
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9"
-                />
-                {selected && (
-                    <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                        <X size={13} />
-                    </button>
-                )}
-            </div>
-            {open && filtered.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
-                    {filtered.map((g) => (
-                        <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left">
-                            <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
-                            <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const AdvisorAutoComplete = ({ value, onChange, advisors }: { value: string; onChange: (id: string) => void; advisors: { id: string; advisorCode: string; advisorName: string }[] }) => {
-    const [query, setQuery] = useState("");
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-    const selected = advisors.find((a) => a.id === value);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
-    const filtered = advisors.filter((a) => {
-        const q = query.toLowerCase();
-        return (a.advisorName.toLowerCase().includes(q) || a.advisorCode.toLowerCase().includes(q));
-    }).slice(0, 10);
-
-    return (
-        <div ref={ref} className="relative">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Advisor</label>
-            <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
-                <input
-                    value={selected ? `[${selected.advisorCode}] ${selected.advisorName}` : query}
-                    onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
-                    onFocus={() => setOpen(true)}
-                    placeholder="Search advisor by name or code..."
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm pl-9"
-                />
-                {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>)}
-            </div>
-            {open && filtered.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
-                    {filtered.map((a) => (<button key={a.id} type="button" onClick={() => { onChange(a.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{a.advisorCode}</span><span className="text-sm font-medium text-slate-800">{a.advisorName}</span></button>))}
-                </div>
-            )}
-        </div>
-    );
-};
 
 const riderSchema = z.object({
     description: z.string().min(1, "Description is required"),
@@ -244,6 +154,7 @@ const policySchema = z.object({
 
     advisorId: z.string().optional(),
     agentCode: z.string().optional(),
+    accountHolderName: z.string().optional(),
     branchId: z.string().optional(),
 });
 
@@ -353,6 +264,10 @@ export default function EditLICPolicyPage() {
 
             branchId: policyBranch?.branchCode ?? "",
 
+            accountHolderName: selectedPolicy.CustomerMaster
+                ? getFullName(selectedPolicy.CustomerMaster)
+                : "",
+
             term: selectedPolicy.policyTerm ?? undefined,
 
             ppt:
@@ -446,6 +361,10 @@ export default function EditLICPolicyPage() {
         setValue("age", member?.dob ? String(new Date().getFullYear() - new Date(member.dob).getFullYear()) : "");
         setValue("gender", member?.gender || "");
         setValue("pan", member?.panNumber || "");
+
+        if (member) {
+            setValue("accountHolderName", getFullName(member));
+        }
     }, [watchLifeAssuredId, masterCustomers, setValue]);
 
     const providerTypes = useMemo(() => {
@@ -462,24 +381,12 @@ export default function EditLICPolicyPage() {
     }, [watchProviderId, providers]);
     const isLicProviderSelected = selectedProvider?.code === 'LIC';
 
-    const productTypesForProvider = useMemo(() => {
-        if (!watchProviderId) return [];
-        const providerProducts = products.filter(p => p.providerId === watchProviderId);
-        const types = [...new Set(providerProducts.map(p => p.productType).filter(Boolean) as string[])];
-        return types.sort();
-    }, [watchProviderId, products]);
 
     const filteredProducts = useMemo(() => {
-        if (!watchProviderId) return [];
-
-        let providerProducts = products.filter((p) => p.providerId === watchProviderId);
-
-        if (watchProductType && isLicProviderSelected) {
-            providerProducts = providerProducts.filter(p => p.productType === watchProductType);
-        }
-        return providerProducts.sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
-    }, [watchProviderId, watchProductType, products]);
-
+        return [...products].sort((a, b) =>
+            (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
+        );
+    }, [products]);
 
 
     useEffect(() => {
@@ -690,12 +597,21 @@ export default function EditLICPolicyPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                             <Controller
-                                name="groupId"
-                                control={control}
-                                render={({ field }) => (
-                                    <GroupAutoComplete value={field.value} onChange={field.onChange} groups={groups} />
-                                )}
-                            />
+                  name="groupId"
+                  control={control}
+                  render={({ field }) => (
+                    <SearchableSelect
+                      label="Group Name"
+                      required
+                      placeholder="Search group..."
+                      searchPlaceholder="Search by name or code"
+                      options={groups.map(g => ({ value: g.id, label: g.groupName || "Unnamed", sublabel: g.groupCode }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.groupId?.message}
+                    />
+                  )}
+                />
                             {errors.groupId && <p className="text-xs text-red-500 mt-1">{errors.groupId.message}</p>}
                         </div>
                         <div>
@@ -795,57 +711,8 @@ export default function EditLICPolicyPage() {
                                 Policy Details
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Provider Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("providerType")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    >
-                                        <option value="">Select Provider Type</option>
-                                        {providerTypes.map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </select>
-                                    {errors.providerType && <p className="text-xs text-red-500 mt-1">{errors.providerType.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Provider Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("providerId")}
-                                        disabled={!watchProviderType}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                    >
-                                        <option value="">Select Provider</option>
-                                        {filteredProviders.map((provider) => (
-                                            <option key={provider.id} value={provider.id}>{provider.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.providerId && <p className="text-xs text-red-500 mt-1">{errors.providerId.message}</p>}
-                                </div>
-                                {isLicProviderSelected && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                                            Product Type
-                                        </label>
-                                        <select
-                                            {...register("productType")}
-                                            disabled={!watchProviderId || productTypesForProvider.length === 0}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                        >
-                                            <option value="">All Product Types</option>
-                                            {productTypesForProvider.map((type) => (
-                                                <option key={type} value={type}>
-                                                    {type}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.productType && <p className="text-xs text-red-500 mt-1">{errors.productType.message}</p>}
-                                    </div>
-                                )}
+
+
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
                                         Policy Number <span className="text-red-500">*</span>
@@ -859,24 +726,35 @@ export default function EditLICPolicyPage() {
                                     {errors.policyNumber && <p className="text-xs text-red-500 mt-1">{errors.policyNumber.message}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Plan <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        {...register("productId")}
-                                        disabled={!watchProviderId || filteredProducts.length === 0}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50"
-                                    >
-                                        <option value="">
-                                            {watchProviderId ? (filteredProducts.length > 0 ? "Select a plan" : "No plans for this provider") : "Select a provider first"}
-                                        </option>
-                                        {filteredProducts.map((product) => (
-                                            <option key={product.id} value={product.id}>
-                                                {product.planNumber ? `[${product.planNumber}] ` : ""}{product.productName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
+                  <Controller
+                    name="productId"
+                    control={control}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Plan"
+                        required
+                        placeholder="Search plan..."
+                        searchPlaceholder="Search by name or number"
+                        options={filteredProducts.map(p => ({ value: p.id, label: p.productName, sublabel: `Plan No. ${p.planNumber}` }))}
+                        value={field.value || ""}
+                        onChange={(productId) => {
+                          field.onChange(productId);
+                          const selectedProduct = products.find((p) => p.id === productId);
+                          if (selectedProduct) {
+                            setValue("providerId", selectedProduct.providerId);
+                            if (selectedProduct.productType) setValue("productType", selectedProduct.productType);
+                          }
+                        }}
+                        error={errors.productId?.message}
+                      />
+                    )}
+                  />
+
+                                    {errors.productId && (
+                                        <p className="text-xs text-red-500 mt-1">
+                                            {errors.productId.message}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -935,29 +813,6 @@ export default function EditLICPolicyPage() {
                                         className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
                                     />
                                     {errors.ppt && <p className="text-xs text-red-500 mt-1">{errors.ppt.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Extra Class
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("extraClass")}
-                                        placeholder="Extra class"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Rate %
-                                    </label>
-                                    <input
-                                        type="number"
-                                        {...register("ratePercent")}
-                                        placeholder="Rate %"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.ratePercent && <p className="text-xs text-red-500 mt-1">{errors.ratePercent.message}</p>}
                                 </div>
                             </div>
                         </div>
@@ -1027,15 +882,14 @@ export default function EditLICPolicyPage() {
                                                         {errors.riders?.[index]?.ppt && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.ppt?.message}</p>}
                                                     </td>
                                                     <td className="px-2 py-1.5">
-                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500">
-                                                            <option value="">Mode</option>
-                                                            {modes.map(mode => (
-                                                                <option key={mode.id} value={mode.modeName}>
-                                                                    {mode.modeName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        {errors.riders?.[index]?.mode && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>}
+                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" defaultValue="">
+                                                          <option value="">Mode</option>
+                                                          {modes.map(mode => (
+                                                              <option key={mode.id} value={mode.modeName}>
+                                                                  {mode.modeName}
+                                                              </option>
+                                                          ))}
+                                                      </select>
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
@@ -1259,13 +1113,19 @@ export default function EditLICPolicyPage() {
                             <h3 className="text-base font-semibold text-slate-800 mb-4">Advisor Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Controller
-                                        name="advisorId"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={advisors} />
-                                        )}
-                                    />
+                  <Controller
+                    name="advisorId"
+                    control={control}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Advisor"
+                        placeholder="Search advisor..."
+                        options={advisors.map(a => ({ value: a.id, label: a.advisorName, sublabel: a.advisorCode }))}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Agent Code</label>
@@ -1297,6 +1157,11 @@ export default function EditLICPolicyPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
                                     <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
+                                    <input
+                                        {...register("accountHolderName")}
+                                        type="text" placeholder="Enter account holder name"
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,5 @@
 export const productAttributeValues = [
   // LIC Products
-
   {
     productCode: "Single Premium Endowment Plan",
     attributeCode: "MIN_POLICY_TERM",
@@ -29,13 +28,14 @@ export const productAttributeValues = [
   {
     productCode: "Single Premium Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
   {
     productCode: "Single Premium Endowment Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "50,000,000",
   },
+
 
   {
     productCode: "LIC's New Jeevan Anand",
@@ -47,31 +47,33 @@ export const productAttributeValues = [
     attributeCode: "MAX_POLICY_TERM",
     value: "35",
   },
-    {
-        productCode: "LIC's New Jeevan Anand",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "18",    
-    },
-    {
-        productCode: "LIC's New Jeevan Anand",  
-        attributeCode: "MAX_ENTRY_AGE",
-        value: "50",
-    },
-    {   
-        productCode: "LIC's New Jeevan Anand",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "75",
-    },
-    {
-        productCode: "LIC's New Jeevan Anand",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "200000",
-    },
-    {   
-        productCode: "LIC's New Jeevan Anand",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "50000000",
-    },
+  {
+    productCode: "LIC's New Jeevan Anand",
+    attributeCode: "MIN_ENTRY_AGE",
+    value: "18",    
+  },
+  {
+    productCode: "LIC's New Jeevan Anand",        
+    attributeCode: "MAX_ENTRY_AGE",
+    value: "50",
+  },
+  {   
+    productCode: "LIC's New Jeevan Anand",
+    attributeCode: "MAX_MATURITY_AGE",
+    value: "75",
+  },
+  {
+    productCode: "LIC's New Jeevan Anand",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "2,00,000",
+  },
+  {   
+    productCode: "LIC's New Jeevan Anand",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "50,000,000",
+  },
+
+
 
   {
     productCode: "LIC's New Endowment Plan",
@@ -101,8 +103,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
 
   {
@@ -133,13 +136,15 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jeevan Lakshya",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
   {
     productCode: "LIC Jeevan Lakshya",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "500000000",
+    value: "50,000,0000",
   },
+
+
 
 
   {
@@ -170,8 +175,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jeevan Labh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
 
   {
@@ -202,8 +208,10 @@ export const productAttributeValues = [
   {
     productCode: "LIC Amritbaal",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
+
 
 
   {
@@ -234,8 +242,10 @@ export const productAttributeValues = [
   {
     productCode: "LIC Bima Jyoti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "125000",
+    value: "1,25,000",
   },
+
+
 
   
   {
@@ -266,8 +276,10 @@ export const productAttributeValues = [
   {
     productCode: "LIC Nav Jeevan Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
+
+
 
 
   {
@@ -293,8 +305,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC Bima Lakshmi",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
 
   {
@@ -335,8 +348,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Jeevan Sathi Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "3,00,000",
   },
+
 
 
   {
@@ -367,8 +381,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Jeevan Sathi Limited Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "3,00,000",
   },
+
 
 
   {
@@ -399,10 +414,11 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jeevan Umang",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
   
+
   {
     productCode: "LIC Jeevan Utsav",
     attributeCode: "MAX_POLICY_TERM",
@@ -426,8 +442,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jeevan Utsav",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
+
 
 
   {
@@ -453,17 +470,17 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MIN_POLICY_TERM",
-    value: "100",
+    value: "Up_To_100",
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MAX_POLICY_TERM",
-    value: "100",
+    value: "Up_To_100",
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
 
 
@@ -496,10 +513,11 @@ export const productAttributeValues = [
   {
     productCode: "LIC Bima Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1000000",
+    value: "10,00,000",
   },
 
   
+
   {
     productCode: "LIC New Money Back Plan 20 Years",
     attributeCode: "MIN_ENTRY_AGE",
@@ -528,40 +546,43 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Money Back Plan 20 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
 
+
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MIN_ENTRY_AGE",
     value: "13",
   },
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MAX_ENTRY_AGE",
     value: "45",
   },
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MIN_POLICY_TERM",
     value: "25",
   },
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MAX_POLICY_TERM",
     value: "25",
   },
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MAX_MATURITY_AGE",
     value: "70",
   },
   {
-    productCode: "LIC New Money Back Plan – 25 Years",
+    productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
+
 
  
   {
@@ -592,7 +613,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Children's Money Back Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
   
@@ -618,14 +639,20 @@ export const productAttributeValues = [
   },
   {
     productCode: "LIC Jeevan Tarun",
+    attributeCode: "MIN_MATURITY_AGE",
+    value: "25",
+  },
+  {
+    productCode: "LIC Jeevan Tarun",
     attributeCode: "MAX_MATURITY_AGE",
     value: "25",
   },
   {
     productCode: "LIC Jeevan Tarun",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
   
   {
@@ -656,13 +683,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC Digi Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50,00,000",
   },
   {
     productCode: "LIC Digi Term",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "50,000,000",
   },
+
 
 
   {
@@ -703,13 +731,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC Digi Credit Life",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50,00,000",
   },
   {
     productCode: "LIC Digi Credit Life",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "50,000,000",
   },
+
 
 
   {
@@ -759,6 +788,7 @@ export const productAttributeValues = [
   },
 
 
+
   {
     productCode: "LIC Yuva Term",
     attributeCode: "MIN_PPT",
@@ -806,6 +836,7 @@ export const productAttributeValues = [
   },
 
 
+
   {
     productCode: "LIC New Tech-Term",
     attributeCode: "MIN_PPT",
@@ -844,8 +875,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Tech-Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50,00,000",
   },
+
 
 
   {
@@ -881,8 +913,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC New Jeevan Amar",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "25,00,000",
   },
+
 
 
   {
@@ -918,13 +951,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC Saral Jeevan Bima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
   {
     productCode: "LIC Saral Jeevan Bima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2500000",
+    value: "25,00,000",
   },
+
 
 
   {
@@ -960,8 +994,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC Bima Kavach",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "20000000",
+    value: "20,000,000",
   },
+
 
 
   {
@@ -996,6 +1031,7 @@ export const productAttributeValues = [
   },
 
 
+
   {
     productCode: "LIC Jeevan Akshay VII",
     attributeCode: "MIN_PPT",
@@ -1016,6 +1052,17 @@ export const productAttributeValues = [
     attributeCode: "MAX_ENTRY_AGE",
     value: "85",
   },
+  {
+    productCode: "LIC Jeevan Akshay VII",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "Lifetime",
+  },
+  {
+    productCode: "LIC Jeevan Akshay VII",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "Lifetime",
+  },
+
 
 
   {
@@ -1050,6 +1097,7 @@ export const productAttributeValues = [
   },
 
 
+
   {
     productCode: "LIC Saral Pension",
     attributeCode: "MIN_PPT",
@@ -1070,6 +1118,18 @@ export const productAttributeValues = [
     attributeCode: "MAX_ENTRY_AGE",
     value: "80",
   },
+  {
+    productCode: "LIC Saral Pension",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "Lifetime",
+  },
+   {
+    productCode: "LIC Saral Pension",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "Lifetime",
+  },
+
+
 
 
   {
@@ -1092,8 +1152,19 @@ export const productAttributeValues = [
     attributeCode: "MAX_ENTRY_AGE",
     value: "100",
   },
+   {
+    productCode: "LIC Smart Pension",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "Lifetime",
+  },
+   {
+    productCode: "LIC Smart Pension",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "Lifetime",
+  },
 
   
+
   {
     productCode: "LIC Index Plus",
     attributeCode: "MIN_PPT",
@@ -1124,6 +1195,7 @@ export const productAttributeValues = [
     attributeCode: "MAX_POLICY_TERM",
     value: "25",
   },
+
 
 
   {
@@ -1222,6 +1294,7 @@ export const productAttributeValues = [
   },
 
 
+
   {
     productCode: "LIC Micro Bachat",
     attributeCode: "MIN_PPT",
@@ -1255,13 +1328,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC Micro Bachat",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
   {
     productCode: "LIC Micro Bachat",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
 
   {
@@ -1297,13 +1371,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC Jan Suraksha",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
   {
     productCode: "LIC Jan Suraksha",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
+
 
 
   {
@@ -1339,8 +1414,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Nav Jeevan Shree - Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
+
 
 
   {
@@ -1366,7 +1442,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Akshay VII",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
@@ -1403,7 +1479,7 @@ export const productAttributeValues = [
   {
     productCode: "lIC's New Jeevan Shanti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "150000",
+    value: "1,50,000",
   },
 
 
@@ -1440,8 +1516,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Nav Jeevan Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
+
 
 
   {
@@ -1474,6 +1551,7 @@ export const productAttributeValues = [
     attributeCode: "MAX_POLICY_TERM",
     value: "20",
   },
+
 
 
   {
@@ -1509,8 +1587,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Bima Ratna",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
+
 
 
   {
@@ -1546,13 +1625,14 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
+
 
 
   {
@@ -1588,7 +1668,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Dhan Vriddhi",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "125000",
+    value: "1,25,000",
   },
 
 
@@ -1625,7 +1705,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Jeevan Shanti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "150000",
+    value: "1,50,000",
   },
 
 
@@ -1652,7 +1732,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Dhara - II",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "11000",
+    value: "11,000",
   },
 
   
@@ -1844,7 +1924,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Index Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500",
+    value: "2,500",
   },
 
 
@@ -1881,7 +1961,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Endowment Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3000",
+    value: "3,000",
   },
 
 
@@ -1918,12 +1998,12 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Bhagya Lakshmi Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50000",
+    value: "50,000",
   },
   {
     productCode: "LIC's Bhagya Lakshmi Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
 
@@ -2083,6 +2163,38 @@ export const productAttributeValues = [
 
 
   {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MIN_ENTRY_AGE",
+    value: "0"
+  },
+  {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MAX_ENTRY_AGE",
+    value: "50"
+  },
+  {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "15"
+  },
+  {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "25"
+  },
+  {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "2,00,000"
+  },
+  {
+    productCode: "LIC's Jeevan Azad",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "5,00,000"
+  },
+
+
+  {
     productCode: "LIC's New Endowment Plan",
     attributeCode: "MIN_PPT",
     value: "12",
@@ -2115,7 +2227,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
@@ -2152,7 +2264,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Lakshya",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
@@ -2189,7 +2301,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Labh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
 
@@ -2226,12 +2338,12 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Aadhaar Stambh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
   {
     productCode: "LIC's Aadhaar Stambh",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
 
 
@@ -2268,12 +2380,12 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Aadhaar Shila",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
   {
     productCode: "LIC's Aadhaar Shila",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
 
 
@@ -2305,7 +2417,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Utsav",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "5,00,000",
   },
 
 
@@ -2337,7 +2449,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Umang",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
 
@@ -2374,7 +2486,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Dhan Rekha",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "2,00,000",
   },
 
 
@@ -2411,81 +2523,81 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Bima Bachat",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "35000",
+    value: "35,000",
   },
 
 
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MIN_PPT",
     value: "15",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MAX_PPT",
     value: "15",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MIN_ENTRY_AGE",
     value: "13",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MAX_ENTRY_AGE",
     value: "50",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MIN_POLICY_TERM",
     value: "20",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MAX_POLICY_TERM",
     value: "20",
   },
   {
-    productCode: "LIC's New Money Back Plan – 20 Years",
+    productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MIN_PPT",
     value: "20",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MAX_PPT",
     value: "20",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MIN_ENTRY_AGE",
     value: "13",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MAX_ENTRY_AGE",
     value: "45",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MIN_POLICY_TERM",
     value: "25",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MAX_POLICY_TERM",
     value: "25",
   },
   {
-    productCode: "LIC's New Money Back Plan – 25 Years",
+    productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
@@ -2512,7 +2624,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Children's Money Back Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "1,00,000",
   },
 
 
@@ -2549,7 +2661,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Tarun",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "75000",
+    value: "75,000",
   },
 
 
@@ -2586,7 +2698,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Jeevan Shiromani",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "10000000",
+    value: "10,000,000",
   },
 
 
@@ -2623,7 +2735,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's Bima Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1000000",
+    value: "10,00,000",
   },
 
 
@@ -2660,7 +2772,7 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Tech-Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50,00,000",
   },
 
   
@@ -2697,10 +2809,9 @@ export const productAttributeValues = [
   {
     productCode: "LIC's New Jeevan Amar",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "25,00,000",
   },
 
-  // LIC's Linked Accidental Death Benefit Rider
 {
   productCode: "LIC's Linked Accidental Death Benefit Rider",
   attributeCode: "MIN_ENTRY_AGE",
@@ -2734,12 +2845,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Linked Accidental Death Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10000",
+  value: "10,000",
 },
 {
   productCode: "LIC's Linked Accidental Death Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "10000000",
+  value: "10,000,000",
 },
 
 // LIC's Accident Benefit Rider
@@ -2776,12 +2887,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Accident Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "20000",
+  value: "20,000",
 },
 {
   productCode: "LIC's Accident Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "10000000",
+  value: "10,000,000",
 },
 
 // LIC's Premium Waiver Benefit Rider
@@ -2818,12 +2929,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Premium Waiver Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10000",
+  value: "10,000",
 },
 {
   productCode: "LIC's Premium Waiver Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "500000000",
+  value: "50,000,0000",
 },
 
 // LIC's New Critical Illness Benefit Rider
@@ -2860,12 +2971,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's New Critical Illness Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "100000",
+  value: "1,00,000",
 },
 {
   productCode: "LIC's New Critical Illness Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "2500000",
+  value: "25,00,000",
 },
 
 // LIC's New Term Assurance Rider
@@ -2902,12 +3013,33 @@ export const productAttributeValues = [
 {
   productCode: "LIC's New Term Assurance Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "100000",
+  value: "1,00,000",
 },
 {
   productCode: "LIC's New Term Assurance Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "2500000",
+  value: "25,00,000",
+},
+
+{
+  productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "18",
+},
+{
+  productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "55",
+},
+{
+  productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "25,000",
+},
+{
+  productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "1,00,00,000",
 },
 
 // LIC's Jeevan Akshay VII
@@ -2944,7 +3076,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Jeevan Akshay VII",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "100000",
+  value: "1,00,000",
 },
 {
   productCode: "LIC's Jeevan Akshay VII",
@@ -2986,7 +3118,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's New Jeevan Shanti",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "150000",
+  value: "1,50,000",
 },
 {
   productCode: "LIC's New Jeevan Shanti",
@@ -3028,7 +3160,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Jeevan Kiran",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1500000",
+  value: "15,00,000",
 },
 {
   productCode: "LIC's Jeevan Kiran",
@@ -3070,12 +3202,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Digi Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5000000",
+  value: "50,00,000",
 },
 {
   productCode: "LIC's Digi Term",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50000000",
+  value: "50,000,000",
 },
 
 // LIC's Yuva Term
@@ -3112,12 +3244,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Yuva Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5000000",
+  value: "50,00,000",
 },
 {
   productCode: "LIC's Yuva Term",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50000000",
+  value: "50,000,000",
 },
 
 // LIC's Cancer Cover
@@ -3154,12 +3286,12 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1000000",
+  value: "10,00,000",
 },
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "5000000",
+  value: "50,00,000",
 },
 
 // LIC's Dhan Varsha
@@ -3196,7 +3328,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Dhan Varsha",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "125000",
+  value: "1,25,000",
 },
 {
   productCode: "LIC's Dhan Varsha",
@@ -3238,7 +3370,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's New One Year Renewable Group Term Assurance Plan-I",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5000",
+  value: "5,000",
 },
 {
   productCode: "LIC's New One Year Renewable Group Term Assurance Plan-I",
@@ -3280,7 +3412,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's New One Year Renewal Group Term Assurance Plan-II",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5000",
+  value: "5,000",
 },
 {
   productCode: "LIC's New One Year Renewal Group Term Assurance Plan-II",
@@ -3322,7 +3454,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Tech Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5000000",
+  value: "50,00,000",
 },
 {
   productCode: "LIC's Tech Term",
@@ -3364,7 +3496,7 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Jeevan Amar",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "2500000",
+  value: "25,00,000",
 },
 {
   productCode: "LIC's Jeevan Amar",
@@ -3372,37 +3504,124 @@ export const productAttributeValues = [
   value: "NO_LIMIT",
 },
 
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "85",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "LIFETIME",
+},
+
 // Pradhan Mantri Vaya Vandana Yojana (Modified-2020)
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MIN_ENTRY_AGE",
   value: "60",
 },
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MAX_ENTRY_AGE",
   value: "NO_LIMIT",
 },
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MIN_PPT",
   value: "1",
 },
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MAX_PPT",
   value: "1",
 },
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MIN_POLICY_TERM",
   value: "10",
 },
 {
-  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  productCode: "Pradhan Mantri Vaya Vandana Yojana(Modified-2020)",
   attributeCode: "MAX_POLICY_TERM",
   value: "10",
 },
+
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "25",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "85",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "LIFETIME",
+},
+
+
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "79",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "1",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "12",
+},
+
+
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "79",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "1",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "12",
+},
+
 
 // LIC's Bachat Plus
 {
@@ -3438,10 +3657,52 @@ export const productAttributeValues = [
 {
   productCode: "LIC's Bachat Plus",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "100000",
+  value: "1,00,000",
 },
 {
   productCode: "LIC's Bachat Plus",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "NO_LIMIT",
+},
+
+// LIC's Saral Pension
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "40",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "80",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_PPT",
+  value: "1",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MAX_PPT",
+  value: "1",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "AGE_DEPENDENT",
+},
+{
+  productCode: "LIC's Saral Pension",
   attributeCode: "MAX_SUM_ASSURED",
   value: "NO_LIMIT",
 },
@@ -3572,6 +3833,59 @@ export const productAttributeValues = [
   value: "300000",
 },
 
+
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "85",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Jeevan Akshay VII",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "LIFETIME",
+},
+
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "79",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "1",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "12",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_AGE_MATURITY",
+  value: "31",
+},
+{
+  productCode: "LIC's New Jeevan Shanti",
+  attributeCode: "MIN_AGE_MATURITY",
+  value: "80",
+},
+
 // LIC's Bima Jyoti
 {
   productCode: "LIC's Bima Jyoti",
@@ -3612,6 +3926,28 @@ export const productAttributeValues = [
   productCode: "LIC's Bima Jyoti",
   attributeCode: "MAX_SUM_ASSURED",
   value: "NO_LIMIT",
+},
+
+
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "40",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "80",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "LIFETIME",
+},
+{
+  productCode: "LIC's Saral Pension",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "LIFETIME",
 },
 
 // LIC's Bhagya Lakshmi
@@ -3738,6 +4074,58 @@ export const productAttributeValues = [
   productCode: "LIC's Jeevan Shanti",
   attributeCode: "MAX_SUM_ASSURED",
   value: "NO_LIMIT",
+},
+
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "20",
+},
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "65",
+},
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "30",
+},
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "10,00,000",
+},
+{
+  productCode: "LIC's Cancer Cover",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "50,00,000",
+},
+
+{
+  productCode: "LIC's New Critical Illness Benefit Rider",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "18"
+},
+{
+  productCode: "LIC's New Critical Illness Benefit Rider",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "65"
+},
+{
+  productCode: "LIC's New Critical Illness Benefit Rider",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "5"
+},
+{
+  productCode: "LIC's New Critical Illness Benefit Rider",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "35"
 },
 
 // LIC's New Endowment Plan
@@ -4538,6 +4926,37 @@ export const productAttributeValues = [
   value: "50000",
 },
 
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "60",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "NO_LIMIT",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "1,44,578",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "15,00,000",
+},
+
 // LIC's Jeevan Umang
 {
   productCode: "LIC's Jeevan Umang",
@@ -4645,6 +5064,149 @@ export const productAttributeValues = [
   attributeCode: "MAX_SUM_ASSURED",
   value: "NO_LIMIT",
 },
+
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "85",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "1",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "20",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "1,50,000",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "NO_LIMIT",
+},
+
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "30",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "85",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "1",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "20",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "1,50,000",
+},
+{
+  productCode: "LIC's Jeevan Shanti",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "NO_LIMIT",
+},
+
+
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "18",
+},
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "65",
+},
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "40",
+},
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "25,00,000",
+},
+{
+  productCode: "LIC's New Jeevan Amar",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "NO_LIMIT",
+},
+
+{
+  productCode: "LIC's Premium Waiver Benefit Rider",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "18",
+},
+{
+  productCode: "LIC's Premium Waiver Benefit Rider",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "55",
+},
+{
+  productCode: "LIC's Premium Waiver Benefit Rider",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "5",
+},
+
+
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_ENTRY_AGE",
+  value: "60",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_ENTRY_AGE",
+  value: "NO_LIMIT",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_POLICY_TERM",
+  value: "10",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MIN_SUM_ASSURED",
+  value: "1,44,578",
+},
+{
+  productCode: "Pradhan Mantri Vaya Vandana Yojana",
+  attributeCode: "MAX_SUM_ASSURED",
+  value: "7,50,000",
+},
+
 
 // LIC's Accident Benefit Rider
 {

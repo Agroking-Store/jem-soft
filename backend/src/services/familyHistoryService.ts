@@ -26,6 +26,35 @@ export const getFamilyHistories = async () => {
   });
 };
 
+export const getFamilyHistoriesByMember = async (memberId: string) => {
+  return await prisma.familyHistory.findMany({
+    where: { memberId },
+    include: {
+      group: {
+        select: {
+          id: true,
+          groupCode: true,
+          groupName: true,
+          name: true,
+        },
+      },
+      member: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          salutation: true,
+        },
+      },
+      records: true,
+    },
+    orderBy: {
+      date: "desc",
+    },
+  });
+};
+
 export const getFamilyHistoryById = async (id: string) => {
   const record = await prisma.familyHistory.findUnique({
     where: { id },
@@ -89,6 +118,23 @@ export const createFamilyHistory = async (data: IFamilyHistoryInput) => {
         },
       },
       include: {
+        group: {
+          select: {
+            id: true,
+            groupCode: true,
+            groupName: true,
+            name: true,
+          },
+        },
+        member: {
+          select: {
+            id: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            salutation: true,
+          },
+        },
         records: true,
       },
     });
@@ -125,6 +171,23 @@ export const updateFamilyHistory = async (id: string, data: IFamilyHistoryInput)
         },
       },
       include: {
+        group: {
+          select: {
+            id: true,
+            groupCode: true,
+            groupName: true,
+            name: true,
+          },
+        },
+        member: {
+          select: {
+            id: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            salutation: true,
+          },
+        },
         records: true,
       },
     });

@@ -12,6 +12,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomer, updateCustomer } from "@/features/customers/customerSlice";
 import { Button } from "@/shared/components/ui/Button";
+import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
 import {
   ArrowLeft,
   Hash,
@@ -135,6 +136,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface CustomerEditPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
 // ─── Reusable components ──────────────────────────────────────────
 function FieldLabel({ label, required }: { label: string; required?: boolean }) {
   return (
@@ -168,18 +176,41 @@ function FormInput({
 
 function FormSelect({
   label, error, required, children, ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label: string; error?: string; required?: boolean;
+}: {
+  label: string;
+  error?: string;
+  required?: boolean;
+  options?: SelectOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  children?: React.ReactNode;
 }) {
+  const parsedOptions =
+    props.options ||
+    (Array.isArray(children)
+      ? children
+      : [children]
+    ).flatMap((child) => {
+      if (!child || typeof child !== "object" || !("props" in child)) return [];
+      const option = child as { props?: { value?: string; children?: React.ReactNode } };
+      const labelText = String(option.props?.children || option.props?.value || "");
+      const valueText = String(option.props?.value ?? labelText);
+      if (!valueText) return [];
+      return [{ value: valueText, label: labelText }];
+    });
+
   return (
-    <div>
-      <FieldLabel label={label} required={required} />
-      <select {...props}
-        className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all cursor-pointer focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15
-          ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`}
-      >{children}</select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
+    <SearchableSelect
+      label={label}
+      required={required}
+      error={error}
+      options={parsedOptions}
+      value={props.value || ""}
+      onChange={props.onChange || (() => undefined)}
+      placeholder={props.placeholder || "Select..."}
+      searchPlaceholder={`Search ${label.toLowerCase()}...`}
+    />
   );
 }
 
@@ -197,11 +228,11 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
 }
 
 // ─── Main Component ───────────────────────────────────────────────
-export default function CustomerEditPage() {
+export default function CustomerEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = customerId || (params.id as string);
 
   const { user, isLoading: authLoading } = useAuth();
   const { currentCustomer, isLoading: customerLoading, error } = useSelector((s: RootState) => s.customers);
@@ -263,10 +294,11 @@ export default function CustomerEditPage() {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
         toast.error("You do not have permission.");
-        router.replace("/dashboard/customers");
+        if (isModal) onClose?.();
+        else router.replace("/dashboard/customers");
       }
     }
-  }, [isMounted, authLoading, user, router]);
+  }, [isMounted, authLoading, user, router, isModal, onClose]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -309,7 +341,8 @@ export default function CustomerEditPage() {
 
       await dispatch(updateCustomer({ id, payload })).unwrap();
       toast.success("Customer group updated successfully!");
-      router.push("/dashboard/customers");
+      if (isModal) onSaved?.();
+      else router.push("/dashboard/customers");
     } catch (err: any) {
       toast.error(err || "Failed to update");
     } finally {
@@ -332,25 +365,25 @@ export default function CustomerEditPage() {
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <Link href="/dashboard/customers" className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">
+        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">
           Back to Customers
-        </Link>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <CustomerModuleNav />
+    <div className={`mx-auto space-y-6 pb-8 ${isModal ? "max-w-5xl" : "max-w-7xl"}`}>
+      {!isModal && <CustomerModuleNav />}
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
           <ArrowLeft size={16} />
-        </Link>
+        </button>
         <div>
           <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <Link href="/dashboard/customers" className="hover:text-slate-600">Customer Group</Link>
+            <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600">Customer Group</button>
             <ChevronRight size={12} />
             <span className="text-slate-600 font-medium">
               {currentCustomer?.groupName || currentCustomer?.name || "Edit"}
@@ -377,7 +410,11 @@ export default function CustomerEditPage() {
               {errors.groupCode && <p className="text-xs text-red-500 mt-1">{errors.groupCode.message}</p>}
             </div>
             <FormInput label="Group Name" required placeholder="e.g. Jayant Shinde" icon={<User size={14} />} error={errors.groupName?.message} {...register("groupName")} />
-            <FormSelect label="Category" {...register("category")}>
+            <FormSelect
+              label="Category"
+              value={watch("category") || ""}
+              onChange={(value) => setValue("category", value, { shouldValidate: true })}
+            >
               <option value="">Select category</option>
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </FormSelect>
@@ -424,8 +461,8 @@ export default function CustomerEditPage() {
                 <FormInput label="City" required placeholder="City" error={errors.resCity?.message} {...register("resCity")} />
                 <FormInput label="Pin Code" required placeholder="400001" error={errors.resPin?.message} {...register("resPin")} />
               </div>
-              <FormSelect label="Country" {...register("resCountry")}><option>India</option><option>Other</option></FormSelect>
-              <FormSelect label="State" {...register("resState")}>
+              <FormSelect label="Country" value={watch("resCountry") || ""} onChange={(value) => setValue("resCountry", value, { shouldValidate: true })}><option>India</option><option>Other</option></FormSelect>
+              <FormSelect label="State" value={watch("resState") || ""} onChange={(value) => setValue("resState", value, { shouldValidate: true })}>
                 <option value="">Select state</option>
                 {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
               </FormSelect>
@@ -445,8 +482,8 @@ export default function CustomerEditPage() {
                 <FormInput label="City" required placeholder="City" error={errors.offCity?.message} {...register("offCity")} />
                 <FormInput label="Pin Code" required placeholder="400001" error={errors.offPin?.message} {...register("offPin")} />
               </div>
-              <FormSelect label="Country" {...register("offCountry")}><option>India</option><option>Other</option></FormSelect>
-              <FormSelect label="State" {...register("offState")}>
+              <FormSelect label="Country" value={watch("offCountry") || ""} onChange={(value) => setValue("offCountry", value, { shouldValidate: true })}><option>India</option><option>Other</option></FormSelect>
+              <FormSelect label="State" value={watch("offState") || ""} onChange={(value) => setValue("offState", value, { shouldValidate: true })}>
                 <option value="">Select state</option>
                 {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
               </FormSelect>
@@ -482,9 +519,9 @@ export default function CustomerEditPage() {
 
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
-          <Link href="/dashboard/customers" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50">
             Cancel
-          </Link>
+          </button>
           <Button type="submit" isLoading={isSubmitting}
             className="w-auto rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D]">
             Save Changes

@@ -12,6 +12,11 @@ export const getFamilyHistory = catchAsync(async (req: Request, res: Response) =
   res.status(200).json({ status: "success", data: { record } });
 });
 
+export const getFamilyHistoriesByMember = catchAsync(async (req: Request, res: Response) => {
+  const records = await familyHistoryService.getFamilyHistoriesByMember(req.params.memberId);
+  res.status(200).json({ status: "success", data: { records } });
+});
+
 export const createFamilyHistory = catchAsync(async (req: Request, res: Response) => {
   const record = await familyHistoryService.createFamilyHistory(req.body);
   res.status(201).json({ status: "success", data: { record } });

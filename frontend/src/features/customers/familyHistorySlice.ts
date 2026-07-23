@@ -73,12 +73,14 @@ const initialState: FamilyHistoryState = {
   groupError: null,
 };
 
-export const fetchFamilyHistories = createAsyncThunk(
-  "familyHistory/fetchAll",
-  async (_, { rejectWithValue }) => {
+export const fetchFamilyHistoriesByMember = createAsyncThunk(
+  "familyHistory/fetchByMember",
+  async (memberId: string, { rejectWithValue }) => {
     try {
       const data = await getFamilyHistoriesApi();
-      return data.data.records;
+      // Backend returns all records; scope to the member being viewed.
+      const all = (data.data.records ?? []) as FamilyHistoryItem[];
+      return all.filter((r) => r.memberId === memberId);
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch family history records");
     }
@@ -171,19 +173,6 @@ const familyHistorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch All
-      .addCase(fetchFamilyHistories.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchFamilyHistories.fulfilled, (state, action: PayloadAction<FamilyHistoryItem[]>) => {
-        state.isLoading = false;
-        state.records = action.payload;
-      })
-      .addCase(fetchFamilyHistories.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
       // Fetch One
       .addCase(fetchFamilyHistory.pending, (state) => {
         state.isLoading = true;
@@ -197,31 +186,49 @@ const familyHistorySlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Create
+      // Create — replace by id if it already exists, otherwise prepend
       .addCase(createFamilyHistory.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
-      .addCase(createFamilyHistory.fulfilled, (state) => {
+      .addCase(createFamilyHistory.fulfilled, (state, action: PayloadAction<FamilyHistoryItem>) => {
         state.isLoading = false;
+        const idx = state.records.findIndex((r) => r.id === action.payload.id);
+        if (idx !== -1) state.records[idx] = action.payload;
+        else state.records.unshift(action.payload);
       })
       .addCase(createFamilyHistory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Update
+      // Update — replace by id
       .addCase(updateFamilyHistory.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
-      .addCase(updateFamilyHistory.fulfilled, (state) => {
+      .addCase(updateFamilyHistory.fulfilled, (state, action: PayloadAction<FamilyHistoryItem>) => {
         state.isLoading = false;
+        const idx = state.records.findIndex((r) => r.id === action.payload.id);
+        if (idx !== -1) state.records[idx] = action.payload;
+        if (state.currentRecord?.id === action.payload.id) state.currentRecord = action.payload;
       })
       .addCase(updateFamilyHistory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
       // Delete
+      .addCase(deleteFamilyHistory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(deleteFamilyHistory.fulfilled, (state, action: PayloadAction<string>) => {
+        state.isLoading = false;
         state.records = state.records.filter((r) => r.id !== action.payload);
+        if (state.currentRecord?.id === action.payload) state.currentRecord = null;
+      })
+      .addCase(deleteFamilyHistory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       })
       // Fetch Group by Code
       .addCase(fetchGroupByCode.pending, (state) => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Users, UserCog, Heart, Activity } from "lucide-react";
+import { Users, UserCog } from "lucide-react";
 import { Suspense } from "react";
 
 /**
@@ -11,22 +11,21 @@ import { Suspense } from "react";
  * A single, shared navigation bar for the entire Customer module.
  * Always visible on every customer-related page (List, Details, Edit, Create).
  * Wrapped in Suspense so useSearchParams() never blocks server rendering.
+ *
+ * Family History and Medical History now live INSIDE the Member Details modal,
+ * so they are intentionally NOT top-level tabs here.
  */
 
-type ModuleTab = "group" | "master" | "family" | "medical";
+type ModuleTab = "group" | "master";
 
 const TABS: { key: ModuleTab; label: string; icon: typeof Users; href: string }[] = [
-  { key: "group",   label: "Customer Group",  icon: Users,     href: "/dashboard/customers" },
-  { key: "master",  label: "Customer Master", icon: UserCog,   href: "/dashboard/customers?tab=master" },
-  { key: "family",  label: "Family History",  icon: Heart,     href: "/dashboard/customers?tab=family" },
-  { key: "medical", label: "Medical History", icon: Activity,  href: "/dashboard/customers?tab=medical" },
+  { key: "group",   label: "Customer Group",  icon: Users,   href: "/dashboard/customers" },
+  { key: "master",  label: "Customer Master", icon: UserCog, href: "/dashboard/customers?tab=master" },
 ];
 
 function resolveActiveTab(pathname: string, tabParam: string | null): ModuleTab {
   if (pathname.includes("/customers/master")) return "master";
-  if (tabParam === "master")  return "master";
-  if (tabParam === "family")  return "family";
-  if (tabParam === "medical") return "medical";
+  if (tabParam === "master") return "master";
   return "group";
 }
 
