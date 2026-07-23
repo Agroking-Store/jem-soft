@@ -1,12 +1,12 @@
-import RetirementNeedsCalculator from "@/features/pre-sales/components/RetirementNeeds";
+import QuickHlvCalculator from "@/features/pre-sales/components/QuickHlvCalculator";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Retirement Needs Calculator | Pre-Sales Tools",
+  title: "Human Life Value Calculator | Pre-Sales Tools",
   description:
-    "Project your cost of living at retirement and the corpus required today to sustain it, based on inflation.",
+    "Calculate Human Life Value (HLV) to assess life insurance coverage requirements based on future income replacement and inflation.",
 };
 
-export default function RetirementNeedsPage() {
-  return <RetirementNeedsCalculator />;
+export default function PreSalesDefaultPage() {
+  return <QuickHlvCalculator />;
 }
