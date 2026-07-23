@@ -505,6 +505,13 @@ const policySchema = z.object({
   ifscCode: z.string().optional(),
   micrNumber: z.string().optional(),
   accountHolderName: z.string().optional(),
+
+  neftBankName: z.string().optional(),
+  neftBankBranch: z.string().optional(),
+  neftAccountNumber: z.string().optional(),
+  neftIfscCode: z.string().optional(),
+  neftAccountHolderName: z.string().optional(),
+  neftSubmissionDate: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -556,6 +563,8 @@ export default function NewLICPolicyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const [useNach, setUseNach] = useState(false);
+  const [useNeft, setUseNeft] = useState(false);
   const { fetchNotifications } = useNotificationStore();
   const [attributeHints, setAttributeHints] = useState({
     term: '',
@@ -716,6 +725,7 @@ export default function NewLICPolicyPage() {
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
   const watchRiders = watch("riders");
+  const watchFupDate = watch("fupDate");
   const watchPolicyNumber = watch("policyNumber");
 
   const watchProductId = watch("productId");
@@ -784,6 +794,35 @@ export default function NewLICPolicyPage() {
       setValue("accountHolderName", getFullName(member));
     }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
+
+  useEffect(() => {
+    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (useNach && member) {
+      const defaultBank =
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(member));
+      }
+    } else {
+      // Clear fields if NACH is unchecked or no member is selected
+      setValue("bankName", "");
+      setValue("bankBranch", "");
+      setValue("city", "");
+      setValue("accountType", "");
+      setValue("accountNumber", "");
+      setValue("ifscCode", "");
+      setValue("micrNumber", "");
+      setValue("accountHolderName", "");
+    }
+  }, [useNach, watchLifeAssuredId, masterCustomers, setValue]);
+
 
   const availableProducts = useMemo(() => {
     return [...products]
@@ -1854,7 +1893,7 @@ export default function NewLICPolicyPage() {
                   </div>
                 </div>
                 {/* ================= NACH & NEFT ================= */}
-                <div className="border border-slate-200 rounded-xl">
+                {watchProductId && <div className="border border-slate-200 rounded-xl">
                   <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
                     <h3 className="font-semibold text-slate-900">
                       NACH & NEFT Details
@@ -1865,6 +1904,18 @@ export default function NewLICPolicyPage() {
                   </div>
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="md:col-span-2 flex items-center gap-3">
+                        <input
+                          id="useNachCheckbox"
+                          type="checkbox"
+                          checked={useNach}
+                          onChange={(e) => setUseNach(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="useNachCheckbox" className="text-sm font-medium text-slate-700 cursor-pointer">
+                          Premiums will be paid through NACH
+                        </label>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Bank Name
@@ -1873,7 +1924,8 @@ export default function NewLICPolicyPage() {
                           type="text"
                           placeholder="Bank Name"
                           {...register("bankName")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          readOnly={!useNach}
+                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                         />
                       </div>
                       <div>
@@ -1884,7 +1936,8 @@ export default function NewLICPolicyPage() {
                           type="text"
                           placeholder="Account Number"
                           {...register("accountNumber")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          readOnly={!useNach}
+                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                         />
                       </div>
                       <div>
@@ -1895,7 +1948,8 @@ export default function NewLICPolicyPage() {
                           type="text"
                           placeholder="IFSC Code"
                           {...register("ifscCode")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          readOnly={!useNach}
+                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                         />
                       </div>
                       <div>
@@ -1906,7 +1960,8 @@ export default function NewLICPolicyPage() {
                           type="text"
                           placeholder="Account Holder Name"
                           {...register("accountHolderName")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          readOnly={!useNach}
+                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                         />
                       </div>
                     
@@ -1918,7 +1973,8 @@ export default function NewLICPolicyPage() {
                         {...register("bankBranch")}
                         type="text"
                         placeholder="Bank Branch"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        readOnly={!useNach}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                       />
                     </div>
                     <div>
@@ -1929,7 +1985,8 @@ export default function NewLICPolicyPage() {
                         {...register("city")}
                         type="text"
                         placeholder="City"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        readOnly={!useNach}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
                       />
                     </div>
                     <div>
@@ -1938,8 +1995,19 @@ export default function NewLICPolicyPage() {
                       </label>
                       <input
                       {...register("accountType")} 
-                      placeholder="Account Type"
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      placeholder="Account Type" 
+                      readOnly={!useNach}
+                      className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className= "bolck text-sm font-medium mb-2">
+                        Debt Date
+                      </label>
+                      <input
+                      value={watchFupDate || ""}
+                      readOnly
+                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
                       />
                     </div>
                    
@@ -1951,12 +2019,94 @@ export default function NewLICPolicyPage() {
                         {...register("micrNumber")}
                         type="text"
                         placeholder="MICR Number"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        readOnly={!useNach}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+
+                    {/* NEFT Section */}
+                    <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+
+                    <div className="md:col-span-2 flex items-center gap-3">
+                      <input
+                        id="useNeftCheckbox"
+                        type="checkbox"
+                        checked={useNeft}
+                        onChange={(e) => setUseNeft(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label htmlFor="useNeftCheckbox" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        NEFT details are available
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Bank Name</label>
+                      <input
+                        type="text"
+                        placeholder="Bank Name"
+                        {...register("neftBankName")}
+                        readOnly={!useNeft}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Account Number</label>
+                      <input
+                        type="text"
+                        placeholder="Account Number"
+                        {...register("neftAccountNumber")}
+                        readOnly={!useNeft}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">IFSC Code</label>
+                      <input
+                        type="text"
+                        placeholder="IFSC Code"
+                        {...register("neftIfscCode")}
+                        readOnly={!useNeft}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Account Holder Name</label>
+                      <input
+                        type="text"
+                        placeholder="Account Holder Name"
+                        {...register("neftAccountHolderName")}
+                        readOnly={!useNeft}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Bank Branch</label>
+                      <input
+                        {...register("neftBankBranch")}
+                        type="text"
+                        placeholder="Bank Branch"
+                        readOnly={!useNeft}
+                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Submission Date</label>
+                      <Controller
+                        control={control}
+                        name="neftSubmissionDate"
+                        render={({ field }) => (
+                          <DatePicker
+                            value={field.value ? new Date(field.value) : undefined}
+                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                            readOnly={!useNeft}
+                          />
+                        )}
                       />
                     </div>
                     </div>
                   </div>
-                </div>
+                </div>}
               </div>
               {/* ================= RIGHT COLUMN ================= */}
               <div className="space-y-6">
@@ -2176,17 +2326,6 @@ export default function NewLICPolicyPage() {
                           placeholder="Auto Filled"
                           className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Sales Channel
-                        </label>
-                        <select className="w-full rounded-lg border border-slate-300 px-3 py-2.5">
-                          <option value="direct">Direct</option>
-                          <option value="agent">Agent</option>
-                          <option value="broker">Broker</option>
-                          <option value="online">Online</option>
-                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
