@@ -170,6 +170,36 @@ export const axismaxProducts = [
     providerCode: "AXIS_MAX",
     productType: "Child Plan",
   },
+
+  {
+    productName: "Axis Max Life Critical Illness and Disability Rider",
+    productCode: "104B033V02",
+    planNumber: "AX028",
+    providerCode: "AXIS_MAX",
+    productType: "Rider",
+  },
+  {
+    productName: "Axis Max Life Critical Illness and Disability - Secure Rider",
+    productCode: "104A034V02",
+    planNumber: "AX029",
+    providerCode: "AXIS_MAX",
+    productType: "Rider",
+  },
+  {
+    productName: "Axis Max Life Group Term Life Platinum Assurance",
+    productCode: "104N112V04",
+    planNumber: "AX030",
+    providerCode: "AXIS_MAX",
+    productType: "Group Insurance",
+  },
+  {
+    productName: "Axis Max Life Smart Group Term Life",
+    productCode: "104N126V01",
+    planNumber: "AX031",
+    providerCode: "AXIS_MAX",
+    productType: "Group Insurance",
+  },
+
   //AXIS BANK LIFE - WITHDRAWN POLICIES (OFFICIAL WITHDRAWN LIST)
   {
     productName: "Axis Max Life Smart Fixed-return Digital Plan",
