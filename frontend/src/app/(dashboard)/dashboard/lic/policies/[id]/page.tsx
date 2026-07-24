@@ -15,19 +15,22 @@ import { fetchAdvisors } from "@/features/advisor/advisorSlice";
 import { fetchPolicyById } from "@/features/policy/policySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchAgencies } from "@/features/agency/agencySlice";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft,
   User,
-  DollarSign,
+  Banknote,
   FileText,
-  ChevronDown,
   ChevronRight,
   Shield,
   Settings,
+  Search,
   AlertCircle,
 } from "lucide-react";
+import DatePicker from "../new/DatePicker";
 
 function getFullName(customer: {
   salutation?: string | null;
@@ -45,55 +48,11 @@ function getFullName(customer: {
     .join(" ");
 }
 
-// Read-only Group Display
-const GroupDisplay = ({
-  value,
-  groups,
-}: {
-  value: string;
-  groups: {
-    id: string;
-    groupCode?: string | null;
-    groupName?: string | null;
-  }[];
-}) => {
-  const selected = groups.find((g) => g.id === value);
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
-        Group Name <span className="text-red-500">*</span>
-      </label>
-      <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-        {selected
-          ? `${selected.groupCode ? `[${selected.groupCode}] ` : ""}${selected.groupName || "—"}`
-          : "—"}
-      </div>
-    </div>
-  );
-};
-
-// Read-only Advisor Display
-const AdvisorDisplay = ({
-  value,
-  advisors,
-}: {
-  value: string;
-  advisors: { id: string; advisorCode: string; advisorName: string }[];
-}) => {
-  const selected = advisors.find((a) => a.id === value);
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
-        Advisor <span className="text-red-500">*</span>
-      </label>
-      <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-        {selected ? `[${selected.advisorCode}] ${selected.advisorName}` : "—"}
-      </div>
-    </div>
-  );
-};
+import {
+  CustomerSectionCard,
+  SearchableSelect,
+  type SelectOption,
+} from "@/features/customers/components/CustomerUi";
 
 const riderSchema = z.object({
   description: z.string().optional(),
@@ -162,6 +121,7 @@ const policySchema = z.object({
   ageAdmitted: z.string().optional(),
   taxBeneficiary: z.string().optional(),
   notes: z.string().optional(),
+  nominees: z.array(z.any()).optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
@@ -181,6 +141,7 @@ export default function ViewLICPolicyPage() {
     resolver: zodResolver(policySchema) as any,
     defaultValues: {
       riders: [],
+      nominees: [],
     },
   });
 
@@ -208,10 +169,16 @@ export default function ViewLICPolicyPage() {
   const { modes, isLoading: modesLoading } = useSelector(
     (s: RootState) => s.premiumModes,
   );
+  const { branches, isLoading: branchesLoading } = useSelector(
+    (s: RootState) => s.licBranch,
+  );
+  const { agencies, isLoading: agenciesLoading } = useSelector(
+    (s: RootState) => s.agency,
+  );
 
   const [activeSection, setActiveSection] = useState("policy-holder");
-  const [showAdvanced, setShowAdvanced] = useState(true);
   const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -222,6 +189,9 @@ export default function ViewLICPolicyPage() {
     dispatch(fetchAdvisors());
     dispatch(fetchPolicyStatuses());
     dispatch(fetchPremiumModes());
+    dispatch(fetchLicBranches());
+    dispatch(fetchAgencies());
+    setIsMounted(true);
   }, [dispatch]);
 
   useEffect(() => {
@@ -383,6 +353,8 @@ export default function ViewLICPolicyPage() {
   const watchProviderType = watch("providerType");
   const watchProviderId = watch("providerId");
   const riderData = watch("riders") || [];
+  const watchAgencyId = watch("agencyId");
+  const watchAdvisorId = watch("advisorId");
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
@@ -394,21 +366,10 @@ export default function ViewLICPolicyPage() {
     return masterCustomers.filter((m) => m.groupId === watchGroupId);
   }, [watchGroupId, masterCustomers]);
 
-  const providerTypes = useMemo(() => {
-    return [...new Set(providers.map((p) => p.type))];
-  }, [providers]);
-
-  const filteredProviders = useMemo(() => {
-    if (!watchProviderType) return [];
-    return providers.filter((p) => p.type === watchProviderType);
-  }, [watchProviderType, providers]);
-
-  const filteredProducts = useMemo(() => {
-    if (!watchProviderId) return [];
-    return products
-      .filter((p) => p.providerId === watchProviderId)
-      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
-  }, [watchProviderId, products]);
+  const filteredAdvisors = useMemo(() => {
+    if (!watchAgencyId) return [];
+    return advisors.filter((a) => a.agencyId === watchAgencyId);
+  }, [watchAgencyId, advisors]);
 
   const selectedProvider = useMemo(
     () => providers.find((p) => p.id === watchProviderId),
@@ -430,6 +391,10 @@ export default function ViewLICPolicyPage() {
     () => statuses.find((s) => s.id === watch("statusId")),
     [watch("statusId"), statuses],
   );
+  const selectedAgency = useMemo(
+    () => agencies.find((a) => a.id === watchAgencyId),
+    [watchAgencyId, agencies],
+  );
 
   const handleSectionClick = (sectionId: keyof typeof sectionRefs) => {
     const ref = sectionRefs[sectionId];
@@ -444,7 +409,7 @@ export default function ViewLICPolicyPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !isMounted) {
     return (
       <div className="max-w-7xl mx-auto pb-20">
         <div className="flex items-center gap-4 mb-6">
@@ -483,7 +448,7 @@ export default function ViewLICPolicyPage() {
             </h1>
           </div>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-gap-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
           <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
           <div>
             <p className="text-red-800 font-medium">Unable to load policy</p>
@@ -514,27 +479,29 @@ export default function ViewLICPolicyPage() {
   return (
     <div className="max-w-7xl mx-auto pb-20">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => router.push("/dashboard/lic/policies")}
-          className="p-2 hover:bg-slate-100 rounded-lg transition"
-        >
-          <ChevronLeft size={20} className="text-slate-600" />
-        </button>
-        <div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Link
-              href="/dashboard/lic/policies"
-              className="hover:text-blue-600"
-            >
-              Policies
-            </Link>
-            <ChevronRight size={16} />
-            <span className="font-medium text-slate-700">View Policy</span>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/dashboard/lic/policies")}
+            className="p-2 hover:bg-slate-100 rounded-lg transition"
+          >
+            <ChevronLeft size={20} className="text-slate-600" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Link
+                href="/dashboard/lic/policies"
+                className="hover:text-blue-600"
+              >
+                Policies
+              </Link>
+              <ChevronRight size={16} />
+              <span className="font-medium text-slate-700">View Policy</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mt-1">
+              View LIC Policy
+            </h1>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mt-1">
-            View LIC Policy
-          </h1>
         </div>
       </div>
 
@@ -562,235 +529,391 @@ export default function ViewLICPolicyPage() {
       </div>
 
       {/* Form Content - Grid Layout */}
-      <div>
+      <div className="space-y-6">
         {/* Section 1: Policy Holder's Details */}
-        <div
-          ref={sectionRefs["policy-holder"]}
-          className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-            glowingSection === "policy-holder"
-              ? "shadow-lg shadow-blue-500/20"
-              : ""
-          }`}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <User size={20} className="text-blue-600" />
-              Policy Holders Details
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <Controller
-                name="groupId"
-                control={control}
-                render={({ field }) => (
-                  <GroupDisplay value={field.value || ""} groups={groups} />
-                )}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Group Code
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {selectedGroup?.groupCode || "—"}
+        <div ref={sectionRefs["policy-holder"]}>
+          <CustomerSectionCard
+            title="Policy Holder's Details"
+            icon={User}
+            actions={
+              <Link
+                href="/dashboard/customers/new"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                <Search size={14} />
+                View Group
+              </Link>
+            }
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Group Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={
+                    selectedGroup
+                      ? `${selectedGroup.groupCode ? `[${selectedGroup.groupCode}] ` : ""}${selectedGroup.groupName || ""}`
+                      : ""
+                  }
+                  placeholder="Select group..."
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Group Code
+                </label>
+                <input
+                  type="text"
+                  value={selectedGroup?.groupCode || ""}
+                  placeholder="Autofilled"
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Life Assured <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={
+                    selectedLifeAssured ? getFullName(selectedLifeAssured) : ""
+                  }
+                  placeholder="Select life assured..."
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={watch("dob") || ""}
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Age
+                </label>
+                <input
+                  type="number"
+                  value={watch("age") || ""}
+                  placeholder="Autofilled"
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Gender
+                </label>
+                <select
+                  value={watch("gender") || ""}
+                  disabled
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  PAN Regi.
+                </label>
+                <input
+                  type="text"
+                  value={watch("pan") || ""}
+                  placeholder="Autofilled"
+                  readOnly
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Life Assured <span className="text-red-500">*</span>
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {selectedLifeAssured ? getFullName(selectedLifeAssured) : "—"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Date of Birth
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {watch("dob") || "—"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Age
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {watch("age") || "—"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Gender
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {watch("gender") || "—"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                PAN Regi.
-              </label>
-              <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                {watch("pan") || "—"}
-              </div>
-            </div>
-          </div>
+          </CustomerSectionCard>
         </div>
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Section 2: Policy Details */}
-            <div
-              ref={sectionRefs["policy-details"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === "policy-details"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
-            >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <FileText size={20} className="text-blue-600" />
-                Policy Details
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Policy Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("policyNumber") || "—"}
+            <div ref={sectionRefs["policy-details"]}>
+              <CustomerSectionCard title="Policy Details" icon={FileText}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <input type="hidden" {...register("providerType")} />
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("policyNumber") || ""}
+                      placeholder="Enter policy number"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Plan <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="productId"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search plan..."
+                          searchPlaceholder="Search by name or number"
+                          options={products.map((p) => ({
+                            value: p.id,
+                            label: p.productName,
+                            sublabel: p.planNumber
+                              ? `Plan No: ${p.planNumber}`
+                              : undefined,
+                          }))}
+                          value={field.value || ""}
+                          onChange={() => {}}
+                          disabled={true}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Commencement Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="commencementDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={() => {}}
+                          readOnly={true}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mode <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={watch("mode") || ""}
+                      disabled
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    >
+                      <option value="">Select Mode</option>
+                      {modes.map((mode) => (
+                        <option key={mode.id} value={mode.modeName}>
+                          {mode.modeName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="completionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={() => {}}
+                          readOnly={true}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Term
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("term") ?? ""}
+                      placeholder="Enter term"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      PPT
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("ppt") ?? ""}
+                      placeholder="Enter PPT"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Plan <span className="text-red-500">*</span>
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {selectedProduct
-                      ? `${selectedProduct.planNumber ? `[${selectedProduct.planNumber}] ` : ""}${selectedProduct.productName}`
-                      : "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Commencement Date <span className="text-red-500">*</span>
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("commencementDate") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Mode <span className="text-red-500">*</span>
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {selectedMode?.modeName || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Completion Date <span className="text-red-500">*</span>
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("completionDate") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Term
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("term") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    PPT
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("ppt") || "—"}
-                  </div>
-                </div>
-              </div>
+              </CustomerSectionCard>
             </div>
 
             {/* Section 4: Riders Details */}
-            <div
-              ref={sectionRefs["riders"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${
-                glowingSection === "riders"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
-            >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <Shield size={20} className="text-blue-600" />
-                Riders Details
-              </h2>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Rider Description
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Sum
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Term
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        PPT
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Mode
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Premium
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {riderData.length === 0 ? (
+            <div ref={sectionRefs["riders"]}>
+              <CustomerSectionCard title="Riders Details" icon={Shield}>
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
                       <tr>
-                        <td
-                          colSpan={6}
-                          className="px-4 py-6 text-center text-slate-500 text-sm"
-                        >
-                          No Rider to Show
-                        </td>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Rider Description
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Sum
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Term
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          PPT
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Mode
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Premium
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
+                          Action
+                        </th>
                       </tr>
-                    ) : (
-                      riderData.map((rider, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.description || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.sum || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.term || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.ppt || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.mode || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-700">
-                            {rider.premium || "—"}
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {riderData.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-4 py-6 text-center text-slate-500 text-sm"
+                          >
+                            No Rider to Show
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        riderData.map((rider, index) => (
+                          <tr key={index}>
+                            <td className="px-2 py-1.5 w-1/3">
+                              <select
+                                value={rider.description || ""}
+                                disabled
+                                className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              >
+                                <option value="">Select Rider</option>
+                                {riders.map((riderOpt) => (
+                                  <option
+                                    key={riderOpt.id}
+                                    value={riderOpt.riderName}
+                                  >
+                                    {riderOpt.riderCode
+                                      ? `[${riderOpt.riderCode}] `
+                                      : ""}
+                                    {riderOpt.riderName}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                value={rider.sum ?? ""}
+                                placeholder="Sum"
+                                readOnly
+                                className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                value={rider.term ?? ""}
+                                placeholder="Term"
+                                readOnly
+                                className="w-20 text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                value={rider.ppt ?? ""}
+                                placeholder="PPT"
+                                readOnly
+                                className="w-20 text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <select
+                                value={rider.mode || ""}
+                                disabled
+                                className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              >
+                                <option value="">Mode</option>
+                                {modes.map((mode) => (
+                                  <option key={mode.id} value={mode.modeName}>
+                                    {mode.modeName}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                value={rider.premium ?? ""}
+                                placeholder="Premium"
+                                readOnly
+                                className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <button
+                                type="button"
+                                disabled
+                                className="p-1.5 text-red-300 cursor-not-allowed"
+                                title="Remove Rider"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M3 6h18" />
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CustomerSectionCard>
             </div>
           </div>
 
@@ -799,101 +922,109 @@ export default function ViewLICPolicyPage() {
             {/* Section 3: Policy Premium Calculation */}
             <div
               ref={sectionRefs["premium-calculation"]}
-              className={`bg-white border border-slate-200 rounded-xl p-6 sticky top-6 transition-all duration-500 ${
-                glowingSection === "premium-calculation"
-                  ? "shadow-lg shadow-blue-500/20"
-                  : ""
-              }`}
+              className="sticky top-6"
             >
-              <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                <DollarSign size={20} className="text-blue-600" />
-                Policy Premium Calculation
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Sum Assured
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("sumAssured") || "—"}
+              <CustomerSectionCard
+                title="Policy Premium Calculation"
+                icon={Banknote}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Sum Assured
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("sumAssured") ?? ""}
+                      placeholder="Enter sum assured"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Basic Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("basicYearlyPremium") ?? ""}
+                      placeholder="Enter basic yearly premium"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("totalYearlyPremium") ?? ""}
+                      placeholder="Enter total yearly premium"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Rider Premium
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("totalRiderPremium") ?? ""}
+                      placeholder="Total rider premium"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("installmentPremium") ?? ""}
+                      placeholder="Installment premium"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Rate %
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("ratePercent") ?? ""}
+                      placeholder="Rate %"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("totalInstallmentPremium") ?? ""}
+                      placeholder="Total installment premium"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Basic Yearly Premium
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("basicYearlyPremium") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Yearly Premium
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("totalYearlyPremium") || "—"}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Rider Premium
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("totalRiderPremium") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Installment Premium
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("installmentPremium") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Rate %
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("ratePercent") || "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Installment Premium
-                  </label>
-                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                    {watch("totalInstallmentPremium") || "—"}
-                  </div>
-                </div>
-              </div>
+              </CustomerSectionCard>
             </div>
           </div>
         </div>
 
-        <div
-          ref={sectionRefs["advanced"]}
-          className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${
-            glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""
-          }`}
-        >
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center justify-between w-full text-left"
+        <div ref={sectionRefs["advanced"]}>
+          <CustomerSectionCard
+            title="Advanced Options"
+            icon={Settings}
+            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
           >
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <Settings size={20} className="text-blue-600" />
-              Advanced Options
-            </h2>
-            {showAdvanced ? (
-              <ChevronDown size={20} />
-            ) : (
-              <ChevronRight size={20} />
-            )}
-          </button>
-
-          {showAdvanced && (
             <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* ================= LEFT COLUMN ================= */}
               <div className="space-y-6">
@@ -912,30 +1043,51 @@ export default function ViewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label className="block text-sm font-medium mb-1.5">
                           Policy Status
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {selectedStatus?.statusName ||
-                            watch("policyStatus") ||
-                            "—"}
-                        </div>
+                        <select
+                          value={watch("statusId") || ""}
+                          disabled
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        >
+                          <option value="">Select Status</option>
+                          {statuses.map((status) => (
+                            <option key={status.id} value={status.id}>
+                              {status.statusName}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           First Unpaid Premium (F.U.P.) Date
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("fupDate") || "—"}
-                        </div>
+                        <Controller
+                          control={control}
+                          name="fupDate"
+                          render={({ field }) => (
+                            <DatePicker
+                              value={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onChange={() => {}}
+                              readOnly={true}
+                            />
+                          )}
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Premium Adjusted
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("premiumAdjusted") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("premiumAdjusted") || ""}
+                          placeholder="Premium Adjusted"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div className="flex items-center pt-8">
                         <input
@@ -955,17 +1107,31 @@ export default function ViewLICPolicyPage() {
                         <label className="block text-sm font-medium mb-2">
                           Loan Taken
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("loanTaken") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("loanTaken") || ""}
+                          placeholder="Loan Taken"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           First Unpaid Loan Int. (FULI) Date
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("fuliDate") || "—"}
-                        </div>
+                        <Controller
+                          control={control}
+                          name="fuliDate"
+                          render={({ field }) => (
+                            <DatePicker
+                              value={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onChange={() => {}}
+                              readOnly={true}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                   </div>
@@ -986,65 +1152,97 @@ export default function ViewLICPolicyPage() {
                         <label className="block text-sm font-medium mb-2">
                           Bank Name
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("bankName") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("bankName") || ""}
+                          placeholder="Bank Name"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Account Number
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("accountNumber") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("accountNumber") || ""}
+                          placeholder="Account Number"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           IFSC Code
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("ifscCode") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("ifscCode") || ""}
+                          placeholder="IFSC Code"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Account Holder Name
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("accountHolderName") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("accountHolderName") || ""}
+                          placeholder="Account Holder Name"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Bank Branch
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("bankBranch") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("bankBranch") || ""}
+                          placeholder="Bank Branch"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           City
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("city") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("city") || ""}
+                          placeholder="City"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Account Type
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("accountType") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("accountType") || ""}
+                          placeholder="Account Type"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           MICR Number
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("micrNumber") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("micrNumber") || ""}
+                          placeholder="MICR Number"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1063,67 +1261,94 @@ export default function ViewLICPolicyPage() {
                     {selectedPolicy.nominees &&
                     selectedPolicy.nominees.length > 0 ? (
                       <div className="space-y-4">
-                        {selectedPolicy.nominees.map((nominee: any) => (
-                          <div
-                            key={nominee.id}
-                            className="border border-slate-200 rounded-lg p-4 space-y-3"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Nominee Name
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.nomineeName || "—"}
+                        {selectedPolicy.nominees.map(
+                          (nominee: any, index: number) => (
+                            <div
+                              key={nominee.id || index}
+                              className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Nominee Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={nominee.nomineeName || ""}
+                                    placeholder="Full Name"
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Relationship
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.relationship || "—"}
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Relationship
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={nominee.relationship || ""}
+                                    placeholder="e.g., Spouse, Son"
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Date of Birth
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.dateOfBirth
-                                    ? new Date(nominee.dateOfBirth)
-                                        .toISOString()
-                                        .substring(0, 10)
-                                    : "—"}
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Date of Birth
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={
+                                      nominee.dateOfBirth
+                                        ? new Date(nominee.dateOfBirth)
+                                            .toISOString()
+                                            .substring(0, 10)
+                                        : ""
+                                    }
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Share %
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.percentage ?? "—"}
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Share %
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={nominee.percentage ?? ""}
+                                    placeholder="e.g., 100"
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Phone
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.phone || "—"}
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Phone
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={nominee.phone || ""}
+                                    placeholder="Mobile Number"
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Email
-                                </label>
-                                <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                                  {nominee.email || "—"}
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Email
+                                  </label>
+                                  <input
+                                    type="email"
+                                    value={nominee.email || ""}
+                                    placeholder="Email Address"
+                                    readOnly
+                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
+                                  />
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ),
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm text-slate-500 text-center py-4">
@@ -1161,63 +1386,103 @@ export default function ViewLICPolicyPage() {
                         <label className="block text-sm font-medium mb-2">
                           Agency <span className="text-red-500">*</span>
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {selectedPolicy.advisor?.agency?.agencyName || "—"}
-                        </div>
+                        <select
+                          value={watchAgencyId || ""}
+                          disabled
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        >
+                          <option value="">Select Agency</option>
+                          {agencies.map((agency) => (
+                            <option key={agency.id} value={agency.id}>
+                              {agency.agencyName}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Branch
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {selectedPolicy.branch
-                            ? `[${selectedPolicy.branch.branchCode}] ${selectedPolicy.branch.branchName}`
-                            : "—"}
-                        </div>
+                        <select
+                          value={watch("branchId") || ""}
+                          disabled
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        >
+                          <option value="">Select Branch</option>
+                          {branches.map((branch) => (
+                            <option key={branch.id} value={branch.id}>
+                              [{branch.branchCode}] {branch.branchName}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
-                        <Controller
-                          name="advisorId"
-                          control={control}
-                          render={({ field }) => (
-                            <AdvisorDisplay
-                              value={field.value || ""}
-                              advisors={advisors}
-                            />
-                          )}
+                        <label className="block text-sm font-medium mb-2">
+                          Advisor <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            advisors.find((a) => a.id === watchAdvisorId)
+                              ? `[${advisors.find((a) => a.id === watchAdvisorId)?.advisorCode}] ${advisors.find((a) => a.id === watchAdvisorId)?.advisorName}`
+                              : ""
+                          }
+                          placeholder="Select Advisor"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          Agent Code
+                          Agent Code (Autofilled)
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("agentCode") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("agentCode") || ""}
+                          readOnly
+                          placeholder="Auto Filled"
+                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Sales Channel
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("salesChannel") || "—"}
-                        </div>
+                        <select
+                          value={watch("salesChannel") || ""}
+                          disabled
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        >
+                          <option value="">Select Channel</option>
+                          <option value="direct">Direct</option>
+                          <option value="agent">Agent</option>
+                          <option value="broker">Broker</option>
+                          <option value="online">Online</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Medical
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("medical") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("medical") || ""}
+                          placeholder="Medical Details"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           Tax Beneficiary
                         </label>
-                        <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("taxBeneficiary") || "—"}
-                        </div>
+                        <input
+                          type="text"
+                          value={watch("taxBeneficiary") || ""}
+                          placeholder="Tax Beneficiary"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                       <div className="flex items-center mt-8">
                         <input
@@ -1234,27 +1499,21 @@ export default function ViewLICPolicyPage() {
                         <label className="block text-sm font-medium mb-2">
                           Notes
                         </label>
-                        <div className="w-full min-h-[90px] px-3 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-sm text-slate-700">
-                          {watch("notes") || "—"}
-                        </div>
+                        <textarea
+                          value={watch("notes") || ""}
+                          rows={4}
+                          placeholder="Enter Notes..."
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </CustomerSectionCard>
         </div>
-      </div>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 flex justify-end gap-3">
-        <button
-          onClick={() => router.push("/dashboard/lic/policies")}
-          className="px-6 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm font-medium"
-        >
-          Back
-        </button>
       </div>
     </div>
   );
