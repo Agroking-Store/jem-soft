@@ -1,4 +1,4 @@
-export const productAttributeValues = [
+export const LicProductAttributeValues = [
   // LIC Products
   {
     productCode: "Single Premium Endowment Plan",
