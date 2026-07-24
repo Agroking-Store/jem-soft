@@ -10,12 +10,6 @@ import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { fetchClaims } from "@/features/claim/claimSlice";
 import {
   Users,
-  Activity,
-  DollarSign,
-  Shield,
-  Briefcase,
-  MessageSquare,
-  TrendingUp,
   ShieldPlus,
   Landmark,
   ShieldCheck
@@ -78,7 +72,11 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+        <div
+          className="bg-linear-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/customers")}
+          role="button"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-md text-[#E8C77A] font-bold">Total Customers</p>
@@ -97,7 +95,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+        <div
+          className="bg-linear-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/lic/policies")}
+          role="button"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-md text-[#E8C77A] font-bold">Total Policies Issued</p>
@@ -118,7 +120,11 @@ export default function DashboardPage() {
 
 
 
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+        <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/loans")}
+          role="button"
+        >
           <div className="flex items-center justify-between">
 
             <div>
@@ -145,7 +151,11 @@ export default function DashboardPage() {
 
 
 
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+        <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/claims")}
+          role="button"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-md text-[#E8C77A] font-bold">Total Claims Raised</p>
