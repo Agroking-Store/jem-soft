@@ -823,6 +823,29 @@ export default function NewLICPolicyPage() {
     }
   }, [useNach, watchLifeAssuredId, masterCustomers, setValue]);
 
+  useEffect(() => {
+    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (useNeft && member) {
+      const defaultBank =
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(member));
+      }
+    } else {
+      // Clear fields if NEFT is unchecked or no member is selected
+      setValue("neftBankName", "");
+      setValue("neftBankBranch", "");
+      setValue("neftAccountNumber", "");
+      setValue("neftIfscCode", "");
+      setValue("neftAccountHolderName", "");
+      // We don't clear neftSubmissionDate as it's independent
+    }
+  }, [useNeft, watchLifeAssuredId, masterCustomers, setValue]);
+
 
   const availableProducts = useMemo(() => {
     return [...products]
@@ -1758,17 +1781,7 @@ export default function NewLICPolicyPage() {
                     </p>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Rate %
-                  </label>
-                  <input
-                    type="text"
-                    {...register("ratePercent")}
-                    placeholder="Rate %"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                </div>
+               
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Total Installment Premium
