@@ -199,6 +199,50 @@ export const axismaxProducts = [
     providerCode: "AXIS_MAX",
     productType: "Group Insurance",
   },
+  {
+    productName: "Axis Max Life Smart Fixed-Return Digital Plan",
+    productCode: "104N123V07",
+    planNumber: "AX032",
+    providerCode: "AXIS_MAX",
+    productType: "Savings",
+  },
+  {
+    productName:
+      "Axis Max Life Smart Global Investment Fostering Tomorrow Plan",
+    productCode: "MAXL001V001",
+    planNumber: "AX033",
+    providerCode: "AXIS_MAX",
+    productType: "ULIP / NRI (GIFT City)",
+  },
+  {
+    productName: "Axis Max Life Cancer Insurance Plan",
+    productCode: "104N093V04",
+    planNumber: "AX034",
+    providerCode: "AXIS_MAX",
+    productType: "Health",
+  },
+  {
+    productName:
+      "Axis Max Life Group Total and Permanent Disability (Accident) Premier Rider",
+    productCode: "104B030V04",
+    planNumber: "AX035",
+    providerCode: "AXIS_MAX",
+    productType: "Rider (Group)",
+  },
+  {
+    productName: "Axis Max Life Group Accelerated Terminal Illness Rider",
+    productCode: "104B028V03",
+    planNumber: "AX036",
+    providerCode: "AXIS_MAX",
+    productType: "Rider (Group)",
+  },
+  {
+    productName: "Axis Max Life Smart Guaranteed Pension Plan",
+    productCode: "104N122V24", // corrected from 104N122V25 in your original data
+    planNumber: "AX023",
+    providerCode: "AXIS_MAX",
+    productType: "Pension / Retirement",
+  },
 
   //AXIS BANK LIFE - WITHDRAWN POLICIES (OFFICIAL WITHDRAWN LIST)
   {
