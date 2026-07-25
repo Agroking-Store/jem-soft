@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -28,25 +27,23 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
-
-
 // AdminDropdown component - Only for ADMIN users
 const AdminDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  const adminItems = [
-    { name: "User Management", href: "/dashboard/users", icon: Users },
-    { name: "Organization", href: "/dashboard/organization", icon: Building2 },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
-    { name: "My Account", href: "/dashboard/account", icon: UserCog },
-  ];
+  // const adminItems = [
+  //   { name: "User Management", href: "/dashboard/users", icon: Users },
+  //   { name: "Organization", href: "/dashboard/organization", icon: Building2 },
+  //   { name: "Settings", href: "/dashboard/settings", icon: Settings },
+  //   { name: "My Account", href: "/dashboard/account", icon: UserCog },
+  // ];
 
-  const isAdminActive = adminItems.some(item => pathname === item.href);
+  // const isAdminActive = adminItems.some(item => pathname === item.href);
 
   return (
     <div className="space-y-1">
-      <button
+      {/* <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
           flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all
@@ -61,9 +58,9 @@ const AdminDropdown = () => {
           <span>User Management</span>
         </div>
         {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-      </button>
+      </button> */}
 
-      {isOpen && (
+      {/* {isOpen && (
         <div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-2">
           {adminItems.map((item) => {
             const isActive = pathname === item.href;
@@ -85,7 +82,7 @@ const AdminDropdown = () => {
             );
           })}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
@@ -127,9 +124,10 @@ export const Sidebar = () => {
 
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = item.href === "/dashboard"
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
 
           return (
             <Link
@@ -151,25 +149,28 @@ export const Sidebar = () => {
         })}
 
         {/* LIC Link - Show for all users */}
-        {isMounted && (isAdmin || isAdvisor || isViewer) && (() => {
-          const licPath = "/dashboard/lic/policies";
-          const isLicActive = pathname.startsWith(licPath);
+        {isMounted &&
+          (isAdmin || isAdvisor || isViewer) &&
+          (() => {
+            const licPath = "/dashboard/lic/policies";
+            const isLicActive = pathname.startsWith(licPath);
 
-          return (
-            <Link
-              href={licPath}
-              className={`
+            return (
+              <Link
+                href={licPath}
+                className={`
                 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                ${isLicActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                ${
+                  isLicActive
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
-            >
-              <FileText size={20} />
-              LIC
-            </Link>
-          );
-        })()}
+              >
+                <FileText size={20} />
+                LIC
+              </Link>
+            );
+          })()}
 
         {/* User Management section - Only show for ADMIN users */}
         {isMounted && isAdmin && <AdminDropdown />}

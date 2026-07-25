@@ -5,6 +5,7 @@ import { canaraHsbcPolicyAttributes as canaraAttributeValues } from "../masterDa
 import { futureGeneraliPolicyAttributeValues as futuregeneraliAttributeValues } from "../masterData/productsAttributeValues/futuregeneraliAttributeValues";
 import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../masterData/productsAttributeValues/pnbAttributeValues";
 import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
+import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
 
 const allProductAttributeValues = [
   ...productAttributeValues,
@@ -13,6 +14,7 @@ const allProductAttributeValues = [
   ...futuregeneraliAttributeValues,
   ...pnbAttributeValues,
   ...shriramAttributeValues,
+  ...LicProductAttributeValues,
 ];
 
 export const seedProductAttributeValues = async (prisma: PrismaClient) => {
@@ -49,11 +51,11 @@ export const seedProductAttributeValues = async (prisma: PrismaClient) => {
         },
       });
       console.log(
-        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`,
+        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`
       );
     } else {
       console.warn(
-        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`,
+        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`
       );
     }
   }
