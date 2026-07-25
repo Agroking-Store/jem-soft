@@ -1,14 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import { productAttributeValues } from '../masterData/productAttributeValues';
+import { LicProductAttributeValues } from '../masterData/LicProductAttributeValues';
 
 export const seedProductAttributeValues = async (prisma: PrismaClient) => {
   console.log('Seeding product attribute values...');
-  if (productAttributeValues.length === 0) {
+  if (LicProductAttributeValues.length === 0) {
     console.log('No product attribute values to seed.');
     return;
   }
 
-  for (const attrValue of productAttributeValues) {
+  for (const attrValue of LicProductAttributeValues) {
     const product = await prisma.productMaster.findFirst({
       where: { productName: attrValue.productCode },
     });
