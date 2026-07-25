@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { productAttributeValues } from "../masterData/productAttributeValues";
 import { bajajLifePolicyAttributeValues as bajajallianzAttributeValues } from "../masterData/productsAttributeValues/bajajallianzAttributeValues";
 import { canaraHsbcPolicyAttributes as canaraAttributeValues } from "../masterData/productsAttributeValues/canaraAttributeValues";
 import { futureGeneraliPolicyAttributeValues as futuregeneraliAttributeValues } from "../masterData/productsAttributeValues/futuregeneraliAttributeValues";
@@ -7,14 +6,15 @@ import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../master
 import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
 import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
 
+import { axisMaxLifePolicyAttributeValues as axisAttributeValues } from "../masterData/productsAttributeValues/axisAttributeValues";
 const allProductAttributeValues = [
-  ...productAttributeValues,
   ...bajajallianzAttributeValues,
   ...canaraAttributeValues,
   ...futuregeneraliAttributeValues,
   ...pnbAttributeValues,
   ...shriramAttributeValues,
   ...LicProductAttributeValues,
+  ...axisAttributeValues,
 ];
 
 export const seedProductAttributeValues = async (prisma: PrismaClient) => {
@@ -51,11 +51,11 @@ export const seedProductAttributeValues = async (prisma: PrismaClient) => {
         },
       });
       console.log(
-        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`
+        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`,
       );
     } else {
       console.warn(
-        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`
+        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`,
       );
     }
   }
