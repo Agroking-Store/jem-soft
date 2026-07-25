@@ -5,7 +5,6 @@ import { futureGeneraliPolicyAttributeValues as futuregeneraliAttributeValues } 
 import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../masterData/productsAttributeValues/pnbAttributeValues";
 import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
 import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
-
 import { axisMaxLifePolicyAttributeValues as axisAttributeValues } from "../masterData/productsAttributeValues/axisAttributeValues";
 const allProductAttributeValues = [
   ...bajajallianzAttributeValues,

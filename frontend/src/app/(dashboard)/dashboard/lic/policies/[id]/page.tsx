@@ -320,7 +320,9 @@ export default function ViewLICPolicyPage() {
         )?.micrNumber ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.micrNumber ??
         "",
-      accountHolderName: "",
+      accountHolderName: selectedPolicy.CustomerMaster
+        ? getFullName(selectedPolicy.CustomerMaster)
+        : "",
       branchName: selectedPolicy.branch?.branchName ?? "",
       medical: "",
       salesChannel: "",
