@@ -4,1191 +4,695 @@ const ageasFederalProductAttributeValues = [
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "67",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "Equal to Policy Term",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "85",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 50,00,000/- ",
     },
     {
         productCode: "Super Protect Plus Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limit, as per BAUP",
     },
 
 
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Super Protect Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
 
-    {
-        productCode: "Magic Savings Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Magic Savings Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Magic Savings Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Magic Savings Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
+
+   
     {
         productCode: "Magic Savings Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "0",
     },
     {
         productCode: "Magic Savings Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "79",
     },
     {
         productCode: "Magic Savings Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "For Single Pay: ₹93,750",
     },
     {
         productCode: "Magic Savings Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No limit (subject to board underwriting policy)",
     },
 
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Life Advantage Plus Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
 
     {
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Wealth Gain Insurance Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "74",
     },
-    {
-        productCode: "Wealth Gain Insurance Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Wealth Gain Insurance Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+    
+
 
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "6",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "25",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "1 month",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "76",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "₹ 50,000",
     },
     {
         productCode: "Wealthsurance Growth Insurance Plan Sp-II",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limit (Subject to Board Approved Underwriting Policy)",
     },
 
-    {
-        productCode: "Super Cash Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Super Cash Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
+    
     {
         productCode: "Super Cash Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "6",
     },
     {
         productCode: "Super Cash Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "15",
     },
     {
         productCode: "Super Cash Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "0 years (91 days) without UIB",
     },
-    {
-        productCode: "Super Cash Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Super Cash Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Super Cash Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
+   
     {
         productCode: "Assured Income Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "16",
     },
     {
         productCode: "Assured Income Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "100 minus Age at Entry",
     },
     {
         productCode: "Assured Income Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Assured Income Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "12",
     },
     {
         productCode: "Assured Income Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Assured Income Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "100",
     },
-    {
-        productCode: "Assured Income Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Assured Income Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+  
 
     {
         productCode: "iSecure Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "iSecure Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "iSecure Plan",
         attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "iSecure Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
+        value: "10",
     },
     {
         productCode: "iSecure Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "21",
     },
     {
         productCode: "iSecure Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "85",
     },
     {
         productCode: "iSecure Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 50,00,000",
     },
     {
         productCode: "iSecure Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limits",
     },
 
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "12",
     },
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "7",
     },
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Young Star Plus Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "65",
     },
-    {
-        productCode: "Young Star Plus Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Young Star Plus Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+   
+
 
     {
         productCode: "Guaranteed Wealth Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "14",
     },
     {
         productCode: "Guaranteed Wealth Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Guaranteed Wealth Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Guaranteed Wealth Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Guaranteed Wealth Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Guaranteed Wealth Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "69",
     },
-    {
-        productCode: "Guaranteed Wealth Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Guaranteed Wealth Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+    
 
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "15",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "40",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "6",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "12",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "0",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "75",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "5,00,000/- if Life cover multiple is 10",
     },
     {
         productCode: "Super Cash Supreme Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limit, as per Board Approved Underwriting Policy",
     },
 
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "15",
     },
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "8",
     },
     {
         productCode: "Guaranteed Income Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "60",
     },
-    {
-        productCode: "Guaranteed Income Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Guaranteed Income Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+    
 
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Easy Save Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+
 
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Saral Jeevan Bima",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "Equal to Policy Term",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "70",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 5,00,000",
     },
     {
         productCode: "Saral Jeevan Bima",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "Rs. 25,00,000",
     },
 
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Termsurance Life Protection Insurance Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Termsurance Life Protection Insurance Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
+        value: "30",
     },
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "70",
     },
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 5,00,000",
     },
     {
         productCode: "Termsurance Life Protection Insurance Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No limit (subject to Board approved underwriting guidelines)",
     },
 
-    {
-        productCode: "ProGrow Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "ProGrow Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "ProGrow Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "ProGrow Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
+   
+    
     {
         productCode: "ProGrow Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "0 year (91 days)",
     },
     {
         productCode: "ProGrow Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "80",
     },
     {
         productCode: "ProGrow Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 5,00,000",
     },
     {
         productCode: "ProGrow Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No limit, Subject to Board approved underwriting policy",
     },
 
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "12",
     },
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "25",
     },
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "6",
     },
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "15",
     },
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: " 0 years (91 days)",
     },
     {
         productCode: "Platinum Wealth Builder Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "75",
     },
-    {
-        productCode: "Platinum Wealth Builder Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Platinum Wealth Builder Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+
 
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "25",
     },
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "20",
     },
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "1 month",
     },
     {
         productCode: "Smart Growth Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "70",
     },
-    {
-        productCode: "Smart Growth Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Smart Growth Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+
+
 
     {
         productCode: "Criti Care Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "5",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "10",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "70",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 2,00,000",
     },
     {
         productCode: "Criti Care Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "Rs. 50,00,000",
     },
 
+   
+   
     {
-        productCode: "Retire Smart Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Retire Smart Plan",
+        productCode: "Saral Pension",
         attributeCode: "MAX_POLICY_TERM",
-        value: "",
+        value: "Whole of Life",
     },
     {
-        productCode: "Retire Smart Plan",
+        productCode: "Saral Pension",
         attributeCode: "MIN_PPT",
-        value: "",
+        value: "1",
     },
     {
-        productCode: "Retire Smart Plan",
+        productCode: "Saral Pension",
         attributeCode: "MAX_PPT",
-        value: "",
+        value: "1",
     },
     {
-        productCode: "Retire Smart Plan",
+        productCode: "Saral Pension",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "40",
+    },
+    
+
+   
+
+   
+    {
+        productCode: "Group Credit shield Plan II",
+        attributeCode: "MIN_PPT",
+        value: "1",
     },
     {
-        productCode: "Retire Smart Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        productCode: "Group Credit shield Plan II",
+        attributeCode: "MAX_PPT",
+        value: "1",
     },
     {
-        productCode: "Retire Smart Plan",
+        productCode: "Group Credit shield Plan II",
+        attributeCode: "MIN_ENTRY_AGE",
+        value: "15 Years (Only for Education loan) 18 years (All other loans)",
+    },
+   
+
+    
+    {
+        productCode: "Group Loan Secure Plan II",
+        attributeCode: "MIN_PPT",
+        value: "1",
+    },
+    {
+        productCode: "Group Loan Secure Plan II",
+        attributeCode: "MAX_PPT",
+        value: "1",
+    },
+    {
+        productCode: "Group Loan Secure Plan II",
+        attributeCode: "MIN_ENTRY_AGE",
+        value: "18",
+    },
+    {
+        productCode: "Group Loan Secure Plan II",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 5,00,000",
     },
     {
-        productCode: "Retire Smart Plan",
+        productCode: "Group Loan Secure Plan II",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limit",
     },
 
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Saral Pension",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Golden Years Pension Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Group Credit shield Plan II",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MIN_SUM_ASSURED",
-        value: "",
-    },
-    {
-        productCode: "Group Loan Secure Plan II",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
-    {
-        productCode: "Group Term Life Plan II",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Term Life Plan II",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Term Life Plan II",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Term Life Plan II",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
+    
     {
         productCode: "Group Term Life Plan II",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "14",
     },
     {
         productCode: "Group Term Life Plan II",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "80",
     },
     {
         productCode: "Group Term Life Plan II",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs.10,000",
     },
     {
         productCode: "Group Term Life Plan II",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "No Limit",
     },
 
     {
         productCode: "Group Employee Benefit Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Employee Benefit Plan",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Employee Benefit Plan",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Employee Benefit Plan",
-        attributeCode: "MAX_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Group Employee Benefit Plan",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Group Employee Benefit Plan",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "80",
     },
     {
         productCode: "Group Employee Benefit Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 10,000 per member",
     },
-    {
-        productCode: "Group Employee Benefit Plan",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
+   
+
 
     {
         productCode: "Group Microsurance Plan II",
-        attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Microsurance Plan II",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Group Microsurance Plan II",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Microsurance Plan II",
-        attributeCode: "MAX_PPT",
-        value: "",
-    },
-    {
-        productCode: "Group Microsurance Plan II",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
-    },
-    {
-        productCode: "Group Microsurance Plan II",
-        attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Group Microsurance Plan II",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs. 5,000",
     },
     {
         productCode: "Group Microsurance Plan II",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "",
+        value: "Rs. 2,00,000",
     },
 
     {
         productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
         attributeCode: "MIN_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
-        attributeCode: "MAX_POLICY_TERM",
-        value: "",
-    },
-    {
-        productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
-        attributeCode: "MIN_PPT",
-        value: "",
-    },
-    {
-        productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
-        attributeCode: "MAX_PPT",
-        value: "",
+        value: "1",
     },
     {
         productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
         attributeCode: "MIN_ENTRY_AGE",
-        value: "",
+        value: "18",
     },
     {
         productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
         attributeCode: "MAX_MATURITY_AGE",
-        value: "",
+        value: "55",
     },
     {
         productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "",
+        value: "Rs.2,00,000 per member",
     },
-    {
-        productCode: "Pradhan Mantri Jeevan Jyoti Bima Yojana",
-        attributeCode: "MAX_SUM_ASSURED",
-        value: "",
-    },
-
 ]
