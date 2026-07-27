@@ -183,7 +183,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Goal Assure IV",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Goal Assure IV",
@@ -215,7 +215,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Smart Wealth Goal VI",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Smart Wealth Goal VI",
@@ -247,7 +247,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Smart Wealth Goal V",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Smart Wealth Goal V",
@@ -279,7 +279,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Future Wealth Gain IV",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Future Wealth Gain IV",
@@ -311,7 +311,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Invest Protect Goal III",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Invest Protect Goal III",
@@ -333,7 +333,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life LongLife Goal III",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life LongLife Goal III",
@@ -365,7 +365,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Magnum Fortune Plus III",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Magnum Fortune Plus III",
@@ -397,7 +397,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Goal Based Saving III",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Goal Based Saving III",
@@ -429,7 +429,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Fortune Gain II",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,000",
+    value: "50000",
   },
   {
     productCode: "Bajaj Life Fortune Gain II",
@@ -461,7 +461,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life GAIN",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life GAIN",
@@ -493,7 +493,7 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Supreme (Gold variant)",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Bajaj Life Supreme (Gold variant)",
@@ -836,12 +836,12 @@ export const bajajLifePolicyAttributeValues = [
   {
     productCode: "Bajaj Life Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {
     productCode: "Bajaj Life Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
   // 31. Bajaj Life Family Protect Rider

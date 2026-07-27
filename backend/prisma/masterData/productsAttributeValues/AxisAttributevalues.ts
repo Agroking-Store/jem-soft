@@ -33,7 +33,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Term Plan Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹25,00,000",
+    value: "2500000",
   },
   {
     productCode: "Axis Max Life Smart Term Plan Plus",
@@ -75,7 +75,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Secure Plus Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹20,00,000",
+    value: "2000000",
   },
   {
     productCode: "Axis Max Life Smart Secure Plus Plan",
@@ -117,7 +117,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Term with Additional Returns",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹25,00,000",
+    value: "2500000",
   },
   {
     productCode: "Axis Max Life Smart Term with Additional Returns",
@@ -296,6 +296,16 @@ export const axisMaxLifePolicyAttributeValues = [
   // 8. Guaranteed LifeTime Income Plan
   {
     productCode: "Axis Max Life Guaranteed LifeTime Income Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "Axis Max Life Guaranteed LifeTime Income Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "Axis Max Life Guaranteed LifeTime Income Plan",
     attributeCode: "MIN_PPT",
     value: "1",
   },
@@ -312,17 +322,27 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Guaranteed LifeTime Income Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "—",
+    value: "50000",
   },
   {
     productCode: "Axis Max Life Guaranteed LifeTime Income Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "—",
+    value: "No Limit",
   },
 
   // 9. Saral Pension Plan
   {
     productCode: "Axis Max Life Saral Pension Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "Axis Max Life Saral Pension Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "Axis Max Life Saral Pension Plan",
     attributeCode: "MIN_PPT",
     value: "1",
   },
@@ -339,12 +359,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Saral Pension Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "—",
+    value: "50000",
   },
   {
     productCode: "Axis Max Life Saral Pension Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "—",
+    value: "No Limit",
   },
 
   // 10. Online Savings Plan
@@ -423,7 +443,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Advantage Guarantee Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Advantage Guarantee Plan",
@@ -465,7 +485,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Advantage Growth PAR Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,50,000",
+    value: "150000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Advantage Growth PAR Plan",
@@ -507,7 +527,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Income Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Income Plan",
@@ -549,7 +569,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Plan",
@@ -591,7 +611,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Savings Advantage Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Savings Advantage Plan",
@@ -633,7 +653,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Advantage Guarantee ELITE",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹10,00,000",
+    value: "1000000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Advantage Guarantee ELITE",
@@ -675,7 +695,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Value Income & Benefit Enhancer Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Smart Value Income & Benefit Enhancer Plan",
@@ -717,7 +737,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Monthly Income Advantage Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹2,00,000",
+    value: "200000",
   },
   {
     productCode: "Axis Max Life Monthly Income Advantage Plan",
@@ -759,7 +779,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Secure Earnings & Wellness Advantage Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Secure Earnings & Wellness Advantage Plan",
@@ -801,7 +821,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Group Saral Suraksha Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,000",
+    value: "1000",
   },
   {
     productCode: "Axis Max Life Group Saral Suraksha Plan",
@@ -830,12 +850,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Niva Bupa ReAssure",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹3,00,000",
+    value: "300000",
   },
   {
     productCode: "Niva Bupa ReAssure",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "₹1,00,000,000",
+    value: "100000000",
   },
 
   // 22. Smart Wealth Annuity Guaranteed Pension Plan
@@ -872,15 +892,25 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Wealth Annuity Guaranteed Pension Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "—",
+    value: "50000",
   },
   {
     productCode: "Axis Max Life Smart Wealth Annuity Guaranteed Pension Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "—",
+    value: "No Limit",
   },
 
   // 23. Smart Guaranteed Pension Plan
+  {
+    productCode: "Axis Max Life Smart Guaranteed Pension Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "Axis Max Life Smart Guaranteed Pension Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
   {
     productCode: "Axis Max Life Smart Guaranteed Pension Plan",
     attributeCode: "MIN_PPT",
@@ -904,15 +934,27 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Guaranteed Pension Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "—",
+    value: "50000",
   },
   {
     productCode: "Axis Max Life Smart Guaranteed Pension Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "—",
+    value: "No Limit",
   },
 
   // 24. Smart Retirement Income with Sustained Earnings Plan
+  {
+    productCode:
+      "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode:
+      "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
   {
     productCode:
       "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
@@ -935,15 +977,14 @@ export const axisMaxLifePolicyAttributeValues = [
     productCode:
       "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "—",
+    value: "50000",
   },
   {
     productCode:
       "Axis Max Life Smart Retirement Income with Sustained Earnings Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "—",
+    value: "No Limit",
   },
-
   // 25. Saral Jeevan Bima
   {
     productCode: "Axis Max Life Saral Jeevan Bima",
@@ -978,12 +1019,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Saral Jeevan Bima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹5,00,000",
+    value: "500000",
   },
   {
     productCode: "Axis Max Life Saral Jeevan Bima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "₹25,00,000",
+    value: "2500000",
   },
 
   // 26. Smart Total Elite Protection Term Plan
@@ -1020,7 +1061,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Total Elite Protection Term Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹2,00,000,000",
+    value: "200000000",
   },
   {
     productCode: "Axis Max Life Smart Total Elite Protection Term Plan",
@@ -1104,12 +1145,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Critical Illness and Disability Rider",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹2,00,000",
+    value: "200000",
   },
   {
     productCode: "Axis Max Life Critical Illness and Disability Rider",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "₹50,00,000",
+    value: "5000000",
   },
 
   // 29. Critical Illness and Disability - Secure Rider
@@ -1146,12 +1187,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Critical Illness and Disability - Secure Rider",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹2,00,000",
+    value: "200000",
   },
   {
     productCode: "Axis Max Life Critical Illness and Disability - Secure Rider",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "₹50,00,000",
+    value: "5000000",
   },
 
   // 30. Group Term Life Platinum Assurance
@@ -1188,7 +1229,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Group Term Life Platinum Assurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,000",
+    value: "1000",
   },
   {
     productCode: "Axis Max Life Group Term Life Platinum Assurance",
@@ -1230,7 +1271,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Group Term Life",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,000",
+    value: "1000",
   },
   {
     productCode: "Axis Max Life Smart Group Term Life",
@@ -1272,7 +1313,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Smart Fixed-Return Digital Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,00,000",
+    value: "100000",
   },
   {
     productCode: "Axis Max Life Smart Fixed-Return Digital Plan",
@@ -1364,12 +1405,12 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Cancer Insurance Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹10,00,000",
+    value: "1000000",
   },
   {
     productCode: "Axis Max Life Cancer Insurance Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "₹50,00,000",
+    value: "5000000",
   },
 
   // 35. Group Total and Permanent Disability (Accident) Premier Rider
@@ -1413,7 +1454,7 @@ export const axisMaxLifePolicyAttributeValues = [
     productCode:
       "Axis Max Life Group Total and Permanent Disability (Accident) Premier Rider",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,000",
+    value: "1000",
   },
   {
     productCode:
@@ -1456,7 +1497,7 @@ export const axisMaxLifePolicyAttributeValues = [
   {
     productCode: "Axis Max Life Group Accelerated Terminal Illness Rider",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "₹1,000",
+    value: "1000",
   },
   {
     productCode: "Axis Max Life Group Accelerated Terminal Illness Rider",
