@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useForm, useFieldArray, Controller, type SubmitHandler, type Resolver } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  Controller,
+  type SubmitHandler,
+  type Resolver,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
@@ -53,7 +59,12 @@ function getFullName(customer: {
   middleName?: string | null;
   lastName?: string | null;
 }) {
-  return [customer.salutation, customer.firstName, customer.middleName, customer.lastName]
+  return [
+    customer.salutation,
+    customer.firstName,
+    customer.middleName,
+    customer.lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 }
@@ -321,32 +332,66 @@ const LifeAssuredAutoComplete = ({
         </span>
         <input
           value={selected ? getFullName(selected) : query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+            if (!e.target.value) onChange("");
+          }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
           className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
         />
-        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={14} /></button>)}
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
-      {open && filtered.length > 0 && (<div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">{filtered.map((m) => (<button key={m.id} type="button" onClick={() => { onChange(m.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"><span className="text-sm font-medium text-slate-800">{getFullName(m)}</span></button>))}</div>)}
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => {
+                onChange(m.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+            >
+              <span className="text-sm font-medium text-slate-800">
+                {getFullName(m)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 const BranchAutoComplete = ({
-   value, 
-   onChange, 
-   branches, 
-   disabled, 
-   placeholder 
-  }: 
-  { 
-    value: string; 
-    onChange: (id: string) => void; 
-    branches: {id: string; branchCode: string; branchName: string }[], 
-    disabled?: boolean, placeholder?: string 
-  }) => {
+  value,
+  onChange,
+  branches,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  branches: { id: string; branchCode: string; branchName: string }[];
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -354,7 +399,8 @@ const BranchAutoComplete = ({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -362,23 +408,65 @@ const BranchAutoComplete = ({
 
   return (
     <div ref={ref} className="relative">
-      <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Branch
+      </label>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={16} /></span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
         <button
           type="button"
           onClick={() => setOpen(!open)}
           disabled={disabled}
           className="w-full text-left px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
-          aria-label={selected ? `[${selected.branchCode}] ${selected.branchName}` : placeholder || "Select a branch..."}
+          aria-label={
+            selected
+              ? `[${selected.branchCode}] ${selected.branchName}`
+              : placeholder || "Select a branch..."
+          }
         >
-          {selected ? `[${selected.branchCode}] ${selected.branchName}` : (placeholder || "Select a branch...")}
+          {selected
+            ? `[${selected.branchCode}] ${selected.branchName}`
+            : placeholder || "Select a branch..."}
         </button>
-        {selected && (<button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={14} /></button>)}
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
-      {open && branches.length > 0 && ( // This should use the DropdownPanel component for consistency
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">{branches.map((b) => (<button key={b.id} type="button" onClick={() => { onChange(b.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"><span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{b.branchCode}</span><span className="text-sm font-medium text-slate-800">{b.branchName}</span></button>))}</div>
-      )}
+      {open &&
+        branches.length > 0 && ( // This should use the DropdownPanel component for consistency
+          <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+            {branches.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => {
+                  onChange(b.id);
+                  setQuery("");
+                  setOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+              >
+                <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                  {b.branchCode}
+                </span>
+                <span className="text-sm font-medium text-slate-800">
+                  {b.branchName}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
     </div>
   );
 };
@@ -552,9 +640,8 @@ export default function NewLICPolicyPage() {
   const { agencies, isLoading: agenciesLoading } = useSelector(
     (s: RootState) => s.agency,
   );
-  const { values: productAttributeValues, isLoading: attributesLoading } = useSelector(
-    (s: RootState) => s.productAttributeValues,
-  );
+  const { values: productAttributeValues, isLoading: attributesLoading } =
+    useSelector((s: RootState) => s.productAttributeValues);
   const { policies, isLoading: policiesLoading } = useSelector(
     (s: RootState) => s.policies,
   );
@@ -567,13 +654,18 @@ export default function NewLICPolicyPage() {
   const [useNeft, setUseNeft] = useState(false);
   const { fetchNotifications } = useNotificationStore();
   const [attributeHints, setAttributeHints] = useState({
-    term: '',
-    ppt: '',
-    sumAssured: '',
-    age: '',
+    term: "",
+    ppt: "",
+    sumAssured: "",
+    age: "",
   });
   const policyTypeParam = searchParams.get("policyType")?.toLowerCase();
-  const selectedPolicyType = policyTypeParam === "other" ? "other" : policyTypeParam === "lic" ? "lic" : null;
+  const selectedPolicyType =
+    policyTypeParam === "other"
+      ? "other"
+      : policyTypeParam === "lic"
+        ? "lic"
+        : null;
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -617,49 +709,68 @@ export default function NewLICPolicyPage() {
         (attr) => attr.productId === values.productId,
       );
       const getAttributeValue = (code: string) =>
-         selectedProductAttributes.find(
-    (a) => a.attribute.attributeCode === code
-  )?.value;
+        selectedProductAttributes.find(
+          (a) => a.attribute.attributeCode === code,
+        )?.value;
 
       let refinedSchema = policySchema;
 
       const minTerm = getAttributeValue("MIN_POLICY_TERM");
       const maxTerm = getAttributeValue("MAX_POLICY_TERM");
       if (minTerm || maxTerm) {
-        refinedSchema = refinedSchema.refine((data) => {
-          if (!data.term) return true;
-          const term = Number(data.term);
-          if (minTerm && term < Number(minTerm)) return false;
-          if (maxTerm && term > Number(maxTerm)) return false;
-          return true;
-        }, { message: `Term must be between ${minTerm || 'N/A'} and ${maxTerm || 'N/A'}.`, path: ["term"] });
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.term) return true;
+            const term = Number(data.term);
+            if (minTerm && term < Number(minTerm)) return false;
+            if (maxTerm && term > Number(maxTerm)) return false;
+            return true;
+          },
+          {
+            message: `Term must be between ${minTerm || "N/A"} and ${maxTerm || "N/A"}.`,
+            path: ["term"],
+          },
+        );
       }
 
       if (maxTerm) {
-        refinedSchema = refinedSchema.refine((data) => {
-          if (!data.commencementDate || !data.completionDate) return true;
-          try {
-            const startDate = new Date(data.commencementDate);
-            const endDate = new Date(data.completionDate);
-            const diffYears = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-            return diffYears <= Number(maxTerm);
-          } catch (e) {
-            return true; // Don't block if dates are invalid, other validators will catch it
-          }
-        }, { message: `The duration between commencement and completion cannot exceed the maximum term of ${maxTerm} years.`, path: ["completionDate"] });
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.commencementDate || !data.completionDate) return true;
+            try {
+              const startDate = new Date(data.commencementDate);
+              const endDate = new Date(data.completionDate);
+              const diffYears =
+                (endDate.getTime() - startDate.getTime()) /
+                (1000 * 60 * 60 * 24 * 365.25);
+              return diffYears <= Number(maxTerm);
+            } catch (e) {
+              return true; // Don't block if dates are invalid, other validators will catch it
+            }
+          },
+          {
+            message: `The duration between commencement and completion cannot exceed the maximum term of ${maxTerm} years.`,
+            path: ["completionDate"],
+          },
+        );
       }
-
 
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
       const maxSum = getAttributeValue("MAX_SUM_ASSURED");
       if (minSum || maxSum) {
-        refinedSchema = refinedSchema.refine((data) => {
-          if (!data.sumAssured) return true;
-          const sum = Number(data.sumAssured);
-          if (minSum && sum < Number(minSum)) return false;
-          if (maxSum && sum > Number(maxSum)) return false;
-          return true;
-        }, { message: `Sum Assured must be between ${minSum || 'N/A'} and ${maxSum || 'N/A'}.`, path: ["sumAssured"] });
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.sumAssured) return true;
+            const sum = Number(data.sumAssured);
+            if (minSum && sum < Number(minSum)) return false;
+            if (maxSum && sum > Number(maxSum)) return false;
+            return true;
+          },
+          {
+            message: `Sum Assured must be between ${minSum || "N/A"} and ${maxSum || "N/A"}.`,
+            path: ["sumAssured"],
+          },
+        );
       }
 
       const minPpt = getAttributeValue("MIN_PPT");
@@ -673,11 +784,18 @@ export default function NewLICPolicyPage() {
             if (maxPpt && ppt > Number(maxPpt)) return false;
             return true;
           },
-          { message: `PPT must be between ${minPpt || "N/A"} and ${maxPpt || "N/A"}.`, path: ["ppt"] },
+          {
+            message: `PPT must be between ${minPpt || "N/A"} and ${maxPpt || "N/A"}.`,
+            path: ["ppt"],
+          },
         );
       }
 
-      return zodResolver(refinedSchema as any)(values as any, context as any, options as any) as any;
+      return zodResolver(refinedSchema as any)(
+        values as any,
+        context as any,
+        options as any,
+      ) as any;
     },
     defaultValues: {
       riders: [],
@@ -780,6 +898,7 @@ export default function NewLICPolicyPage() {
       const defaultBank =
         member.bankDetails.find((b) => b.isDefault) || member.bankDetails[0];
       if (defaultBank) {
+        // NACH fields
         setValue("bankName", defaultBank.bankName || "");
         setValue("bankBranch", defaultBank.bankBranch || "");
         setValue("city", defaultBank.city || "");
@@ -787,11 +906,34 @@ export default function NewLICPolicyPage() {
         setValue("accountNumber", defaultBank.accountNumber || "");
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
+
+        // NEFT fields
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
       }
+    } else {
+      // Clear all bank fields if no bank details exist
+      setValue("bankName", "");
+      setValue("bankBranch", "");
+      setValue("city", "");
+      setValue("accountType", "");
+      setValue("accountNumber", "");
+      setValue("ifscCode", "");
+      setValue("micrNumber", "");
+      setValue("neftBankName", "");
+      setValue("neftBankBranch", "");
+      setValue("neftAccountNumber", "");
+      setValue("neftIfscCode", "");
     }
 
     if (member) {
       setValue("accountHolderName", getFullName(member));
+      setValue("neftAccountHolderName", getFullName(member));
+    } else {
+      setValue("accountHolderName", "");
+      setValue("neftAccountHolderName", "");
     }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
 
@@ -810,17 +952,8 @@ export default function NewLICPolicyPage() {
         setValue("micrNumber", defaultBank.micrNumber || "");
         setValue("accountHolderName", getFullName(member));
       }
-    } else {
-      // Clear fields if NACH is unchecked or no member is selected
-      setValue("bankName", "");
-      setValue("bankBranch", "");
-      setValue("city", "");
-      setValue("accountType", "");
-      setValue("accountNumber", "");
-      setValue("ifscCode", "");
-      setValue("micrNumber", "");
-      setValue("accountHolderName", "");
     }
+    // Do NOT clear fields when NACH is unchecked - user may have edited them manually
   }, [useNach, watchLifeAssuredId, masterCustomers, setValue]);
 
   useEffect(() => {
@@ -835,22 +968,16 @@ export default function NewLICPolicyPage() {
         setValue("neftIfscCode", defaultBank.ifscCode || "");
         setValue("neftAccountHolderName", getFullName(member));
       }
-    } else {
-      // Clear fields if NEFT is unchecked or no member is selected
-      setValue("neftBankName", "");
-      setValue("neftBankBranch", "");
-      setValue("neftAccountNumber", "");
-      setValue("neftIfscCode", "");
-      setValue("neftAccountHolderName", "");
-      // We don't clear neftSubmissionDate as it's independent
     }
+    // Do NOT clear fields when NEFT is unchecked - user may have edited them manually
   }, [useNeft, watchLifeAssuredId, masterCustomers, setValue]);
-
 
   const availableProducts = useMemo(() => {
     return [...products]
       .filter((product) => {
-        const provider = providers.find((provider) => provider.id === product.providerId);
+        const provider = providers.find(
+          (provider) => provider.id === product.providerId,
+        );
         const providerCode = provider?.code?.toLowerCase();
 
         const isLICProvider = providerCode === "lic";
@@ -884,13 +1011,13 @@ export default function NewLICPolicyPage() {
   }, [selectedPolicyType, setValue]);
 
   useEffect(() => {
-    const agency = agencies.find(a => a.id === watchAgencyId);
+    const agency = agencies.find((a) => a.id === watchAgencyId);
     // When agency changes, reset the advisor
-    setValue("advisorId", ""); 
+    setValue("advisorId", "");
 
     if (agency) {
-      if (agency.agencyCode === 'AG002' || agency.agencyCode === 'AG003') {
-        const directBranch = branches.find(b => b.branchCode === '955');
+      if (agency.agencyCode === "AG002" || agency.agencyCode === "AG003") {
+        const directBranch = branches.find((b) => b.branchCode === "955");
         setValue("branchId", directBranch?.id || "");
       } else {
         setValue("branchId", agency.branchId || "");
@@ -932,15 +1059,28 @@ export default function NewLICPolicyPage() {
 
           // Apply mode factors to calculate installment premium for the rider
           switch (mode) {
-            case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
-            case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
-            case "Half-Yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
-            case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
-            case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
-            default: installmentRiderPremium = 0;
+            case "Yearly":
+              installmentRiderPremium = yearlyRiderPremium;
+              break;
+            case "Half-yearly":
+              installmentRiderPremium = yearlyRiderPremium * 0.51;
+              break;
+            case "Half-Yearly":
+              installmentRiderPremium = yearlyRiderPremium * 0.51;
+              break;
+            case "Quarterly":
+              installmentRiderPremium = yearlyRiderPremium * 0.26;
+              break;
+            case "Monthly":
+              installmentRiderPremium = yearlyRiderPremium * 0.088;
+              break;
+            default:
+              installmentRiderPremium = 0;
           }
 
-          const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
+          const finalRiderPremium = parseFloat(
+            installmentRiderPremium.toFixed(2),
+          );
           if (finalRiderPremium !== currentPremium) {
             setValue(`riders.${index}.premium`, finalRiderPremium);
             currentPremium = finalRiderPremium;
@@ -949,7 +1089,12 @@ export default function NewLICPolicyPage() {
         totalInstallmentRiderPremium += currentPremium;
         totalYearlyRiderPremium += yearlyRiderPremium;
       });
-      setValue("totalRiderPremium", totalInstallmentRiderPremium > 0 ? totalInstallmentRiderPremium : undefined);
+      setValue(
+        "totalRiderPremium",
+        totalInstallmentRiderPremium > 0
+          ? totalInstallmentRiderPremium
+          : undefined,
+      );
     }
   }, [watchRiders, setValue]);
 
@@ -992,7 +1137,12 @@ export default function NewLICPolicyPage() {
       // This should be replaced with your actual business logic.
       // For example, it could be a lookup from a rate table based on age, term, ppt.
       const basicYearlyPremium = sum * 0.05; // Example: 5% of sum assured
-      setValue("basicYearlyPremium", basicYearlyPremium > 0 ? parseFloat(basicYearlyPremium.toFixed(2)) : undefined);
+      setValue(
+        "basicYearlyPremium",
+        basicYearlyPremium > 0
+          ? parseFloat(basicYearlyPremium.toFixed(2))
+          : undefined,
+      );
 
       // Calculate installment premium based on mode
       let installmentPremium = 0;
@@ -1014,33 +1164,41 @@ export default function NewLICPolicyPage() {
         default:
           installmentPremium = 0;
       }
-      setValue("installmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
+      setValue(
+        "installmentPremium",
+        installmentPremium > 0
+          ? parseFloat(installmentPremium.toFixed(2))
+          : undefined,
+      );
       setValue("gst", undefined);
-      setValue("totalInstallmentPremium", installmentPremium > 0 ? parseFloat(installmentPremium.toFixed(2)) : undefined);
+      setValue(
+        "totalInstallmentPremium",
+        installmentPremium > 0
+          ? parseFloat(installmentPremium.toFixed(2))
+          : undefined,
+      );
     }
-
   }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
 
   // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
     if (!watchProductId || !productAttributeValues || !products.length) {
-      setAttributeHints({ term: '', ppt: '', sumAssured: '', age: '' });
+      setAttributeHints({ term: "", ppt: "", sumAssured: "", age: "" });
       // Clear fields if product is deselected
       setValue("term", undefined);
       setValue("ppt", undefined);
       setValue("sumAssured", undefined);
       return;
     }
-  
+
     const selectedProductAttributes = productAttributeValues.filter(
-      (attr) => attr.productId === watchProductId
+      (attr) => attr.productId === watchProductId,
     );
-  
+
     const getAttributeValue = (code: string) =>
-      selectedProductAttributes.find(
-        (a) => a.attribute.attributeCode === code
-      )?.value;
-  
+      selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
+        ?.value;
+
     const minTerm = getAttributeValue("MIN_POLICY_TERM");
     const maxTerm = getAttributeValue("MAX_POLICY_TERM");
     const minPpt = getAttributeValue("MIN_PPT");
@@ -1049,7 +1207,7 @@ export default function NewLICPolicyPage() {
     const maxSum = getAttributeValue("MAX_SUM_ASSURED");
     const minAge = getAttributeValue("MIN_ENTRY_AGE");
     const maxAge = getAttributeValue("MAX_ENTRY_AGE");
-  
+
     // Pre-fill with minimum values. The `z.coerce` in the schema will handle the type.
     if (minTerm) setValue("term", minTerm as any);
     else setValue("term", undefined);
@@ -1061,10 +1219,22 @@ export default function NewLICPolicyPage() {
     else setValue("sumAssured", undefined);
 
     setAttributeHints({
-      term: minTerm || maxTerm ? `Range: ${minTerm || 'N/A'} - ${maxTerm || 'N/A'}` : '',
-      ppt: minPpt || maxPpt ? `Range: ${minPpt || 'N/A'} - ${maxPpt || 'N/A'}` : '',
-      sumAssured: minSum || maxSum ? `Range: ${minSum || 'N/A'} - ${maxSum || 'N/A'}` : '',
-      age: minAge || maxAge ? `Required Age: ${minAge || 'N/A'} - ${maxAge || 'N/A'}` : '',
+      term:
+        minTerm || maxTerm
+          ? `Range: ${minTerm || "N/A"} - ${maxTerm || "N/A"}`
+          : "",
+      ppt:
+        minPpt || maxPpt
+          ? `Range: ${minPpt || "N/A"} - ${maxPpt || "N/A"}`
+          : "",
+      sumAssured:
+        minSum || maxSum
+          ? `Range: ${minSum || "N/A"} - ${maxSum || "N/A"}`
+          : "",
+      age:
+        minAge || maxAge
+          ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
+          : "",
     });
   }, [watchProductId, productAttributeValues, products, setValue]);
 
@@ -1084,13 +1254,13 @@ export default function NewLICPolicyPage() {
         ...data,
         attributes: {
           MIN_POLICY_TERM: data.term,
-    MAX_POLICY_TERM: data.term,
+          MAX_POLICY_TERM: data.term,
 
-    MIN_PPT: data.ppt,
-    MAX_PPT: data.ppt,
+          MIN_PPT: data.ppt,
+          MAX_PPT: data.ppt,
 
-    MIN_SUM_ASSURED: data.sumAssured,
-    MAX_SUM_ASSURED: data.sumAssured,
+          MIN_SUM_ASSURED: data.sumAssured,
+          MAX_SUM_ASSURED: data.sumAssured,
         },
       };
       const result = await dispatch(createPolicy(payload)).unwrap();
@@ -1139,7 +1309,7 @@ export default function NewLICPolicyPage() {
           window.pageYOffset +
           yOffset;
 
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        window.scrollTo({ top: y, behavior: "smooth" });
 
         setActiveSection(sectionId);
 
@@ -1147,7 +1317,9 @@ export default function NewLICPolicyPage() {
         // Remove the glow after 1.5 seconds
         setTimeout(() => setGlowingSection(null), 1500);
       }
-    }, [sectionRefs]);
+    },
+    [sectionRefs],
+  );
 
   if (!isMounted || authLoading || !canCreate) {
     return (
@@ -1249,115 +1421,122 @@ export default function NewLICPolicyPage() {
               </Link>
             }
           >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <Controller
-                name="groupId"
-                control={control}
-                render={({ field }) => (
-                  <GroupAutoComplete
-                    value={field.value}
-                    onChange={field.onChange}
-                    groups={groups}
-                  />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <Controller
+                  name="groupId"
+                  control={control}
+                  render={({ field }) => (
+                    <GroupAutoComplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      groups={groups}
+                    />
+                  )}
+                />
+                {errors.groupId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.groupId.message}
+                  </p>
                 )}
-              />
-              {errors.groupId && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.groupId.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Group Code
-              </label>
-              <input
-                type="text"
-                value={selectedGroup?.groupCode || ""}
-                placeholder="Autofilled"
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
-            <div>
-              <Controller
-                name="lifeAssuredId"
-                control={control}
-                render={({ field }) => (
-                  <LifeAssuredAutoComplete
-                    value={field.value}
-                    onChange={field.onChange}
-                    members={groupMembers}
-                    disabled={!watchGroupId || groupMembers.length === 0}
-                    placeholder={watchGroupId ? (groupMembers.length > 0 ? "Search member..." : "No members in group") : "Select a group first"}
-                  />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Group Code
+                </label>
+                <input
+                  type="text"
+                  value={selectedGroup?.groupCode || ""}
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
+              <div>
+                <Controller
+                  name="lifeAssuredId"
+                  control={control}
+                  render={({ field }) => (
+                    <LifeAssuredAutoComplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      members={groupMembers}
+                      disabled={!watchGroupId || groupMembers.length === 0}
+                      placeholder={
+                        watchGroupId
+                          ? groupMembers.length > 0
+                            ? "Search member..."
+                            : "No members in group"
+                          : "Select a group first"
+                      }
+                    />
+                  )}
+                />
+                {errors.lifeAssuredId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.lifeAssuredId.message}
+                  </p>
                 )}
-              />
-              {errors.lifeAssuredId && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.lifeAssuredId.message}
-                </p>
-              )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  {...register("dob")}
+                  type="date"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Age
+                </label>
+                <input
+                  {...register("age")}
+                  type="number"
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+                {attributeHints.age && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {attributeHints.age}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Gender
+                </label>
+                <select
+                  {...register("gender")}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  disabled
+                >
+                  <option value="">Select Gender</option>
+                  <option value={watch("gender")} disabled>
+                    {watch("gender")}
+                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  PAN Regi.
+                </label>
+                <input
+                  {...register("pan")}
+                  type="text"
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Date of Birth
-              </label>
-              <input
-                {...register("dob")}
-                type="date"
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                readOnly
-              />
-              
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Age
-              </label>
-              <input
-                {...register("age")}
-                type="number"
-                placeholder="Autofilled"
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                readOnly
-              />
-              {attributeHints.age && (
-                <p className="text-xs text-slate-500 mt-1">{attributeHints.age}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Gender
-              </label>
-              <select
-                {...register("gender")}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                disabled
-              >
-                <option value="">Select Gender</option>
-                <option value={watch("gender")} disabled>
-                  {watch("gender")}
-                </option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                PAN Regi.
-              </label>
-              <input
-                {...register("pan")}
-                type="text"
-                placeholder="Autofilled"
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
-          </div>
           </CustomerSectionCard>
         </div>
 
@@ -1369,162 +1548,188 @@ export default function NewLICPolicyPage() {
               ref={sectionRefs["policy-details"]} // Keep ref for scrolling
             >
               <CustomerSectionCard title="Policy Details" icon={FileText}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <input type="hidden" {...register("providerType")} />
-                <input type="hidden" {...register("productType")} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <input type="hidden" {...register("providerType")} />
+                  <input type="hidden" {...register("productType")} />
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Policy Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    {...register("policyNumber")}
-                    placeholder="Enter policy number"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.policyNumber && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.policyNumber.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Plan <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="productId" // Use Controller for custom components
-                    render={({ field }) => (
-                      <SearchableSelect
-                        placeholder="Search plan..."
-                        searchPlaceholder="Search by name or number"
-                        options={availableProducts.map(p => ({
-                          value: p.id,
-                          label: p.productName,
-                          sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
-                        }))}
-                        value={field.value}
-                        onChange={(val) => {
-                          field.onChange(val);
-                          const selectedProduct = products.find((p) => p.id === val);
-                          if (selectedProduct) {
-                            setValue("providerId", selectedProduct.providerId || "");
-                            setValue("productType", selectedProduct.productType || "");
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register("policyNumber")}
+                      placeholder="Enter policy number"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.policyNumber && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.policyNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Plan <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="productId" // Use Controller for custom components
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search plan..."
+                          searchPlaceholder="Search by name or number"
+                          options={availableProducts.map((p) => ({
+                            value: p.id,
+                            label: p.productName,
+                            sublabel: p.planNumber
+                              ? `Plan No: ${p.planNumber}`
+                              : undefined,
+                          }))}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            const selectedProduct = products.find(
+                              (p) => p.id === val,
+                            );
+                            if (selectedProduct) {
+                              setValue(
+                                "providerId",
+                                selectedProduct.providerId || "",
+                              );
+                              setValue(
+                                "productType",
+                                selectedProduct.productType || "",
+                              );
+                            }
+                          }}
+                          error={errors.productId?.message}
+                          disabled={productsLoading}
+                        />
+                      )}
+                    />
+                    {errors.productId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.productId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Commencement Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="commencementDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
                           }
-                        }}
-                        error={errors.productId?.message}
-                        disabled={productsLoading}
-                      />
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.commencementDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.commencementDate.message}
+                      </p>
                     )}
-                  />
-                  {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Commencement Date <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="commencementDate"
-                    render={({ field }) => (
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                      />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mode <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      {...register("mode")}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    >
+                      <option value="">Select Mode</option>
+                      {modes.map((mode) => (
+                        <option key={mode.id} value={mode.modeName}>
+                          {mode.modeName}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.mode && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.mode.message}
+                      </p>
                     )}
-                  />
-                  {errors.commencementDate && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.commencementDate.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Mode <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register("mode")}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  >
-                    <option value="">Select Mode</option>
-                    {modes.map((mode) => (
-                      <option key={mode.id} value={mode.modeName}>
-                        {mode.modeName}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.mode && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.mode.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Completion Date <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="completionDate"
-                    render={({ field }) => (
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                      />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="completionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.completionDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.completionDate.message}
+                      </p>
                     )}
-                  />
-                  {errors.completionDate && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.completionDate.message}
-                    </p>
-                  )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Term
+                    </label>
+                    <input
+                      type="text"
+                      {...register("term")}
+                      placeholder="Enter term"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.term && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.term.message}
+                      </p>
+                    )}
+                    {attributeHints.term && !errors.term && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.term}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      PPT
+                    </label>
+                    <input
+                      type="text"
+                      {...register("ppt")}
+                      placeholder="Enter PPT"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.ppt && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.ppt.message}
+                      </p>
+                    )}
+                    {attributeHints.ppt && !errors.ppt && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.ppt}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Term
-                  </label>
-                  <input
-                    type="text"
-                    {...register("term")}
-                    placeholder="Enter term"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.term && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.term.message}
-                    </p>
-                  )}
-                  {attributeHints.term && !errors.term && (
-                    <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    PPT
-                  </label>
-                  <input
-                    type="text"
-                    {...register("ppt")}
-                    placeholder="Enter PPT"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.ppt && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.ppt.message}
-                    </p>
-                  )}
-                  {attributeHints.ppt && !errors.ppt && (
-                    <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
-                  )}
-                </div>
-              </div>
               </CustomerSectionCard>
             </div>
             {/* Section 4: Riders Details */}
@@ -1537,7 +1742,16 @@ export default function NewLICPolicyPage() {
                 actions={
                   <button
                     type="button"
-                    onClick={() => appendRider({ description: "", sum: null, term: null, mode: "", ppt: null, premium: null })}
+                    onClick={() =>
+                      appendRider({
+                        description: "",
+                        sum: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        premium: null,
+                      })
+                    }
                     className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
                   >
                     <Plus size={14} />
@@ -1545,147 +1759,157 @@ export default function NewLICPolicyPage() {
                   </button>
                 }
               >
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Rider Description
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Sum
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Term
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        PPT
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Mode
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Premium
-                      </th>
-                      <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {riderFields.length === 0 ? (
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
                       <tr>
-                        <td
-                          colSpan={7}
-                          className="px-4 py-6 text-center text-slate-500 text-sm"
-                        >
-                          No Rider to Show
-                        </td>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Rider Description
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Sum
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Term
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          PPT
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Mode
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Premium
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
+                          Action
+                        </th>
                       </tr>
-                    ) : (
-                      riderFields.map((field, index) => (
-                        <tr key={field.id}>
-                          <td className="px-2 py-1.5 w-1/3">
-                            <select
-                              {...register(`riders.${index}.description`)}
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                            >
-                              <option value="">Select Rider</option>
-                              {riders.map((rider) => (
-                                <option key={rider.id} value={rider.riderName}>
-                                  {rider.riderCode
-                                    ? `[${rider.riderCode}] `
-                                    : ""}
-                                  {rider.riderName}
-                                </option>
-                              ))}
-                            </select>
-                            {errors.riders?.[index]?.description && (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.riders[index]?.description?.message}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <input
-                              type="text"
-                              {...register(`riders.${index}.sum`)}
-                              placeholder="Sum"
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                            />
-                            {errors.riders?.[index]?.sum && (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.riders[index]?.sum?.message}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <input
-                              type="text"
-                              {...register(`riders.${index}.term`)}
-                              placeholder="Term"
-                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                            />
-                            {errors.riders?.[index]?.term && (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.riders[index]?.term?.message}
-                              </p>
-                            )}
-                          </td>
-                          
-                          <td className="px-2 py-1.5">
-                            <input
-                              type="text"
-                              {...register(`riders.${index}.ppt`)}
-                              placeholder="PPT"
-                              className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                            />
-                            {errors.riders?.[index]?.ppt && (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.riders[index]?.ppt?.message}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]">
-                                <option value="">Mode</option>
-                                {modes.map(mode => (
-                                    <option key={mode.id} value={mode.modeName}>
-                                        {mode.modeName}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.riders?.[index]?.mode && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.mode?.message}</p>}
-                          </td>
-                          <td className="px-2 py-1.5">
-                            <input
-                              type="text"
-                              {...register(`riders.${index}.premium`)}
-                              placeholder="Premium"
-                              className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                            />
-                            {errors.riders?.[index]?.premium && (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.riders[index]?.premium?.message}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-2 py-1.5 text-center">
-                            <button
-                              type="button"
-                              onClick={() => removeRider(index)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Remove Rider"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {riderFields.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-4 py-6 text-center text-slate-500 text-sm"
+                          >
+                            No Rider to Show
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        riderFields.map((field, index) => (
+                          <tr key={field.id}>
+                            <td className="px-2 py-1.5 w-1/3">
+                              <select
+                                {...register(`riders.${index}.description`)}
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              >
+                                <option value="">Select Rider</option>
+                                {riders.map((rider) => (
+                                  <option
+                                    key={rider.id}
+                                    value={rider.riderName}
+                                  >
+                                    {rider.riderCode
+                                      ? `[${rider.riderCode}] `
+                                      : ""}
+                                    {rider.riderName}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors.riders?.[index]?.description && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.description?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.sum`)}
+                                placeholder="Sum"
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.sum && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.sum?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.term`)}
+                                placeholder="Term"
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.term && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.term?.message}
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.ppt`)}
+                                placeholder="PPT"
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.ppt && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.ppt?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <select
+                                {...register(`riders.${index}.mode`)}
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              >
+                                <option value="">Mode</option>
+                                {modes.map((mode) => (
+                                  <option key={mode.id} value={mode.modeName}>
+                                    {mode.modeName}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors.riders?.[index]?.mode && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.mode?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.premium`)}
+                                placeholder="Premium"
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.premium && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.premium?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <button
+                                type="button"
+                                onClick={() => removeRider(index)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove Rider"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </CustomerSectionCard>
             </div>
           </div>
@@ -1693,118 +1917,129 @@ export default function NewLICPolicyPage() {
           {/* Right Column */}
           <div className="lg:col-span-1">
             {/* Section 3: Policy Premium Calculation */}
-            <div ref={sectionRefs["premium-calculation"]} className="sticky top-6">
-              <CustomerSectionCard title="Policy Premium Calculation" icon={Banknote}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Sum Assured
-                  </label>
-                  <input
-                    type="text"
-                    {...register("sumAssured")}
-                    placeholder="Enter sum assured"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.sumAssured && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.sumAssured.message}
-                    </p>
-                  )}
-                  {attributeHints.sumAssured && !errors.sumAssured && (
-                    <p className="text-xs text-slate-500 mt-1">{attributeHints.sumAssured}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Basic Yearly Premium
-                  </label>
-                  <input
-                    type="text"
-                    {...register("basicYearlyPremium")}
-                    placeholder="Enter basic yearly premium"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.basicYearlyPremium && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.basicYearlyPremium.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Yearly Premium
-                  </label>
-                  <input
-                    type="text"
-                    {...register("totalYearlyPremium")}
-                    placeholder="Enter total yearly premium"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                    readOnly
-                  />
-                  {errors.totalYearlyPremium && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.totalYearlyPremium.message}
-                    </p>
-                  )}
-                </div>
+            <div
+              ref={sectionRefs["premium-calculation"]}
+              className="sticky top-6"
+            >
+              <CustomerSectionCard
+                title="Policy Premium Calculation"
+                icon={Banknote}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Sum Assured
+                    </label>
+                    <input
+                      type="text"
+                      {...register("sumAssured")}
+                      placeholder="Enter sum assured"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.sumAssured && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.sumAssured.message}
+                      </p>
+                    )}
+                    {attributeHints.sumAssured && !errors.sumAssured && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.sumAssured}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Basic Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("basicYearlyPremium")}
+                      placeholder="Enter basic yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.basicYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.basicYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalYearlyPremium")}
+                      placeholder="Enter total yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                      readOnly
+                    />
+                    {errors.totalYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Rider Premium
-                  </label>
-                  <input
-                    type="text"
-                    {...register("totalRiderPremium")}
-                    placeholder="Total rider premium"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.totalRiderPremium && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.totalRiderPremium.message}
-                    </p>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Rider Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalRiderPremium")}
+                      placeholder="Total rider premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.totalRiderPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalRiderPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("installmentPremium")}
+                      placeholder="Installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.installmentPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.installmentPremium.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalInstallmentPremium")}
+                      placeholder="Total installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Installment Premium
-                  </label>
-                  <input
-                    type="text"
-                    {...register("installmentPremium")}
-                    placeholder="Installment premium"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.installmentPremium && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.installmentPremium.message}
-                    </p>
-                  )}
-                </div>
-               
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Total Installment Premium
-                  </label>
-                  <input
-                    type="text"
-                    {...register("totalInstallmentPremium")}
-                    placeholder="Total installment premium"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                </div>
-              </div>
               </CustomerSectionCard>
-          </div>
+            </div>
           </div>
         </div>
-        
+
         <div
           ref={sectionRefs["advanced"]} // Ref is on the main container
         >
-          <CustomerSectionCard title="Advanced Options" icon={Settings} className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}>
-          <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-
+          <CustomerSectionCard
+            title="Advanced Options"
+            icon={Settings}
+            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
+          >
+            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* ================= LEFT COLUMN ================= */}
               <div className="space-y-6">
                 {/* ================= Current Status ================= */}
@@ -1822,9 +2057,18 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-1.5">Policy Status</label>
-                        <select {...register("statusId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          {statuses.map((status) => (<option key={status.id} value={status.id}>{status.statusName}</option>))}
+                        <label className="block text-sm font-medium mb-1.5">
+                          Policy Status
+                        </label>
+                        <select
+                          {...register("statusId")}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {statuses.map((status) => (
+                            <option key={status.id} value={status.id}>
+                              {status.statusName}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div>
@@ -1906,220 +2150,248 @@ export default function NewLICPolicyPage() {
                   </div>
                 </div>
                 {/* ================= NACH & NEFT ================= */}
-                {watchProductId && <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <h3 className="font-semibold text-slate-900">
-                      NACH & NEFT Details
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      Provide NACH / NEFT Details for Bank Transactions
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="md:col-span-2 flex items-center gap-3">
-                        <input
-                          id="useNachCheckbox"
-                          type="checkbox"
-                          checked={useNach}
-                          onChange={(e) => setUseNach(e.target.checked)}
-                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <label htmlFor="useNachCheckbox" className="text-sm font-medium text-slate-700 cursor-pointer">
-                          Premiums will be paid through NACH
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Bank Name
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Bank Name"
-                          {...register("bankName")}
-                          readOnly={!useNach}
-                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Account Number
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Account Number"
-                          {...register("accountNumber")}
-                          readOnly={!useNach}
-                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          IFSC Code
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="IFSC Code"
-                          {...register("ifscCode")}
-                          readOnly={!useNach}
-                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Account Holder Name
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Account Holder Name"
-                          {...register("accountHolderName")}
-                          readOnly={!useNach}
-                          className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                        />
-                      </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Bank Branch
-                      </label>
-                      <input
-                        {...register("bankBranch")}
-                        type="text"
-                        placeholder="Bank Branch"
-                        readOnly={!useNach}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
+                {watchProductId && (
+                  <div className="border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                      <h3 className="font-semibold text-slate-900">
+                        NACH & NEFT Details
+                      </h3>
+                      <span className="text-sm text-slate-500">
+                        Provide NACH / NEFT Details for Bank Transactions
+                      </span>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        City
-                      </label>
-                      <input
-                        {...register("city")}
-                        type="text"
-                        placeholder="City"
-                        readOnly={!useNach}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Account Type
-                      </label>
-                      <input
-                      {...register("accountType")} 
-                      placeholder="Account Type" 
-                      readOnly={!useNach}
-                      className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className= "bolck text-sm font-medium mb-2">
-                        Debt Date
-                      </label>
-                      <input
-                      value={watchFupDate || ""}
-                      readOnly
-                      className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                      />
-                    </div>
-                   
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        MICR Number
-                      </label>
-                      <input
-                        {...register("micrNumber")}
-                        type="text"
-                        placeholder="MICR Number"
-                        readOnly={!useNach}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-
-                    {/* NEFT Section */}
-                    <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
-
-                    <div className="md:col-span-2 flex items-center gap-3">
-                      <input
-                        id="useNeftCheckbox"
-                        type="checkbox"
-                        checked={useNeft}
-                        onChange={(e) => setUseNeft(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <label htmlFor="useNeftCheckbox" className="text-sm font-medium text-slate-700 cursor-pointer">
-                        NEFT details are available
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Bank Name</label>
-                      <input
-                        type="text"
-                        placeholder="Bank Name"
-                        {...register("neftBankName")}
-                        readOnly={!useNeft}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Account Number</label>
-                      <input
-                        type="text"
-                        placeholder="Account Number"
-                        {...register("neftAccountNumber")}
-                        readOnly={!useNeft}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">IFSC Code</label>
-                      <input
-                        type="text"
-                        placeholder="IFSC Code"
-                        {...register("neftIfscCode")}
-                        readOnly={!useNeft}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Account Holder Name</label>
-                      <input
-                        type="text"
-                        placeholder="Account Holder Name"
-                        {...register("neftAccountHolderName")}
-                        readOnly={!useNeft}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Bank Branch</label>
-                      <input
-                        {...register("neftBankBranch")}
-                        type="text"
-                        placeholder="Bank Branch"
-                        readOnly={!useNeft}
-                        className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Submission Date</label>
-                      <Controller
-                        control={control}
-                        name="neftSubmissionDate"
-                        render={({ field }) => (
-                          <DatePicker
-                            value={field.value ? new Date(field.value) : undefined}
-                            onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                            readOnly={!useNeft}
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="md:col-span-2 flex items-center gap-3">
+                          <input
+                            id="useNachCheckbox"
+                            type="checkbox"
+                            checked={useNach}
+                            onChange={(e) => setUseNach(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                           />
-                        )}
-                      />
-                    </div>
+                          <label
+                            htmlFor="useNachCheckbox"
+                            className="text-sm font-medium text-slate-700 cursor-pointer"
+                          >
+                            Premiums will be paid through NACH
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Bank Name"
+                            {...register("bankName")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Number
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Number"
+                            {...register("accountNumber")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            IFSC Code
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="IFSC Code"
+                            {...register("ifscCode")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Holder Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Holder Name"
+                            {...register("accountHolderName")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Branch
+                          </label>
+                          <input
+                            {...register("bankBranch")}
+                            type="text"
+                            placeholder="Bank Branch"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            City
+                          </label>
+                          <input
+                            {...register("city")}
+                            type="text"
+                            placeholder="City"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Type
+                          </label>
+                          <input
+                            {...register("accountType")}
+                            placeholder="Account Type"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="bolck text-sm font-medium mb-2">
+                            Debt Date
+                          </label>
+                          <input
+                            value={watchFupDate || ""}
+                            readOnly
+                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            MICR Number
+                          </label>
+                          <input
+                            {...register("micrNumber")}
+                            type="text"
+                            placeholder="MICR Number"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+
+                        {/* NEFT Section */}
+                        <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+
+                        <div className="md:col-span-2 flex items-center gap-3">
+                          <input
+                            id="useNeftCheckbox"
+                            type="checkbox"
+                            checked={useNeft}
+                            onChange={(e) => setUseNeft(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="useNeftCheckbox"
+                            className="text-sm font-medium text-slate-700 cursor-pointer"
+                          >
+                            NEFT details are available
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Bank Name"
+                            {...register("neftBankName")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Number
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Number"
+                            {...register("neftAccountNumber")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            IFSC Code
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="IFSC Code"
+                            {...register("neftIfscCode")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Holder Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Holder Name"
+                            {...register("neftAccountHolderName")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Branch
+                          </label>
+                          <input
+                            {...register("neftBankBranch")}
+                            type="text"
+                            placeholder="Bank Branch"
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Submission Date
+                          </label>
+                          <Controller
+                            control={control}
+                            name="neftSubmissionDate"
+                            render={({ field }) => (
+                              <DatePicker
+                                value={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onChange={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : "",
+                                  )
+                                }
+                                readOnly={!useNeft}
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>}
+                )}
               </div>
               {/* ================= RIGHT COLUMN ================= */}
               <div className="space-y-6">
@@ -2310,8 +2582,13 @@ export default function NewLICPolicyPage() {
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Agency <span className="text-red-500">*</span></label>
-                        <select {...register("agencyId")} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium mb-2">
+                          Agency <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("agencyId")}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
                           <option value="">Select Agency</option>
                           {agencies.map((agency) => (
                             <option key={agency.id} value={agency.id}>
@@ -2319,15 +2596,48 @@ export default function NewLICPolicyPage() {
                             </option>
                           ))}
                         </select>
-                        {errors.agencyId && <p className="text-xs text-red-500 mt-1">{errors.agencyId.message}</p>}
+                        {errors.agencyId && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.agencyId.message}
+                          </p>
+                        )}
                       </div>
                       <div>
-                        <Controller name="branchId" control={control} render={({ field }) => (<BranchAutoComplete value={field.value || ""} onChange={field.onChange} branches={branches} />)} />
+                        <Controller
+                          name="branchId"
+                          control={control}
+                          render={({ field }) => (
+                            <BranchAutoComplete
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              branches={branches}
+                            />
+                          )}
+                        />
                       </div>
                       <div className="relative">
-                        <Controller name="advisorId" control={control} render={({ field }) => (<AdvisorAutoComplete value={field.value || ""} onChange={field.onChange} advisors={filteredAdvisors} disabled={!watchAgencyId} placeholder={watchAgencyId ? "Search Advisor..." : "Select Agency First"} />
-                        )} />
-                        {errors.advisorId && <p className="text-xs text-red-500 mt-1">{errors.advisorId.message}</p>}
+                        <Controller
+                          name="advisorId"
+                          control={control}
+                          render={({ field }) => (
+                            <AdvisorAutoComplete
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              advisors={filteredAdvisors}
+                              disabled={!watchAgencyId}
+                              placeholder={
+                                watchAgencyId
+                                  ? "Search Advisor..."
+                                  : "Select Agency First"
+                              }
+                            />
+                          )}
+                        />
+                        {errors.advisorId && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.advisorId.message}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
@@ -2387,9 +2697,7 @@ export default function NewLICPolicyPage() {
             </div>
           </CustomerSectionCard>
         </div>
-
       </form>
-  </div>
-  
+    </div>
   );
 }

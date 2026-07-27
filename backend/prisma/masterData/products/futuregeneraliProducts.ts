@@ -7,8 +7,7 @@ export const futuregeneraliProducts = [
     providerCode: "FUTURE_GENERALI",
   },
   {
-    productName:
-      "Arogya Sanjeevani Policy, Generali Central Insurance Company Limited",
+    productName: "Arogya Sanjeevani Policy",
     productCode: "GCIHLIP20160V011920",
     planNumber: "FG002",
     providerCode: "FUTURE_GENERALI",
@@ -56,8 +55,7 @@ export const futuregeneraliProducts = [
     providerCode: "FUTURE_GENERALI",
   },
   {
-    productName:
-      "Saral Suraksha Bima, Generali Central Insurance Company Limited",
+    productName: "Saral Suraksha Bima",
     productCode: "GCIPAIP21623V012021",
     planNumber: "FG010",
     providerCode: "FUTURE_GENERALI",

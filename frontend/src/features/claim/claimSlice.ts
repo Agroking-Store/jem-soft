@@ -10,56 +10,56 @@ export interface Claim {
   claimAmount: number;
   status: string;
   claimDate: string;
+  reasonForClaim?: string | null;
   createdById: string;
   updatedById?: string | null;
   createdAt: string;
   updatedAt: string;
-   policy: {
+  policy: {
     id: string;
-  clientId: string;
-  CustomerMasterId: string;
-  providerId: string;
-  productId: string;
-  statusId: string;
-  premiumModeId: string;
-  advisorId?: string | null;
-  branchId?: string | null;
-  policyNumber: string;
-  proposalNumber?: string | null;
-  issueDate?: string | null;
-  commencementDate: string;
-  maturityDate?: string | null;
-  policyTerm?: number | null;
-  premiumPayingTerm?: number | null;
-  nextPremiumDueDate?: string | null;
-  remarks?: string | null;
-  createdAt: string;
-  updatedAt: string;
+    clientId: string;
+    CustomerMasterId: string;
+    providerId: string;
+    productId: string;
+    statusId: string;
+    premiumModeId: string;
+    advisorId?: string | null;
+    branchId?: string | null;
+    policyNumber: string;
+    proposalNumber?: string | null;
+    issueDate?: string | null;
+    commencementDate: string;
+    maturityDate?: string | null;
+    policyTerm?: number | null;
+    premiumPayingTerm?: number | null;
+    nextPremiumDueDate?: string | null;
+    remarks?: string | null;
+    createdAt: string;
+    updatedAt: string;
     CustomerMaster: {
-    id: string;
-    salutation?: string | null;
-    firstName: string;
-    middleName?: string | null;
-    lastName: string;
-  } | null;
-  product?: {
-    id: string;
-    productName: string;
-    planNumber?: string | null;
-  } | null;
-  status?: {
-    id: string;
-    statusName: string;
-    statusCode: string;
-  } | null;
-  premium?: {
-    id: string;
-    sumAssured: number;
-    installmentPremium: number;
-    totalInstallmentPremium: number;
-  } | null;
+      id: string;
+      salutation?: string | null;
+      firstName: string;
+      middleName?: string | null;
+      lastName: string;
+    } | null;
+    product?: {
+      id: string;
+      productName: string;
+      planNumber?: string | null;
+    } | null;
+    status?: {
+      id: string;
+      statusName: string;
+      statusCode: string;
+    } | null;
+    premium?: {
+      id: string;
+      sumAssured: number;
+      installmentPremium: number;
+      totalInstallmentPremium: number;
+    } | null;
   };
-   
 }
 
 export interface CreateClaimPayload {
@@ -68,6 +68,7 @@ export interface CreateClaimPayload {
   claimType: string;
   claimAmount: number;
   claimDate: string;
+  reasonForClaim?: string;
 }
 
 interface ClaimState {
@@ -79,7 +80,7 @@ interface ClaimState {
 
 const initialState: ClaimState = {
   claims: [],
-   selectedClaim: null,
+  selectedClaim: null,
   isLoading: false,
   error: null,
 };
@@ -105,13 +106,10 @@ const getClaimsApi = () => api.get("/claims");
 const createClaimApi = (claimData: CreateClaimPayload) =>
   api.post("/claims", claimData);
 
-const updateClaimApi = (
-  id: string,
-  claimData: Partial<CreateClaimPayload>
-) => api.put(`/claims/${id}`, claimData);
+const updateClaimApi = (id: string, claimData: Partial<CreateClaimPayload>) =>
+  api.put(`/claims/${id}`, claimData);
 
-const deleteClaimApi = (id: string) =>
-  api.delete(`/claims/${id}`);
+const deleteClaimApi = (id: string) => api.delete(`/claims/${id}`);
 
 export const fetchClaims = createAsyncThunk(
   "claims/fetchClaims",
@@ -121,9 +119,11 @@ export const fetchClaims = createAsyncThunk(
 
       return res.data.data;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch claims");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch claims",
+      );
     }
-  }
+  },
 );
 
 export const fetchClaimById = createAsyncThunk<
@@ -154,7 +154,6 @@ export const fetchClaimById = createAsyncThunk<
   }
 });
 
-
 export const createClaim = createAsyncThunk(
   "claims/createClaim",
   async (claim: CreateClaimPayload, { rejectWithValue }) => {
@@ -163,9 +162,11 @@ export const createClaim = createAsyncThunk(
 
       return res.data.data;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Failed to create claim");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to create claim",
+      );
     }
-  }
+  },
 );
 
 export const updateClaim = createAsyncThunk(
@@ -178,16 +179,18 @@ export const updateClaim = createAsyncThunk(
       id: string;
       data: Partial<CreateClaimPayload>;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
-      const res = await updateClaimApi(id,data);
+      const res = await updateClaimApi(id, data);
 
       return res.data.data;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Failed to update claim");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update claim",
+      );
     }
-  }
+  },
 );
 
 export const deleteClaim = createAsyncThunk(
@@ -198,9 +201,11 @@ export const deleteClaim = createAsyncThunk(
 
       return id;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Failed to delete claim");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete claim",
+      );
     }
-  }
+  },
 );
 
 const claimSlice = createSlice({
@@ -224,18 +229,18 @@ const claimSlice = createSlice({
         state.error = action.payload as string;
       })
 
-       // Fetch one Claim
-            .addCase(fetchClaimById.pending, (state) => {
-              state.isLoading = true;
-            })
-            .addCase(fetchClaimById.fulfilled, (state, action) => {
-              state.isLoading = false;
-              state.selectedClaim = action.payload;
-            })
-            .addCase(fetchClaimById.rejected, (state, action) => {
-              state.isLoading = false;
-              state.error = action.payload ?? "Failed to fetch claim";
-            })
+      // Fetch one Claim
+      .addCase(fetchClaimById.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchClaimById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedClaim = action.payload;
+      })
+      .addCase(fetchClaimById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload ?? "Failed to fetch claim";
+      })
 
       // Create Claim
       .addCase(createClaim.pending, (state) => {
@@ -259,7 +264,7 @@ const claimSlice = createSlice({
         state.isLoading = false;
 
         const index = state.claims.findIndex(
-          (claim) => claim.id === action.payload.id
+          (claim) => claim.id === action.payload.id,
         );
 
         if (index !== -1) {
@@ -278,7 +283,7 @@ const claimSlice = createSlice({
       .addCase(deleteClaim.fulfilled, (state, action) => {
         state.isLoading = false;
         state.claims = state.claims.filter(
-          (claim) => claim.id !== action.payload
+          (claim) => claim.id !== action.payload,
         );
       })
       .addCase(deleteClaim.rejected, (state, action) => {
