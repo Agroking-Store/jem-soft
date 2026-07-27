@@ -109,6 +109,7 @@ model Claim {
   claimAmount   Float
   status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
   claimDate     DateTime
+  reasonForClaim String?
   
   // Relations
   policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)

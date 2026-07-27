@@ -1,14 +1,29 @@
-import { PrismaClient } from '@prisma/client';
-import { productAttributeValues } from '../masterData/productAttributeValues';
+import { PrismaClient } from "@prisma/client";
+import { bajajLifePolicyAttributeValues as bajajallianzAttributeValues } from "../masterData/productsAttributeValues/bajajallianzAttributeValues";
+import { canaraHsbcPolicyAttributes as canaraAttributeValues } from "../masterData/productsAttributeValues/canaraAttributeValues";
+import { futureGeneraliPolicyAttributeValues as futuregeneraliAttributeValues } from "../masterData/productsAttributeValues/futuregeneraliAttributeValues";
+import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../masterData/productsAttributeValues/pnbAttributeValues";
+import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
+import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
+import { axisMaxLifePolicyAttributeValues as axisAttributeValues } from "../masterData/productsAttributeValues/axisAttributeValues";
+const allProductAttributeValues = [
+  ...bajajallianzAttributeValues,
+  ...canaraAttributeValues,
+  ...futuregeneraliAttributeValues,
+  ...pnbAttributeValues,
+  ...shriramAttributeValues,
+  ...LicProductAttributeValues,
+  ...axisAttributeValues,
+];
 
 export const seedProductAttributeValues = async (prisma: PrismaClient) => {
-  console.log('Seeding product attribute values...');
-  if (productAttributeValues.length === 0) {
-    console.log('No product attribute values to seed.');
+  console.log("Seeding product attribute values...");
+  if (allProductAttributeValues.length === 0) {
+    console.log("No product attribute values to seed.");
     return;
   }
 
-  for (const attrValue of productAttributeValues) {
+  for (const attrValue of allProductAttributeValues) {
     const product = await prisma.productMaster.findFirst({
       where: { productName: attrValue.productCode },
     });
@@ -34,9 +49,13 @@ export const seedProductAttributeValues = async (prisma: PrismaClient) => {
           value: attrValue.value,
         },
       });
-      console.log(`Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`);
+      console.log(
+        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`,
+      );
     } else {
-      console.warn(`Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`);
+      console.warn(
+        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`,
+      );
     }
   }
 };

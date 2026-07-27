@@ -14,11 +14,25 @@ import {
   type Claim,
 } from "@/features/claim/claimSlice";
 import { format } from "date-fns";
-import { ChevronRight, AlertCircle, Loader2, Save } from "lucide-react";
+import {
+  ChevronRight,
+  AlertCircle,
+  Loader2,
+  Save,
+  User,
+  FileText,
+  IndianRupee,
+} from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import DatePicker from "../lic/policies/new/DatePicker";
 import type { Policy } from "@/features/policy/policySlice";
+import { Button } from "@/shared/components/ui/Button";
+import { Input } from "@/shared/components/ui/Input";
+import {
+  CustomerSectionCard,
+  CustomerBreadcrumbs,
+} from "@/features/customers/components/CustomerUi";
 
 interface ClaimFormProps {
   mode: "create" | "edit";
@@ -33,6 +47,10 @@ const claimSchema = z.object({
     .number()
     .positive("Claim amount must be greater than 0"),
   claimDate: z.string().min(1, "Claim date is required"),
+  reasonForClaim: z
+    .string()
+    .min(10, "Reason for claim must be at least 10 characters")
+    .max(500, "Reason for claim must not exceed 500 characters"),
 });
 
 type ClaimFormData = z.infer<typeof claimSchema>;
@@ -64,6 +82,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       claimType: "",
       claimAmount: 0,
       claimDate: "",
+      reasonForClaim: "",
     },
   });
 
@@ -82,6 +101,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         claimDate: initialClaim.claimDate
           ? new Date(initialClaim.claimDate).toISOString().slice(0, 10)
           : "",
+        reasonForClaim: initialClaim.reasonForClaim || "",
       });
 
       // Set selected policy
@@ -137,213 +157,247 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   };
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/dashboard/claims" className="hover:text-blue-600">
-          Claims
-        </Link>
-        <ChevronRight size={16} />
-        <span className="font-medium text-slate-700">
+      <CustomerBreadcrumbs
+        items={[
+          { label: "Claims", href: "/dashboard/claims" },
+          { label: mode === "create" ? "New Claim" : "Edit Claim" },
+        ]}
+      />
+
+      <div>
+        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
           {mode === "create" ? "New Claim" : "Edit Claim"}
-        </span>
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+          {mode === "create"
+            ? "Record a new claim against a policy."
+            : "Update the claim details below."}
+        </p>
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 mt-5">
-        {mode === "create" ? "New Claim" : "Edit Claim"}
-      </h1>
-      <p className="text-slate-500 text-sm mt-1">
-        {mode === "create"
-          ? "Record a new claim against a policy."
-          : "Update the claim details below."}
-      </p>
 
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white col-span-2 border border-slate-200 rounded-xl p-6 transition-all duration-500">
-            <p className="text-xl font-bold">Claim Information</p>
-            <div>
-              <label className="block mt-5 text-slate-500 font-semibold">
-                Policy
-                <span className="text-red-500">*</span>
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                {...register("policyId")}
-                onChange={(e) => {
-                  policyRegister.onChange(e);
-                  const policy = policies.find((p) => p.id === e.target.value);
-                  setSelectedPolicy(policy || null);
-                }}
-              >
-                <option value="">Select Policy</option>
-                {policies.map((policy) => (
-                  <option key={policy.id} value={policy.id}>
-                    {policy.policyNumber} - {policy.product?.productName}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-red-500 mt-1">
-                {errors.policyId?.message}
-              </p>
-            </div>
-
-            {/* Policy Details Table */}
-            <div className="bg-slate-50">
-              <table className="w-full text-center mt-5">
-                <thead>
-                  <tr>
-                    <th className="p-6 text-slate-500 font-semibold">
-                      Customer
-                    </th>
-                    <th className="p-6 text-slate-500 font-semibold">
-                      Sum assured
-                    </th>
-                    <th className="p-6 text-slate-500 font-semibold">
-                      Policy Status
-                    </th>
-                    <th className="p-6 text-slate-500 font-semibold">
-                      Policy Start Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="font-bold p-3">
-                      {selectedPolicy?.CustomerMaster?.firstName || "-"}{" "}
-                      {selectedPolicy?.CustomerMaster?.lastName}
-                    </td>
-                    <td className="font-bold p-3">
-                      {selectedPolicy?.premium?.sumAssured || "-"}
-                    </td>
-                    <td className="font-bold p-3">
-                      {selectedPolicy?.status?.statusName || "-"}
-                    </td>
-                    <td className="font-bold p-3">
-                      {selectedPolicy
-                        ? new Date(
-                            selectedPolicy?.commencementDate,
-                          ).toLocaleDateString()
-                        : "-"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-5 w-full flex gap-6">
-              <div className="flex-1">
-                <label className="block text-slate-500 font-semibold">
-                  Claim Type
-                  <span className="text-red-500">*</span>
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Claim Information */}
+          <div className="lg:col-span-2 space-y-6">
+            <CustomerSectionCard title="Claim Information" icon={FileText}>
+              {/* Policy Select */}
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Policy
+                  <span className="ml-0.5 text-rose-500">*</span>
                 </label>
                 <select
-                  {...register("claimType")}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                  {...register("policyId")}
+                  onChange={(e) => {
+                    policyRegister.onChange(e);
+                    const policy = policies.find(
+                      (p) => p.id === e.target.value,
+                    );
+                    setSelectedPolicy(policy || null);
+                  }}
                 >
-                  <option value="">Select</option>
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Fully Paid Up">Fully Paid Up</option>
-                  <option value="Lapsed">Lapsed</option>
-                  <option value="Maturity Claimed">Maturity Claimed</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Surrendered">Surrendered</option>
-                  <option value="Death">Death</option>
-                  <option value="Maturity">Maturity</option>
-                  <option value="Rider">Rider</option>
-                  <option value="Other">Other</option>
+                  <option value="">Select Policy</option>
+                  {policies.map((policy) => (
+                    <option key={policy.id} value={policy.id}>
+                      {policy.policyNumber} - {policy.product?.productName}
+                    </option>
+                  ))}
                 </select>
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.claimType?.message}
-                </p>
+                {errors.policyId?.message && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.policyId?.message}
+                  </p>
+                )}
               </div>
 
-              <div className="flex-1">
-                <label className="block text-slate-500 font-semibold">
-                  Claim Date
-                  <span className="text-red-500">*</span>
-                </label>
-                <Controller
-                  control={control}
-                  name="claimDate"
-                  render={({ field }) => (
-                    <DatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any) =>
-                        field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                      }
-                    />
+              {/* Policy Details Table */}
+              <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Customer
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Sum assured
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Policy Status
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Policy Start Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy?.CustomerMaster?.firstName || "-"}{" "}
+                        {selectedPolicy?.CustomerMaster?.lastName}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy?.premium?.sumAssured || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy?.status?.statusName || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy
+                          ? new Date(
+                              selectedPolicy?.commencementDate,
+                            ).toLocaleDateString()
+                          : "-"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Claim Type
+                    <span className="ml-0.5 text-rose-500">*</span>
+                  </label>
+                  <select
+                    {...register("claimType")}
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                  >
+                    <option value="">Select</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Fully Paid Up">Fully Paid Up</option>
+                    <option value="Lapsed">Lapsed</option>
+                    <option value="Maturity Claimed">Maturity Claimed</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Surrendered">Surrendered</option>
+                    <option value="Death">Death</option>
+                    <option value="Maturity">Maturity</option>
+                    <option value="Rider">Rider</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {errors.claimType?.message && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      {errors.claimType?.message}
+                    </p>
                   )}
-                />
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.claimDate?.message}
-                </p>
-              </div>
-            </div>
+                </div>
 
-            <div className="w-full flex gap-6 mt-5">
-              <div className="flex-1">
-                <label className="block text-slate-500 font-semibold">
-                  Claimed Amount
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  {...register("claimAmount")}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                />
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.claimAmount?.message}
-                </p>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Claim Date
+                    <span className="ml-0.5 text-rose-500">*</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="claimDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date: any) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                      />
+                    )}
+                  />
+                  {errors.claimDate?.message && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      {errors.claimDate?.message}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Claimed Amount
+                    <span className="ml-0.5 text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("claimAmount")}
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                  />
+                  {errors.claimAmount?.message && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      {errors.claimAmount?.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Reason for Claim
+                    <span className="ml-0.5 text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    {...register("reasonForClaim")}
+                    rows={3}
+                    placeholder="Enter reason for claim"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 resize-none"
+                  />
+                  {errors.reasonForClaim?.message && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      {errors.reasonForClaim?.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CustomerSectionCard>
           </div>
 
-          <div className="col-span-1 bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500">
-            <p className="text-xl font-bold">Claimant Information</p>
-            <div className="mt-5">
-              <label className="block text-slate-500 font-semibold">
-                Claimant Name
-                <span className="text-red-500">*</span>
-              </label>
-              <input
-                {...register("claimantName")}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-              />
-              <p className="text-xs text-red-500 mt-1">
-                {errors.claimantName?.message}
-              </p>
+          {/* Right Column - Claimant Information */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <CustomerSectionCard title="Claimant Information" icon={User}>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Claimant Name
+                    <span className="ml-0.5 text-rose-500">*</span>
+                  </label>
+                  <input
+                    {...register("claimantName")}
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                  />
+                  {errors.claimantName?.message && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      {errors.claimantName?.message}
+                    </p>
+                  )}
+                </div>
+              </CustomerSectionCard>
             </div>
           </div>
         </div>
 
         {/* Buttons */}
         <div className="flex items-center justify-end gap-3">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.push("/dashboard/claims")}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Cancel
-          </button>
+          </Button>
 
-          <button
+          <Button
             disabled={isSubmitting}
             type="button"
+            variant="primary"
+            leftIcon={
+              isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )
+            }
             onClick={handleSubmit(onValid as any)}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
           >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
             {mode === "create" ? "Create Claim" : "Save Changes"}
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -370,18 +424,20 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 : "Are you sure you want to update this claim?"}
             </p>
             <div className="flex items-center justify-end gap-3">
-              <button
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
                 onClick={handleSubmit(onSubmit as any)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
               >
                 {mode === "create" ? "Create" : "Save"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
