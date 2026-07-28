@@ -165,7 +165,7 @@ export default function ViewClaimPage() {
                   Claimant Name
                 </p>
                 <p className="font-semibold text-slate-900">
-                  {selectedClaim?.claimantName}
+                  {selectedClaim?.claimantName || "-"}
                 </p>
               </div>
               <div>

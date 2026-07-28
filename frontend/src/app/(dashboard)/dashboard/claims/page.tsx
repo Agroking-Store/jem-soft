@@ -172,7 +172,7 @@ export default function Page() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-slate-600">
-                      {claim.claimantName}
+                      {claim.claimantName || "-"}
                     </span>
                   </td>
                   <td className="px-4 py-3">

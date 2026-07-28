@@ -41,7 +41,7 @@ interface ClaimFormProps {
 
 const claimSchema = z.object({
   policyId: z.string().min(1, "Policy is required"),
-  claimantName: z.string().min(3, "Claimant name is required"),
+  claimantName: z.string().optional().or(z.literal("")),
   claimType: z.string().min(1, "Claim type is required"),
   claimAmount: z.coerce
     .number()
@@ -588,16 +588,8 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             <div className="sticky top-6">
               <CustomerSectionCard title="Claimant Information" icon={User}>
                 <div>
-                  <label className={labelClass}>
-                    Claimant Name
-                    <span className="ml-0.5 text-rose-500">*</span>
-                  </label>
+                  <label className={labelClass}>Claimant Name</label>
                   <input {...register("claimantName")} className={inputClass} />
-                  {errors.claimantName?.message && (
-                    <p className="mt-1 text-xs text-rose-600">
-                      {errors.claimantName?.message}
-                    </p>
-                  )}
                 </div>
               </CustomerSectionCard>
             </div>
