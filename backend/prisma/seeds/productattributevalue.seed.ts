@@ -6,6 +6,13 @@ import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../master
 import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
 import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
 import { axisMaxLifePolicyAttributeValues as axisAttributeValues } from "../masterData/productsAttributeValues/axisAttributeValues";
+import { aegonProductAttributeValues } from "../masterData/productsAttributeValues/aegonProductAttributeValues.ts";
+import { dhflProductAttributeValues } from "../masterData/productsAttributeValues/dhflProductAttributeValues.ts";
+import { edelweissProductAttributeValues } from "../masterData/productsAttributeValues/edelweissProductAttributeValues.ts";
+import { hdfcProductAttributeValues } from "../masterData/productsAttributeValues/hdfcProductAttributeValues.ts";
+import { saharaProductAttributeValues } from "../masterData/productsAttributeValues/saharaProductAttributeValues.ts";
+import { unitTrustOfIndiaProductAttributeValues } from "../masterData/productsAttributeValues/unitTrustOfIndiaProductAttributeValues.ts";
+
 const allProductAttributeValues = [
   ...bajajallianzAttributeValues,
   ...canaraAttributeValues,
@@ -14,6 +21,12 @@ const allProductAttributeValues = [
   ...shriramAttributeValues,
   ...LicProductAttributeValues,
   ...axisAttributeValues,
+  ...aegonProductAttributeValues,
+  ...dhflProductAttributeValues,
+  ...edelweissProductAttributeValues,
+  ...hdfcProductAttributeValues,
+  ...saharaProductAttributeValues,
+  ...unitTrustOfIndiaProductAttributeValues,
 ];
 
 export const seedProductAttributeValues = async (prisma: PrismaClient) => {
