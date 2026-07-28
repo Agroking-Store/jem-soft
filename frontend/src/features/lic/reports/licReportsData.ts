@@ -36,7 +36,7 @@ export const LIC_REPORT_CARDS: LicReportCard[] = [
     description: "Groupwise comprehensive listing of all active, paid-up, and lapsed policies with sum assured, FUP, and nominee details.",
     icon: FileText,
     isFeatured: true,
-    statusBadge: "Popular",
+    statusBadge: "Featured Report",
   },
   {
     id: "current-status-register",
