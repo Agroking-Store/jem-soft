@@ -105,7 +105,7 @@ model InsuranceProvider {
 model Claim {
   id            String   @id @default(cuid())
   policyId      String
-  claimantName  String
+  claimantName  String?
   claimType     String   // e.g., 'Death', 'Maturity', 'Rider', 'Other'
   claimAmount   Float
   status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'

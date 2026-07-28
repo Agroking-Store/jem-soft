@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export interface ClaimData {
   policyId: string;
-  claimantName: string;
+  claimantName?: string;
   claimType: string;
   claimAmount: number;
   claimDate: string;

@@ -5,7 +5,7 @@ import type { RootState } from "@/store/store";
 export interface Claim {
   id: string;
   policyId: string;
-  claimantName: string;
+  claimantName?: string;
   claimType: string;
   claimAmount: number;
   status: string;
@@ -64,7 +64,7 @@ export interface Claim {
 
 export interface CreateClaimPayload {
   policyId: string;
-  claimantName: string;
+  claimantName?: string;
   claimType: string;
   claimAmount: number;
   claimDate: string;
