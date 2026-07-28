@@ -55,6 +55,19 @@ const claimSchema = z.object({
 
 type ClaimFormData = z.infer<typeof claimSchema>;
 
+/* ────────────────────────────────────────────────────────────────
+ * Payment Details types
+ * ──────────────────────────────────────────────────────────────── */
+type PaymentType = "NEFT" | "Cheque";
+
+interface ChequeFields {
+  chequeNumber: string;
+  chequeDate: string;
+  bankName: string;
+  branchName: string;
+  chequeAmount: string;
+}
+
 export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
@@ -67,6 +80,26 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     null,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /* ── Payment details state ─────────────────────────────────── */
+  const [paymentType, setPaymentType] = useState<PaymentType | "">("");
+  const [chequeFields, setChequeFields] = useState<ChequeFields>({
+    chequeNumber: "",
+    chequeDate: "",
+    bankName: "",
+    branchName: "",
+    chequeAmount: "",
+  });
+
+  /* ── Helper: default bank details from selected policy ─────── */
+  const defaultBank = selectedPolicy?.CustomerMaster?.bankDetails?.[0];
+  const bankDefaults = {
+    accountHolderName: defaultBank?.accountHolderName ?? "",
+    bankName: defaultBank?.bankName ?? "",
+    accountNumber: defaultBank?.accountNumber ?? "",
+    ifscCode: defaultBank?.ifscCode ?? "",
+    branchName: defaultBank?.bankBranch ?? "",
+  };
 
   const {
     register,
@@ -156,6 +189,16 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }
   };
 
+  /* ── Shared class strings ──────────────────────────────────── */
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  const disabledInputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 outline-none cursor-not-allowed";
+  const selectClass =
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  const labelClass =
+    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Breadcrumb */}
@@ -179,17 +222,18 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Claim Information */}
+          {/* Left Column - Claim Information + Payment Details */}
           <div className="lg:col-span-2 space-y-6">
+            {/* ── Claim Information Card ─────────────────────────── */}
             <CustomerSectionCard title="Claim Information" icon={FileText}>
               {/* Policy Select */}
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <label className={labelClass}>
                   Policy
                   <span className="ml-0.5 text-rose-500">*</span>
                 </label>
                 <select
-                  className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                  className={selectClass}
                   {...register("policyId")}
                   onChange={(e) => {
                     policyRegister.onChange(e);
@@ -258,14 +302,11 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
               <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <label className={labelClass}>
                     Claim Type
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
-                  <select
-                    {...register("claimType")}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
-                  >
+                  <select {...register("claimType")} className={selectClass}>
                     <option value="">Select</option>
                     <option value="Active">Active</option>
                     <option value="Completed">Completed</option>
@@ -287,7 +328,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <label className={labelClass}>
                     Claim Date
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
@@ -313,14 +354,14 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
               <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <label className={labelClass}>
                     Claimed Amount
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     {...register("claimAmount")}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                    className={inputClass}
                   />
                   {errors.claimAmount?.message && (
                     <p className="mt-1 text-xs text-rose-600">
@@ -329,7 +370,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <label className={labelClass}>
                     Reason for Claim
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
@@ -347,6 +388,199 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 </div>
               </div>
             </CustomerSectionCard>
+
+            {/* ── Payment Details Card ───────────────────────────── */}
+            <CustomerSectionCard title="Payment Details">
+              {/* Payment Type Radio Buttons */}
+              <div className="mb-6">
+                <label className={labelClass}>
+                  Payment Type
+                  <span className="ml-0.5 text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-[35px] mt-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="Cheque"
+                      checked={paymentType === "Cheque"}
+                      onChange={() => setPaymentType("Cheque")}
+                      className="peer sr-only"
+                    />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 transition-all peer-checked:border-[#2563EB] peer-checked:bg-[#2563EB] group-hover:border-slate-400">
+                      <span className="h-2 w-2 rounded-full bg-white scale-0 transition-transform peer-checked:scale-100" />
+                    </span>
+                    <span className="text-sm font-medium text-slate-700 peer-checked:text-slate-900">
+                      Cheque
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="NEFT"
+                      checked={paymentType === "NEFT"}
+                      onChange={() => setPaymentType("NEFT")}
+                      className="peer sr-only"
+                    />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 transition-all peer-checked:border-[#2563EB] peer-checked:bg-[#2563EB] group-hover:border-slate-400">
+                      <span className="h-2 w-2 rounded-full bg-white scale-0 transition-transform peer-checked:scale-100" />
+                    </span>
+                    <span className="text-sm font-medium text-slate-700 peer-checked:text-slate-900">
+                      NEFT
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* ── NEFT: Read-only fields ──────────────────────── */}
+              {paymentType === "NEFT" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>Account Holder Name</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.accountHolderName}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Bank Name</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.bankName}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Account Number</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.accountNumber}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>IFSC Code</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.ifscCode}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Branch Name</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.branchName}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ── Cheque: Editable fields ─────────────────────── */}
+              {paymentType === "Cheque" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>
+                      Cheque Number
+                      <span className="ml-0.5 text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeFields.chequeNumber}
+                      onChange={(e) =>
+                        setChequeFields((prev) => ({
+                          ...prev,
+                          chequeNumber: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter cheque number"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      Cheque Date
+                      <span className="ml-0.5 text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={chequeFields.chequeDate}
+                        onChange={(e) =>
+                          setChequeFields((prev) => ({
+                            ...prev,
+                            chequeDate: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      Bank Name
+                      <span className="ml-0.5 text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeFields.bankName}
+                      onChange={(e) =>
+                        setChequeFields((prev) => ({
+                          ...prev,
+                          bankName: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter bank name"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      Branch Name
+                      <span className="ml-0.5 text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeFields.branchName}
+                      onChange={(e) =>
+                        setChequeFields((prev) => ({
+                          ...prev,
+                          branchName: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter branch name"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>
+                      Cheque Amount
+                      <span className="ml-0.5 text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={chequeFields.chequeAmount}
+                      onChange={(e) =>
+                        setChequeFields((prev) => ({
+                          ...prev,
+                          chequeAmount: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter cheque amount"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+            </CustomerSectionCard>
           </div>
 
           {/* Right Column - Claimant Information */}
@@ -354,14 +588,11 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             <div className="sticky top-6">
               <CustomerSectionCard title="Claimant Information" icon={User}>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  <label className={labelClass}>
                     Claimant Name
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
-                  <input
-                    {...register("claimantName")}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
-                  />
+                  <input {...register("claimantName")} className={inputClass} />
                   {errors.claimantName?.message && (
                     <p className="mt-1 text-xs text-rose-600">
                       {errors.claimantName?.message}
