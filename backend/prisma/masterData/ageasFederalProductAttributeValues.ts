@@ -44,8 +44,26 @@ const ageasFederalProductAttributeValues = [
 
 
 
-
-
+     {
+        productCode: "Magic Savings Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Magic Savings Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "Magic Savings Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Magic Savings Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
     {
         productCode: "Magic Savings Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -80,8 +98,13 @@ const ageasFederalProductAttributeValues = [
     },
     {
         productCode: "Wealth Gain Insurance Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MAX_PPT",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "Wealth Gain Insurance Plan",
@@ -92,6 +115,16 @@ const ageasFederalProductAttributeValues = [
         productCode: "Wealth Gain Insurance Plan",
         attributeCode: "MAX_MATURITY_AGE",
         value: "74",
+    },
+    {
+        productCode: "Wealth Gain Insurance Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+     {
+        productCode: "Wealth Gain Insurance Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
     },
 
 
@@ -184,6 +217,16 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "100",
     },
+     {
+        productCode: "Assured Income Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+     {
+        productCode: "Assured Income Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
 
     {
@@ -257,6 +300,16 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "65",
     },
+     {
+        productCode: "Young Star Plus Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Young Star Plus Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
 
 
@@ -272,6 +325,16 @@ const ageasFederalProductAttributeValues = [
     },
     {
         productCode: "Guaranteed Wealth Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Guaranteed Wealth Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
+    {
+        productCode: "Guaranteed Wealth Plan",
         attributeCode: "MIN_ENTRY_AGE",
         value: "10",
     },
@@ -280,6 +343,18 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "69",
     },
+    {
+        productCode: "Guaranteed Wealth Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Guaranteed Wealth Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
 
 
     {
@@ -353,6 +428,16 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "60",
     },
+    {
+        productCode: "Guaranteed Income Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Guaranteed Income Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
 
 
@@ -430,7 +515,26 @@ const ageasFederalProductAttributeValues = [
     },
 
 
-
+    {
+        productCode: "ProGrow Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "ProGrow Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "ProGrow Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "ProGrow Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
     {
         productCode: "ProGrow Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -482,6 +586,16 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "75",
     },
+    {
+        productCode: "Platinum Wealth Builder Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Platinum Wealth Builder Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
 
     {
@@ -513,6 +627,16 @@ const ageasFederalProductAttributeValues = [
         productCode: "Smart Growth Plan",
         attributeCode: "MAX_MATURITY_AGE",
         value: "70",
+    },
+    {
+        productCode: "Smart Growth Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Smart Growth Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
     },
 
 
@@ -584,6 +708,16 @@ const ageasFederalProductAttributeValues = [
         attributeCode: "MIN_ENTRY_AGE",
         value: "40",
     },
+    {
+        productCode: "Saral Pension",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Saral Pension",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
 
 
@@ -612,6 +746,16 @@ const ageasFederalProductAttributeValues = [
         productCode: "Group Credit shield Plan II",
         attributeCode: "MIN_ENTRY_AGE",
         value: "15 Years (Only for Education loan) 18 years (All other loans)",
+    },
+    {
+        productCode: "Group Credit shield Plan II",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Group Credit shield Plan II",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
     },
 
 
