@@ -171,14 +171,14 @@ export const edelweissProducts = [
     productType: 'Rider Plan'
   },
   {
-    productName: 'Edelweiss Tokio Accidental Total and Permanent Disability Rider ',
+    productName: 'Edelweiss Tokio Accidental Total and Permanent Disability Rider',
     productCode: '147B001V03',
     planNumber: 'EDELWEISS025',
     providerCode: 'EDELWEISS_TOKIO',
     productType: 'Rider Plan'
   },
   {
-    productName: 'Edelweiss Tokio Critical Illness Rider ',
+    productName: 'Edelweiss Tokio Critical Illness Rider',
     productCode: '147B005V03',
     planNumber: 'EDELWEISS026',
     providerCode: 'EDELWEISS_TOKIO',
@@ -199,7 +199,7 @@ export const edelweissProducts = [
     productType: 'Rider Plan'
   },
   {
-    productName: 'Edelweiss Tokio Hospital Cash Benefit Rider ',
+    productName: 'Edelweiss Tokio Hospital Cash Benefit Rider',
     productCode: '147B006V03',
     planNumber: 'EDELWEISS029',
     providerCode: 'EDELWEISS_TOKIO',
@@ -213,7 +213,7 @@ export const edelweissProducts = [
     productType: 'Rider Plan'
   },
   {
-    productName: 'Edelweiss Tokio Payor Waiver Benefit Rider ',
+    productName: 'Edelweiss Tokio Payor Waiver Benefit Rider',
     productCode: '147B014V04',
     planNumber: 'EDELWEISS031',
     providerCode: 'EDELWEISS_TOKIO',
