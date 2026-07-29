@@ -643,6 +643,7 @@ model CustomerBankDetails {
   id            String   @id @default(uuid())
   customerId    String
   isDefault     Boolean  @default(false)
+  accountHolderName String?
   ifscCode      String?
   bankName      String?
   bankBranch    String?
