@@ -153,13 +153,24 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   );
 
   /* ── Helper: default bank details from selected policy ─────── */
+  // Derive account holder name from CustomerMaster (same as Policy view)
+  const getFullName = (cm: any) => {
+    return [cm?.salutation, cm?.firstName, cm?.middleName, cm?.lastName]
+      .filter(Boolean)
+      .join(" ");
+  };
+
   const defaultBank = selectedPolicy?.CustomerMaster?.bankDetails?.[0];
   const bankDefaults = {
-    accountHolderName: defaultBank?.accountHolderName ?? "",
+    accountHolderName:
+      defaultBank?.accountHolderName ||
+      getFullName(selectedPolicy?.CustomerMaster) ||
+      "",
     bankName: defaultBank?.bankName ?? "",
     accountNumber: defaultBank?.accountNumber ?? "",
     ifscCode: defaultBank?.ifscCode ?? "",
     branchName: defaultBank?.bankBranch ?? "",
+    accountType: defaultBank?.accountType ?? "",
   };
 
   const {
@@ -576,6 +587,15 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     <input
                       type="text"
                       value={bankDefaults.branchName}
+                      disabled
+                      className={disabledInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Account Type</label>
+                    <input
+                      type="text"
+                      value={bankDefaults.accountType}
                       disabled
                       className={disabledInputClass}
                     />

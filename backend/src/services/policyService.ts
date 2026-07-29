@@ -221,7 +221,11 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 export const getAllPolicies = async (): Promise<any[]> => {
   return prisma.policy.findMany({
     include: {
-      CustomerMaster: true,
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
       customer: true,
       provider: true,
       product: true,
@@ -303,7 +307,11 @@ export const getPoliciesByMember = async (memberId: string): Promise<any[]> => {
   return prisma.policy.findMany({
     where: { CustomerMasterId: memberId },
     include: {
-      CustomerMaster: true,
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
       customer: true,
       provider: true,
       product: true,
