@@ -111,6 +111,17 @@ model Claim {
   claimDate     DateTime
   reasonForClaim String?
   
+  // Payment fields
+  paymentType       String?   // "NEFT" | "Cheque"
+  chequeNumber      String?
+  chequeDate        DateTime?
+  bankName          String?
+  branchName        String?
+  chequeAmount      Float?
+  accountHolderName String?
+  accountNumber     String?
+  ifscCode          String?
+
   // Nominee relation
   nomineeId     String?
   nominee       Nominee? @relation(fields: [nomineeId], references: [id], onDelete: SetNull)

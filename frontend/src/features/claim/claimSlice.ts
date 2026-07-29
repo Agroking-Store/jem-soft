@@ -12,6 +12,16 @@ export interface Claim {
   claimDate: string;
   reasonForClaim?: string | null;
   nomineeId?: string | null;
+  // Payment fields
+  paymentType?: string | null;
+  chequeNumber?: string | null;
+  chequeDate?: string | null;
+  bankName?: string | null;
+  branchName?: string | null;
+  chequeAmount?: number | null;
+  accountHolderName?: string | null;
+  accountNumber?: string | null;
+  ifscCode?: string | null;
   createdById: string;
   updatedById?: string | null;
   createdAt: string;
@@ -77,6 +87,16 @@ export interface CreateClaimPayload {
   claimDate: string;
   reasonForClaim?: string;
   nomineeId?: string;
+  // Payment fields
+  paymentType?: string;
+  chequeNumber?: string;
+  chequeDate?: string;
+  bankName?: string;
+  branchName?: string;
+  chequeAmount?: number;
+  accountHolderName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
 }
 
 interface ClaimState {

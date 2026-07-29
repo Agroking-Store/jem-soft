@@ -11,6 +11,16 @@ export interface ClaimData {
   status?: string;
   reasonForClaim?: string;
   nomineeId?: string;
+  // Payment fields
+  paymentType?: string;
+  chequeNumber?: string;
+  chequeDate?: string;
+  bankName?: string;
+  branchName?: string;
+  chequeAmount?: number;
+  accountHolderName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
 }
 
 export const getAllClaims = async () => {
@@ -86,6 +96,16 @@ export const createClaim = async (data: ClaimData, userId: string) => {
       reasonForClaim: data.reasonForClaim,
       nomineeId: data.nomineeId || null,
       createdById: userId,
+      // Payment fields
+      paymentType: data.paymentType || null,
+      chequeNumber: data.chequeNumber || null,
+      chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
+      bankName: data.bankName || null,
+      branchName: data.branchName || null,
+      chequeAmount: data.chequeAmount || null,
+      accountHolderName: data.accountHolderName || null,
+      accountNumber: data.accountNumber || null,
+      ifscCode: data.ifscCode || null,
     },
     include: {
       policy: {
@@ -138,6 +158,31 @@ export const updateClaimById = async (
       nomineeId:
         data.nomineeId !== undefined ? data.nomineeId || null : undefined,
       updatedById: userId,
+      // Payment fields
+      paymentType:
+        data.paymentType !== undefined ? data.paymentType || null : undefined,
+      chequeNumber:
+        data.chequeNumber !== undefined ? data.chequeNumber || null : undefined,
+      chequeDate:
+        data.chequeDate !== undefined
+          ? data.chequeDate
+            ? new Date(data.chequeDate)
+            : null
+          : undefined,
+      bankName: data.bankName !== undefined ? data.bankName || null : undefined,
+      branchName:
+        data.branchName !== undefined ? data.branchName || null : undefined,
+      chequeAmount:
+        data.chequeAmount !== undefined ? data.chequeAmount || null : undefined,
+      accountHolderName:
+        data.accountHolderName !== undefined
+          ? data.accountHolderName || null
+          : undefined,
+      accountNumber:
+        data.accountNumber !== undefined
+          ? data.accountNumber || null
+          : undefined,
+      ifscCode: data.ifscCode !== undefined ? data.ifscCode || null : undefined,
     },
     include: {
       policy: {
