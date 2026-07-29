@@ -111,6 +111,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
   /* ── Payment details state ─────────────────────────────────── */
   const [paymentType, setPaymentType] = useState<PaymentType | "">("");
+  const [paymentError, setPaymentError] = useState<string>("");
   const [chequeFields, setChequeFields] = useState<ChequeFields>({
     chequeNumber: "",
     chequeDate: "",
@@ -263,6 +264,12 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const policyRegister = register("policyId");
 
   const onValid = (data: ClaimFormData) => {
+    // Validate payment type
+    if (!paymentType) {
+      setPaymentError("Please select a payment method (NEFT or Cheque).");
+      return;
+    }
+    setPaymentError("");
     setValidatedData(data);
     setConfirmOpen(true);
   };
@@ -270,10 +277,29 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const onSubmit = async (data: ClaimFormData) => {
     setIsSubmitting(true);
 
-    const payload = {
+    const payload: any = {
       ...data,
       nomineeId: selectedNominee?.id || undefined,
+      paymentType: paymentType || undefined,
     };
+
+    // Add payment-specific fields
+    if (paymentType === "NEFT") {
+      payload.accountHolderName = bankDefaults.accountHolderName || undefined;
+      payload.bankName = bankDefaults.bankName || undefined;
+      payload.accountNumber = bankDefaults.accountNumber || undefined;
+      payload.ifscCode = bankDefaults.ifscCode || undefined;
+      payload.branchName = bankDefaults.branchName || undefined;
+      // accountType is not stored in DB, so we skip it
+    } else if (paymentType === "Cheque") {
+      payload.chequeNumber = chequeFields.chequeNumber || undefined;
+      payload.chequeDate = chequeFields.chequeDate || undefined;
+      payload.bankName = chequeFields.bankName || undefined;
+      payload.branchName = chequeFields.branchName || undefined;
+      payload.chequeAmount = chequeFields.chequeAmount
+        ? parseFloat(chequeFields.chequeAmount)
+        : undefined;
+    }
 
     try {
       if (mode === "create") {
@@ -541,6 +567,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     </span>
                   </label>
                 </div>
+                {paymentError && (
+                  <p className="mt-2 text-xs text-rose-600">{paymentError}</p>
+                )}
               </div>
 
               {/* ── NEFT: Read-only fields ──────────────────────── */}

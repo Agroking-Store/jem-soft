@@ -198,6 +198,120 @@ export default function ViewClaimPage() {
             </div>
           </CustomerSectionCard>
 
+          {/* ── Payment Details Card ──────────────────── */}
+          {selectedClaim?.paymentType && (
+            <CustomerSectionCard title="Payment Details" icon={FileText}>
+              {selectedClaim.paymentType === "NEFT" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Payment Type
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">NEFT</p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Account Holder Name
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.accountHolderName || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Bank Name
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.bankName || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Account Number
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.accountNumber || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      IFSC Code
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.ifscCode || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Branch Name
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.branchName || "-"}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {selectedClaim.paymentType === "Cheque" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Payment Type
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      Cheque
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Cheque Number
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.chequeNumber || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Cheque Date
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.chequeDate
+                        ? new Date(
+                            selectedClaim.chequeDate,
+                          ).toLocaleDateString()
+                        : "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Bank Name
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.bankName || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Branch Name
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.branchName || "-"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Cheque Amount
+                    </p>
+                    <p className="font-semibold text-slate-900 text-sm">
+                      {selectedClaim.chequeAmount
+                        ? `₹ ${selectedClaim.chequeAmount.toLocaleString("en-IN")}`
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CustomerSectionCard>
+          )}
+
           {/* ── Nominee Card ───────────────────────────── */}
           {selectedClaim?.nominee && (
             <CustomerSectionCard title="Nominee Information" icon={User}>
