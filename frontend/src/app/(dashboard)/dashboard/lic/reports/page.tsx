@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   X,
   FileSpreadsheet,
-  Layers,
 } from "lucide-react";
 
 type ViewState = "cards" | "policy-register-form" | "policy-register-report";
@@ -73,72 +72,65 @@ export default function LICReportsPage() {
       {/* Top Shared Nav */}
       <LicModuleNav />
 
-      {/* VIEW 1: All 17 Cards Grid (Customer Module Design System Theme) */}
+      {/* VIEW 1: All 17 Cards Grid */}
       {currentView === "cards" && (
         <div className="space-y-6">
-          {/* Customer Page Hero Header */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-            <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-6 sm:px-8 sm:py-7">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B8873A]/15 border border-[#B8873A]/30 text-[#e8c77a] text-xs font-bold uppercase tracking-wider">
-                    <Layers size={13} />
-                    <span>JEM Soft Reports Engine</span>
-                  </div>
-                  <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-[#e8c77a]">
-                    LIC Reports & Financial Intelligence
-                  </h1>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-[#e8c77a]/80">
-                    Generate groupwise policy registers, premium statements, due lists, cash flow projections, and financial charts powered strictly by your JEM Soft database.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
-                  <div className="text-center px-2">
-                    <span className="block text-2xl font-bold text-[#e8c77a]">17</span>
-                    <span className="text-slate-400 font-medium">Reports</span>
-                  </div>
-                  <div className="h-8 w-px bg-white/10" />
-                  <div className="text-center px-2">
-                    <span className="block text-2xl font-bold text-emerald-400">{customers?.length || 0}</span>
-                    <span className="text-slate-400 font-medium">Customers</span>
-                  </div>
-                </div>
+          {/* Header Banner matching Website Theme `#0B1220` with `#E8C77A` */}
+          <div className="relative overflow-hidden bg-[#0B1220] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-2xl">
+                <span className="font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-widest block">
+                  LIC Reports & Analytics Engine
+                </span>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                  LIC Reports Overview
+                </h1>
+                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                  Generate groupwise policy registers, premium statements, due lists, cash flow projections, and financial charts.
+                </p>
               </div>
 
-              {/* Search & Category Filter Bar */}
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10">
-                <div className="relative w-full sm:w-80">
-                  <input
-                    type="text"
-                    placeholder="Search 17 report modules..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/10 border border-white/15 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#B8873A]"
-                  />
-                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
+                <div className="text-center px-2">
+                  <span className="block text-2xl font-bold text-[#E8C77A]">17</span>
+                  <span className="text-slate-300 font-serif text-[10px] uppercase tracking-wider">Reports</span>
                 </div>
+              </div>
+            </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-                        activeCategory === cat
-                          ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md"
-                          : "bg-white/5 text-[#e8c77a]/70 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
+            {/* Search & Category Filter Bar */}
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10">
+              <div className="relative w-full sm:w-80">
+                <input
+                  type="text"
+                  placeholder="Search report title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white/10 border border-white/15 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#B8873A]"
+                />
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition uppercase tracking-wider ${
+                      activeCategory === cat
+                        ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md"
+                        : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Cards Grid — All 17 Cards Styled Identically Matching Customer Module */}
+          {/* Cards Grid matching CustomerSectionCard structure */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredCards.map((card) => {
               const Icon = card.icon;
@@ -146,23 +138,23 @@ export default function LICReportsPage() {
                 <div
                   key={card.id}
                   onClick={() => handleCardClick(card)}
-                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg ${
+                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${
                     card.isFeatured
-                      ? "border-[#B8873A] ring-1 ring-[#B8873A]/30"
+                      ? "border-[#B8873A]/60 ring-1 ring-[#B8873A]/30"
                       : "border-slate-200 hover:border-[#B8873A]"
                   }`}
                 >
-                  {/* Brass Gold Top Accent Bar */}
+                  {/* Top Brass Gold Accent Bar */}
                   <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
 
                   <div className="space-y-3 pt-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B8873A]/10 text-[#B8873A] group-hover:bg-[#0B1220] group-hover:text-[#E8C77A] transition">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A] group-hover:bg-[#B8873A] group-hover:text-[#0B1220] transition">
                         <Icon size={20} />
                       </div>
 
                       {card.isFeatured && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#B8873A]/15 text-[#B8873A] font-extrabold text-[10px] uppercase tracking-wider border border-[#B8873A]/30">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#B8873A]/15 text-[#B8873A] font-serif font-bold text-[10px] uppercase tracking-wider border border-[#B8873A]/30">
                           Featured Report
                         </span>
                       )}
@@ -175,10 +167,10 @@ export default function LICReportsPage() {
                     </div>
 
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                      <span className="text-[10px] font-serif font-bold text-[#B8873A] uppercase tracking-widest block">
                         {card.category}
                       </span>
-                      <h3 className="font-serif text-base font-bold text-slate-800 group-hover:text-[#B8873A] transition">
+                      <h3 className="font-bold text-base text-slate-900 group-hover:text-[#B8873A] transition">
                         {card.title}
                       </h3>
                     </div>
@@ -190,7 +182,7 @@ export default function LICReportsPage() {
 
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0B1220] group-hover:text-[#B8873A] uppercase tracking-wider">
                     <span>{card.id === "policy-register" ? "Open Form & Report" : "View Details"}</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition text-[#B8873A]" />
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition" />
                   </div>
                 </div>
               );
@@ -200,7 +192,7 @@ export default function LICReportsPage() {
           {filteredCards.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 space-y-3">
               <FileSpreadsheet size={40} className="mx-auto text-slate-300" />
-              <h3 className="font-serif text-base font-semibold text-slate-700">No report cards found</h3>
+              <h3 className="font-semibold text-slate-700">No report cards found</h3>
               <p className="text-xs text-slate-500">Try adjusting your search query or category filter.</p>
             </div>
           )}
@@ -215,6 +207,7 @@ export default function LICReportsPage() {
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
+          policies={policies || []}
         />
       )}
 
@@ -230,18 +223,17 @@ export default function LICReportsPage() {
 
       {/* Modal for previewing secondary report cards */}
       {previewModalCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/70 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
           <div className="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
-
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B8873A]/10 text-[#B8873A]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
                   <previewModalCard.icon size={20} />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-slate-900">{previewModalCard.title}</h3>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                  <h3 className="font-bold text-slate-900">{previewModalCard.title}</h3>
+                  <span className="text-[10px] text-[#B8873A] font-serif font-bold uppercase tracking-wider">
                     {previewModalCard.category}
                   </span>
                 </div>
@@ -261,7 +253,7 @@ export default function LICReportsPage() {
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <CheckCircle2 size={16} className="text-emerald-600" />
-                <span>Connected to JEM Soft DB Engine</span>
+                <span>Ready for Report Generation</span>
               </div>
               <p className="text-[11px] text-slate-500">
                 This report module uses the same central filter engine as Policy Register. You can test Policy Register for complete interactive report rendering and PDF export.

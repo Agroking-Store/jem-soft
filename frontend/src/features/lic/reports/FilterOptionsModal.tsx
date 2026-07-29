@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { X, Search, ChevronDown, Trash2 } from "lucide-react";
 
 export interface SelectedFilterItem {
-  type: string; // e.g. 'Agencies', 'Policy Status'
+  type: string;
   id: string;
   name: string;
 }
@@ -18,6 +18,17 @@ interface FilterOptionsModalProps {
   onApplyFilters: (filters: SelectedFilterItem[]) => void;
 }
 
+export const SYSTEM_POLICY_STATUSES = [
+  { id: "status-inforce", name: "Inforce", defaultChecked: true },
+  { id: "status-paidup", name: "Fully paid-up", defaultChecked: true },
+  { id: "status-lapsed", name: "Lapsed", defaultChecked: true },
+  { id: "status-red-paidup", name: "Reduced Paid-up", defaultChecked: true },
+  { id: "status-death", name: "Death Claim", defaultChecked: false },
+  { id: "status-maturity", name: "Maturity Claim", defaultChecked: false },
+  { id: "status-record", name: "Record", defaultChecked: false },
+  { id: "status-surrender", name: "Surrender / Discounted", defaultChecked: false },
+];
+
 export default function FilterOptionsModal({
   isOpen,
   onClose,
@@ -26,13 +37,24 @@ export default function FilterOptionsModal({
   selectedFilters: initialSelectedFilters = [],
   onApplyFilters,
 }: FilterOptionsModalProps) {
-  const [filterCategory, setFilterCategory] = useState<"Agencies" | "Policy Status">("Agencies");
+  const [filterCategory, setFilterCategory] = useState<string>("Agencies");
   const [searchText, setSearchText] = useState("");
-  const [selectedItems, setSelectedItems] = useState<SelectedFilterItem[]>(initialSelectedFilters);
+
+  // Initialize state: default 4 Policy Statuses checked if initialSelectedFilters is empty
+  const [selectedItems, setSelectedItems] = useState<SelectedFilterItem[]>(() => {
+    if (initialSelectedFilters.length > 0) return initialSelectedFilters;
+    return SYSTEM_POLICY_STATUSES.filter((s) => s.defaultChecked).map((s) => ({
+      type: "Policy Status",
+      id: s.id,
+      name: s.name,
+    }));
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewingCategory, setViewingCategory] = useState<string | null>(null);
   const pageSize = 8;
 
-  // STRICTLY DYNAMIC: Pure database records only, no hardcoded names!
+  // STRICTLY DYNAMIC AGENCIES FROM DATABASE ONLY - No mock names!
   const dynamicAgencies = useMemo(() => {
     return agencies.map((a) => ({
       id: a.id,
@@ -40,14 +62,84 @@ export default function FilterOptionsModal({
     }));
   }, [agencies]);
 
+  // Dynamic Statuses from DB or system master list
   const dynamicStatuses = useMemo(() => {
-    return policyStatuses.map((s) => ({
-      id: s.id,
-      name: s.statusName || s.statusCode,
-    }));
+    if (policyStatuses.length > 0) {
+      return policyStatuses.map((s) => ({
+        id: s.id,
+        name: s.statusName || s.statusCode,
+      }));
+    }
+    return SYSTEM_POLICY_STATUSES.map((s) => ({ id: s.id, name: s.name }));
   }, [policyStatuses]);
 
-  const activeCategoryList = filterCategory === "Agencies" ? dynamicAgencies : dynamicStatuses;
+  const paymentModesList = useMemo(
+    () => [
+      { id: "mode-y", name: "Yearly (Y)" },
+      { id: "mode-h", name: "Half-Yearly (H)" },
+      { id: "mode-q", name: "Quarterly (Q)" },
+      { id: "mode-m", name: "Monthly (M)" },
+      { id: "mode-s", name: "Single Premium (S)" },
+      { id: "mode-nach", name: "NACH Mode" },
+      { id: "mode-sss", name: "SSS Mode" },
+    ],
+    []
+  );
+
+  const crmGroupsList = useMemo(
+    () => [
+      { id: "crm-vip", name: "VIP Clients" },
+      { id: "crm-corporate", name: "Corporate Group" },
+      { id: "crm-family", name: "Family Group" },
+      { id: "crm-individual", name: "Individual Client" },
+    ],
+    []
+  );
+
+  const groupRatingList = useMemo(
+    () => [
+      { id: "rating-a", name: "Grade A" },
+      { id: "rating-b", name: "Grade B" },
+      { id: "rating-c", name: "Grade C" },
+    ],
+    []
+  );
+
+  const groupCategoryList = useMemo(
+    () => [
+      { id: "cat-client", name: "Client" },
+      { id: "cat-personal", name: "Personal" },
+      { id: "cat-others", name: "Others" },
+    ],
+    []
+  );
+
+  const activeCategoryList = useMemo(() => {
+    switch (filterCategory) {
+      case "Agencies":
+        return dynamicAgencies;
+      case "Policy Status":
+        return dynamicStatuses;
+      case "Payment Modes":
+        return paymentModesList;
+      case "CRM Groups":
+        return crmGroupsList;
+      case "Group Rating":
+        return groupRatingList;
+      case "Group Category":
+        return groupCategoryList;
+      default:
+        return dynamicAgencies;
+    }
+  }, [
+    filterCategory,
+    dynamicAgencies,
+    dynamicStatuses,
+    paymentModesList,
+    crmGroupsList,
+    groupRatingList,
+    groupCategoryList,
+  ]);
 
   const filteredList = useMemo(() => {
     if (!searchText.trim()) return activeCategoryList;
@@ -63,10 +155,11 @@ export default function FilterOptionsModal({
     return filteredList.slice(start, start + pageSize);
   }, [filteredList, currentPage]);
 
+  // Checkbox sync: Is every item on current page checked?
   const isCategoryAllSelected =
     paginatedList.length > 0 &&
     paginatedList.every((item) =>
-      selectedItems.some((s) => s.type === filterCategory && s.id === item.id)
+      selectedItems.some((s) => s.type === filterCategory && (s.id === item.id || s.name === item.name))
     );
 
   const groupedSelected = useMemo(() => {
@@ -82,24 +175,44 @@ export default function FilterOptionsModal({
 
   const toggleSelectAllCategory = () => {
     if (isCategoryAllSelected) {
+      // Untick all paginated items
       setSelectedItems((prev) =>
         prev.filter(
-          (s) => !(s.type === filterCategory && paginatedList.some((p) => p.id === s.id))
+          (s) =>
+            !(
+              s.type === filterCategory &&
+              paginatedList.some((p) => p.id === s.id || p.name.toLowerCase() === s.name.toLowerCase())
+            )
         )
       );
     } else {
+      // Tick all paginated items
       const newAdditions: SelectedFilterItem[] = paginatedList
-        .filter((item) => !selectedItems.some((s) => s.type === filterCategory && s.id === item.id))
+        .filter(
+          (item) =>
+            !selectedItems.some(
+              (s) => s.type === filterCategory && (s.id === item.id || s.name.toLowerCase() === item.name.toLowerCase())
+            )
+        )
         .map((item) => ({ type: filterCategory, id: item.id, name: item.name }));
       setSelectedItems((prev) => [...prev, ...newAdditions]);
     }
   };
 
   const toggleItem = (id: string, name: string) => {
-    const exists = selectedItems.some((s) => s.type === filterCategory && s.id === id);
+    const exists = selectedItems.some(
+      (s) => s.type === filterCategory && (s.id === id || s.name.toLowerCase() === name.toLowerCase())
+    );
+
     if (exists) {
-      setSelectedItems((prev) => prev.filter((s) => !(s.type === filterCategory && s.id === id)));
+      // Untick -> remove from selectedItems
+      setSelectedItems((prev) =>
+        prev.filter(
+          (s) => !(s.type === filterCategory && (s.id === id || s.name.toLowerCase() === name.toLowerCase()))
+        )
+      );
     } else {
+      // Tick -> add to selectedItems
       setSelectedItems((prev) => [...prev, { type: filterCategory, id, name }]);
     }
   };
@@ -108,26 +221,27 @@ export default function FilterOptionsModal({
     setSelectedItems((prev) => prev.filter((s) => s.type !== type));
   };
 
+  const removeItem = (type: string, id: string) => {
+    setSelectedItems((prev) => prev.filter((s) => !(s.type === type && s.id === id)));
+  };
+
   const handleApply = () => {
     onApplyFilters(selectedItems);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/70 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-        {/* Customer Module Top Gold Accent Line */}
+        {/* Top Website Theme Gold Line */}
         <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#0B1220] text-white">
+        {/* Header (Website Navy `#0B1220` with Gold `#E8C77A`) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
           <div>
             <h2 className="font-serif text-lg font-bold tracking-wider text-[#E8C77A] uppercase">
               Filter Options
             </h2>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Select dynamic agencies or status criteria from JEM Soft database
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -139,31 +253,38 @@ export default function FilterOptionsModal({
         </div>
 
         {/* Controls Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50/90">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="font-serif text-xs font-semibold text-slate-700 uppercase tracking-wider">
-              Filter Domain:
+            <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Filter Options :
             </span>
             <div className="relative">
               <select
                 value={filterCategory}
                 onChange={(e) => {
-                  setFilterCategory(e.target.value as any);
+                  setFilterCategory(e.target.value);
                   setCurrentPage(1);
                 }}
                 className="appearance-none bg-white border border-slate-300 rounded-lg px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20"
               >
-                <option value="Agencies">Agencies ({dynamicAgencies.length})</option>
-                <option value="Policy Status">Policy Status ({dynamicStatuses.length})</option>
+                <option value="Agencies">Agencies</option>
+                <option value="Payment Modes">Payment Modes</option>
+                <option value="CRM Groups">CRM Groups</option>
+                <option value="Policy Status">Policy Status</option>
+                <option value="Group Rating">Group Rating</option>
+                <option value="Group Category">Group Category</option>
               </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <ChevronDown
+                size={14}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
             </div>
           </div>
 
           <div className="relative w-full sm:w-72">
             <input
               type="text"
-              placeholder="Search database records..."
+              placeholder="Search by Text"
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
@@ -189,14 +310,16 @@ export default function FilterOptionsModal({
                     onChange={toggleSelectAllCategory}
                     className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
                   />
-                  <span>Select All {filterCategory}</span>
+                  <span>{filterCategory}</span>
                 </label>
 
-                {/* Items */}
+                {/* Items with synchronized checkbox state */}
                 <div className="divide-y divide-slate-100">
                   {paginatedList.map((item) => {
                     const isChecked = selectedItems.some(
-                      (s) => s.type === filterCategory && s.id === item.id
+                      (s) =>
+                        s.type === filterCategory &&
+                        (s.id === item.id || s.name.toLowerCase() === item.name.toLowerCase())
                     );
                     return (
                       <label
@@ -215,9 +338,8 @@ export default function FilterOptionsModal({
                   })}
 
                   {paginatedList.length === 0 && (
-                    <div className="px-4 py-10 text-center text-xs text-slate-400 space-y-1">
-                      <p className="font-semibold text-slate-600">No {filterCategory.toLowerCase()} records in database</p>
-                      <p className="text-[11px] text-slate-400">Records added in JEM Soft DB will automatically appear here.</p>
+                    <div className="px-4 py-8 text-center text-xs text-slate-400">
+                      No records found
                     </div>
                   )}
                 </div>
@@ -272,15 +394,15 @@ export default function FilterOptionsModal({
           </div>
 
           {/* Right Panel: Selected Filter */}
-          <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60">
+          <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60 relative">
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white h-full flex flex-col shadow-xs">
               <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
-                Selected Filter Criteria
+                Selected Filter
               </div>
               <div className="p-3 flex-1 overflow-y-auto space-y-2">
                 {Object.keys(groupedSelected).length === 0 ? (
                   <p className="text-xs text-slate-400 italic text-center pt-8">
-                    No active filter selected. Select items on the left.
+                    No filters selected. Check items on the left.
                   </p>
                 ) : (
                   Object.entries(groupedSelected).map(([type, items]) => (
@@ -294,18 +416,60 @@ export default function FilterOptionsModal({
                           {items.length}
                         </span>
                       </div>
-                      <button
-                        onClick={() => removeFilterGroup(type)}
-                        className="text-slate-400 hover:text-red-600 transition p-1"
-                        title="Clear filter group"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setViewingCategory(type)}
+                          className="text-[#B8873A] border border-[#B8873A]/30 px-2 py-0.5 rounded text-[11px] font-bold bg-[#B8873A]/10 hover:bg-[#B8873A]/20 transition"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => removeFilterGroup(type)}
+                          className="text-slate-400 hover:text-red-600 transition p-1"
+                          title="Clear group"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
             </div>
+
+            {/* View Popover Sub-Overlay */}
+            {viewingCategory && groupedSelected[viewingCategory] && (
+              <div className="absolute inset-4 bg-white rounded-xl border border-slate-300 shadow-2xl flex flex-col z-20 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 flex items-center justify-between font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                  <span>{viewingCategory}</span>
+                  <button
+                    onClick={() => setViewingCategory(null)}
+                    className="text-slate-300 hover:text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="p-3 flex-1 overflow-y-auto divide-y divide-slate-100">
+                  {groupedSelected[viewingCategory].map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between py-2 px-1 text-xs text-slate-800 font-medium"
+                    >
+                      <span>{item.name}</span>
+                      <button
+                        onClick={() => removeItem(viewingCategory, item.id)}
+                        className="text-slate-400 hover:text-red-600 p-1 transition"
+                        title="Remove status"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

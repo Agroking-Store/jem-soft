@@ -11,7 +11,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
-import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 
 export interface PolicyRegisterFormData {
   appliedFilters: SelectedFilterItem[];
@@ -33,7 +33,7 @@ export interface PolicyRegisterFormData {
     | "commencementDatewise"
     | "completionDatewise"
     | "planWise";
-  selectedGroups: GroupFilterItem[];
+  sortingFilterSelection: SortingFilterSelection | null;
   reportOptions: {
     address: boolean;
     landline: boolean;
@@ -54,7 +54,14 @@ interface PolicyRegisterFormProps {
   onGenerateReport: (formData: PolicyRegisterFormData) => void;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
-  customers: Array<{ id: string; groupCode?: string | null; name: string; groupName?: string | null }>;
+  customers: Array<{
+    id: string;
+    groupCode?: string | null;
+    name: string;
+    groupName?: string | null;
+    resArea?: string | null;
+  }>;
+  policies: Array<any>;
 }
 
 export default function PolicyRegisterForm({
@@ -63,19 +70,25 @@ export default function PolicyRegisterForm({
   agencies,
   policyStatuses,
   customers,
+  policies,
 }: PolicyRegisterFormProps) {
   const [formData, setFormData] = useState<PolicyRegisterFormData>({
-    appliedFilters: [],
+    appliedFilters: [
+      { type: "Policy Status", id: "status-inforce", name: "Inforce" },
+      { type: "Policy Status", id: "status-paidup", name: "Fully paid-up" },
+      { type: "Policy Status", id: "status-lapsed", name: "Lapsed" },
+      { type: "Policy Status", id: "status-red-paidup", name: "Reduced Paid-up" },
+    ],
     fromCommDate: "",
-    toCommDate: "2026-07-28",
+    toCommDate: "2026-07-29",
     policyType: "Both",
     paymentTypes: {
       nach: false,
       otherThanNach: true,
     },
-    reportDate: "2026-07-28",
+    reportDate: "2026-07-29",
     sortingOption: "groupsWise",
-    selectedGroups: [],
+    sortingFilterSelection: null,
     reportOptions: {
       address: false,
       landline: false,
@@ -92,18 +105,18 @@ export default function PolicyRegisterForm({
   });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
 
   const handleReset = () => {
     setFormData({
       appliedFilters: [],
       fromCommDate: "",
-      toCommDate: "2026-07-28",
+      toCommDate: "2026-07-29",
       policyType: "Both",
       paymentTypes: { nach: false, otherThanNach: true },
-      reportDate: "2026-07-28",
+      reportDate: "2026-07-29",
       sortingOption: "groupsWise",
-      selectedGroups: [],
+      sortingFilterSelection: null,
       reportOptions: {
         address: false,
         landline: false,
@@ -120,91 +133,109 @@ export default function PolicyRegisterForm({
     });
   };
 
+  const getSelectLabel = () => {
+    const selectedCount = formData.sortingFilterSelection?.selectedItems?.length || 0;
+    if (selectedCount > 0) {
+      return `${selectedCount} item(s) selected`;
+    }
+    switch (formData.sortingOption) {
+      case "groupMemberwise":
+        return "All Members Selected";
+      case "areaWise":
+        return "All Areas Selected";
+      case "subAreaWise":
+        return "All Sub-Areas Selected";
+      case "branchNoWise":
+        return "All Branches Selected";
+      case "policyNoWise":
+        return "All Policies Selected";
+      case "planWise":
+        return "All Plans Selected";
+      case "groupsWise":
+      default:
+        return "All Groups Selected";
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Customer Module Hero Header Bar */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-5 sm:px-7 sm:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Top Header Bar with Website Theme `#0B1220` and Gold `#E8C77A` */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 text-white border border-slate-800 shadow-xl">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="p-2 text-[#e8c77a]/80 hover:text-[#e8c77a] hover:bg-white/10 rounded-xl transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+              title="Back to Reports"
             >
-              <ChevronLeft size={16} />
-              <span>Back to Reports</span>
+              <ChevronLeft size={18} />
+              <span>Reports</span>
             </button>
             <div className="h-6 w-px bg-white/15" />
-            <div>
-              <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#e8c77a]">
-                Policy Register Builder
-              </h1>
-              <p className="text-xs text-[#e8c77a]/70">
-                Configure filter parameters, group selections, and report options for JEM Soft policies
-              </p>
-            </div>
+            <h1 className="font-serif text-xl font-bold text-[#E8C77A] tracking-wider uppercase">
+              Policy Register Form
+            </h1>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => alert("Filter configuration saved!")}
-              className="p-2.5 text-[#e8c77a] hover:bg-white/10 rounded-xl transition"
+              className="p-2 text-[#E8C77A] hover:bg-white/10 rounded-xl transition"
               title="Save Configuration"
             >
-              <Save size={18} />
+              <Save size={20} />
             </button>
             <button
               onClick={handleReset}
-              className="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition"
+              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition"
               title="Reset Form"
             >
-              <RotateCcw size={18} />
+              <RotateCcw size={20} />
             </button>
             <button
               onClick={() => onGenerateReport(formData)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-105 transition"
+              className="p-2 text-[#E8C77A] hover:bg-white/10 rounded-xl transition"
+              title="Generate Report"
             >
-              <FileText size={16} />
-              <span>Generate Report</span>
+              <FileText size={20} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Form Shells matching CustomerSectionCard */}
-
-      {/* Section 1: Filter Options */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#B8873A]/10 text-[#B8873A]">
-              <Filter size={16} />
-            </div>
-            <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-800">
+      {/* Main Form Shells with Website Customer Module Cards */}
+      <div className="space-y-6">
+        {/* Section 1: Filter Options */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
               Filter Options
             </h2>
           </div>
-        </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Filter Options Trigger Box */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+            {/* Selected Filter Box */}
             <div className="space-y-1.5">
-              <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Filter Criteria
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Filter Options
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <div className="flex items-center justify-between border border-slate-300 rounded-xl px-3.5 py-2 text-xs bg-white shadow-xs">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                    Selected Filter
+                  </span>
+                  <div className="flex items-center justify-between border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white">
                     <span className="text-slate-800 font-semibold">
                       {formData.appliedFilters.length > 0
-                        ? `${formData.appliedFilters.length} filter(s) applied`
-                        : "No criteria applied"}
+                        ? `${formData.appliedFilters.length} filter applied`
+                        : "No filters applied"}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsFilterModalOpen(true)}
-                      className="px-3 py-1 text-xs font-bold text-[#0B1220] bg-gradient-to-r from-[#B8873A] to-[#D9AE63] rounded-lg shadow-xs hover:brightness-105 transition"
+                      className="px-2.5 py-1 text-xs font-bold text-[#0B1220] bg-[#B8873A]/15 border border-[#B8873A]/30 rounded-lg hover:bg-[#B8873A]/30 transition"
                     >
                       View Filter
                     </button>
@@ -224,7 +255,7 @@ export default function PolicyRegisterForm({
 
             {/* Comm Date Range */}
             <div className="space-y-1.5">
-              <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Comm. Date Range
               </label>
               <div className="flex items-center gap-2">
@@ -237,7 +268,7 @@ export default function PolicyRegisterForm({
                   className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
                   placeholder="From Date"
                 />
-                <span className="text-xs font-bold text-slate-400">To</span>
+                <span className="text-xs font-bold text-slate-500">To</span>
                 <input
                   type="date"
                   value={formData.toCommDate}
@@ -251,7 +282,7 @@ export default function PolicyRegisterForm({
 
             {/* Policy Type Toggle */}
             <div className="space-y-1.5">
-              <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Policy Type
               </label>
               <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full">
@@ -274,11 +305,11 @@ export default function PolicyRegisterForm({
 
             {/* Payment Type */}
             <div className="space-y-1.5">
-              <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Payment Type
               </label>
               <div className="flex items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-semibold cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.paymentTypes.nach}
@@ -293,7 +324,7 @@ export default function PolicyRegisterForm({
                   <span>NACH</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-semibold cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.paymentTypes.otherThanNach}
@@ -312,7 +343,7 @@ export default function PolicyRegisterForm({
 
             {/* Report Date */}
             <div className="space-y-1.5">
-              <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
               <input
@@ -321,24 +352,22 @@ export default function PolicyRegisterForm({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
                 }
-                className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
               />
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Section 2: Sorting Options */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-800">
-            Sorting & Group Selection
-          </h2>
-        </div>
+        {/* Section 2: Sorting Options */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
+              Sorting Options
+            </h2>
+          </div>
 
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-3 gap-x-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6 pt-2">
             {[
               { id: "groupsWise", label: "Groups Wise" },
               { id: "groupMemberwise", label: "Group Memberwise" },
@@ -352,14 +381,20 @@ export default function PolicyRegisterForm({
             ].map((opt) => (
               <label
                 key={opt.id}
-                className="flex items-center gap-2.5 text-xs font-semibold text-slate-800 hover:text-[#B8873A] cursor-pointer transition"
+                className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition"
               >
                 <input
                   type="radio"
                   name="sortingOption"
                   value={opt.id}
                   checked={formData.sortingOption === opt.id}
-                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id as any }))}
+                  onChange={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      sortingOption: opt.id as any,
+                      sortingFilterSelection: null,
+                    }))
+                  }
                   className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] border-slate-300"
                 />
                 <span>{opt.label}</span>
@@ -367,49 +402,44 @@ export default function PolicyRegisterForm({
             ))}
           </div>
 
-          {/* Select Groups Field */}
-          <div className="pt-2 max-w-lg">
-            <label className="font-serif text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
-              Target Customer Groups
-            </label>
+          {/* Dynamic Select Input Field */}
+          <div className="pt-5 max-w-lg">
             <div className="flex items-center gap-3">
-              <input
-                type="text"
-                readOnly
-                value={
-                  formData.selectedGroups.length === 0
-                    ? "All Groups Selected (Database Customers)"
-                    : `${formData.selectedGroups.length} Specific Customer Group(s) Selected`
-                }
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
-                onClick={() => setIsGroupModalOpen(true)}
-              />
+              <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+                Select Filter
+              </span>
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  readOnly
+                  value={getSelectLabel()}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 cursor-pointer"
+                  onClick={() => setIsSortingModalOpen(true)}
+                />
+              </div>
 
               <button
                 type="button"
-                onClick={() => setIsGroupModalOpen(true)}
-                className="p-2.5 bg-[#0B1220] hover:bg-[#132342] text-[#E8C77A] rounded-xl transition shadow-xs flex items-center gap-1 text-xs font-bold shrink-0"
-                title="Filter Groups"
+                onClick={() => setIsSortingModalOpen(true)}
+                className="p-2.5 bg-[#0B1220] hover:bg-slate-900 text-[#E8C77A] rounded-xl transition shadow-md border border-slate-800"
+                title="Open Sorting Filter Modal"
               >
-                <Filter size={15} />
-                <span>Select</span>
+                <Filter size={16} />
               </button>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Section 3: Report Options */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-800">
-            Report Output Options
-          </h2>
-        </div>
+        {/* Section 3: Report Options */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
+              Report Options
+            </h2>
+          </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-3.5 gap-x-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6 pt-2">
             {[
               { key: "address", label: "Address" },
               { key: "landline", label: "Landline" },
@@ -421,11 +451,11 @@ export default function PolicyRegisterForm({
               { key: "statementWithPan", label: "Statement with PAN" },
               { key: "nomineeList", label: "Nominee List" },
               { key: "existingPolicies", label: "Existing Policies" },
-              { key: "pageBreakOnGroupChange", label: "Page Break on Customer Group Change" },
+              { key: "pageBreakOnGroupChange", label: "Page Break on change of Customer Group" },
             ].map((opt) => (
               <label
                 key={opt.key}
-                className="flex items-center gap-2.5 text-xs font-semibold text-slate-800 hover:text-[#B8873A] cursor-pointer transition"
+                className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition"
               >
                 <input
                   type="checkbox"
@@ -446,26 +476,26 @@ export default function PolicyRegisterForm({
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Bottom Action Footer */}
-      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-5 py-2 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider"
-        >
-          Cancel
-        </button>
+        {/* Bottom Actions Bar */}
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider"
+          >
+            Cancel
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onGenerateReport(formData)}
-          className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-105 transition"
-        >
-          <span>Generate Policy Register Report</span>
-          <ArrowRight size={15} />
-        </button>
+          <button
+            type="button"
+            onClick={() => onGenerateReport(formData)}
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition"
+          >
+            <span>Generate Report</span>
+            <ArrowRight size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Filter Options Modal */}
@@ -480,13 +510,17 @@ export default function PolicyRegisterForm({
         }
       />
 
-      {/* Select Group Modal */}
-      <SelectGroupModal
-        isOpen={isGroupModalOpen}
-        onClose={() => setIsGroupModalOpen(false)}
+      {/* Sorting Filter Modal */}
+      <SortingFilterModal
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
         customers={customers}
-        selectedGroups={formData.selectedGroups}
-        onApplyGroups={(groups) => setFormData((prev) => ({ ...prev, selectedGroups: groups }))}
+        policies={policies}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection) =>
+          setFormData((prev) => ({ ...prev, sortingFilterSelection: selection }))
+        }
       />
     </div>
   );
