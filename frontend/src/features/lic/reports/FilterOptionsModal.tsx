@@ -40,9 +40,11 @@ export default function FilterOptionsModal({
   const [filterCategory, setFilterCategory] = useState<string>("Agencies");
   const [searchText, setSearchText] = useState("");
 
-  // Initialize state: default 4 Policy Statuses checked if initialSelectedFilters is empty
+  // Initialize selected items state: default 4 Policy Statuses checked if none provided
   const [selectedItems, setSelectedItems] = useState<SelectedFilterItem[]>(() => {
-    if (initialSelectedFilters.length > 0) return initialSelectedFilters;
+    if (initialSelectedFilters && initialSelectedFilters.length > 0) {
+      return initialSelectedFilters;
+    }
     return SYSTEM_POLICY_STATUSES.filter((s) => s.defaultChecked).map((s) => ({
       type: "Policy Status",
       id: s.id,
@@ -54,23 +56,23 @@ export default function FilterOptionsModal({
   const [viewingCategory, setViewingCategory] = useState<string | null>(null);
   const pageSize = 8;
 
-  // STRICTLY DYNAMIC AGENCIES FROM DATABASE ONLY - No mock names!
+  // Dynamic Agencies WITHOUT code numbers like AG001, AG002
   const dynamicAgencies = useMemo(() => {
     return agencies.map((a) => ({
       id: a.id,
-      name: a.agencyName ? `${a.agencyName} (${a.agencyCode})` : a.agencyCode,
+      name: a.agencyName || a.agencyCode || "Agency",
     }));
   }, [agencies]);
 
-  // Dynamic Statuses from DB or system master list
+  // Policy Statuses: Use standard list so all 8 are always present, with 4 ticked by default
   const dynamicStatuses = useMemo(() => {
-    if (policyStatuses.length > 0) {
-      return policyStatuses.map((s) => ({
-        id: s.id,
-        name: s.statusName || s.statusCode,
-      }));
-    }
-    return SYSTEM_POLICY_STATUSES.map((s) => ({ id: s.id, name: s.name }));
+    const list = [...SYSTEM_POLICY_STATUSES];
+    policyStatuses.forEach((ps) => {
+      if (ps.statusName && !list.some((l) => l.name.toLowerCase() === ps.statusName.toLowerCase())) {
+        list.push({ id: ps.id, name: ps.statusName, defaultChecked: false });
+      }
+    });
+    return list.map((s) => ({ id: s.id, name: s.name }));
   }, [policyStatuses]);
 
   const paymentModesList = useMemo(
@@ -159,7 +161,11 @@ export default function FilterOptionsModal({
   const isCategoryAllSelected =
     paginatedList.length > 0 &&
     paginatedList.every((item) =>
-      selectedItems.some((s) => s.type === filterCategory && (s.id === item.id || s.name === item.name))
+      selectedItems.some(
+        (s) =>
+          s.type === filterCategory &&
+          (s.id === item.id || s.name.toLowerCase() === item.name.toLowerCase())
+      )
     );
 
   const groupedSelected = useMemo(() => {
@@ -200,19 +206,20 @@ export default function FilterOptionsModal({
   };
 
   const toggleItem = (id: string, name: string) => {
+    const normName = name.toLowerCase();
     const exists = selectedItems.some(
-      (s) => s.type === filterCategory && (s.id === id || s.name.toLowerCase() === name.toLowerCase())
+      (s) => s.type === filterCategory && (s.id === id || s.name.toLowerCase() === normName)
     );
 
     if (exists) {
-      // Untick -> remove from selectedItems
+      // Untick -> remove item immediately from selected state
       setSelectedItems((prev) =>
         prev.filter(
-          (s) => !(s.type === filterCategory && (s.id === id || s.name.toLowerCase() === name.toLowerCase()))
+          (s) => !(s.type === filterCategory && (s.id === id || s.name.toLowerCase() === normName))
         )
       );
     } else {
-      // Tick -> add to selectedItems
+      // Tick -> add item to selected state
       setSelectedItems((prev) => [...prev, { type: filterCategory, id, name }]);
     }
   };
@@ -233,10 +240,10 @@ export default function FilterOptionsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-        {/* Top Website Theme Gold Line */}
+        {/* Website Gold Line */}
         <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
 
-        {/* Header (Website Navy `#0B1220` with Gold `#E8C77A`) */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
           <div>
             <h2 className="font-serif text-lg font-bold tracking-wider text-[#E8C77A] uppercase">
@@ -313,7 +320,7 @@ export default function FilterOptionsModal({
                   <span>{filterCategory}</span>
                 </label>
 
-                {/* Items with synchronized checkbox state */}
+                {/* Items */}
                 <div className="divide-y divide-slate-100">
                   {paginatedList.map((item) => {
                     const isChecked = selectedItems.some(
