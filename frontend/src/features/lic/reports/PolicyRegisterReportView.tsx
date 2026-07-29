@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, useMemo } from "react";
-import { ArrowLeft, Printer, Download } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { PolicyRegisterFormData } from "./PolicyRegisterForm";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 
@@ -309,10 +309,6 @@ export default function PolicyRegisterReportView({
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
@@ -322,6 +318,8 @@ export default function PolicyRegisterReportView({
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
         logging: false,
       });
 
@@ -345,9 +343,9 @@ export default function PolicyRegisterReportView({
 
       pdf.save(`Policy_Register_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to generate PDF.", { id: toastId });
+      toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
       setIsExporting(false);
     }
@@ -371,14 +369,6 @@ export default function PolicyRegisterReportView({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-700 text-slate-200 font-bold text-xs rounded-xl hover:bg-white/10 transition uppercase tracking-wider"
-          >
-            <Printer size={16} />
-            <span>Print</span>
-          </button>
-
           <button
             onClick={handleDownloadPDF}
             disabled={isExporting}
