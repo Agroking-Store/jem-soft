@@ -111,6 +111,10 @@ model Claim {
   claimDate     DateTime
   reasonForClaim String?
   
+  // Nominee relation
+  nomineeId     String?
+  nominee       Nominee? @relation(fields: [nomineeId], references: [id], onDelete: SetNull)
+
   // Relations
   policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
   
@@ -390,6 +394,8 @@ model Nominee {
   address String?
 
   policy Policy @relation(fields: [policyId], references: [id])
+
+  claims Claim[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -803,4 +809,3 @@ model MedicalHistoryRecord {
 
   medicalHistory  MedicalHistory @relation(fields: [medicalHistoryId], references: [id], onDelete: Cascade)
 }
-

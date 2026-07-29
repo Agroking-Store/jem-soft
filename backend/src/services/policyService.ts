@@ -71,7 +71,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     statusId,
     // Destructure only what's needed for this specific scope
     term,
-    ppt,// Rename to avoid conflict with `sumAssured` from premium
+    ppt, // Rename to avoid conflict with `sumAssured` from premium
     fupDate,
   } = data;
 
@@ -91,15 +91,15 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   }
 
   const product = await prisma.productMaster.findUnique({
-  where: { id: data.productId },
-  select: {
-    providerId: true,
-  },
-});
+    where: { id: data.productId },
+    select: {
+      providerId: true,
+    },
+  });
 
-if (!product) {
-  throw new AppError("Product not found.", 404);
-}
+  if (!product) {
+    throw new AppError("Product not found.", 404);
+  }
 
   return prisma.$transaction(async (tx) => {
     const newPolicy = await tx.policy.create({
@@ -228,6 +228,7 @@ export const getAllPolicies = async (): Promise<any[]> => {
       status: true,
       premiumMode: true,
       premium: true,
+      nominees: true,
     },
   });
 };
@@ -309,6 +310,7 @@ export const getPoliciesByMember = async (memberId: string): Promise<any[]> => {
       status: true,
       premiumMode: true,
       premium: true,
+      nominees: true,
     },
     orderBy: { commencementDate: "desc" },
   });
@@ -380,15 +382,15 @@ export const updatePolicy = async (
   }
 
   const product = await prisma.productMaster.findUnique({
-  where: { id: data.productId },
-  select: {
-    providerId: true,
-  },
-});
+    where: { id: data.productId },
+    select: {
+      providerId: true,
+    },
+  });
 
-if (!product) {
-  throw new AppError("Product not found.", 404);
-}
+  if (!product) {
+    throw new AppError("Product not found.", 404);
+  }
 
   return prisma.$transaction(async (tx) => {
     const updatedPolicy = await tx.policy.update({

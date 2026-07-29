@@ -11,6 +11,7 @@ export interface Claim {
   status: string;
   claimDate: string;
   reasonForClaim?: string | null;
+  nomineeId?: string | null;
   createdById: string;
   updatedById?: string | null;
   createdAt: string;
@@ -59,7 +60,13 @@ export interface Claim {
       installmentPremium: number;
       totalInstallmentPremium: number;
     } | null;
+    nominees?: any[];
   };
+  nominee?: {
+    id: string;
+    nomineeName: string;
+    relationship: string;
+  } | null;
 }
 
 export interface CreateClaimPayload {
@@ -69,6 +76,7 @@ export interface CreateClaimPayload {
   claimAmount: number;
   claimDate: string;
   reasonForClaim?: string;
+  nomineeId?: string;
 }
 
 interface ClaimState {
