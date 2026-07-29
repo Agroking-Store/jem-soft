@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
   ChevronRight,
   Edit,
   Eye,
-  Filter,
   Mail,
   Phone,
   Plus,
@@ -43,10 +42,7 @@ import {
 } from "@/features/customers/components/CustomerModalStack";
 import {
   CustomerEmptyState,
-  CustomerSectionCard,
   CustomerTableFrame,
-  CustomerToolbar,
-  FilterSelect,
 } from "@/features/customers/components/CustomerUi";
 
 const CATEGORY_DOT: Record<string, string> = {
@@ -132,33 +128,8 @@ function TableHeadCell({
   );
 }
 
-function PillButton({
-  children,
-  active,
-  onClick,
-}: {
-  children: ReactNode;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all ${
-        active
-          ? "border-[#B8873A] bg-[#B8873A]/10 text-[#B8873A]"
-          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function CustomerListPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { customers, isLoading, error } = useSelector(
@@ -174,7 +145,6 @@ export default function CustomerListPage() {
   const activeTab: Tab = paramTab === "master" ? "master" : "group";
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -329,24 +299,8 @@ export default function CustomerListPage() {
       : "This will remove the customer group and related portal access.";
 
   const activeContent = (
-      <CustomerSectionCard
-        title={activeTab === "group" ? "Customer Groups" : "Customer Directory"}
-        subtitle={
-          activeTab === "group"
-            ? "Browse group records with quick access to related members and policy activity."
-            : "Browse individual customer records mapped to their parent groups."
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            <PillButton active={activeTab === "group"} onClick={() => router.push("/dashboard/customers")}>
-              Groups
-            </PillButton>
-            <PillButton active={activeTab === "master"} onClick={() => router.push("/dashboard/customers?tab=master")}>
-              Customers
-            </PillButton>
-          </div>
-        }
-      >
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
         {activeTab === "group" ? (
           isLoading && customers.length === 0 ? (
             <div className="flex min-h-[18rem] items-center justify-center">
@@ -707,7 +661,7 @@ export default function CustomerListPage() {
             </table>
           </CustomerTableFrame>
         )}
-      </CustomerSectionCard>
+      </div>
     );
 
   const renderModalContent = (modal: CustomerModalEntry) => {
@@ -821,12 +775,11 @@ export default function CustomerListPage() {
         </div>
       </div>
 
-      <CustomerModuleNav />
-
       {showListChrome && (
-      <CustomerToolbar>
-        <div className="min-w-0 flex-1">
-          <div className="relative">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+          <CustomerModuleNav />
+          <div className="relative min-w-0 flex-1 sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
@@ -837,24 +790,12 @@ export default function CustomerListPage() {
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
             />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <FilterSelect
-            icon={Filter}
-            placeholder="All Statuses"
-            value={statusFilter}
-            onChange={setStatusFilter}
-            searchPlaceholder="Search statuses..."
-            options={[
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
-            ]}
-          />
-
           {activeTab === "group" && canEdit && selectedIds.size > 0 && (
             <button
               onClick={() => {
@@ -882,7 +823,7 @@ export default function CustomerListPage() {
             </button>
           )}
         </div>
-      </CustomerToolbar>
+      </div>
       )}
 
       {activeContent}
