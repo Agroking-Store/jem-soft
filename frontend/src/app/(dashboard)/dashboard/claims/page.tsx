@@ -127,15 +127,17 @@ export default function Page() {
       </div>
 
       {/* Table */}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] undefined">
       <CustomerTableFrame>
+       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Claim #
+                Claim 
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Policy #
+                Policy 
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Claimant Name
@@ -155,14 +157,15 @@ export default function Page() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {claims.map((claim) => {
+            {claims.map((claim,index) => {
               const statusBadge = getStatusBadge(claim.status);
               const StatusIcon = statusBadge.icon;
+              const claimIndex = `CLM - ${index+1}`;
               return (
                 <tr key={claim.id} className="hover:bg-slate-50 transition">
                   <td className="px-4 py-3">
-                    <span className="font-mono text-sm font-medium text-slate-900">
-                      {claim.id}
+                    <span className="text-sm text-slate-600">
+                      {claimIndex}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -197,8 +200,8 @@ export default function Page() {
                     {canEdit && (
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() =>
-                            router.push(`/dashboard/claims/${claim.id}`)
+                          onClick={() =>                          
+                            router.push(`/dashboard/claims/${claim.id}?index=${claimIndex}`)
                           }
                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                           title="View"
@@ -229,7 +232,7 @@ export default function Page() {
           </tbody>
         </table>
       </CustomerTableFrame>
-
+      </section>
       {/* Empty / Loading */}
       {isLoading ? (
         <div className="text-center py-12">

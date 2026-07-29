@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchClaimById } from "@/features/claim/claimSlice";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams,useSearchParams } from "next/navigation";
 
 import Link from "next/link";
 import {
@@ -30,6 +30,8 @@ export default function ViewClaimPage() {
   const id = params.id as string;
   const dispatch = useDispatch<AppDispatch>();
   const user = useAuth();
+  const searchParams = useSearchParams();
+  const index = searchParams.get("index");
 
   const { selectedClaim, isLoading, error } = useSelector(
     (state: RootState) => state.claims,
@@ -115,7 +117,7 @@ export default function ViewClaimPage() {
                   Claim Number
                 </p>
                 <p className="font-semibold text-slate-900">
-                  {selectedClaim?.id}
+                  {index}
                 </p>
               </div>
               <div>
