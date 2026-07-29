@@ -214,6 +214,29 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       if (policy) {
         setSelectedPolicy(policy);
       }
+
+      // Set payment type
+      if (
+        initialClaim.paymentType === "Cheque" ||
+        initialClaim.paymentType === "NEFT"
+      ) {
+        setPaymentType(initialClaim.paymentType);
+      }
+
+      // Set cheque fields in edit mode
+      if (initialClaim.paymentType === "Cheque") {
+        setChequeFields({
+          chequeNumber: initialClaim.chequeNumber || "",
+          chequeDate: initialClaim.chequeDate
+            ? new Date(initialClaim.chequeDate).toISOString().slice(0, 10)
+            : "",
+          bankName: initialClaim.bankName || "",
+          branchName: initialClaim.branchName || "",
+          chequeAmount: initialClaim.chequeAmount
+            ? String(initialClaim.chequeAmount)
+            : "",
+        });
+      }
     }
   }, [mode, initialClaim, reset, policies]);
 

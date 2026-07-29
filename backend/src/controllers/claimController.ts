@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import * as claimService from "../services/claimService.js";
 import { AppError } from "../utils/AppError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import {
+  createClaimSchema,
+  updateClaimSchema,
+} from "../validations/claimValidation.js";
 
 export const getClaims = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -31,16 +35,39 @@ export const getClaimById = catchAsync(
 
 export const addClaim = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const newClaim = await claimService.createClaim(req.body, req.user!.id);
+    // Validate request body
+    const validationResult = createClaimSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+      return next(new AppError(errors[0].message, 400));
+    }
+
+    const newClaim = await claimService.createClaim(
+      validationResult.data,
+      req.user!.id,
+    );
     res.status(201).json({ success: true, data: newClaim });
   },
 );
 
 export const updateClaim = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    // Validate request body
+    const validationResult = updateClaimSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+      return next(new AppError(errors[0].message, 400));
+    }
+
     const updatedClaim = await claimService.updateClaimById(
       req.params.id,
-      req.body,
+      validationResult.data,
       req.user!.id,
     );
     res.status(200).json({ success: true, data: updatedClaim });
