@@ -197,6 +197,30 @@ export default function ViewClaimPage() {
               </div>
             </div>
           </CustomerSectionCard>
+
+          {/* ── Nominee Card ───────────────────────────── */}
+          {selectedClaim?.nominee && (
+            <CustomerSectionCard title="Nominee Information" icon={User}>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Nominee Name
+                  </p>
+                  <p className="font-semibold text-slate-900 text-sm">
+                    {selectedClaim.nominee.nomineeName}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Relationship
+                  </p>
+                  <p className="font-semibold text-slate-900 text-sm">
+                    {selectedClaim.nominee.relationship || "-"}
+                  </p>
+                </div>
+              </div>
+            </CustomerSectionCard>
+          )}
         </div>
 
         {/* Right Column - Policy Information */}

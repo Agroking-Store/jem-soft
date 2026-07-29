@@ -22,6 +22,9 @@ import {
   User,
   FileText,
   IndianRupee,
+  Info,
+  Search,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -116,6 +119,39 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     chequeAmount: "",
   });
 
+  /* ── Nominee state ─────────────────────────────────────────── */
+  interface Nominee {
+    id: string;
+    nomineeName: string;
+    relationship: string;
+    dateOfBirth: string;
+    phone: string;
+    email: string;
+    percentage?: number | string;
+  }
+
+  const [nomineeOpen, setNomineeOpen] = useState(true);
+  const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
+
+  // Derive nominees from the selected policy (always read from policy data)
+  const nomineeList: Nominee[] = (selectedPolicy?.nominees || []).map(
+    (n: any, index: number) => ({
+      id: n.id || String(index),
+      nomineeName: n.nomineeName || "",
+      relationship: n.relationship || "",
+      dateOfBirth: n.dateOfBirth
+        ? new Date(n.dateOfBirth).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
+        : "-",
+      phone: n.phone || "-",
+      email: n.email || "-",
+      percentage: n.percentage ? Number(n.percentage) : "-",
+    }),
+  );
+
   /* ── Helper: default bank details from selected policy ─────── */
   const defaultBank = selectedPolicy?.CustomerMaster?.bankDetails?.[0];
   const bankDefaults = {
@@ -169,6 +205,36 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }
   }, [mode, initialClaim, reset, policies]);
 
+  // Pre-select nominee in edit mode
+  useEffect(() => {
+    if (
+      mode === "edit" &&
+      initialClaim &&
+      initialClaim.nomineeId &&
+      selectedPolicy?.nominees
+    ) {
+      const nom = selectedPolicy.nominees.find(
+        (n: any) => n.id === initialClaim.nomineeId,
+      );
+      if (nom) {
+        setSelectedNominee({
+          id: nom.id,
+          nomineeName: nom.nomineeName || "",
+          relationship: nom.relationship || "",
+          dateOfBirth: nom.dateOfBirth
+            ? new Date(nom.dateOfBirth).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
+            : "-",
+          phone: nom.phone || "-",
+          email: nom.email || "-",
+        });
+      }
+    }
+  }, [mode, initialClaim, selectedPolicy]);
+
   // Sync selectedPolicy when policyId changes
   useEffect(() => {
     const subscription = (control as any).watch?.(
@@ -176,6 +242,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         if (name === "policyId") {
           const policy = policies.find((p) => p.id === value.policyId);
           setSelectedPolicy(policy || null);
+          setSelectedNominee(null); // Reset nominee when policy changes
         }
       },
     );
@@ -190,18 +257,23 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   };
 
   const onSubmit = async (data: ClaimFormData) => {
-    if (!validatedData) return;
-
     setIsSubmitting(true);
+
+    const payload = {
+      ...data,
+      nomineeId: selectedNominee?.id || undefined,
+    };
 
     try {
       if (mode === "create") {
-        await dispatch(createClaim(data)).unwrap();
+        await dispatch(createClaim(payload)).unwrap();
         toast.success("Claim created successfully");
         reset();
         router.push("/dashboard/claims");
       } else if (initialClaim) {
-        await dispatch(updateClaim({ id: initialClaim.id, data })).unwrap();
+        await dispatch(
+          updateClaim({ id: initialClaim.id, data: payload }),
+        ).unwrap();
         toast.success("Claim updated successfully");
         router.push("/dashboard/claims");
       }
@@ -383,7 +455,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     <span className="ml-0.5 text-rose-500">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     {...register("claimAmount")}
                     className={inputClass}
                     placeholder="Enter Claim amount"
@@ -608,14 +682,161 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             </CustomerSectionCard>
           </div>
 
-          {/* Right Column - Claimant Information */}
+          {/* Right Column - Nominee Details */}
           <div className="lg:col-span-1">
             <div className="sticky top-6">
-              <CustomerSectionCard title="Claimant Information" icon={User}>
-                <div>
-                  <label className={labelClass}>Claimant Name</label>
-                  <input {...register("claimantName")} className={inputClass} />
+              <CustomerSectionCard title="Nominee Details" icon={User}>
+                {/* Nominee Dropdown */}
+                <div className="relative">
+                  <label className={labelClass}>Nominee</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedPolicy && nomineeList.length > 0) {
+                        setNomineeOpen((o) => !o);
+                      }
+                    }}
+                    disabled={!selectedPolicy || nomineeList.length === 0}
+                    className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
+                      ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"}
+                      ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}
+                    `}
+                  >
+                    <span
+                      className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
+                    >
+                      {selectedNominee
+                        ? selectedNominee.nomineeName
+                        : nomineeList.length === 0
+                          ? "No nominees available"
+                          : "Select Nominee"}
+                    </span>
+                    <ChevronDown
+                      size={15}
+                      className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {/* Dropdown Panel */}
+                  {nomineeOpen && nomineeList.length > 0 && (
+                    <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+                      <div className="max-h-60 overflow-y-auto py-1">
+                        {nomineeList.map((nominee) => (
+                          <button
+                            key={nominee.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedNominee(nominee);
+                              setNomineeOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
+                              selectedNominee?.id === nominee.id
+                                ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
+                                : "text-slate-700"
+                            }`}
+                          >
+                            <span className="min-w-0">
+                              <span className="block truncate">
+                                {nominee.nomineeName}
+                              </span>
+                              <span className="block truncate text-xs text-slate-400">
+                                {nominee.relationship}
+                              </span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Helper Text */}
+                <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
+                  <Info size={12} className="mt-0.5 shrink-0" />
+                  <span>
+                    Nominee details are automatically fetched from the selected
+                    policy.
+                  </span>
+                </p>
+
+                {/* Auto-filled Nominee Details (read-only) */}
+                {selectedNominee && (
+                  <div className="mt-5 space-y-4">
+                    <div className="border-t border-slate-100 pt-4">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <label className={labelClass}>Nominee Name</label>
+                          <input
+                            type="text"
+                            value={selectedNominee.nomineeName}
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Relationship</label>
+                          <input
+                            type="text"
+                            value={selectedNominee.relationship}
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Date of Birth</label>
+                          <input
+                            type="text"
+                            value={selectedNominee.dateOfBirth}
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Phone Number</label>
+                          <input
+                            type="text"
+                            value={selectedNominee.phone}
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Share %</label>
+                          <input
+                            type="text"
+                            value={
+                              selectedNominee.percentage !== undefined
+                                ? String(selectedNominee.percentage)
+                                : "-"
+                            }
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClass}>Email Address</label>
+                          <input
+                            type="text"
+                            value={selectedNominee.email}
+                            disabled
+                            className={disabledInputClass}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No policy selected state */}
+                {!selectedPolicy && (
+                  <div className="mt-5 border-t border-slate-100 pt-4">
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                      <p className="text-xs text-slate-400">
+                        Select a policy to view nominee details.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CustomerSectionCard>
             </div>
           </div>

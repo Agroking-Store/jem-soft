@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,15 +20,43 @@ export default function DatePicker({
   placeholder = "YYYY-MM-DD",
   readOnly = false,
 }: Props) {
-  const PopperContainer = ({ children }: { children: React.ReactNode }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const PopperContainer = ({ children }: { children?: React.ReactNode }) => {
     if (typeof document === "undefined") {
       return null;
     }
     return createPortal(
       <div className="z-[1000]">{children}</div>,
-      document.body
+      document.body,
     );
   };
+
+  // Prevent hydration mismatch: render a static placeholder during SSR
+  // and swap to the interactive datepicker after client mount.
+  if (!mounted) {
+    return (
+      <div className="relative">
+        <Calendar
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none"
+        />
+
+        <input
+          type="text"
+          readOnly
+          value={value ? format(value, "yyyy-MM-dd") : ""}
+          placeholder={placeholder}
+          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <Calendar

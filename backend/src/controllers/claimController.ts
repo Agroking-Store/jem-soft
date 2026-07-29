@@ -1,19 +1,24 @@
-import { Request, Response } from 'express';
-import * as claimService from '../services/claimService.js';
+import { Request, Response, NextFunction } from "express";
+import * as claimService from "../services/claimService.js";
+import { AppError } from "../utils/AppError.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
-export const getClaims = async (req: Request, res: Response) => {
-    try {
-        const claims = await claimService.getAllClaims();
-        res.status(200).json({ success: true, data: claims });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+export const getClaims = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const claims = await claimService.getAllClaims();
+    res.status(200).json({ success: true, data: claims });
+  },
+);
 
-export const getClaimById = async (req: Request, res: Response) => {
+export const getClaimById = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
     const claim = await claimService.getClaimById(id);
+
+    if (!claim) {
+      return next(new AppError("Claim not found.", 404));
+    }
 
     res.status(200).json({
       status: "success",
@@ -21,33 +26,32 @@ export const getClaimById = async (req: Request, res: Response) => {
         claim,
       },
     });
-  }
-;
+  },
+);
 
+export const addClaim = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const newClaim = await claimService.createClaim(req.body, req.user!.id);
+    res.status(201).json({ success: true, data: newClaim });
+  },
+);
 
-export const addClaim = async (req: Request, res: Response) => {
-    try {
-        const newClaim = await claimService.createClaim(req.body, req.user!.id);
-        res.status(201).json({ success: true, data: newClaim });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+export const updateClaim = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const updatedClaim = await claimService.updateClaimById(
+      req.params.id,
+      req.body,
+      req.user!.id,
+    );
+    res.status(200).json({ success: true, data: updatedClaim });
+  },
+);
 
-export const updateClaim = async (req: Request, res: Response) => {
-    try {
-        const updatedClaim = await claimService.updateClaimById(req.params.id, req.body, req.user!.id);
-        res.status(200).json({ success: true, data: updatedClaim });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-export const deleteClaim = async (req: Request, res: Response) => {
-    try {
-        await claimService.deleteClaimById(req.params.id);
-        res.status(200).json({ success: true, message: 'Claim deleted successfully' });
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+export const deleteClaim = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    await claimService.deleteClaimById(req.params.id);
+    res
+      .status(200)
+      .json({ success: true, message: "Claim deleted successfully" });
+  },
+);
