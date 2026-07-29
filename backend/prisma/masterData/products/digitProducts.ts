@@ -1,5 +1,5 @@
 export const digitProducts = [
-    
+
   // Digit Life Insurance Products
   {
     productName: "Digit Glow Term Life Insurance",
@@ -212,6 +212,126 @@ export const digitProducts = [
     productName: "Digit Life Return of Premium Term Plan",
     productCode: "DL-035",
     planNumber: "DL-035",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Cancer Protect Rider",
+    productCode: "DL-036",
+    planNumber: "DL-036",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Hospital Cash Benefit Rider",
+    productCode: "DL-037",
+    planNumber: "DL-037",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Term Plan – Level Cover",
+    productCode: "DL-038",
+    planNumber: "DL-038",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Term Plan – NRI Return of Premium",
+    productCode: "DL-039",
+    planNumber: "DL-039",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Credit Life Plan",
+    productCode: "DL-040",
+    planNumber: "DL-040",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Gratuity Plan",
+    productCode: "DL-041",
+    planNumber: "DL-041",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Group Superannuation Plan",
+    productCode: "DL-042",
+    planNumber: "DL-042",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Corporate Term Plan",
+    productCode: "DL-043",
+    planNumber: "DL-043",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Micro Insurance Plan",
+    productCode: "DL-044",
+    planNumber: "DL-044",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Rural Term Plan",
+    productCode: "DL-045",
+    planNumber: "DL-045",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Women's Term Plan",
+    productCode: "DL-046",
+    planNumber: "DL-046",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Senior Citizen Term Plan",
+    productCode: "DL-047",
+    planNumber: "DL-047",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Term Plan – Monthly Income Benefit",
+    productCode: "DL-048",
+    planNumber: "DL-048",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life ULIP Plan – Equity Fund",
+    productCode: "DL-049",
+    planNumber: "DL-049",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life ULIP Plan – Liquid Fund",
+    productCode: "DL-050",
+    planNumber: "DL-050",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Annuity Plan – Immediate",
+    productCode: "DL-051",
+    planNumber: "DL-051",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Annuity Plan – Deferred",
+    productCode: "DL-052",
+    planNumber: "DL-052",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Term Plan – Non-Medical",
+    productCode: "DL-053",
+    planNumber: "DL-053",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Family Income Benefit Plan",
+    productCode: "DL-054",
+    planNumber: "DL-054",
+    providerCode: "DIGIT",
+  },
+  {
+    productName: "Digit Life Healthy Glow Combo Plan",
+    productCode: "DL-055",
+    planNumber: "DL-055",
     providerCode: "DIGIT",
   },
 ];

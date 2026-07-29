@@ -1,5 +1,5 @@
 export const relianceProducts = [
-  //RELIANCE NIPPON LIFE (INDUSIND NIPPON LIFE)
+  //RELIANCE NIPPON LIFE (INDUSIND NIPPON LIFE) — ORIGINAL 22, WITH CORRECTION
 
   {
     productName: "Reliance Nippon Life Digi-Term Insurance Plan",
@@ -21,7 +21,7 @@ export const relianceProducts = [
   },
   {
     productName: "Reliance Nippon Life Saral Jeevan Bima",
-    productCode: "121N141V01",
+    productCode: "121N140V01",
     planNumber: "RN004",
     providerCode: "RELIANCE_NIPPON",
   },
@@ -131,6 +131,93 @@ export const relianceProducts = [
     productName: "Reliance Nippon Life Group Term Assurance Plus",
     productCode: "121N093V02",
     planNumber: "RN022",
+    providerCode: "RELIANCE_NIPPON",
+  },
+
+  //NEWLY ADDED — CONFIRMED ACTIVE ON OFFICIAL indusindnipponlife.com BUT MISSING FROM ORIGINAL LIST
+
+  {
+    productName: "IndusInd Nippon Life Super Suraksha Elite",
+    productCode: "121N148V01",
+    planNumber: "RN023",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Guaranteed Money Back Plus",
+    productCode: "121N181V02",
+    planNumber: "RN024",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Nishchit Ace",
+    productCode: "121N180V01",
+    planNumber: "RN025",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Nishchit Pension Pro",
+    productCode: "121N184V01",
+    planNumber: "RN026",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Nishchit Bhavishya",
+    productCode: "121N145V02",
+    planNumber: "RN027",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Cancer Protection Plus Plan",
+    productCode: "121N119V02",
+    planNumber: "RN028",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Cancer Shield Plan",
+    productCode: "121N153V01",
+    planNumber: "RN029",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Milestone Plan",
+    productCode: "121N136V04",
+    planNumber: "RN030",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Guaranteed Money Back Plan",
+    productCode: "121N084V05",
+    planNumber: "RN031",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Nishchit Samrudhi",
+    productCode: "121N142V03",
+    planNumber: "RN032",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Smart Zindagi Plus",
+    productCode: "121N143V02",
+    planNumber: "RN033",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Super Assured Future Endowment",
+    productCode: "121N159V01",
+    planNumber: "RN034",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Wealth and Insurance Plan",
+    productCode: "121L146V01",
+    planNumber: "RN035",
+    providerCode: "RELIANCE_NIPPON",
+  },
+  {
+    productName: "IndusInd Nippon Life Group Jan Suraksha Kavach",
+    productCode: "121N147V01",
+    planNumber: "RN036",
     providerCode: "RELIANCE_NIPPON",
   },
 

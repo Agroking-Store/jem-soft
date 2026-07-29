@@ -19,6 +19,7 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("VIEWER")
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -109,6 +110,7 @@ model Claim {
   claimAmount   Float
   status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
   claimDate     DateTime
+  reasonForClaim String?
   
   // Relations
   policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)

@@ -1,35 +1,36 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export interface ClaimData {
-    policyId: string;
-    claimantName: string;
-    claimType: string;
-    claimAmount: number;
-    claimDate: string;
-    status?: string;
+  policyId: string;
+  claimantName: string;
+  claimType: string;
+  claimAmount: number;
+  claimDate: string;
+  status?: string;
+  reasonForClaim?: string;
 }
 
 export const getAllClaims = async () => {
-    return await prisma.claim.findMany({
-        include: {
-            policy: {
-                select: {
-                    policyNumber: true,
-                    CustomerMaster: {
-                        select: {
-                            firstName: true,
-                            lastName: true,
-                        }
-                    }
-                }
-            }
+  return await prisma.claim.findMany({
+    include: {
+      policy: {
+        select: {
+          policyNumber: true,
+          CustomerMaster: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
         },
-        orderBy: {
-            createdAt: 'desc'
-        }
-    });
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 };
 
 export const getClaimById = async (id: string): Promise<any> => {
@@ -38,39 +39,43 @@ export const getClaimById = async (id: string): Promise<any> => {
       id,
     },
     include: {
-        policy : {
-            include : {
-                product : true,
-                CustomerMaster : true,
-                status : true,
-                premium: true,
-            }
-        }
+      policy: {
+        include: {
+          product: true,
+          CustomerMaster: true,
+          status: true,
+          premium: true,
+        },
+      },
     },
   });
 };
 
 export const createClaim = async (data: ClaimData, userId: string) => {
-    return await prisma.claim.create({
-        data: {
-            ...data,
-            claimDate: new Date(data.claimDate),
-            createdById: userId,
-        }
-    });
+  return await prisma.claim.create({
+    data: {
+      ...data,
+      claimDate: new Date(data.claimDate),
+      createdById: userId,
+    },
+  });
 };
 
-export const updateClaimById = async (id: string, data: Partial<ClaimData>, userId: string) => {
-    return await prisma.claim.update({
-        where: { id },
-        data: {
-            ...data,
-            claimDate: data.claimDate ? new Date(data.claimDate) : undefined,
-            updatedById: userId,
-        }
-    });
+export const updateClaimById = async (
+  id: string,
+  data: Partial<ClaimData>,
+  userId: string,
+) => {
+  return await prisma.claim.update({
+    where: { id },
+    data: {
+      ...data,
+      claimDate: data.claimDate ? new Date(data.claimDate) : undefined,
+      updatedById: userId,
+    },
+  });
 };
 
 export const deleteClaimById = async (id: string) => {
-    return await prisma.claim.delete({ where: { id } });
+  return await prisma.claim.delete({ where: { id } });
 };
