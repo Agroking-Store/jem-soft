@@ -2,17 +2,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Elite Term Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Elite Term Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "81",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Life Elite Term Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Elite Term Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Elite Term Plan",
@@ -27,15 +32,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Elite Term Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "Rs. 50 Lakhs",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Elite Term Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit subject to Board Approved Underwriting Policy",
+        value: "No Limit",
     },
 
-    
+
     {
         productCode: "IndiaFirst Life Super Protection Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -50,22 +55,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Plan",
@@ -80,33 +85,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "100000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "500000000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
@@ -121,28 +126,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "500000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Saral Jeevan Bima Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "₹50,00,000 (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "Non-POS:1/POS:5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "10",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Life Protect Shield Plus Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
@@ -157,33 +167,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "100000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Protect Shield Plus Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "1000000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MIN_PPT",
-        value: "6",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
@@ -198,33 +208,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "240000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Assured Income For Milestones Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (as per Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Non-POS:40",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MIN_PPT",
-        value: "6",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
@@ -239,33 +249,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "480000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Guarantee Of Life Dreams Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Non-POS: No Limit (as per Board Approved Underwriting Policy); POS: ₹10,00,000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life (up to age 100)",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
@@ -280,33 +290,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "300000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Growth of Life Dreams Plus Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
@@ -321,33 +331,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹1,35,000 (derived from minimum annualized premium specified in the brochure)",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Long Guaranteed Income Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Fortune Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Fortune Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Fortune Plus Plan",
         attributeCode: "MIN_PPT",
-        value: "6",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Fortune Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Fortune Plus Plan",
@@ -368,17 +378,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Life Mahajeevan Plus Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
@@ -393,28 +408,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "200000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plus Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Cash Back Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "9",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Cash Back Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "18",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Life Cash Back Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Cash Back Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Cash Back Plan",
@@ -429,28 +449,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Cash Back Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹50,000 (for both Other than POSP-LI and POSP-LI)",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Cash Back Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Mahajeevan Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Life Mahajeevan Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Mahajeevan Plan",
@@ -467,12 +492,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Simple Benefit Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Simple Benefit Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Simple Benefit Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Simple Benefit Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Simple Benefit Plan",
@@ -487,15 +522,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Simple Benefit Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "20000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Simple Benefit Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "500000",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "IndiaFirst Life Guaranteed Monthly Income Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -509,34 +544,34 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Guaranteed Monthly Income Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "75000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Monthly Income Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No limit (subject to underwriting)",
+        value: "No Limit",
     },
 
 
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
         attributeCode: "MAX_PPT",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
@@ -551,60 +586,65 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Smart Pay Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹1,50,000",
+        value: "50000",
     },
-   
+    {
+        productCode: "IndiaFirst Life Smart Pay Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
 
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "12",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "84000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Saral Bachat Bima Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "500000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MAX_PPT",
-        value: "No Limit",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
@@ -619,15 +659,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "Rs. 10,000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Micro Bachat Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Rs 2,00,000 as per board approved underwriting policy",
+        value: "No Limit",
     },
 
-    
+
     {
         productCode: "IndiaFirst Life Guaranteed Benefit Plan",
         attributeCode: "MIN_PPT",
@@ -646,33 +686,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Guaranteed Benefit Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹2,40,000 (POSP LI) / ₹5,00,000 (Other than POSP LI)",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Benefit Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "₹10,00,000 (POSP LI) / As per Board Approved Underwriting Policy",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life CSC Shubhlabh Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life CSC Shubhlabh Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life CSC Shubhlabh Plan",
         attributeCode: "MIN_PPT",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life CSC Shubhlabh Plan",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life CSC Shubhlabh Plan",
@@ -684,28 +724,28 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "65",
     },
-    
+
 
 
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MAX_POLICY_TERM",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
@@ -720,33 +760,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MIN_SUM_ASSURED",
-        value: " Rs. 5000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life “INSURANCE KHATA” Plan (MicroInsuranceProduct)",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Rs. 2,00,000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "9",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
@@ -766,28 +806,28 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life POS Cash Back Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "1000000",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Radiance Smart Invest Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Radiance Smart Invest Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "99",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Radiance Smart Invest Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Radiance Smart Invest Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Radiance Smart Invest Plan",
@@ -813,22 +853,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Wealth Maximizer Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Wealth Maximizer Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "85",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Wealth Maximizer Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Wealth Maximizer Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Wealth Maximizer Plan",
@@ -840,22 +880,22 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Money Balance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Money Balance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "70",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Money Balance Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Money Balance Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Money Balance Plan",
@@ -867,27 +907,27 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "75",
     },
-   
+
 
     {
         productCode: "IndiaFirst Smart Save Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Smart Save Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "70",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Smart Save Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Smart Save Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Smart Save Plan",
@@ -899,27 +939,27 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "75",
     },
-  
+
 
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
@@ -929,33 +969,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "INR 1,12,000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Single Premium Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No limit subject to Board approved underwriting policy",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MAX_PPT",
-        value: "14",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Little Champ Plan",
@@ -970,33 +1010,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹1,50,000 (PPT 7–9 Years); ₹2,00,000 (PPT 10–14 Years)",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Little Champ Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit, subject to BAUP",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "16",
+        value: "100",
     },
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
@@ -1011,23 +1051,33 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "Yearly – ₹36,000; Half Yearly – ₹18,000; Quarterly – ₹10,500; Monthly – ₹3,500; Single – ₹1,50,000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst LIfe Smart Retirement Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No limit, subject to Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
     {
         productCode: "IndiaFirst Guaranteed Retirement Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Guaranteed Retirement Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Guaranteed Retirement Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Guaranteed Retirement Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Guaranteed Retirement Plan",
@@ -1037,15 +1087,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Guaranteed Retirement Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "Regular/Limited Premium:Rs. 5,00,000,Single Premium:Rs. 1,00,000*",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Guaranteed Retirement Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No limit subject to Underwriting",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "IndiaFirst Life Guaranteed Annuity Pension Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1054,12 +1104,12 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Guaranteed Annuity Pension Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "INR 1,000 per month; INR 12,500 per annum",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Guaranteed Annuity Pension Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No limit subject to underwriting",
+        value: "No Limit",
     },
 
     {
@@ -1082,9 +1132,9 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MIN_ENTRY_AGE",
         value: "45",
     },
-   
 
-    
+
+
     {
         productCode: "IndiaFirst Life Saral Pension Plan",
         attributeCode: "MAX_POLICY_TERM",
@@ -1105,17 +1155,27 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MIN_ENTRY_AGE",
         value: "40",
     },
-   
+
 
     {
         productCode: "IndiaFirst Life Group Living Benefits Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "1",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Life Group Living Benefits Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Group Living Benefits Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Life Group Living Benefits Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life Group Living Benefits Plan",
@@ -1130,15 +1190,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Group Living Benefits Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹1,000 per day (DHCB); ₹10,000 (Broken Bones/Disability/Cancer); ₹5,000 (Vector Borne Diseases); ₹25,000 (Coronavirus)",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Group Living Benefits Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "₹10,000 per day (DHCB); ₹1,00,000 (Broken Bones/Disability/Vector Borne Diseases); ₹50,00,000 (Cancer); ₹2,00,000 (Coronavirus)",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "IndiaFirst Group Term Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1149,27 +1209,27 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "86",
     },
-   
+
 
     {
         productCode: "Group Credit Life Plus Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Group Credit Life Plus Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "Group Credit Life Plus Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Group Credit Life Plus Plan",
         attributeCode: "MAX_PPT",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "Group Credit Life Plus Plan",
@@ -1181,17 +1241,27 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "76",
     },
-   
+
 
     {
         productCode: "IndiaFirst Group Micro Insurance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "1 month",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Group Micro Insurance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "120 months",
+        value: "100",
+    },
+    {
+        productCode: "IndiaFirst Group Micro Insurance Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Group Micro Insurance Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Group Micro Insurance Plan",
@@ -1206,16 +1276,16 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Group Micro Insurance Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: " Rs. 5,000 per Member",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Group Micro Insurance Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: " 2,00,000 per Member per policy",
+        value: "No Limit",
     },
 
- 
-  
+
+
     {
         productCode: "IndiaFirst Life Group Loan Protect Plan",
         attributeCode: "MAX_MATURITY_AGE",
@@ -1224,15 +1294,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Group Loan Protect Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "INR 5000 10,000 per member The minimum claim amount at any time during the cover term would be at least INR 5000 10,000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Group Loan Protect Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit; subject to Board approved underwriting policy.Sum assured at the inception of cover should be less than or equal to the 120% of the initial loan amount.",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "IndiaFirst Life Group HospiCare Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1240,7 +1310,7 @@ const indiaFirstProductAttributeValues = [
     },
 
 
-    
+
     {
         productCode: "IndiaFirst Life Group Critical Illness Rider Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1249,15 +1319,15 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Group Critical Illness Rider Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "As per base plan or Rs. 10,000 whichever is lower",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Group Critical Illness Rider Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "5000000",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "IndiaFirst Life Group Additional Benefit Rider Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1266,34 +1336,75 @@ const indiaFirstProductAttributeValues = [
     {
         productCode: "IndiaFirst Life Group Additional Benefit Rider Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: " Rs. 10,000",
+        value: "50000",
     },
     {
         productCode: "IndiaFirst Life Group Additional Benefit Rider Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: " as per approved underwriting policy.",
+        value: "No Limit",
     },
 
-    
+
 
     {
         productCode: "Unit Linked Superannuation Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "1",
+        value: "0",
+    },
+    {
+        productCode: "Unit Linked Superannuation Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
     },
     {
         productCode: "Unit Linked Superannuation Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
+    },
+    {
+        productCode: "Unit Linked Superannuation Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
     },
     {
         productCode: "Unit Linked Superannuation Plan",
         attributeCode: "MIN_ENTRY_AGE",
         value: "18",
     },
-   
+    {
+        productCode: "Unit Linked Superannuation Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Unit Linked Superannuation Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
-   
+
+
+
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
     {
         productCode: "Superannuation Plan",
         attributeCode: "MIN_ENTRY_AGE",
@@ -1304,37 +1415,71 @@ const indiaFirstProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "71",
     },
-   
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Superannuation Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
-   
-    
+
+
+    {
+        productCode: "IndiaFirst Employee Benefit Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "IndiaFirst Employee Benefit Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "IndiaFirst Employee Benefit Plan",
         attributeCode: "MIN_PPT",
-        value: "18",
+        value: "0",
     },
-   
+    {
+        productCode: "IndiaFirst Employee Benefit Plan",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
+     {
+        productCode: "IndiaFirst Employee Benefit Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+     {
+        productCode: "IndiaFirst Employee Benefit Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
 
 
     {
         productCode: "IndiaFirst Life TULIP Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life TULIP Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life TULIP Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "IndiaFirst Life TULIP Plan",
         attributeCode: "MAX_PPT",
-        value: "6",
+        value: "100",
     },
     {
         productCode: "IndiaFirst Life TULIP Plan",
@@ -1345,6 +1490,16 @@ const indiaFirstProductAttributeValues = [
         productCode: "IndiaFirst Life TULIP Plan",
         attributeCode: "MAX_MATURITY_AGE",
         value: "85",
+    },
+    {
+        productCode: "IndiaFirst Life TULIP Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "IndiaFirst Life TULIP Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
     },
 
 ]

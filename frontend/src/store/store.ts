@@ -17,6 +17,7 @@ import agencyReducer from "@/features/agency/agencySlice"; // Added agency reduc
 import loanReducer from "@/features/loans/loanSlice";
 import loanStatusMasterReducer from "@/features/loans/loanStatusMasterSlice";
 import claimReducer from "@/features/claim/claimSlice"; // Added claim reducer
+import userManagementReducer from "@/features/user/userSlice";
 
 export const store = configureStore({
   reducer: {
@@ -37,7 +38,8 @@ export const store = configureStore({
     productAttributeValues: productAttributeValueReducer,
     loans: loanReducer,
     loanStatuses: loanStatusMasterReducer,
-    claims : claimReducer,
+    claims: claimReducer,
+    userManagement: userManagementReducer,
   },
 });
 

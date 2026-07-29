@@ -2,7 +2,7 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
         attributeCode: "MIN_POLICY_TERM",
-        value: "13 months",
+        value: "0",
     },
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
@@ -12,12 +12,12 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
@@ -32,33 +32,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "500000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Sampoorna Raksha Promise",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to underwriting)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MIN_POLICY_TERM",
-        value: "13 months",
+        value: "0",
     },
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MAX_POLICY_TERM",
-        value: "984 months",
+        value: "100",
     },
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
@@ -73,33 +73,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "2500000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Maha Raksha Supreme Select",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to underwriting)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
         attributeCode: "MAX_POLICY_TERM",
-        value: "82",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
@@ -119,28 +119,28 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Supreme",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MAX_POLICY_TERM",
-        value: "17",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
@@ -150,33 +150,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹10,000 (Single Pay SA II)",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Plus",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board Approved Underwriting Policy (BAUP); PoS capped at ₹25 lakh death benefit",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "13",
+        value: "100",
     },
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
@@ -186,33 +186,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "24000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Guaranteed Return Insurance Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to underwriting); PoS maximum death benefit ₹25,00,000",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "50",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Value Income Plan",
@@ -227,38 +227,38 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹24,000 Annual Premium Equivalent (minimum premium requirement)",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Smart Value Income Plan",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to underwriting policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Smart Fortune Plus",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Fortune Plus",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Fortune Plus",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Fortune Plus",
         attributeCode: "MAX_PPT",
-        value: "50",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Fortune Plus",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "As per BAUP and option selected",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Smart Fortune Plus",
@@ -269,22 +269,22 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart SIP",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart SIP",
         attributeCode: "MAX_POLICY_TERM",
-        value: "50 years (up to 100 years for Wealth Secure)",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart SIP",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart SIP",
         attributeCode: "MAX_PPT",
-        value: "50 years; up to 100 years for Wealth Secure",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart SIP",
@@ -310,22 +310,22 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA  Fortune Pro",
         attributeCode: "MIN_POLICY_TERM",
-        value: "6",
+        value: "0",
     },
     {
         productCode: "Tata AIA  Fortune Pro",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "Tata AIA  Fortune Pro",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA  Fortune Pro",
         attributeCode: "MAX_PPT",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "Tata AIA  Fortune Pro",
@@ -348,8 +348,8 @@ const tataAIAProductAttributeValues = [
         value: "Up to 30× Annualised Premium / Policy Term-based multiple (varies by entry age and policy term)",
     },
 
-   
-   
+
+
     {
         productCode: "Tata AIA Smart Pension Secure",
         attributeCode: "MIN_ENTRY_AGE",
@@ -358,48 +358,61 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart Pension Secure",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "10000",
+        value: "50000",
     },
-   
+    {
+        productCode: "Tata AIA Smart Pension Secure",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
-    
+
+    {
+        productCode: "Tata AIA Fortune Guarantee Pension",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "Tata AIA Fortune Guarantee Pension",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life / Lifetime",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Pension",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Pension",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Pension",
         attributeCode: "MIN_ENTRY_AGE",
         value: "0 years (Immediate Annuity) / 18 years (Deferred Annuity)*",
     },
-   
 
-   
+
+    {
+        productCode: "Tata AIA Shubh Family Protect",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "Tata AIA Shubh Family Protect",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Up to Age 82 (Coverage available till Age 100 depending on entry age)",
+        value: "100",
     },
     {
         productCode: "Tata AIA Shubh Family Protect",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Shubh Family Protect",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Shubh Family Protect",
@@ -414,33 +427,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Shubh Family Protect",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Shubh Family Protect",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "₹1,00,00,000 (Leaflet illustration limit; actual product may allow higher under underwriting.)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MAX_POLICY_TERM",
-        value: "60",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MAX_PPT",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
@@ -455,24 +468,35 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹6,250 (Single Pay) / ₹1,68,000–₹2,40,000 (Regular/Limited Pay depending on option)",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Supreme",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
-    
+
+
+    {
+        productCode: "Tata AIA Fortune Guarantee Secure",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Fortune Guarantee Secure",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "Tata AIA Fortune Guarantee Secure",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Secure",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Secure",
@@ -487,33 +511,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Fortune Guarantee Secure",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "24000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Fortune Guarantee Secure",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
         attributeCode: "MAX_PPT",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
@@ -528,10 +552,10 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Life Insurance Fortune Guarantee",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to underwriting)",
+        value: "No Limit",
     },
 
-   
+
     {
         productCode: "Tata AIA Smart Income Plus",
         attributeCode: "MIN_ENTRY_AGE",
@@ -545,19 +569,31 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart Income Plus",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to Board-approved underwriting policy)",
+        value: "No Limit",
     },
 
-   
+
+
+
+    {
+        productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
@@ -566,31 +602,36 @@ const tataAIAProductAttributeValues = [
     },
     {
         productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Tata AIA iSIP (i Systematic Insurance Plan)",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
-   
+
 
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MAX_POLICY_TERM",
-        value: "82",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MAX_PPT",
-        value: "20 years to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
@@ -605,33 +646,33 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹20,000 Annual Premium (₹15,000 for Regular Pay)",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Smart Sampoorna Raksha Pro",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
         attributeCode: "MIN_POLICY_TERM",
-        value: "6",
+        value: "0",
     },
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
         attributeCode: "MAX_PPT",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
@@ -651,10 +692,21 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Life Insurance Wealth Pro",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No explicit maximum; subject to underwriting limits",
+        value: "No Limit",
     },
 
-    
+
+
+    {
+        productCode: "Tata AIA Life Insurance Wealth Maxima",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Life Insurance Wealth Maxima",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "Tata AIA Life Insurance Wealth Maxima",
         attributeCode: "MIN_PPT",
@@ -675,23 +727,27 @@ const tataAIAProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "",
     },
-   
 
-    
+
+    {
+        productCode: "Tata AIA Shubh Flexi Pension Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "Tata AIA Shubh Flexi Pension Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life",
+        value: "100",
     },
     {
         productCode: "Tata AIA Shubh Flexi Pension Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Shubh Flexi Pension Plan",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Shubh Flexi Pension Plan",
@@ -703,23 +759,28 @@ const tataAIAProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "Lifetime (Whole Life Annuity)",
     },
-   
 
-    
+
+
+    {
+        productCode: "Tata AIA Life Insurance Saral Pension",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Lifelong (Immediate Annuity)",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
@@ -729,7 +790,7 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "Subject to minimum annuity of ₹1,000/month or ₹12,000/year",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Life Insurance Saral Pension",
@@ -737,7 +798,27 @@ const tataAIAProductAttributeValues = [
         value: "No Limit",
     },
 
-    
+
+    {
+        productCode: "TATA AIA Fortune Guarantee Retirement Ready",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "TATA AIA Fortune Guarantee Retirement Ready",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "TATA AIA Fortune Guarantee Retirement Ready",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "TATA AIA Fortune Guarantee Retirement Ready",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
     {
         productCode: "TATA AIA Fortune Guarantee Retirement Ready",
         attributeCode: "MIN_ENTRY_AGE",
@@ -746,44 +827,102 @@ const tataAIAProductAttributeValues = [
     {
         productCode: "TATA AIA Fortune Guarantee Retirement Ready",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹30,000 (Sum Assured on Vesting)",
+        value: "50000",
     },
     {
         productCode: "TATA AIA Fortune Guarantee Retirement Ready",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to BAUP)",
+        value: "No Limit",
     },
 
-    
+
+
+    {
+        productCode: "Tata AIA Sampoorna Care",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Sampoorna Care",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "Tata AIA Sampoorna Care",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "Tata AIA Sampoorna Care",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "Tata AIA Sampoorna Care",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "HospiCash: ₹500/day; SurgiCash: ₹50,000; CritiCash / Select CI / Cancer Care / Cardiac Care: ₹1,00,000",
+        value: "50000",
     },
     {
         productCode: "Tata AIA Sampoorna Care",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "No Limit (subject to BAUP)",
+        value: "No Limit",
     },
 
-   
+
+
+    {
+        productCode: "Tata AIA Health SIP",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Health SIP",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "Tata AIA Health SIP",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Health SIP",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
+    {
+        productCode: "Tata AIA Health SIP",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
     {
         productCode: "Tata AIA Health SIP",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per BAUP (no stated upper limit)",
+        value: "No Limit",
     },
 
-   
+
+
+    {
+        productCode: "Tata AIA Health Pro",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Health Pro",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
+    {
+        productCode: "Tata AIA Health Pro",
+        attributeCode: "MIN_PPT",
+        value: "0",
+    },
+    {
+        productCode: "Tata AIA Health Pro",
+        attributeCode: "MAX_PPT",
+        value: "100",
+    },
     {
         productCode: "Tata AIA Health Pro",
         attributeCode: "MIN_ENTRY_AGE",
@@ -791,29 +930,34 @@ const tataAIAProductAttributeValues = [
     },
     {
         productCode: "Tata AIA Health Pro",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Tata AIA Health Pro",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per BAUP (no stated upper limit)",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Capital Guarantee Solution",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee Solution",
         attributeCode: "MAX_POLICY_TERM",
-        value: "21",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee Solution",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee Solution",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee Solution",
@@ -822,29 +966,34 @@ const tataAIAProductAttributeValues = [
     },
     {
         productCode: "Tata AIA Capital Guarantee Solution",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Tata AIA Capital Guarantee Solution",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to underwriting guidelines",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
         attributeCode: "MIN_POLICY_TERM",
-        value: "12",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
         attributeCode: "MAX_POLICY_TERM",
-        value: "17",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
@@ -858,29 +1007,34 @@ const tataAIAProductAttributeValues = [
     },
     {
         productCode: "Tata AIA Capital Guarantee Income Solution",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Tata AIA Capital Guarantee Income Solution",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board-approved underwriting guidelines",
+        value: "No Limit",
     },
 
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
@@ -894,8 +1048,13 @@ const tataAIAProductAttributeValues = [
     },
     {
         productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "Tata AIA Capital Guarantee & Immediate Income Solution",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board-approved underwriting guidelines",
+        value: "No Limit",
     },
 
 ]

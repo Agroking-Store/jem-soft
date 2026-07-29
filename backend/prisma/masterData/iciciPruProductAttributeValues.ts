@@ -2,17 +2,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Signature Secure",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
+    },
+    {
+        productCode: "ICICI Pru Signature Secure",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature Secure",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Signature Secure",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature Secure",
@@ -39,22 +44,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MAX_POLICY_TERM",
-        value: "65",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Care",
@@ -69,33 +74,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru iProtect Care",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per BAUP (Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MIN_POLICY_TERM",
-        value: "12",
+        value: "0",
     },
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "ICICI Pru SmartKid 360",
@@ -110,33 +115,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹3,00,000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru SmartKid 360",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Wealth Elite Pro",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Wealth Elite Pro",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life (99 years less age at entry)",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Wealth Elite Pro",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Wealth Elite Pro",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Wealth Elite Pro",
@@ -159,11 +164,16 @@ export const iciciPruProductAttributeValues = [
         value: "10× Annualized Premium",
     },
 
-    
+
+    {
+        productCode: "ICICI Pru Wealth Forever",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0"
+    },
     {
         productCode: "ICICI Pru Wealth Forever",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life (up to age 99)",
+        value: "100"
     },
     {
         productCode: "ICICI Pru Wealth Forever",
@@ -185,26 +195,38 @@ export const iciciPruProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "99",
     },
-   
+    {
+        productCode: "ICICI Pru Wealth Forever",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Wealth Forever",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
+
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life (99 − Entry Age)",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Smart Plus",
@@ -219,34 +241,34 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "50,00,000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru iProtect Smart Plus",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Unlimited (Death Benefit); ADB subject to BAUP",
+        value: "No Limit",
     },
 
-    
+
     {
         productCode: "ICICI Pru Smart Goal Assure",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Smart Goal Assure",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Smart Goal Assure",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Smart Goal Assure",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Smart Goal Assure",
@@ -272,22 +294,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MAX_POLICY_TERM",
-        value: "85",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Super",
@@ -302,34 +324,34 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru iProtect Super",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "20000000",
+        value: "No Limit",
     },
 
-    
+
     {
         productCode: "ICICI PRU Signature Assure",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "ICICI PRU Signature Assure",
         attributeCode: "MAX_POLICY_TERM",
-        value: "25",
+        value: "100",
     },
     {
         productCode: "ICICI PRU Signature Assure",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI PRU Signature Assure",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI PRU Signature Assure",
@@ -355,17 +377,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Smart Return of Premium",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Smart Return of Premium",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
+    },
+    {
+        productCode: "ICICI Pru iProtect Smart Return of Premium",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Smart Return of Premium",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Smart Return of Premium",
@@ -380,42 +407,68 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Smart Return of Premium",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000000",
+        value: "50000",
     },
-    
+    {
+        productCode: "ICICI Pru iProtect Smart Return of Premium",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
-   
+
+
+    {
+        productCode: "ICICI Pru Guaranteed Pension Plan",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "ICICI Pru Guaranteed Pension Plan",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
-   
+    {
+        productCode: "ICICI Pru Guaranteed Pension Plan",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Guaranteed Pension Plan",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
 
     {
         productCode: "ICICI Pru Signature Pension",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Signature Pension",
         attributeCode: "MAX_POLICY_TERM",
-        value: "72",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature Pension",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Signature Pension",
         attributeCode: "MAX_PPT",
-        value: "Minimum of 15 Years or (Policy Term − 5 Years)",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature Pension",
@@ -427,27 +480,38 @@ export const iciciPruProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "90",
     },
-   
+    {
+        productCode: "ICICI Pru Signature Pension",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Signature Pension",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
 
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MIN_POLICY_TERM",
-        value: "20",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MAX_POLICY_TERM",
-        value: "85",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru iProtect Supreme",
@@ -462,33 +526,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru iProtect Supreme",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "As per Board Approved Underwriting Policy",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Savings Suraksha",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Savings Suraksha",
         attributeCode: "MAX_POLICY_TERM",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Savings Suraksha",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Savings Suraksha",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Savings Suraksha",
@@ -505,27 +569,35 @@ export const iciciPruProductAttributeValues = [
         attributeCode: "MIN_SUM_ASSURED",
         value: "10 × Annualized Premium",
     },
-   
+    {
+        productCode: "ICICI Pru Savings Suraksha",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
+
+
 
     {
         productCode: "ICICI Pru Assured Savings Insurance Plan",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Assured Savings Insurance Plan",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Assured Savings Insurance Plan",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Assured Savings Insurance Plan",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Assured Savings Insurance Plan",
@@ -548,27 +620,27 @@ export const iciciPruProductAttributeValues = [
         value: "10 × Annualized Premium",
     },
 
-   
+
 
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MIN_POLICY_TERM",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MAX_POLICY_TERM",
-        value: "2",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
@@ -578,33 +650,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "5000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Sarv Jana Suraksha",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "200000",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Future Perfect",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Future Perfect",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Future Perfect",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Future Perfect",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Future Perfect",
@@ -630,22 +702,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Life Time Classic",
         attributeCode: "MIN_POLICY_TERM",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Life Time Classic",
         attributeCode: "MAX_POLICY_TERM",
-        value: "70 − Entry Age",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Life Time Classic",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Life Time Classic",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Life Time Classic",
@@ -671,17 +743,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru1 Wealth",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
+    },
+    {
+        productCode: "ICICI Pru1 Wealth",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
     },
     {
         productCode: "ICICI Pru1 Wealth",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru1 Wealth",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "ICICI Pru1 Wealth",
@@ -707,22 +784,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Signature",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Signature",
         attributeCode: "MAX_POLICY_TERM",
-        value: "52",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Signature",
         attributeCode: "MAX_PPT",
-        value: "equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Signature",
@@ -745,34 +822,59 @@ export const iciciPruProductAttributeValues = [
         value: "Single Pay: 10 × Single Premium; Limited/Regular Pay: 10 × Annualized Premium",
     },
 
-  
+
+
+    {
+        productCode: "ICICI Pru Guaranteed Income For Tomorrow",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
+    {
+        productCode: "ICICI Pru Guaranteed Income For Tomorrow",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
+    },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
-   
+    {
+        productCode: "ICICI Pru Guaranteed Income For Tomorrow",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Guaranteed Income For Tomorrow",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
 
-   
+
+    {
+        productCode: "ICICI Pru Saral Pension",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "ICICI Pru Saral Pension",
         attributeCode: "MAX_POLICY_TERM",
-        value: "Whole Life",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Saral Pension",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Saral Pension",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Saral Pension",
@@ -784,27 +886,37 @@ export const iciciPruProductAttributeValues = [
         attributeCode: "MAX_MATURITY_AGE",
         value: "Lifetime",
     },
-   
+    {
+        productCode: "ICICI Pru Saral Pension",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Saral Pension",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
 
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MIN_POLICY_TERM",
-        value: "8",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MAX_POLICY_TERM",
-        value: "41",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MIN_PPT",
-        value: "7",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
@@ -819,28 +931,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹3,00,000 (POS variant)",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Guaranteed Income For Tomorrow (Long-term)",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to BAUP (regular)",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
         attributeCode: "MIN_POLICY_TERM",
-        value: "Lifetime (Annuity payable for life after deferment period)",
+        value: "0",
+    },
+    {
+        productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
+        attributeCode: "MAX_POLICY_TERM",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
         attributeCode: "MIN_PPT",
-        value: "2",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
@@ -855,35 +972,35 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹12,000 Annual Annuity (₹1,000 Monthly)",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Guaranteed Pension Plan Flexi",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board Approved Underwriting Policy",
+        value: "No Limit",
     },
 
-    
+
 
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MAX_POLICY_TERM",
-        value: "30",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MAX_PPT",
-        value: "Equal to Policy Term",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Ezy Grow",
@@ -898,33 +1015,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "500000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Ezy Grow",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to Board Approved Underwriting Policy",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MIN_POLICY_TERM",
-        value: "30",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MAX_PPT",
-        value: "12",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Protect N Gain",
@@ -939,35 +1056,35 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "10,00,000 (Growth)",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Protect N Gain",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to internal Company guidelines (BAUP)",
+        value: "No Limit",
     },
 
-   
+
 
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MIN_POLICY_TERM",
-        value: "10",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MAX_POLICY_TERM",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MAX_PPT",
-        value: "40",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Gold Pension Savings",
@@ -982,28 +1099,33 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "50,000",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru Gold Pension Savings",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to internal company guidelines (Board Approved Underwriting Policy)",
+        value: "No Limit",
     },
 
     {
         productCode: "ICICI Pru Platinum",
         attributeCode: "MIN_POLICY_TERM",
-        value: "60 − Entry Age",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Platinum",
         attributeCode: "MAX_POLICY_TERM",
-        value: "75 − Entry Age",
+        value: "100",
+    },
+    {
+        productCode: "ICICI Pru Platinum",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Platinum",
         attributeCode: "MAX_PPT",
-        value: "1",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Platinum",
@@ -1017,42 +1139,67 @@ export const iciciPruProductAttributeValues = [
     },
     {
         productCode: "ICICI Pru Platinum",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Platinum",
         attributeCode: "MAX_SUM_ASSURED",
-        value: " Subject to internal Company guidelines i.e., Board Approved Underwriting Policy (BAUP)",
+        value: "No Limit",
     },
 
-   
+    {
+        productCode: "ICICI Pru Wish",
+        attributeCode: "MIN_POLICY_TERM",
+        value: "0",
+    },
     {
         productCode: "ICICI Pru Wish",
         attributeCode: "MAX_POLICY_TERM",
-        value: "30",
+        value: "100",
+    },
+    {
+        productCode: "ICICI Pru Wish",
+        attributeCode: "MIN_PPT",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Wish",
         attributeCode: "MAX_PPT",
-        value: "10",
+        value: "100",
     },
-    
+     {
+        productCode: "ICICI Pru Wish",
+        attributeCode: "MIN_SUM_ASSURED",
+        value: "50000",
+    },
+    {
+        productCode: "ICICI Pru Wish",
+        attributeCode: "MAX_SUM_ASSURED",
+        value: "No Limit",
+    },
+
+
 
     {
         productCode: "ICICI Pru Smart Insurance Plan Plus",
         attributeCode: "MIN_POLICY_TERM",
-        value: "15",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Smart Insurance Plan Plus",
         attributeCode: "MAX_POLICY_TERM",
-        value: "75 − Entry Age",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Smart Insurance Plan Plus",
         attributeCode: "MIN_PPT",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru Smart Insurance Plan Plus",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI Pru Smart Insurance Plan Plus",
@@ -1078,22 +1225,22 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MIN_POLICY_TERM",
-        value: "5",
+        value: "0",
     },
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MAX_POLICY_TERM",
-        value: "20",
+        value: "100",
     },
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MIN_PPT",
-        value: "1",
+        value: "0",
     },
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MAX_PPT",
-        value: "15",
+        value: "100",
     },
     {
         productCode: "ICICI Pru GIFT Assure",
@@ -1108,13 +1255,13 @@ export const iciciPruProductAttributeValues = [
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MIN_SUM_ASSURED",
-        value: "₹1,10,000 to ₹10,00,000 (depends on option)",
+        value: "50000",
     },
     {
         productCode: "ICICI Pru GIFT Assure",
         attributeCode: "MAX_SUM_ASSURED",
-        value: "Subject to BAUP",
+        value: "No Limit",
     },
 
-    
+
 ];

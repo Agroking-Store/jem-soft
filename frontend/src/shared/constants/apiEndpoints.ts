@@ -10,4 +10,10 @@ export const API_ENDPOINTS = {
     login: `${BASE}/customers/login`,
     byId: (id: string) => `${BASE}/customers/${id}`,
   },
+  users: {
+    base: `${BASE}/users`,
+    byId: (id: string) => `${BASE}/users/${id}`,
+    resetPassword: (id: string) => `${BASE}/users/${id}/reset-password`,
+    updateProfile: `${BASE}/users/updateProfile`,
+  },
 } as const;
