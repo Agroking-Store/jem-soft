@@ -10,17 +10,17 @@ export interface ClaimData {
   claimDate: string;
   status?: string;
   reasonForClaim?: string;
-  nomineeId?: string;
+  nomineeId?: string | null;
   // Payment fields
   paymentType?: string;
-  chequeNumber?: string;
-  chequeDate?: string;
-  bankName?: string;
-  branchName?: string;
-  chequeAmount?: number;
-  accountHolderName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
+  chequeNumber?: string | null;
+  chequeDate?: string | null;
+  bankName?: string | null;
+  branchName?: string | null;
+  chequeAmount?: number | null;
+  accountHolderName?: string | null;
+  accountNumber?: string | null;
+  ifscCode?: string | null;
 }
 
 export const getAllClaims = async () => {
