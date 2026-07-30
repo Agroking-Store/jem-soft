@@ -16,6 +16,14 @@ interface FilterOptionsModalProps {
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   selectedFilters: SelectedFilterItem[];
   onApplyFilters: (filters: SelectedFilterItem[]) => void;
+  /**
+   * Policy Register wants the 4 standard Policy Statuses (Inforce, Fully paid-up,
+   * Lapsed, Reduced Paid-up) pre-ticked the first time this modal opens.
+   * Premium Due (and any other report that should start with NOTHING selected)
+   * passes `enableDefaultStatusSelection={false}`.
+   * Defaults to `true` so Policy Register's existing behaviour is unchanged.
+   */
+  enableDefaultStatusSelection?: boolean;
 }
 
 export const SYSTEM_POLICY_STATUSES = [
@@ -36,15 +44,19 @@ export default function FilterOptionsModal({
   policyStatuses = [],
   selectedFilters: initialSelectedFilters = [],
   onApplyFilters,
+  enableDefaultStatusSelection = true,
 }: FilterOptionsModalProps) {
   const [filterCategory, setFilterCategory] = useState<string>("Agencies");
   const [searchText, setSearchText] = useState("");
 
-  // Initialize selected items state: default 4 Policy Statuses checked if none provided
+  // Initialize selected items state: default 4 Policy Statuses checked ONLY when
+  // enableDefaultStatusSelection is true (Policy Register). Premium Due passes
+  // `false` so the modal opens with nothing pre-ticked.
   const [selectedItems, setSelectedItems] = useState<SelectedFilterItem[]>(() => {
     if (initialSelectedFilters && initialSelectedFilters.length > 0) {
       return initialSelectedFilters;
     }
+    if (!enableDefaultStatusSelection) return [];
     return SYSTEM_POLICY_STATUSES.filter((s) => s.defaultChecked).map((s) => ({
       type: "Policy Status",
       id: s.id,

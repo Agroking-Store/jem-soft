@@ -22,6 +22,12 @@ interface SortingFilterModalProps {
     resCity?: string | null;
   }>;
   policies: Array<any>;
+  /**
+   * Real LIC branch master list (from licBranchSlice / fetchLicBranches).
+   * Optional & backward compatible — when omitted, Branch No. Wise falls back
+   * to deriving branches from the policies array like before (Policy Register).
+   */
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
   selectedFilters: SortingFilterSelection | null;
   onApplySortingFilter: (selection: SortingFilterSelection) => void;
 }
@@ -32,6 +38,7 @@ export default function SortingFilterModal({
   sortingOption,
   customers = [],
   policies = [],
+  branches = [],
   selectedFilters: initialSelection,
   onApplySortingFilter,
 }: SortingFilterModalProps) {
@@ -101,6 +108,13 @@ export default function SortingFilterModal({
           col2: "",
           col3: "",
         };
+      case "dueDate":
+        return {
+          title: "Sorting Filter : Due-Date Wise",
+          col1: "Due Date",
+          col2: "",
+          col3: "",
+        };
       case "groupsWise":
       default:
         return {
@@ -112,7 +126,6 @@ export default function SortingFilterModal({
     }
   }, [sortingOption]);
 
-  // 100% Dynamic Data list derived STRICTLY from database props! No hardcoded screenshot mock names!
   const masterDataList: Array<{ id: string; code?: string; name: string; extra?: string }> =
     useMemo(() => {
       if (sortingOption === "groupMemberwise") {
@@ -159,7 +172,17 @@ export default function SortingFilterModal({
       }
 
       if (sortingOption === "branchNoWise") {
-        // Branch Wise: Dynamic branches from policies in DB
+        // Prefer the real LIC branch master (licBranchSlice) when it's been passed in.
+        if (branches && branches.length > 0) {
+          return branches.map((b) => ({
+            id: b.id,
+            code: b.branchCode,
+            name: b.branchName,
+            extra: "",
+          }));
+        }
+
+        // Fallback: derive branches from the policies array (Policy Register behaviour)
         const branchesMap: { [code: string]: string } = {};
         policies.forEach((p) => {
           if (p.branch?.branchCode) {
@@ -201,6 +224,27 @@ export default function SortingFilterModal({
         }));
       }
 
+      if (sortingOption === "dueDate") {
+        // Due-Date Wise: Dynamic distinct due dates from policies in DB
+        const dueDates = Array.from(
+          new Set(
+            policies
+              .map((p) =>
+                p.nextPremiumDueDate
+                  ? new Date(p.nextPremiumDueDate).toLocaleDateString("en-GB")
+                  : null
+              )
+              .filter((d): d is string => Boolean(d))
+          )
+        );
+        return dueDates.map((d, idx) => ({
+          id: `due-${idx}`,
+          code: d,
+          name: d,
+          extra: "",
+        }));
+      }
+
       // Default Groups Wise: Dynamic Groups from DB customers
       return customers.map((c, idx) => ({
         id: c.id,
@@ -208,7 +252,7 @@ export default function SortingFilterModal({
         name: c.groupName || c.name,
         extra: "",
       }));
-    }, [sortingOption, customers, policies]);
+    }, [sortingOption, customers, policies, branches]);
 
   const filteredList = useMemo(() => {
     if (!searchText.trim()) return masterDataList;

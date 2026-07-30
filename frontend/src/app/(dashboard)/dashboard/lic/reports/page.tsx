@@ -7,10 +7,14 @@ import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
+// TODO(Nida): confirm this import path matches where licBranchSlice.ts actually lives in your repo.
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import LicModuleNav from "@/features/lic/LicModuleNav";
 import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licReportsData";
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
+import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
+import PremiumDueReportView from "@/features/lic/reports/Premiumduereportview";
 import {
   Search,
   ArrowRight,
@@ -19,14 +23,22 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 
-type ViewState = "cards" | "policy-register-form" | "policy-register-report";
+type ViewState =
+  | "cards"
+  | "policy-register-form"
+  | "policy-register-report"
+  | "premium-due-form"
+  | "premium-due-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [currentView, setCurrentView] = useState<ViewState>("cards");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [selectedFormData, setSelectedFormData] = useState<PolicyRegisterFormData | null>(null);
+  const [selectedPolicyRegisterData, setSelectedPolicyRegisterData] =
+    useState<PolicyRegisterFormData | null>(null);
+  const [selectedPremiumDueData, setSelectedPremiumDueData] =
+    useState<PremiumDueFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -34,12 +46,17 @@ export default function LICReportsPage() {
   const { customers } = useSelector((state: RootState) => state.customers);
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
+  // TODO(Nida): confirm the actual reducer key registered in store.ts for licBranchSlice
+  // (createSlice name is "licBranch" — update `state.licBranch` below if your store.ts
+  // registers it under a different key, e.g. state.licBranches).
+  const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
 
   useEffect(() => {
     dispatch(fetchPolicies());
     dispatch(fetchCustomers());
     dispatch(fetchAgencies());
     dispatch(fetchPolicyStatuses());
+    dispatch(fetchLicBranches());
   }, [dispatch]);
 
   const categories = ["All", "Register", "Financial", "Due & Statements", "Calculators & Misc"];
@@ -57,14 +74,21 @@ export default function LICReportsPage() {
   const handleCardClick = (card: LicReportCard) => {
     if (card.id === "policy-register") {
       setCurrentView("policy-register-form");
+    } else if (card.id === "premium-due") {
+      setCurrentView("premium-due-form");
     } else {
       setPreviewModalCard(card);
     }
   };
 
-  const handleGenerateReport = (formData: PolicyRegisterFormData) => {
-    setSelectedFormData(formData);
+  const handleGeneratePolicyRegisterReport = (formData: PolicyRegisterFormData) => {
+    setSelectedPolicyRegisterData(formData);
     setCurrentView("policy-register-report");
+  };
+
+  const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
+    setSelectedPremiumDueData(formData);
+    setCurrentView("premium-due-report");
   };
 
   return (
@@ -181,7 +205,11 @@ export default function LICReportsPage() {
                   </div>
 
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0B1220] group-hover:text-[#B8873A] uppercase tracking-wider">
-                    <span>{card.id === "policy-register" ? "Open Form & Report" : "View Details"}</span>
+                    <span>
+                      {card.id === "policy-register" || card.id === "premium-due"
+                        ? "Open Form & Report"
+                        : "View Details"}
+                    </span>
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition" />
                   </div>
                 </div>
@@ -203,7 +231,7 @@ export default function LICReportsPage() {
       {currentView === "policy-register-form" && (
         <PolicyRegisterForm
           onBack={() => setCurrentView("cards")}
-          onGenerateReport={handleGenerateReport}
+          onGenerateReport={handleGeneratePolicyRegisterReport}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -212,12 +240,35 @@ export default function LICReportsPage() {
       )}
 
       {/* VIEW 3: Policy Register Report View */}
-      {currentView === "policy-register-report" && selectedFormData && (
+      {currentView === "policy-register-report" && selectedPolicyRegisterData && (
         <PolicyRegisterReportView
-          formData={selectedFormData}
+          formData={selectedPolicyRegisterData}
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("policy-register-form")}
+        />
+      )}
+
+      {/* VIEW 4: Premium Due Form */}
+      {currentView === "premium-due-form" && (
+        <PremiumDueForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumDueReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 5: Premium Due Report View */}
+      {currentView === "premium-due-report" && selectedPremiumDueData && (
+        <PremiumDueReportView
+          formData={selectedPremiumDueData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-due-form")}
         />
       )}
 
@@ -256,7 +307,7 @@ export default function LICReportsPage() {
                 <span>Ready for Report Generation</span>
               </div>
               <p className="text-[11px] text-slate-500">
-                This report module uses the same central filter engine as Policy Register. You can test Policy Register for complete interactive report rendering and PDF export.
+                This report module uses the same central filter engine as Policy Register and Premium Due. You can test either of those two for complete interactive report rendering and PDF export.
               </p>
             </div>
 
