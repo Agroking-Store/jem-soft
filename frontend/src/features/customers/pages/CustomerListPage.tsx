@@ -94,7 +94,7 @@ function getInitials(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function Seal({ name, size = 36 }: { name: string; size?: number }) {
+export function Seal({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
