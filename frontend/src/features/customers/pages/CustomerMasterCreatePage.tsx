@@ -52,7 +52,6 @@ const INCOME_SLABS = [
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
 const ACCOUNT_TYPES = ["Saving Bank","Current Account","NRE Account","NRO Account","FCNR Account"];
-const ADDRESS_TYPES = ["Residence","Office","Other"];
 
 // ─── Schema ───────────────────────────────────────────────────────
 const bankDetailSchema = z.object({
@@ -355,12 +354,11 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       nationality: "Indian",
       qualification: "" ,
       addresses: [{ addressType: "Residence", country: "India", useGroupAddress: false }],
-      bankDetails: [],
+      bankDetails: [{ isDefault: true, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" }],
     },
   });
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = methods;
 
-  const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
   const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
   // Inline Family History + Medical History (first record) captured at create time.
@@ -622,54 +620,35 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
           </div>
         </SectionCard>
 
-        {/* ── Section 3: Addresses ── */}
-        <SectionCard title="Addresses" icon={<MapPin size={16} />}>
-          <div className="space-y-5">
-            {addrFields.map((field, idx) => (
-              <div key={field.id} className="border border-slate-200 rounded-xl p-4 space-y-3 relative">
-                <div className="flex items-center justify-between mb-1">
-                  <FormSelect label="Address Type" {...register(`addresses.${idx}.addressType`)}>
-                    {ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}
-                  </FormSelect>
-                  <button type="button" onClick={() => removeAddr(idx)} className="ml-3 mt-5 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                  <input type="checkbox" {...register(`addresses.${idx}.useGroupAddress`)} className="rounded border-slate-300 text-[#B8873A]" />
-                  Use Group Address
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormInput label="Address Line 1" placeholder="House / Flat No." {...register(`addresses.${idx}.addressLine1`)} />
-                  <FormInput label="Address Line 2" placeholder="Street / Colony" {...register(`addresses.${idx}.addressLine2`)} />
-                  <FormInput label="Address Line 3" placeholder="Area / Locality" {...register(`addresses.${idx}.addressLine3`)} />
-                  <FormInput label="Address Line 4" placeholder="Landmark" {...register(`addresses.${idx}.addressLine4`)} />
-                  <FormInput label="City" placeholder="City" {...register(`addresses.${idx}.city`)} />
-                  <FormInput label="Pin Code" placeholder="400001" {...register(`addresses.${idx}.pin`)} />
-                  <FormSelect label="Country" {...register(`addresses.${idx}.country`)}>
-                    <option>India</option><option>Other</option>
-                  </FormSelect>
-                  <FormSelect label="State" {...register(`addresses.${idx}.state`)}>
-                    <option value="">Select state</option>
-                    {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
-                  </FormSelect>
-                  <FormInput label="Area" placeholder="Zone / Area" {...register(`addresses.${idx}.area`)} />
-                </div>
-              </div>
-            ))}
-            <button type="button"
-              onClick={() => appendAddr({ addressType: "Residence", country: "India", useGroupAddress: false, addressLine1: "", addressLine2: "", addressLine3: "", addressLine4: "", city: "", pin: "", state: "", area: "" })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#0B1220] bg-[#0B1220]/5 hover:bg-[#0B1220]/10 border border-[#0B1220]/20 rounded-lg transition-colors"
-            >
-              <Plus size={14} /> Add Address
-            </button>
+        {/* ── Section 3: Address ── */}
+        <SectionCard title="Address" icon={<MapPin size={16} />}>
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <input type="checkbox" {...register(`addresses.0.useGroupAddress`)} className="rounded border-slate-300 text-[#B8873A]" />
+              Use Group Address
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormInput label="Address Line 1" placeholder="House / Flat No." {...register(`addresses.0.addressLine1`)} />
+              <FormInput label="Address Line 2" placeholder="Street / Colony" {...register(`addresses.0.addressLine2`)} />
+              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register(`addresses.0.addressLine3`)} />
+              <FormInput label="Address Line 4" placeholder="Landmark" {...register(`addresses.0.addressLine4`)} />
+              <FormInput label="City" placeholder="City" {...register(`addresses.0.city`)} />
+              <FormInput label="Pin Code" placeholder="400001" {...register(`addresses.0.pin`)} />
+              <FormSelect label="Country" {...register(`addresses.0.country`)}>
+                <option>India</option><option>Other</option>
+              </FormSelect>
+              <FormSelect label="State" {...register(`addresses.0.state`)}>
+                <option value="">Select state</option>
+                {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
+              </FormSelect>
+              <FormInput label="Area" placeholder="Zone / Area" {...register(`addresses.0.area`)} />
+            </div>
           </div>
         </SectionCard>
 
         {/* ── Section 4: Bank Details ── */}
         <SectionCard title="Bank Details" icon={<CreditCard size={16} />}>
-          <div className="space-y-4">
-            {bankFields.length > 0 && (
+          <div className="space-y-3">
               <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
@@ -710,12 +689,11 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
                   </tbody>
                 </table>
               </div>
-            )}
             <button type="button"
               onClick={() => appendBank({ isDefault: bankFields.length === 0, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#0B1220] bg-[#0B1220]/5 hover:bg-[#0B1220]/10 border border-[#0B1220]/20 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B8873A] hover:text-[#0B1220] transition-colors"
             >
-              <Plus size={14} /> Add Bank Account
+              <Plus size={13} /> Add another bank account
             </button>
           </div>
         </SectionCard>
@@ -849,7 +827,6 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               <option value="">Select</option>
               {RELIGIONS.map((r) => <option key={r}>{r}</option>)}
             </FormSelect>
-            <FormInput label="CRM Groups" placeholder="Group tag" {...register("crmGroups")} />
             <FormInput label="Passport No." placeholder="Passport number" {...register("passportNumber")} />
             <div>
               <FieldLabel label="Passport Expiry" />
@@ -874,10 +851,6 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         {/* ── Section 6: Service Preferences ── */}
         <SectionCard title="Service Preferences" icon={<Settings size={16} />}>
           <div className="space-y-4">
-            <FormSelect label="Preferred Communication Address" {...register("preferredCommAddress")}>
-              <option value="">Select preference</option>
-              {ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}
-            </FormSelect>
             <div className="flex items-center gap-8">
               <label className="flex items-center gap-2.5 cursor-pointer">
                 <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" />

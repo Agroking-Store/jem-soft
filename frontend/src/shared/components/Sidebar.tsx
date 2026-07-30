@@ -75,7 +75,7 @@ export const Sidebar = () => {
         {isMounted &&
           (isAdmin || isAdvisor || isViewer) &&
           (() => {
-            const licPath = "/dashboard/lic/policies";
+            const licPath = "/dashboard/lic";
             const isLicActive = pathname.startsWith(licPath);
 
             return (
