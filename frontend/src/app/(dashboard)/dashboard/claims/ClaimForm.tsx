@@ -39,7 +39,11 @@ interface ClaimFormProps {
   initialClaim?: Claim | null;
 }
 
-const claimSchema = z.object({
+export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const claimSchema = z.object({
   policyId: z.string().min(1, "Policy is required"),
   claimantName: z.string().min(3, "Claimant name is required"),
   claimType: z.string().min(1, "Claim type is required"),
@@ -51,13 +55,32 @@ const claimSchema = z.object({
     .string()
     .min(10, "Reason for claim must be at least 10 characters")
     .max(500, "Reason for claim must not exceed 500 characters"),
-});
+}).refine(
+  (data) => {
+    
+    const sumAssured = selectedPolicy?.premium?.sumAssured;
+     if (!sumAssured) return true;
+    return data.claimAmount <= sumAssured;
+  },
+  {
+    message: "Claim amount must be less than or equal to sum assured",
+    path: ["claimAmount"],
+  }
+).refine(
+  (data) => {
+    if (!selectedPolicy) return true;
+     const claimDate = new Date(data.claimDate);
+    const policyStartDate = new Date(selectedPolicy.commencementDate);
+    
+    return claimDate > policyStartDate;
+  },
+  {
+    message: "Claim date must be after policy start date",
+    path: ["claimDate"],
+  }
+);
 
 type ClaimFormData = z.infer<typeof claimSchema>;
-
-export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
-  const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
 
   const { policies } = useSelector((state: RootState) => state.policies);
 
@@ -80,7 +103,6 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       policyId: "",
       claimantName: "",
       claimType: "",
-      claimAmount: 0,
       claimDate: "",
       reasonForClaim: "",
     },
@@ -321,6 +343,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     type="text"
                     {...register("claimAmount")}
                     className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+                    placeholder="Enter Claim amount"
                   />
                   {errors.claimAmount?.message && (
                     <p className="mt-1 text-xs text-rose-600">
