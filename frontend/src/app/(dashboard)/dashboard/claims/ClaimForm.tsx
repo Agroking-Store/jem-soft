@@ -62,7 +62,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const claimSchema = z
     .object({
       policyId: z.string().min(1, "Policy is required"),
-      claimantName: z.string().min(3, "Claimant name is required"),
+      claimantName: z.string().optional(),
       claimType: z.string().min(1, "Claim type is required"),
       claimAmount: z.coerce
         .number()
