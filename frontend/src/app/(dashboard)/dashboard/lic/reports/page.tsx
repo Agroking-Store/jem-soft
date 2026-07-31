@@ -14,6 +14,8 @@ import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/repor
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
 import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
 import PremiumDueReportView from "@/features/lic/reports/Premiumduereportview";
+import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
+import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
 import {
   Search,
   ArrowRight,
@@ -27,7 +29,9 @@ type ViewState =
   | "policy-register-form"
   | "policy-register-report"
   | "premium-due-form"
-  | "premium-due-report";
+  | "premium-due-report"
+  | "premium-outstanding-form"
+  | "premium-outstanding-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,6 +42,8 @@ export default function LICReportsPage() {
     useState<PolicyRegisterFormData | null>(null);
   const [selectedPremiumDueData, setSelectedPremiumDueData] =
     useState<PremiumDueFormData | null>(null);
+  const [selectedPremiumOutstandingData, setSelectedPremiumOutstandingData] =
+    useState<PremiumOutstandingFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -45,9 +51,6 @@ export default function LICReportsPage() {
   const { customers } = useSelector((state: RootState) => state.customers);
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
-  // TODO(Nida): confirm the actual reducer key registered in store.ts for licBranchSlice
-  // (createSlice name is "licBranch" — update `state.licBranch` below if your store.ts
-  // registers it under a different key, e.g. state.licBranches).
   const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
 
   useEffect(() => {
@@ -75,6 +78,8 @@ export default function LICReportsPage() {
       setCurrentView("policy-register-form");
     } else if (card.id === "premium-due") {
       setCurrentView("premium-due-form");
+    } else if (card.id === "premium-outstanding") {
+      setCurrentView("premium-outstanding-form");
     } else {
       setPreviewModalCard(card);
     }
@@ -88,6 +93,11 @@ export default function LICReportsPage() {
   const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
     setSelectedPremiumDueData(formData);
     setCurrentView("premium-due-report");
+  };
+
+  const handleGeneratePremiumOutstandingReport = (formData: PremiumOutstandingFormData) => {
+    setSelectedPremiumOutstandingData(formData);
+    setCurrentView("premium-outstanding-report");
   };
 
   return (
@@ -205,7 +215,9 @@ export default function LICReportsPage() {
 
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0B1220] group-hover:text-[#B8873A] uppercase tracking-wider">
                     <span>
-                      {card.id === "policy-register" || card.id === "premium-due"
+                      {card.id === "policy-register" ||
+                      card.id === "premium-due" ||
+                      card.id === "premium-outstanding"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -268,6 +280,29 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("premium-due-form")}
+        />
+      )}
+
+      {/* VIEW 6: Premium Outstanding Form */}
+      {currentView === "premium-outstanding-form" && (
+        <PremiumOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumOutstandingReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 7: Premium Outstanding Report View */}
+      {currentView === "premium-outstanding-report" && selectedPremiumOutstandingData && (
+        <PremiumOutstandingReportView
+          formData={selectedPremiumOutstandingData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-outstanding-form")}
         />
       )}
 
