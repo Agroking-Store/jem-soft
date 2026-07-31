@@ -14,12 +14,9 @@ interface PremiumDueReportViewProps {
   onBackToForm: () => void;
 }
 
-// LIC grace-period placeholders used only to compute "Pay Before" / "Late Payment Upto"
-// when the DB record doesn't already carry them. Adjust these two if your actual
-// business rule differs (matches the 15 / 29 day gap seen in the sample PDF).
 const PAY_BEFORE_GRACE_DAYS = 15;
 const LATE_PAYMENT_UPTO_DAYS = 29;
-const LATE_FEE_FLAT = 15; // flat late fee added on top of premium amount
+const LATE_FEE_FLAT = 15; 
 
 function addDays(date: Date, days: number) {
   const d = new Date(date);
@@ -49,14 +46,10 @@ export default function PremiumDueReportView({
     const fromDue = formData.fromDueDate ? new Date(formData.fromDueDate) : null;
     const toDue = formData.toDueDate ? new Date(formData.toDueDate) : null;
 
-    // Policy Status filters coming from the Filter Options modal (Agencies /
-    // Payment Modes / Policy Status / etc. — same shape as Policy Register)
     const selectedStatusNames = (formData.appliedFilters || [])
       .filter((f) => f.type === "Policy Status")
       .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
 
-    // Group/Item selection from either the "Groups Wise" SelectGroupModal
-    // or the generic SortingFilterModal (every other sort option)
     const selectedGroupCodesOrNames =
       formData.sortingOption === "groupsWise"
         ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
@@ -65,7 +58,7 @@ export default function PremiumDueReportView({
           );
 
     const validDbPolicies = rawPolicies.filter((p) => {
-      // Due date range check (Standard Duedate vs FUP Date toggle)
+      // Due date range check 
       const dueDateRaw =
         formData.reportBasedOn === "FUP Date"
           ? p.fupDate || p.nextPremiumDueDate
@@ -75,7 +68,7 @@ export default function PremiumDueReportView({
         if (!isNaN(dd.getTime()) && (dd < fromDue || dd > toDue)) return false;
       }
 
-      // Policy Status: exclude Lapsed unless "Include Lapsed Policies" is checked
+      // Policy Status
       const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
       if (!formData.includeLapsedPolicies && rawStatus.includes("lapsed")) return false;
 
@@ -87,7 +80,7 @@ export default function PremiumDueReportView({
         if (!matches) return false;
       }
 
-      // Payment Type: NACH vs Other
+      // Payment Type
       const isNach = Boolean(p.premiumMode?.modeName?.toLowerCase().includes("nach") || p.isNach);
       if (isNach && !formData.paymentTypes.nach) return false;
       if (!isNach && !formData.paymentTypes.otherThanNach) return false;
@@ -187,8 +180,6 @@ export default function PremiumDueReportView({
       if (result.length > 0) return result;
     }
 
-    // Standard fallback demo group — mirrors the exact sample PDF Nida shared,
-    // so the report is never empty even before real due-date data is wired in.
     const selectedGroupHead =
       formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
         ? formData.selectedGroups[0].groupHeadName
