@@ -13,9 +13,11 @@ import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licRepor
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
 import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
-import PremiumDueReportView from "@/features/lic/reports/Premiumduereportview";
+import PremiumDueReportView from "@/features/lic/reports/PremiumDueReportView";
 import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
 import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
+import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
+import LapsedPolicyReportView from "@/features/lic/reports/LapsedPolicyReportView";
 import {
   Search,
   ArrowRight,
@@ -31,7 +33,9 @@ type ViewState =
   | "premium-due-form"
   | "premium-due-report"
   | "premium-outstanding-form"
-  | "premium-outstanding-report";
+  | "premium-outstanding-report"
+  | "lapsed-policy-form"
+  | "lapsed-policy-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -44,6 +48,8 @@ export default function LICReportsPage() {
     useState<PremiumDueFormData | null>(null);
   const [selectedPremiumOutstandingData, setSelectedPremiumOutstandingData] =
     useState<PremiumOutstandingFormData | null>(null);
+  const [selectedLapsedPolicyData, setSelectedLapsedPolicyData] =
+    useState<LapsedPolicyFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -80,6 +86,8 @@ export default function LICReportsPage() {
       setCurrentView("premium-due-form");
     } else if (card.id === "premium-outstanding") {
       setCurrentView("premium-outstanding-form");
+    } else if (card.id === "lapsed-policy") {
+      setCurrentView("lapsed-policy-form");
     } else {
       setPreviewModalCard(card);
     }
@@ -98,6 +106,11 @@ export default function LICReportsPage() {
   const handleGeneratePremiumOutstandingReport = (formData: PremiumOutstandingFormData) => {
     setSelectedPremiumOutstandingData(formData);
     setCurrentView("premium-outstanding-report");
+  };
+
+  const handleGenerateLapsedPolicyReport = (formData: LapsedPolicyFormData) => {
+    setSelectedLapsedPolicyData(formData);
+    setCurrentView("lapsed-policy-report");
   };
 
   return (
@@ -217,7 +230,8 @@ export default function LICReportsPage() {
                     <span>
                       {card.id === "policy-register" ||
                       card.id === "premium-due" ||
-                      card.id === "premium-outstanding"
+                      card.id === "premium-outstanding" ||
+                      card.id === "lapsed-policy"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -303,6 +317,29 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("premium-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 8: Lapsed Policy Form */}
+      {currentView === "lapsed-policy-form" && (
+        <LapsedPolicyForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLapsedPolicyReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 9: Lapsed Policy Report View */}
+      {currentView === "lapsed-policy-report" && selectedLapsedPolicyData && (
+        <LapsedPolicyReportView
+          formData={selectedLapsedPolicyData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("lapsed-policy-form")}
         />
       )}
 
