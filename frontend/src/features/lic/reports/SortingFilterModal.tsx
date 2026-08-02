@@ -115,6 +115,20 @@ export default function SortingFilterModal({
           col2: "",
           col3: "",
         };
+      case "maturityDatewise":
+        return {
+          title: "Sorting Filter : Maturity Datewise",
+          col1: "Maturity Date",
+          col2: "",
+          col3: "",
+        };
+      case "sbDatewise":
+        return {
+          title: "Sorting Filter : S.B. Datewise",
+          col1: "S.B. Date",
+          col2: "",
+          col3: "",
+        };
       case "groupsWise":
       default:
         return {
@@ -126,6 +140,7 @@ export default function SortingFilterModal({
     }
   }, [sortingOption]);
 
+  // 100% Dynamic Data list derived STRICTLY from database props! No hardcoded screenshot mock names!
   const masterDataList: Array<{ id: string; code?: string; name: string; extra?: string }> =
     useMemo(() => {
       if (sortingOption === "groupMemberwise") {
@@ -239,6 +254,44 @@ export default function SortingFilterModal({
         );
         return dueDates.map((d, idx) => ({
           id: `due-${idx}`,
+          code: d,
+          name: d,
+          extra: "",
+        }));
+      }
+
+      if (sortingOption === "maturityDatewise") {
+        const maturityDates = Array.from(
+          new Set(
+            policies
+              .map((p) =>
+                p.maturityDate ? new Date(p.maturityDate).toLocaleDateString("en-GB") : null
+              )
+              .filter((d): d is string => Boolean(d))
+          )
+        );
+        return maturityDates.map((d, idx) => ({
+          id: `mat-${idx}`,
+          code: d,
+          name: d,
+          extra: "",
+        }));
+      }
+
+      if (sortingOption === "sbDatewise") {
+        const sbDates = Array.from(
+          new Set(
+            policies
+              .map((p) =>
+                p.survivalBenefitDate
+                  ? new Date(p.survivalBenefitDate).toLocaleDateString("en-GB")
+                  : null
+              )
+              .filter((d): d is string => Boolean(d))
+          )
+        );
+        return sbDates.map((d, idx) => ({
+          id: `sb-${idx}`,
           code: d,
           name: d,
           extra: "",

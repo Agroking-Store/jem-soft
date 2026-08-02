@@ -18,6 +18,14 @@ import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/l
 import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
 import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
 import LapsedPolicyReportView from "@/features/lic/reports/LapsedPolicyReportView";
+import PolicyMaturityForm, { PolicyMaturityFormData } from "@/features/lic/reports/PolicyMaturityForm";
+import PolicyMaturityReportView from "@/features/lic/reports/PolicyMaturityReportView";
+import SurvivalBenefitForm, { SurvivalBenefitFormData } from "@/features/lic/reports/SurvivalBenefitForm";
+import SurvivalBenefitReportView from "@/features/lic/reports/SurvivalBenefitReportView";
+import CashFlowChartForm, { CashFlowChartFormData } from "@/features/lic/reports/CashFlowChartForm";
+import CashFlowChartReportView from "@/features/lic/reports/CashFlowChartReportView";
+import ComprehensiveInsuranceChartForm, { ComprehensiveInsuranceChartFormData } from "@/features/lic/reports/ComprehensiveInsuranceChartForm";
+import ComprehensiveInsuranceChartReportView from "@/features/lic/reports/ComprehensiveInsuranceChartReportView";
 import {
   Search,
   ArrowRight,
@@ -35,7 +43,15 @@ type ViewState =
   | "premium-outstanding-form"
   | "premium-outstanding-report"
   | "lapsed-policy-form"
-  | "lapsed-policy-report";
+  | "lapsed-policy-report"
+  | "policy-maturity-form"
+  | "policy-maturity-report"
+  | "survival-benefit-form"
+  | "survival-benefit-report"
+  | "cash-flow-chart-form"
+  | "cash-flow-chart-report"
+  | "comprehensive-insurance-chart-form"
+  | "comprehensive-insurance-chart-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,6 +66,14 @@ export default function LICReportsPage() {
     useState<PremiumOutstandingFormData | null>(null);
   const [selectedLapsedPolicyData, setSelectedLapsedPolicyData] =
     useState<LapsedPolicyFormData | null>(null);
+  const [selectedPolicyMaturityData, setSelectedPolicyMaturityData] =
+    useState<PolicyMaturityFormData | null>(null);
+  const [selectedSurvivalBenefitData, setSelectedSurvivalBenefitData] =
+    useState<SurvivalBenefitFormData | null>(null);
+  const [selectedCashFlowChartData, setSelectedCashFlowChartData] =
+    useState<CashFlowChartFormData | null>(null);
+  const [selectedComprehensiveInsuranceChartData, setSelectedComprehensiveInsuranceChartData] =
+    useState<ComprehensiveInsuranceChartFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -88,6 +112,14 @@ export default function LICReportsPage() {
       setCurrentView("premium-outstanding-form");
     } else if (card.id === "lapsed-policy") {
       setCurrentView("lapsed-policy-form");
+    } else if (card.id === "policy-maturity") {
+      setCurrentView("policy-maturity-form");
+    } else if (card.id === "survival-benefit") {
+      setCurrentView("survival-benefit-form");
+    } else if (card.id === "cash-flow-chart") {
+      setCurrentView("cash-flow-chart-form");
+    } else if (card.id === "comprehensive-insurance-chart") {
+      setCurrentView("comprehensive-insurance-chart-form");
     } else {
       setPreviewModalCard(card);
     }
@@ -111,6 +143,26 @@ export default function LICReportsPage() {
   const handleGenerateLapsedPolicyReport = (formData: LapsedPolicyFormData) => {
     setSelectedLapsedPolicyData(formData);
     setCurrentView("lapsed-policy-report");
+  };
+
+  const handleGeneratePolicyMaturityReport = (formData: PolicyMaturityFormData) => {
+    setSelectedPolicyMaturityData(formData);
+    setCurrentView("policy-maturity-report");
+  };
+
+  const handleGenerateSurvivalBenefitReport = (formData: SurvivalBenefitFormData) => {
+    setSelectedSurvivalBenefitData(formData);
+    setCurrentView("survival-benefit-report");
+  };
+
+  const handleGenerateCashFlowChartReport = (formData: CashFlowChartFormData) => {
+    setSelectedCashFlowChartData(formData);
+    setCurrentView("cash-flow-chart-report");
+  };
+
+  const handleGenerateComprehensiveInsuranceChartReport = (formData: ComprehensiveInsuranceChartFormData) => {
+    setSelectedComprehensiveInsuranceChartData(formData);
+    setCurrentView("comprehensive-insurance-chart-report");
   };
 
   return (
@@ -231,7 +283,11 @@ export default function LICReportsPage() {
                       {card.id === "policy-register" ||
                       card.id === "premium-due" ||
                       card.id === "premium-outstanding" ||
-                      card.id === "lapsed-policy"
+                      card.id === "lapsed-policy" ||
+                      card.id === "policy-maturity" ||
+                      card.id === "survival-benefit" ||
+                      card.id === "cash-flow-chart" ||
+                      card.id === "comprehensive-insurance-chart"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -340,6 +396,95 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("lapsed-policy-form")}
+        />
+      )}
+
+      {/* VIEW 10: Policy Maturity Form */}
+      {currentView === "policy-maturity-form" && (
+        <PolicyMaturityForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyMaturityReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 11: Policy Maturity Report View */}
+      {currentView === "policy-maturity-report" && selectedPolicyMaturityData && (
+        <PolicyMaturityReportView
+          formData={selectedPolicyMaturityData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("policy-maturity-form")}
+        />
+      )}
+
+      {/* VIEW 12: Survival Benefit Form */}
+      {currentView === "survival-benefit-form" && (
+        <SurvivalBenefitForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateSurvivalBenefitReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 13: Survival Benefit Report View */}
+      {currentView === "survival-benefit-report" && selectedSurvivalBenefitData && (
+        <SurvivalBenefitReportView
+          formData={selectedSurvivalBenefitData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("survival-benefit-form")}
+        />
+      )}
+
+      {/* VIEW 14: Cash Flow Chart Form */}
+      {currentView === "cash-flow-chart-form" && (
+        <CashFlowChartForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateCashFlowChartReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+        />
+      )}
+
+      {/* VIEW 15: Cash Flow Chart Report View */}
+      {currentView === "cash-flow-chart-report" && selectedCashFlowChartData && (
+        <CashFlowChartReportView
+          formData={selectedCashFlowChartData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("cash-flow-chart-form")}
+        />
+      )}
+
+      {/* VIEW 16: Comprehensive Insurance Chart Form */}
+      {currentView === "comprehensive-insurance-chart-form" && (
+        <ComprehensiveInsuranceChartForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateComprehensiveInsuranceChartReport}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 17: Comprehensive Insurance Chart Report View */}
+      {currentView === "comprehensive-insurance-chart-report" && selectedComprehensiveInsuranceChartData && (
+        <ComprehensiveInsuranceChartReportView
+          formData={selectedComprehensiveInsuranceChartData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("comprehensive-insurance-chart-form")}
         />
       )}
 
