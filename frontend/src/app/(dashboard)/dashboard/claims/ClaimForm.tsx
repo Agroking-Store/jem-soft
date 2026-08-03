@@ -300,8 +300,18 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const onSubmit = async (data: ClaimFormData) => {
     setIsSubmitting(true);
 
+    // Compute claimantName from selected policy's CustomerMaster (create mode)
+    // or use the existing claim's saved name (edit mode)
+    const getClaimantName = () => {
+      if (mode === "edit" && initialClaim?.claimantName) {
+        return initialClaim.claimantName;
+      }
+      return getFullName(selectedPolicy?.CustomerMaster) || "";
+    };
+
     const payload: any = {
       ...data,
+      claimantName: getClaimantName(),
       nomineeId: selectedNominee?.id || undefined,
       paymentType: paymentType || undefined,
     };
