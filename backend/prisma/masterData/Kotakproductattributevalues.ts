@@ -15,22 +15,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak e-Term",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak e-Term",
     attributeCode: "MAX_POLICY_TERM",
-    value: "40",
+    value: "100",
   },
   {
     productCode: "Kotak e-Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2000000",
+    value: "50000",
   },
   {
     productCode: "Kotak e-Term",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak e-Term",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak e-Term",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Signature Term Plan
@@ -47,22 +57,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Signature Term Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Signature Term Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "40",
+    value: "100",
   },
   {
     productCode: "Kotak Signature Term Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "Kotak Signature Term Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Signature Term Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Signature Term Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Gen2Gen Protect
@@ -79,22 +99,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Gen2Gen Protect",
     attributeCode: "MIN_POLICY_TERM",
-    value: "15",
+    value: "0",
   },
   {
     productCode: "Kotak Gen2Gen Protect",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Gen2Gen Protect",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Gen2Gen Protect",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Gen2Gen Protect",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Gen2Gen Protect",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak e-Invest Plus
@@ -111,22 +141,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak e-Invest Plus",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak e-Invest Plus",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak e-Invest Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50000",
   },
   {
     productCode: "Kotak e-Invest Plus",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak e-Invest Plus",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak e-Invest Plus",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak T.U.L.I.P
@@ -143,22 +183,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak T.U.L.I.P",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak T.U.L.I.P",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak T.U.L.I.P",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3000000",
+    value: "50000",
   },
   {
     productCode: "Kotak T.U.L.I.P",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak T.U.L.I.P",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak T.U.L.I.P",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Invest Maxima
@@ -175,22 +225,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Invest Maxima",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Invest Maxima",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Invest Maxima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "4000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Invest Maxima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Invest Maxima",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Invest Maxima",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Single Invest Advantage
@@ -207,22 +267,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Single Invest Advantage",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Single Invest Advantage",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Single Invest Advantage",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Single Invest Advantage",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Single Invest Advantage",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Single Invest Advantage",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Platinum
@@ -239,22 +309,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Platinum",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Platinum",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Platinum",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Platinum",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Platinum",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Platinum",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Wealth Optima
@@ -271,22 +351,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Wealth Optima",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Wealth Optima",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Wealth Optima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "4000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Wealth Optima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Wealth Optima",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Wealth Optima",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Classic Endowment Plan
@@ -303,22 +393,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Classic Endowment Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Classic Endowment Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Classic Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Classic Endowment Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Classic Endowment Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Classic Endowment Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Premier Endowment Plan
@@ -335,22 +435,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Premier Endowment Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Premier Endowment Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Premier Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "7500000",
+    value: "50000",
   },
   {
     productCode: "Kotak Premier Endowment Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "7500000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Premier Endowment Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Premier Endowment Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Assured Income Accelerator
@@ -367,22 +477,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Assured Income Accelerator",
     attributeCode: "MIN_POLICY_TERM",
-    value: "5",
+    value: "0",
   },
   {
     productCode: "Kotak Assured Income Accelerator",
     attributeCode: "MAX_POLICY_TERM",
-    value: "20",
+    value: "100",
   },
   {
     productCode: "Kotak Assured Income Accelerator",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "Kotak Assured Income Accelerator",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Assured Income Accelerator",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Assured Income Accelerator",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak e-Invest Retire Rich
@@ -399,22 +519,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak e-Invest Retire Rich",
     attributeCode: "MIN_POLICY_TERM",
-    value: "15",
+    value: "0",
   },
   {
     productCode: "Kotak e-Invest Retire Rich",
     attributeCode: "MAX_POLICY_TERM",
-    value: "35",
+    value: "100",
   },
   {
     productCode: "Kotak e-Invest Retire Rich",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "Kotak e-Invest Retire Rich",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak e-Invest Retire Rich",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak e-Invest Retire Rich",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Confident Retirement Builder
@@ -431,22 +561,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Confident Retirement Builder",
     attributeCode: "MIN_POLICY_TERM",
-    value: "15",
+    value: "0",
   },
   {
     productCode: "Kotak Confident Retirement Builder",
     attributeCode: "MAX_POLICY_TERM",
-    value: "35",
+    value: "100",
   },
   {
     productCode: "Kotak Confident Retirement Builder",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2000000",
+    value: "50000",
   },
   {
     productCode: "Kotak Confident Retirement Builder",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Confident Retirement Builder",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Confident Retirement Builder",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Confident Retirement Savings Plan
@@ -463,22 +603,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Confident Retirement Savings Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Confident Retirement Savings Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "Kotak Confident Retirement Savings Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "Kotak Confident Retirement Savings Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Confident Retirement Savings Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Confident Retirement Savings Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak e-Invest Rising Star
@@ -495,22 +645,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak e-Invest Rising Star",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak e-Invest Rising Star",
     attributeCode: "MAX_POLICY_TERM",
-    value: "25",
+    value: "100",
   },
   {
     productCode: "Kotak e-Invest Rising Star",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "Kotak e-Invest Rising Star",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak e-Invest Rising Star",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak e-Invest Rising Star",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Gen2Gen Income
@@ -527,22 +687,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Gen2Gen Income",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "Kotak Gen2Gen Income",
     attributeCode: "MAX_POLICY_TERM",
-    value: "25",
+    value: "100",
   },
   {
     productCode: "Kotak Gen2Gen Income",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "Kotak Gen2Gen Income",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Gen2Gen Income",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Gen2Gen Income",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Kotak Personal Accident Insurance
@@ -559,22 +729,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Kotak Personal Accident Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Kotak Personal Accident Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Kotak Personal Accident Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "Kotak Personal Accident Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Kotak Personal Accident Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Kotak Personal Accident Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Health Care
@@ -591,22 +771,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Health Care",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Health Care",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Health Care",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Health Care",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Health Care",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Health Care",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Health Premium
@@ -623,22 +813,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Health Premium",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Health Premium",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Health Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Health Premium",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "15000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Health Premium",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Health Premium",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Secure Shield
@@ -655,22 +855,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Secure Shield",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Secure Shield",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Secure Shield",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Secure Shield",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Secure Shield",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Secure Shield",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Health Super Top-up
@@ -687,22 +897,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Health Super Top-up",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Health Super Top-up",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Health Super Top-up",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Health Super Top-up",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Health Super Top-up",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Health Super Top-up",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Accident Care
@@ -719,22 +939,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Accident Care",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Accident Care",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Accident Care",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Accident Care",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Accident Care",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Accident Care",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Corona Kavach
@@ -751,22 +981,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Corona Kavach",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Corona Kavach",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Corona Kavach",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Corona Kavach",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Corona Kavach",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Corona Kavach",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Covid-19 Secure
@@ -783,12 +1023,12 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Covid-19 Secure",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Covid-19 Secure",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Covid-19 Secure",
@@ -798,103 +1038,273 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Covid-19 Secure",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Covid-19 Secure",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Covid-19 Secure",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Car Secure - Comprehensive
   {
     productCode: "Zurich Kotak Car Secure - Comprehensive",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Car Secure - Comprehensive",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Comprehensive",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Comprehensive",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Comprehensive",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Comprehensive",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Car Secure - Third Party
   {
     productCode: "Zurich Kotak Car Secure - Third Party",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Car Secure - Third Party",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Third Party",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Third Party",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Third Party",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Car Secure - Third Party",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Stand-Alone Own Damage
   {
     productCode: "Zurich Kotak Stand-Alone Own Damage",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Stand-Alone Own Damage",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Stand-Alone Own Damage",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Stand-Alone Own Damage",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Stand-Alone Own Damage",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Stand-Alone Own Damage",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Two Wheeler Secure - Comprehensive
   {
     productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Comprehensive",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Two Wheeler Secure - Third Party
   {
     productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
     attributeCode: "MAX_POLICY_TERM",
-    value: "3",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Two Wheeler Secure - Third Party",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Commercial Vehicle - Passenger
   {
     productCode: "Zurich Kotak Commercial Vehicle - Passenger",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Commercial Vehicle - Passenger",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Passenger",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Passenger",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Passenger",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Passenger",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Commercial Vehicle - Goods
   {
     productCode: "Zurich Kotak Commercial Vehicle - Goods",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Commercial Vehicle - Goods",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Goods",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Goods",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Goods",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Commercial Vehicle - Goods",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Home Secure
   {
     productCode: "Zurich Kotak Home Secure",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Home Secure",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
+  },
+  {
+    productCode: "Zurich Kotak Home Secure",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
+  {
+    productCode: "Zurich Kotak Home Secure",
+    attributeCode: "MAX_SUM_ASSURED",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Home Secure",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Home Secure",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Group Health Care
@@ -911,22 +1321,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Group Health Care",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Group Health Care",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Group Health Care",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Group Health Care",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Group Health Care",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Group Health Care",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Group Secure Shield
@@ -943,22 +1363,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Group Secure Shield",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Group Secure Shield",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Group Secure Shield",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Group Secure Shield",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Group Secure Shield",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Group Secure Shield",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Group Accident Protect
@@ -975,22 +1405,32 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Group Accident Protect",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Group Accident Protect",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Group Accident Protect",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "Zurich Kotak Group Accident Protect",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Group Accident Protect",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Group Accident Protect",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // Zurich Kotak Group Smart Cash
@@ -1007,12 +1447,12 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Group Smart Cash",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "Zurich Kotak Group Smart Cash",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "Zurich Kotak Group Smart Cash",
@@ -1022,7 +1462,17 @@ export const kotakProductAttributeValues = [
   {
     productCode: "Zurich Kotak Group Smart Cash",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "Zurich Kotak Group Smart Cash",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "Zurich Kotak Group Smart Cash",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
 ];
