@@ -5,12 +5,23 @@ import type { RootState } from "@/store/store";
 export interface Claim {
   id: string;
   policyId: string;
-  claimantName: string;
+  claimantName?: string;
   claimType: string;
   claimAmount: number;
   status: string;
   claimDate: string;
   reasonForClaim?: string | null;
+  nomineeId?: string | null;
+  // Payment fields
+  paymentType?: string | null;
+  chequeNumber?: string | null;
+  chequeDate?: string | null;
+  bankName?: string | null;
+  branchName?: string | null;
+  chequeAmount?: number | null;
+  accountHolderName?: string | null;
+  accountNumber?: string | null;
+  ifscCode?: string | null;
   createdById: string;
   updatedById?: string | null;
   createdAt: string;
@@ -59,16 +70,33 @@ export interface Claim {
       installmentPremium: number;
       totalInstallmentPremium: number;
     } | null;
+    nominees?: any[];
   };
+  nominee?: {
+    id: string;
+    nomineeName: string;
+    relationship: string;
+  } | null;
 }
 
 export interface CreateClaimPayload {
   policyId: string;
-  claimantName: string;
+  claimantName?: string;
   claimType: string;
   claimAmount: number;
   claimDate: string;
   reasonForClaim?: string;
+  nomineeId?: string;
+  // Payment fields
+  paymentType?: string;
+  chequeNumber?: string;
+  chequeDate?: string;
+  bankName?: string;
+  branchName?: string;
+  chequeAmount?: number;
+  accountHolderName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
 }
 
 interface ClaimState {

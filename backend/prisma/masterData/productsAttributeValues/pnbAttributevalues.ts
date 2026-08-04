@@ -1,6 +1,6 @@
 export const pnbMetlifePolicyAttributeValues = [
   // ---------------------------------------------------------------
-  // 70. PNB MetLife Group Term Life Plus — UIN 117N049V04
+  // 70. PNB MetLife Group Term Life Plus
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Group Term Life Plus",
@@ -42,9 +42,14 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Group Term Life Plus",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 71. PNB MetLife Loan & Life Suraksha — UIN 117N080V03
+  // 71. PNB MetLife Loan & Life Suraksha
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Loan & Life Suraksha",
@@ -76,9 +81,24 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Loan & Life Suraksha",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Loan & Life Suraksha",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Loan & Life Suraksha",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 72. PNB MetLife Unit Linked Employee Benefit Plan — UIN 117L084V03
+  // 72. PNB MetLife Unit Linked Employee Benefit Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
@@ -95,9 +115,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Unit Linked Employee Benefit Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 73. PNB MetLife Traditional Employee Benefits Plan — UIN 117N085V02
+  // 73. PNB MetLife Traditional Employee Benefits Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Traditional Employee Benefits Plan",
@@ -114,9 +159,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Traditional Employee Benefits Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Traditional Employee Benefits Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Traditional Employee Benefits Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Traditional Employee Benefits Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Traditional Employee Benefits Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 74. PNB MetLife Bachat Yojna — UIN 117N120V01
+  // 74. PNB MetLife Bachat Yojna
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Bachat Yojna",
@@ -148,9 +218,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "50000",
   },
+  {
+    productCode: "PNB MetLife Bachat Yojna",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Bachat Yojna",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 75. PNB MetLife Retirement Savings Plan — UIN 117N060V01
+  // 75. PNB MetLife Retirement Savings Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Retirement Savings Plan",
@@ -167,9 +247,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Retirement Savings Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Retirement Savings Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Retirement Savings Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Retirement Savings Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Retirement Savings Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 76. PNB MetLife Complete Care Plus — UIN 117N093V04
+  // 76. PNB MetLife Complete Care Plus
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Complete Care Plus",
@@ -201,9 +306,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Complete Care Plus",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Complete Care Plus",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 77. PNB MetLife Pradhan Mantri Jeevan Jyoti Bima Yojana — UIN 117N105V01
+  // 77. PNB MetLife Pradhan Mantri Jeevan Jyoti Bima Yojana
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Pradhan Mantri Jeevan Jyoti Bima Yojana",
@@ -252,7 +367,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 78. PNB MetLife Immediate Annuity Plan — UIN 117N072V01
+  // 78. PNB MetLife Immediate Annuity Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Immediate Annuity Plan",
@@ -274,9 +389,29 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Immediate Annuity Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Immediate Annuity Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Immediate Annuity Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Immediate Annuity Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 79. PNB MetLife Mera Wealth Plan — UIN 117L098V07
+  // 79. PNB MetLife Mera Wealth Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Mera Wealth Plan",
@@ -325,7 +460,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 80. PNB MetLife Complete Loan Protection Plan — UIN 117N104V01
+  // 80. PNB MetLife Complete Loan Protection Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Complete Loan Protection Plan",
@@ -352,9 +487,24 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Complete Loan Protection Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Complete Loan Protection Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Complete Loan Protection Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 81. PNB MetLife POS Suraksha — UIN 117N143V01
+  // 81. PNB MetLife POS Suraksha
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife POS Suraksha",
@@ -391,9 +541,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "2500000",
   },
+  {
+    productCode: "PNB MetLife POS Suraksha",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife POS Suraksha",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 82. PNB MetLife Bima Yojna — UIN 117N120V01
+  // 82. PNB MetLife Bima Yojna
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Bima Yojna",
@@ -420,9 +580,24 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "50000",
   },
+  {
+    productCode: "PNB MetLife Bima Yojna",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Bima Yojna",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Bima Yojna",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 83. PNB MetLife Aajeevan Suraksha Plan — UIN 117N128V01
+  // 83. PNB MetLife Aajeevan Suraksha Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Aajeevan Suraksha Plan",
@@ -459,9 +634,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Aajeevan Suraksha Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Aajeevan Suraksha Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 84. PNB MetLife Super Saver Plan — UIN 117N131V06
+  // 84. PNB MetLife Super Saver Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Super Saver Plan",
@@ -503,9 +688,14 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Super Saver Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 85. PNB MetLife Guaranteed Future Plan — UIN 117N124V16
+  // 85. PNB MetLife Guaranteed Future Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Guaranteed Future Plan",
@@ -554,7 +744,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 86. PNB MetLife Smart Platinum Plus — UIN 117L125V06
+  // 86. PNB MetLife Smart Platinum Plus
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Smart Platinum Plus",
@@ -603,7 +793,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 87. PNB MetLife Mera Term Plan Plus — UIN 117N126V04
+  // 87. PNB MetLife Mera Term Plan Plus
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Mera Term Plan Plus",
@@ -652,7 +842,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 88. PNB MetLife Group Flexi Term Plus — UIN 117N127V01
+  // 88. PNB MetLife Group Flexi Term Plus
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Group Flexi Term Plus",
@@ -679,9 +869,29 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Group Flexi Term Plus",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Group Flexi Term Plus",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Group Flexi Term Plus",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Group Flexi Term Plus",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 89. PNB MetLife Saral Jeevan Bima — UIN 117N129V01
+  // 89. PNB MetLife Saral Jeevan Bima
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Saral Jeevan Bima",
@@ -725,7 +935,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 90. PNB MetLife Century Plan — UIN 117N130V01
+  // 90. PNB MetLife Century Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Century Plan",
@@ -757,9 +967,24 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Century Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Century Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Century Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 91. PNB MetLife Saral Pension Plan — UIN 117N132V01
+  // 91. PNB MetLife Saral Pension Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Saral Pension Plan",
@@ -781,9 +1006,29 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Saral Pension Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Saral Pension Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Saral Pension Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Saral Pension Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 92. PNB MetLife Guaranteed Goal Plan — UIN 117N131V06
+  // 92. PNB MetLife Guaranteed Goal Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Guaranteed Goal Plan",
@@ -820,9 +1065,14 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Guaranteed Goal Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 93. PNB MetLife Group Secured Gain — UIN 117N136V01
+  // 93. PNB MetLife Group Secured Gain
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Group Secured Gain",
@@ -839,9 +1089,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Group Secured Gain",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Group Secured Gain",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Group Secured Gain",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Group Secured Gain",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Group Secured Gain",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 94. PNB MetLife Goal Ensuring Multiplier — UIN 117L133V05
+  // 94. PNB MetLife Goal Ensuring Multiplier
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Goal Ensuring Multiplier",
@@ -890,7 +1165,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 95. PNB MetLife Grand Assured Income Plan — UIN 117N134V08
+  // 95. PNB MetLife Grand Assured Income Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Grand Assured Income Plan",
@@ -934,7 +1209,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 96. PNB MetLife Genius Plan — UIN 117N135V04
+  // 96. PNB MetLife Genius Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Genius Plan",
@@ -978,7 +1253,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 97. PNB MetLife TULIP — UIN 117L137V01
+  // 97. PNB MetLife TULIP
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife TULIP",
@@ -1027,7 +1302,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 98. PNB MetLife Smart Invest Pension Plan — UIN 117L138V01
+  // 98. PNB MetLife Smart Invest Pension Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Smart Invest Pension Plan",
@@ -1049,9 +1324,29 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 99. PNB MetLife Long Income For Tomorrow — UIN 117N140V01
+  // 99. PNB MetLife Long Income For Tomorrow
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Long Income For Tomorrow",
@@ -1088,9 +1383,14 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Long Income For Tomorrow",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 100. PNB MetLife GROW Plan — UIN 117L145V01
+  // 100. PNB MetLife GROW Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife GROW Plan",
@@ -1139,7 +1439,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 101. PNB MetLife Smart Goal Ensuring Multiplier — UIN 117L139V02
+  // 101. PNB MetLife Smart Goal Ensuring Multiplier
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Smart Goal Ensuring Multiplier",
@@ -1188,7 +1488,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 102. PNB MetLife Dhan Suraksha Yojna — UIN 117N168V01
+  // 102. PNB MetLife Dhan Suraksha Yojna
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Dhan Suraksha Yojna",
@@ -1220,9 +1520,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "50000",
   },
+  {
+    productCode: "PNB MetLife Dhan Suraksha Yojna",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Dhan Suraksha Yojna",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 103. PNB MetLife Smart Invest Pension Plan Pro — UIN 117L138V04
+  // 103. PNB MetLife Smart Invest Pension Plan Pro
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Smart Invest Pension Plan Pro",
@@ -1244,9 +1554,29 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan Pro",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan Pro",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan Pro",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Smart Invest Pension Plan Pro",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 104. PNB MetLife Group Protection Plan — UIN 117N161V01
+  // 104. PNB MetLife Group Protection Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Group Protection Plan",
@@ -1278,9 +1608,24 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Group Protection Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Group Protection Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Group Protection Plan",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 105. PNB MetLife DigiProtect Term Plan — UIN 117N141V01
+  // 105. PNB MetLife DigiProtect Term Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife DigiProtect Term Plan",
@@ -1317,9 +1662,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "7500000",
   },
+  {
+    productCode: "PNB MetLife DigiProtect Term Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife DigiProtect Term Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 106. PNB MetLife RISE Plan — UIN 117N169V01
+  // 106. PNB MetLife RISE Plan
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife RISE Plan",
@@ -1363,7 +1718,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 107. PNB MetLife Smart Platinum Pro — UIN 117L142V02
+  // 107. PNB MetLife Smart Platinum Pro
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Smart Platinum Pro",
@@ -1412,7 +1767,7 @@ export const pnbMetlifePolicyAttributeValues = [
   },
 
   // ---------------------------------------------------------------
-  // 108. PNB MetLife Term with Unit Linked Insurance Plan (TULIP) — UIN 117L136V03
+  // 108. PNB MetLife Term with Unit Linked Insurance Plan (TULIP)
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Term with Unit Linked Insurance Plan (TULIP)",
@@ -1449,9 +1804,19 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Term with Unit Linked Insurance Plan (TULIP)",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Term with Unit Linked Insurance Plan (TULIP)",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
 
   // ---------------------------------------------------------------
-  // 109. PNB MetLife Accidental Death Benefit Plus Rider — UIN 117B020V04
+  // 109. PNB MetLife Accidental Death Benefit Plus Rider
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
@@ -1468,9 +1833,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Accidental Death Benefit Plus Rider",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 110. PNB MetLife Serious Illness Rider — UIN 117B021V04
+  // 110. PNB MetLife Serious Illness Rider
   // ---------------------------------------------------------------
   {
     productCode: "PNB MetLife Serious Illness Rider",
@@ -1487,9 +1877,34 @@ export const pnbMetlifePolicyAttributeValues = [
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
   },
+  {
+    productCode: "PNB MetLife Serious Illness Rider",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Serious Illness Rider",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Serious Illness Rider",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "PNB MetLife Serious Illness Rider",
+    attributeCode: "MAX_PPT",
+    value: "100",
+  },
+  {
+    productCode: "PNB MetLife Serious Illness Rider",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
+  },
 
   // ---------------------------------------------------------------
-  // 111. PNB MetLife Group Accidental Permanent & Total Disability Plus Rider — UIN 117B016V02
+  // 111. PNB MetLife Group Accidental Permanent & Total Disability Plus Rider
   // ---------------------------------------------------------------
   {
     productCode:
@@ -1532,5 +1947,11 @@ export const pnbMetlifePolicyAttributeValues = [
       "PNB MetLife Group Accidental Permanent & Total Disability Plus Rider",
     attributeCode: "MAX_SUM_ASSURED",
     value: "No Limit",
+  },
+  {
+    productCode:
+      "PNB MetLife Group Accidental Permanent & Total Disability Plus Rider",
+    attributeCode: "MIN_SUM_ASSURED",
+    value: "50000",
   },
 ];

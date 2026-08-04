@@ -76,8 +76,8 @@ export default function Page() {
         .length,
       lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
       totalClaims: claims.length,
-      pendingClaims : claims.filter((p) => p.status === "Pending").length,
-      settledClaims : claims.filter((p) => p.status === "Approved").length,
+      pendingClaims: claims.filter((p) => p.status === "Pending").length,
+      settledClaims: claims.filter((p) => p.status === "Approved").length,
     };
   }, [policies, claims]);
 
@@ -97,16 +97,15 @@ export default function Page() {
 
   const filteredClaims = claims.filter((claim) => {
     const query = searchTerm.toLowerCase();
-     const fullName = claim.claimantName  || ""
-     const claimType = claim.claimType || ""
-    const policyNumber = claim.policy?.policyNumber || ""
-    const claimAmt = claim.claimAmount.toString() || ""
+    const fullName = claim.claimantName || "";
+    const claimType = claim.claimType || "";
+    const policyNumber = claim.policy?.policyNumber || "";
+    const claimAmt = claim.claimAmount.toString() || "";
     return (
       policyNumber.includes(query) ||
       claimAmt.includes(query) ||
       claimType.includes(query) ||
-      claim.claimantName.includes(query)
-
+      fullName.includes(query)
     );
   });
 
@@ -115,24 +114,27 @@ export default function Page() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-          <ShieldUser/>
+          <ShieldUser />
         </span>
         <span>
-          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">Claims</h1>
+          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
+            Claims
+          </h1>
         </span>
       </div>
 
-    {/* Stats Card */}
-    {/* Total Claims */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div
+      {/* Stats Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div
           className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => router.push("/dashboard/claims")}
           role="button"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Claims Raised</p>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Claims Raised
+              </p>
               <p className="text-2xl font-bold text-[#E8C77A]">
                 {isLoading ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
@@ -141,21 +143,23 @@ export default function Page() {
                 )}
               </p>
             </div>
-            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldAlert className="w-6 h-6  text-[#E8C77A]" />
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6 text-[#E8C77A]" />
             </div>
           </div>
         </div>
 
         {/* Settled claims */}
-      <div
+        <div
           className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => router.push("/dashboard/claims")}
           role="button"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Claims Settled</p>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Claims Settled
+              </p>
               <p className="text-2xl font-bold text-[#E8C77A]">
                 {isLoading ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
@@ -164,21 +168,23 @@ export default function Page() {
                 )}
               </p>
             </div>
-            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6  text-[#E8C77A]" />
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-[#E8C77A]" />
             </div>
           </div>
         </div>
 
-    {/* Pending claims */}
-      <div
+        {/* Pending claims */}
+        <div
           className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
           onClick={() => router.push("/dashboard/claims")}
           role="button"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Pending Claims</p>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Pending Claims
+              </p>
               <p className="text-2xl font-bold text-[#E8C77A]">
                 {isLoading ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
@@ -187,173 +193,180 @@ export default function Page() {
                 )}
               </p>
             </div>
-            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldQuestionMark className="w-6 h-6  text-[#E8C77A]" />
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <ShieldQuestionMark className="w-6 h-6 text-[#E8C77A]" />
             </div>
           </div>
         </div>
       </div>
 
       <CustomerToolbar>
-         <div className="min-w-0 flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                      type="text"
-                      placeholder={
-                          "Search by Policy Number, Claim amount..."
-                      }
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
-                    />
-                  </div>
+        <div className="min-w-0 flex-1">
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
+            <input
+              type="text"
+              placeholder={"Search by Policy Number, Claim amount..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+            />
+          </div>
         </div>
-        
-                <div className="flex flex-wrap items-center gap-2 lg:justify-end cursor-pointer">
-                   <FilterSelect
-                    icon={Filter}
-                    placeholder="All Statuses"
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    searchPlaceholder="Search statuses..."
-                    options={[
-                      { value: "active", label: "Active" },
-                      { value: "pending", label: "Pending" },
-                      { value: "inactive", label: "Inactive" },
-                    ]}
-                  /> 
-                  {isClient &&
-          canEdit && (
+
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end cursor-pointer">
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Statuses"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            searchPlaceholder="Search statuses..."
+            options={[
+              { value: "active", label: "Active" },
+              { value: "pending", label: "Pending" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+          />
+          {isClient && canEdit && (
             <button
               onClick={() => router.push("/dashboard/claims/new")}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
             >
               <Plus size={16} />
               <span>New Claim</span>
-            </button>)}
-                </div>
+            </button>
+          )}
+        </div>
       </CustomerToolbar>
 
-     
-
       {/* Table */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] undefined">
-       <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-      <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Claims</h2>
-      <p className="block mt-1 text-sm text-slate-500">Browse all claim records.</p>
-      </div>
-      <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] p-5">
-      <CustomerTableFrame>
-       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Claim 
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Policy 
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Claimant Name
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Amount
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {filteredClaims.map((claim,index) => {
-              const statusBadge = getStatusBadge(claim.status);
-              const StatusIcon = statusBadge.icon;
-              const claimIndex = `CLM - ${index+1}`;
-              return (
-                <tr key={claim.id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3">
-                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
-                      {claimIndex}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-slate-600">
-                      {claim.policy?.policyNumber}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-3 items-center text-left">
-                      <span className="text-sm text-slate-600">
-                        <Seal name={claim.claimantName} size ={34} />
-                      </span>
-                      <span className="text-sm text-slate-600">
-                        {claim.claimantName}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-slate-600">
-                      {claim.claimType}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm font-medium text-slate-900">
-                      ₹{claim.claimAmount.toLocaleString("en-IN")}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}
-                    >
-                      <StatusIcon size={13} />
-                      {claim.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canEdit && (
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() =>                          
-                            router.push(`/dashboard/claims/${claim.id}?index=${claimIndex}`)
-                          }
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                          title="View"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            router.push(`/dashboard/claims/edit/${claim.id}`)
-                          }
-                          className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </td>
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
+          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+            Claims
+          </h2>
+          <p className="block mt-1 text-sm text-slate-500">
+            Browse all claim records.
+          </p>
+        </div>
+        <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] p-5">
+          <CustomerTableFrame>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Claim
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Policy
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Claimant Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </CustomerTableFrame>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredClaims.map((claim, index) => {
+                  const statusBadge = getStatusBadge(claim.status);
+                  const StatusIcon = statusBadge.icon;
+                  const claimIndex = `CLM - ${index + 1}`;
+                  return (
+                    <tr key={claim.id} className="hover:bg-slate-50 transition">
+                      <td className="px-4 py-3">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
+                          {claimIndex}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-600">
+                          {claim.policy?.policyNumber}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-3 items-center text-left">
+                          <span className="text-sm text-slate-600">
+                            <Seal name={claim.claimantName || "-"} size={34} />
+                          </span>
+                          <span className="text-sm text-slate-600">
+                            {claim.claimantName || "-"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-600">
+                          {claim.claimType}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm font-medium text-slate-900">
+                          ₹{claim.claimAmount.toLocaleString("en-IN")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}
+                        >
+                          <StatusIcon size={13} />
+                          {claim.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {canEdit && (
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/claims/${claim.id}?index=${claimIndex}`,
+                                )
+                              }
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                              title="View"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/claims/edit/${claim.id}`,
+                                )
+                              }
+                              className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CustomerTableFrame>
+        </div>
       </section>
       {/* Empty / Loading */}
       {isLoading ? (
