@@ -105,13 +105,28 @@ model InsuranceProvider {
 model Claim {
   id            String   @id @default(cuid())
   policyId      String
-  claimantName  String
+  claimantName  String?
   claimType     String   // e.g., 'Death', 'Maturity', 'Rider', 'Other'
   claimAmount   Float
   status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
   claimDate     DateTime
   reasonForClaim String?
   
+  // Payment fields
+  paymentType       String?   // "NEFT" | "Cheque"
+  chequeNumber      String?
+  chequeDate        DateTime?
+  bankName          String?
+  branchName        String?
+  chequeAmount      Float?
+  accountHolderName String?
+  accountNumber     String?
+  ifscCode          String?
+
+  // Nominee relation
+  nomineeId     String?
+  nominee       Nominee? @relation(fields: [nomineeId], references: [id], onDelete: SetNull)
+
   // Relations
   policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
   
@@ -392,6 +407,8 @@ model Nominee {
 
   policy Policy @relation(fields: [policyId], references: [id])
 
+  claims Claim[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -638,6 +655,7 @@ model CustomerBankDetails {
   id            String   @id @default(uuid())
   customerId    String
   isDefault     Boolean  @default(false)
+  accountHolderName String?
   ifscCode      String?
   bankName      String?
   bankBranch    String?
@@ -804,4 +822,3 @@ model MedicalHistoryRecord {
 
   medicalHistory  MedicalHistory @relation(fields: [medicalHistoryId], references: [id], onDelete: Cascade)
 }
-
