@@ -48,7 +48,46 @@ export default function LoanDetailsPage() {
 
   const customer = selectedLoan.policy?.CustomerMaster;
 
+  const detailFields = [
+  { key: "totalLoanGranted", label: "Total Loan Granted" },
+  { key: "prevLoanTaken", label: "Previous Loan Taken" },
+  { key: "prevLoanInterestRate", label: "Previous Loan Interest Rate" },
+  { key: "otherDeduction", label: "Other Deduction" },
+  { key: "xChargeDeduction", label: "XCharge Deduction" },
+  { key: "revivalDeduction", label: "Revival Deduction" },
+  { key: "addDeposit", label: "Add Deposit" },
+  { key: "netAmount", label: "Net Amount" },
+  { key: "chequeAmount", label: "Cheque Amount" },
+  { key: "repaymentDate", label: "Repayment Date" },
+  { key: "loanRepaidAmount", label: "Loan Repaid Amount" },
+  { key: "totalLoanAmount", label: "Total Loan Amount" },
+  { key: "bpiInterest", label: "BPI Interest" },
+  { key: "hlyInterest", label: "HLY Interest" },
+  { key: "fuliDate", label: "Fuli Date" },
+  { key: "repaymentRemarks", label: "Repayment Remarks" },
+];
+
+const formatLoanValue = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return "—";
+
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  if (typeof value === "string" && !Number.isNaN(Date.parse(value))) {
+    return new Date(value).toLocaleDateString("en-GB");
+  }
+
+  return String(value);
+};
+
+// const loanData = (loan ?? selectedLoan) as Record<string, unknown> | null;
+
   return (
+
+    
     <div className="w-full">
       {/* Top */}
 
@@ -180,6 +219,26 @@ export default function LoanDetailsPage() {
 
           </div>
         </div>
+
+        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
+  <h2 className="text-lg font-semibold text-slate-900">Additional Loan Details</h2>
+
+  <dl className="mt-4 grid gap-4 md:grid-cols-2">
+    {detailFields.map(({ key, label }) => (
+      <div
+        key={key}
+        className="rounded-xl border border-slate-100 bg-slate-50 p-3"
+      >
+        <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          {label}
+        </dt>
+        <dd className="mt-1 text-sm font-semibold text-slate-900">
+          {selectedLoan[key] ? formatLoanValue(selectedLoan[key]) : "—"}
+        </dd>
+      </div>
+    ))}
+  </dl>
+</div>
 
         {/* Footer */}
 

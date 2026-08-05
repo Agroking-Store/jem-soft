@@ -453,6 +453,24 @@ model PolicyLoan {
   loanTenure Int?
   remarks String?
 
+  // New fields from LoanForm
+  totalLoanGranted     Float?
+  prevLoanTaken        Float?
+  prevLoanInterestRate Float?
+  otherDeduction       Float?
+  xChargeDeduction     Float?
+  revivalDeduction     Float?
+  addDeposit           Float?
+  netAmount            Float?
+  chequeAmount         Float?
+  repaymentDate        DateTime?
+  loanRepaidAmount     Float?
+  totalLoanAmount      Float?
+  bpiInterest       Float?
+  hlyInterest       Float?
+  fuliDate             DateTime?
+  repaymentRemarks     String?
+
   loanStatusId String
 
   loanStatus LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
