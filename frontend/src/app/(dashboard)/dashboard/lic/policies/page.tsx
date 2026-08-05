@@ -17,7 +17,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Users,
   BarChart,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
@@ -384,72 +383,72 @@ export default function LICPoliciesPage() {
       {/* Policies Table */}
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
+          <table className="min-w-full table-fixed divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Policy No.
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Life Assured
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[320px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
-                  Group / Plan
+                  Plan
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[120px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Sum Assured
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Premium
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[90px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Mode
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[80px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Term
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[80px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   PPT
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   FUP Date
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[120px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Actions
                 </th>
@@ -482,30 +481,12 @@ export default function LICPoliciesPage() {
                         {holderName || "—"}
                       </div>
                     </td>
-                    <td className="max-w-[260px] break-words px-4 py-4 align-top text-sm text-slate-800">
-                      <div className="font-semibold text-slate-900">
-                        {policy.provider?.name || "—"}
+                    <td className="break-words px-4 py-4 align-top text-sm text-slate-800">
+                      <div className="font-semibold text-slate-900 break-words">
+                        {policy.product?.planNumber
+                          ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
+                          : policy.product?.productName || "—"}
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">
-                        {policy.product?.productName || "—"}
-                      </div>
-                      {policy.customer &&
-                        (policy.customer.groupName ||
-                          policy.customer.groupCode) && (
-                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            <div className="inline-flex items-center gap-1">
-                              <Users size={14} />
-                              {policy.customer.groupCode && (
-                                <span className="font-mono bg-slate-200/70 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                  {policy.customer.groupCode}
-                                </span>
-                              )}
-                            </div>
-                            <span className="font-medium">
-                              {policy.customer.groupName || "N/A"}
-                            </span>
-                          </div>
-                        )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm font-semibold text-slate-900">
                       {policy.premium?.sumAssured
