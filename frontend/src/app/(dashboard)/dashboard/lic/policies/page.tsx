@@ -13,26 +13,18 @@ import {
   Eye,
   Edit,
   Trash2,
-  ChevronDown,
-  FileText,
   Clock,
   CheckCircle,
   XCircle,
   AlertCircle,
-  IndianRupee,
-  Calendar,
-  Shield,
-  Repeat,
   Users,
   BarChart,
-  ChevronRight,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import {
   CustomerEmptyState,
   CustomerPageHero,
-  CustomerSectionCard,
   CustomerStatCard,
   CustomerToolbar,
   FilterSelect,
@@ -55,55 +47,101 @@ const getStatusBadge = (status: string) => {
   };
 };
 
-function InfoPill({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500"><Icon size={16} /></div>
-      <div>
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-sm font-semibold text-slate-800">{value || "—"}</p>
-      </div>
-    </div>
-  );
-}
-
-function PolicyTypeModal({ isOpen, onClose, onSelect }: { isOpen: boolean, onClose: () => void, onSelect: (type: "LIC" | "OTHER") => void }) {
+function PolicyTypeModal({
+  isOpen,
+  onClose,
+  onSelect,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (type: "LIC" | "OTHER") => void;
+}) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Select Policy Type</h2>
-          <button type="button" onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700">Cancel</button>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Select Policy Type
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-slate-500 hover:text-slate-700"
+          >
+            Cancel
+          </button>
         </div>
-        <p className="text-sm text-slate-500 mb-6">Choose the policy category to continue with the right plan list.</p>
+        <p className="text-sm text-slate-500 mb-6">
+          Choose the policy category to continue with the right plan list.
+        </p>
         <div className="grid gap-3">
-          <button type="button" onClick={() => onSelect("LIC")} className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100">LIC</button>
-          <button type="button" onClick={() => onSelect("OTHER")} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100">Other</button>
+          <button
+            type="button"
+            onClick={() => onSelect("LIC")}
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+          >
+            LIC
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelect("OTHER")}
+            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Other
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function DeleteConfirmationModal({ target, isDeleting, onCancel, onConfirm }: { target: any, isDeleting: boolean, onCancel: () => void, onConfirm: () => void }) {
+function DeleteConfirmationModal({
+  target,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  target: any;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
   if (!target) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-red-50 rounded-xl"><AlertCircle size={22} className="text-red-500" /></div>
+          <div className="p-2 bg-red-50 rounded-xl">
+            <AlertCircle size={22} className="text-red-500" />
+          </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Delete Policy</h3>
-            <p className="text-xs text-slate-400">This action cannot be undone</p>
+            <h3 className="text-base font-bold text-slate-900">
+              Delete Policy
+            </h3>
+            <p className="text-xs text-slate-400">
+              This action cannot be undone
+            </p>
           </div>
         </div>
         <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-          Are you sure you want to delete policy <strong>#{target.policyNumber}</strong>? This will permanently remove all associated data.
+          Are you sure you want to delete policy{" "}
+          <strong>#{target.policyNumber}</strong>? This will permanently remove
+          all associated data.
         </p>
         <div className="flex items-center justify-end gap-3">
-          <button disabled={isDeleting} onClick={onCancel} className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</button>
-          <button disabled={isDeleting} onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2">
+          <button
+            disabled={isDeleting}
+            onClick={onCancel}
+            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={isDeleting}
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+          >
             {isDeleting ? "Deleting..." : "Delete"}
           </button>
         </div>
@@ -145,9 +183,6 @@ export default function LICPoliciesPage() {
   useEffect(() => {
     dispatch(fetchPolicies());
   }, [dispatch]);
-
-
-
 
   useEffect(() => {
     if (!highlightId || policies.length === 0) return;
@@ -197,23 +232,33 @@ export default function LICPoliciesPage() {
 
   const { stats, filteredPolicies } = useMemo(() => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    
+
     const filtered = policies.filter((policy) => {
       const lifeAssured = policy.CustomerMaster;
       const matchesSearch =
         policy.policyNumber.toLowerCase().includes(lowerCaseSearchTerm) ||
-        policy.product?.productName.toLowerCase().includes(lowerCaseSearchTerm) ||
-        (lifeAssured && `${lifeAssured.firstName} ${lifeAssured.lastName}`.toLowerCase().includes(lowerCaseSearchTerm)) ||
-        (policy.customer?.groupName && policy.customer.groupName.toLowerCase().includes(lowerCaseSearchTerm));
+        policy.product?.productName
+          .toLowerCase()
+          .includes(lowerCaseSearchTerm) ||
+        (lifeAssured &&
+          `${lifeAssured.firstName} ${lifeAssured.lastName}`
+            .toLowerCase()
+            .includes(lowerCaseSearchTerm)) ||
+        (policy.customer?.groupName &&
+          policy.customer.groupName
+            .toLowerCase()
+            .includes(lowerCaseSearchTerm));
 
-      const matchesStatus = filterStatus === "All" || policy.status?.statusName === filterStatus;
+      const matchesStatus =
+        filterStatus === "All" || policy.status?.statusName === filterStatus;
       return matchesSearch && matchesStatus;
     });
 
     const calculatedStats = {
       total: policies.length,
       active: policies.filter((p) => p.status?.statusName === "Active").length,
-      pending: policies.filter((p) => p.status?.statusName === "Pending").length,
+      pending: policies.filter((p) => p.status?.statusName === "Pending")
+        .length,
       lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
     };
 
@@ -222,7 +267,7 @@ export default function LICPoliciesPage() {
 
   const statusOptions = ["All", "Active", "Pending", "Lapsed", "Completed"];
 
-  const filterStatusOptions = statusOptions.map(status => ({
+  const filterStatusOptions = statusOptions.map((status) => ({
     value: status,
     label: status,
   }));
@@ -245,10 +290,15 @@ export default function LICPoliciesPage() {
     }
   }, [deleteTarget, dispatch, fetchNotifications]);
 
-  const handleCreatePolicySelection = useCallback((type: "LIC" | "OTHER") => {
-    setIsPolicyTypeModalOpen(false);
-    router.push(`/dashboard/lic/policies/new?policyType=${type.toLowerCase()}`);
-  }, [router]);
+  const handleCreatePolicySelection = useCallback(
+    (type: "LIC" | "OTHER") => {
+      setIsPolicyTypeModalOpen(false);
+      router.push(
+        `/dashboard/lic/policies/new?policyType=${type.toLowerCase()}`,
+      );
+    },
+    [router],
+  );
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -257,7 +307,8 @@ export default function LICPoliciesPage() {
         title="Policies"
         subtitle="Manage all policies and their details"
         actions={
-          isClient && canEdit && (
+          isClient &&
+          canEdit && (
             <button
               onClick={() => setIsPolicyTypeModalOpen(true)}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-linear-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
@@ -271,13 +322,37 @@ export default function LICPoliciesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <CustomerStatCard label="Total Policies" value={isLoading ? "..." : stats.total} icon={BarChart} tone="accent" />
-        <CustomerStatCard label="Active" value={isLoading ? "..." : stats.active} icon={CheckCircle} tone="success" />
-        <CustomerStatCard label="Pending" value={isLoading ? "..." : stats.pending} icon={Clock} tone="warning" />
-        <CustomerStatCard label="Lapsed" value={isLoading ? "..." : stats.lapsed} icon={XCircle} tone="warning" />
+        <CustomerStatCard
+          label="Total Policies"
+          value={isLoading ? "..." : stats.total}
+          icon={BarChart}
+          tone="accent"
+        />
+        <CustomerStatCard
+          label="Active"
+          value={isLoading ? "..." : stats.active}
+          icon={CheckCircle}
+          tone="success"
+        />
+        <CustomerStatCard
+          label="Pending"
+          value={isLoading ? "..." : stats.pending}
+          icon={Clock}
+          tone="warning"
+        />
+        <CustomerStatCard
+          label="Lapsed"
+          value={isLoading ? "..." : stats.lapsed}
+          icon={XCircle}
+          tone="warning"
+        />
       </div>
 
-      <PolicyTypeModal isOpen={isPolicyTypeModalOpen} onClose={() => setIsPolicyTypeModalOpen(false)} onSelect={handleCreatePolicySelection} />
+      <PolicyTypeModal
+        isOpen={isPolicyTypeModalOpen}
+        onClose={() => setIsPolicyTypeModalOpen(false)}
+        onSelect={handleCreatePolicySelection}
+      />
 
       {/* Search and Filter */}
       <CustomerToolbar>
@@ -306,106 +381,209 @@ export default function LICPoliciesPage() {
         </div>
       </CustomerToolbar>
 
-      {/* Card View */}
-      <div className="space-y-4">
-        {filteredPolicies.map((policy) => {
-          const statusName = policy.status?.statusName || "Unknown";
-          const statusBadge = getStatusBadge(statusName);
-          const StatusIcon = statusBadge.icon;
-          const lifeAssured = policy.CustomerMaster;
-          const holderName = lifeAssured ? `${lifeAssured.firstName} ${lifeAssured.lastName}` : "";
+      {/* Policies Table */}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Policy No.
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Life Assured
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Group / Plan
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Sum Assured
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Premium
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Mode
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Term
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  PPT
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  FUP Date
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 bg-white">
+              {filteredPolicies.map((policy) => {
+                const statusName = policy.status?.statusName || "Unknown";
+                const statusBadge = getStatusBadge(statusName);
+                const StatusIcon = statusBadge.icon;
+                const lifeAssured = policy.CustomerMaster;
+                const holderName = lifeAssured
+                  ? `${lifeAssured.firstName} ${lifeAssured.lastName}`
+                  : "";
 
-          return (
-            <div
-              key={policy.id}
-              ref={(el) => { rowRefs.current[policy.id] = el as HTMLTableRowElement | null; }}
-              className={`group/item relative bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300
-                ${activeHighlight === policy.id ? "ring-2 ring-offset-2 ring-yellow-400" : ""}`
-              }
-            >
-              <div className="p-5">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-base font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg">{policy.policyNumber}</span>
-                      <h3 className="text-lg font-bold text-slate-800">{holderName}</h3>
-                    </div>
-                    <div className="flex items-center divide-x divide-slate-300 text-sm text-slate-500 mt-1">
-                      {policy.provider?.name && <span className="pr-2">{policy.provider.name}</span>}
-                      {policy.product?.productName && (
-                        <span className="pl-2">{policy.product.productName}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}>
-                      <StatusIcon size={13} />
-                      {statusName}
-                    </span>
-                    {isClient && canEdit && (
-                      <div className="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity duration-200">
-                        <button onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="View"><Eye size={16} /></button>
-                        <button onClick={() => router.push(`/dashboard/lic/policies/edit/${policy.id}`)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="Edit"><Edit size={16} /></button>
-                        <button onClick={() => setDeleteTarget(policy)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"><Trash2 size={16} /></button>
+                return (
+                  <tr
+                    key={policy.id}
+                    ref={(el) => {
+                      rowRefs.current[policy.id] =
+                        el as HTMLTableRowElement | null;
+                    }}
+                    className={`group/item transition-colors duration-200 ${activeHighlight === policy.id ? "bg-yellow-50 ring-2 ring-offset-2 ring-yellow-400" : "hover:bg-slate-50"}`}
+                  >
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm font-semibold text-slate-900">
+                      {policy.policyNumber}
+                    </td>
+                    <td className="min-w-[180px] px-4 py-4 align-top text-sm text-slate-800">
+                      <div className="font-semibold text-slate-900">
+                        {holderName || "—"}
                       </div>
-                    )}
-                    <button onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)} className="p-2 text-slate-400 hover:text-slate-700 rounded-lg transition" title="View Details">
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Details Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-5">
-                  <InfoPill
-                    icon={IndianRupee}
-                    label="Sum Assured"
-                    value={`₹ ${policy.premium?.sumAssured?.toLocaleString("en-IN") || 'N/A'}`}
-                  />
-                  <InfoPill
-                    icon={Shield}
-                    label="Premium"
-                    value={`₹ ${policy.premium?.installmentPremium?.toLocaleString("en-IN") || 'N/A'}`}
-                  />
-                  <InfoPill
-                    icon={Repeat}
-                    label="Mode"
-                    value={policy.premiumMode?.modeName}
-                  />
-                  <InfoPill
-                    icon={Calendar}
-                    label="Term"
-                    value={`${policy.policyTerm || 'N/A'}Y`}
-                  />
-                  <InfoPill
-                    icon={Calendar}
-                    label="PPT"
-                    value={`${policy.premiumPayingTerm || 'N/A'}Y`}
-                  />
-                  <InfoPill
-                    icon={Calendar}
-                    label="FUP Date"
-                    value={policy.nextPremiumDueDate ? new Date(policy.nextPremiumDueDate).toLocaleDateString("en-IN") : "N/A"}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              {policy.customer && (
-                <div className="px-5 py-3 bg-slate-50/70 border-t border-slate-200 rounded-b-2xl">
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Users size={14} />
-                    {policy.customer.groupCode && (
-                      <span className="font-mono bg-slate-200/70 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-bold">{policy.customer.groupCode}</span>
-                    )}
-                    <span className="font-medium">{policy.customer.groupName || 'N/A'}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                    </td>
+                    <td className="max-w-[260px] break-words px-4 py-4 align-top text-sm text-slate-800">
+                      <div className="font-semibold text-slate-900">
+                        {policy.provider?.name || "—"}
+                      </div>
+                      <div className="mt-1 text-sm text-slate-500">
+                        {policy.product?.productName || "—"}
+                      </div>
+                      {policy.customer &&
+                        (policy.customer.groupName ||
+                          policy.customer.groupCode) && (
+                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <div className="inline-flex items-center gap-1">
+                              <Users size={14} />
+                              {policy.customer.groupCode && (
+                                <span className="font-mono bg-slate-200/70 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                  {policy.customer.groupCode}
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-medium">
+                              {policy.customer.groupName || "N/A"}
+                            </span>
+                          </div>
+                        )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm font-semibold text-slate-900">
+                      {policy.premium?.sumAssured
+                        ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}`
+                        : "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm text-slate-800">
+                      {policy.premium?.installmentPremium
+                        ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}`
+                        : "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
+                      {policy.premiumMode?.modeName || "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
+                      {policy.policyTerm ? `${policy.policyTerm}Y` : "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
+                      {policy.premiumPayingTerm
+                        ? `${policy.premiumPayingTerm}Y`
+                        : "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
+                      {policy.nextPremiumDueDate
+                        ? new Date(
+                            policy.nextPremiumDueDate,
+                          ).toLocaleDateString("en-IN")
+                        : "N/A"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}
+                      >
+                        <StatusIcon size={14} />
+                        {statusName}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm text-slate-800">
+                      <div className="inline-flex items-center justify-end gap-2">
+                        <button
+                          onClick={() =>
+                            router.push(`/dashboard/lic/policies/${policy.id}`)
+                          }
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="View"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        {isClient && canEdit && (
+                          <>
+                            <button
+                              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition opacity-0 group-hover/item:opacity-100"
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/lic/policies/edit/${policy.id}`,
+                                )
+                              }
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
+                              onClick={() => setDeleteTarget(policy)}
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Empty State */}
@@ -425,13 +603,29 @@ export default function LICPoliciesPage() {
           <CustomerEmptyState
             title="No policies have been added yet"
             description="Get started by creating a new policy record."
-            action={isClient && canEdit && <button onClick={() => setIsPolicyTypeModalOpen(true)} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"><Plus size={16} /><span>New Policy</span></button>}
+            action={
+              isClient &&
+              canEdit && (
+                <button
+                  onClick={() => setIsPolicyTypeModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+                >
+                  <Plus size={16} />
+                  <span>New Policy</span>
+                </button>
+              )
+            }
           />
         ))
       )}
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal target={deleteTarget} isDeleting={isDeleting} onCancel={() => setDeleteTarget(null)} onConfirm={handleDelete} />
+      <DeleteConfirmationModal
+        target={deleteTarget}
+        isDeleting={isDeleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
