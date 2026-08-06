@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { Seal } from "@/features/customers/pages/CustomerListPage";
 import {
   Plus,
   Search,
@@ -13,6 +14,9 @@ import {
   Trash2,
   AlertCircle,
   Landmark,
+  HandCoins,
+  Banknote,
+  Activity,
 } from "lucide-react";
 import { fetchLoans, deleteLoan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
@@ -166,16 +170,20 @@ export default function LoansPage() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Loans</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Manage policy loans and their status
-          </p>
-        </div>
+        <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
+          <Landmark />
+        </span>
+        <span>
+          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
+            Loans
+          </h1>
+        </span>
+      </div>
         {isClient && canEdit && (
           <button
             onClick={() => router.push("/dashboard/loans/new")}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
           >
             <Plus size={18} />
             New Loan
@@ -185,62 +193,98 @@ export default function LoansPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-10 flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 rounded-lg">
-            <Landmark size={20} className="text-blue-600" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Total Loans</p>
-            <p className="text-lg font-bold text-slate-900">{stats.total}</p>
+        <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/loans")}
+          role="button">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Loans
+              </p>
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {isLoading ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  stats.total
+                )}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <Landmark className="w-6 h-6 text-[#E8C77A]" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-10 flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-50 rounded-lg">
-            <Landmark size={20} className="text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500">Total Loan Amount</p>
-            <p className="text-lg font-bold text-slate-900">
-              ₹ {stats.totalAmount.toLocaleString("en-IN")}
-            </p>
+        <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/loans")}
+          role="button">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Total Loan Amount
+              </p>
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {isLoading ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  <span>₹ {stats.totalAmount.toLocaleString("en-IN")}</span>
+                )}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <HandCoins className="w-6 h-6 text-[#E8C77A]" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-10 flex items-center gap-3">
-          <div className="p-2.5 bg-purple-50 rounded-lg">
-            <Landmark size={20} className="text-purple-600" />
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Avg Loan Amount
-            </p>
-
-            <p className="text-lg font-bold text-slate-900">
-              ₹{" "}
+         <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/loans")}
+          role="button">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Avg Loan Amount
+              </p>
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {isLoading ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  <span>₹{" "}
               {stats.avgAmount.toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
-              })}
-            </p>
+              })}</span>
+                )}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <Banknote className="w-6 h-6 text-[#E8C77A]" />
+            </div>
           </div>
         </div>
 
-
-        <div className="bg-white rounded-xl border border-slate-200 p-10 flex items-center gap-3">
-          <div className="p-2.5 bg-yellow-50 rounded-lg">
-            <Landmark size={20} className="text-yellow-600" />
-          </div>
-
-          <div>
-            <p className="text-xs text-slate-500">
-              Active Loans
-            </p>
-
-            <p className="text-lg font-bold text-slate-900">
-              {stats.activeLoans}
-            </p>
-
+        <div
+          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => router.push("/dashboard/loans")}
+          role="button">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-md text-[#E8C77A] font-bold">
+                Active Loans
+              </p>
+              <p className="text-2xl font-bold text-[#E8C77A]">
+                {isLoading ? (
+                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
+                ) : (
+                  stats.activeLoans
+                )}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <Activity className="w-6 h-6 text-[#E8C77A]" />
+            </div>
           </div>
         </div>
       </div>
@@ -360,8 +404,18 @@ export default function LoansPage() {
 
 
       {/* Table */}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
+          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+            Loans
+          </h2>
+          <p className="block mt-1 text-sm text-slate-500">
+            Browse all Loan records.
+          </p>
+        </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -399,7 +453,7 @@ export default function LoansPage() {
                 return (
                   <tr key={loan.id} className="hover:bg-slate-50 transition">
                     <td className="px-4 py-3">
-                      <span className="font-mono text-sm font-medium text-slate-900">
+                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                         {loan.loanNumber || "—"}
                       </span>
                     </td>
@@ -409,11 +463,21 @@ export default function LoansPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-slate-600">
+                      {/* <span className="text-sm text-slate-600">
                         {customer
                           ? `${customer.firstName} ${customer.lastName}`
                           : "—"}
-                      </span>
+                      </span> */}
+                      <div className="flex gap-3 items-center text-left">
+                        <span className="text-sm text-slate-600">
+                          <Seal name={`${customer?.firstName} ${customer?.lastName}` || "-"} size={34} />
+                        </span>
+                        <span className="text-sm text-slate-600">
+                          {customer
+                          ? `${customer.firstName} ${customer.lastName}`
+                          : "—"}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-slate-900">
@@ -483,9 +547,10 @@ export default function LoansPage() {
               })}
             </tbody>
           </table>
+          
         </div>
       </div>
-
+</section>
 
       <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-slate-200 bg-white">
 
