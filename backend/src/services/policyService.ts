@@ -142,7 +142,6 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
-              mode: riderData.mode,
             },
           });
         }
@@ -458,7 +457,6 @@ export const updatePolicy = async (
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
-              mode: riderData.mode,
             },
           });
         }
