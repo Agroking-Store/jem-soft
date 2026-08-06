@@ -2,7 +2,7 @@ import IncomeReplacement from "@/features/pre-sales/components/IncomeReplacement
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Income Replacement Calculator | Pre-Sales Tools",
+  title: "JEM Soft",
   description:
     "Estimate the life cover required to replace your income for your family, based on future income growth and inflation.",
 };
