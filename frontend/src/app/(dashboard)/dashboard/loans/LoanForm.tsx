@@ -145,6 +145,8 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const { loans, isLoading } = useSelector((state: RootState) => state.loans);
+  const [policyLoanEligiblity , setPolicyLoanEligiblity] = useState(false);
+  let totalLoans = 0;
 
   const validate = (): boolean => {
   const newErrors: Partial<Record<keyof FormState, string>> = {};
@@ -224,21 +226,45 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   return Object.keys(newErrors).length === 0;
 };
 
-  //const selectedPolicyDetails = policies.find((p) => p.id === form.policyId);
-//  async function getTotalLoanForPolicy(policyId: string) {
-//     const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
-//     const totalLoanAmount = filteredLoans.reduce((sum, loan) => {
-//       return sum + (loan.loanAmount || 0);
-//     }, 0);
-//   };
+  function checkPolicyLoanEligibility(selectedPolicy : Policy)
+  {
+    const loanEligible =(new Date().getFullYear() - new Date(selectedPolicy?.commencementDate)?.getFullYear()) > 3;
+    setPolicyLoanEligiblity(loanEligible);
+  }
 
 const getTotalLoanForPolicy = (policyId: string) => {
-  if (!policyId) return 0;
+  const policy : Policy = policies.find((p) => p.id === policyId);
+  if (!policy) return 0;
+
+  const premium = Number(policy?.premium.basicYearlyPremium ?? 0);
+  if (!premium) return 0;
 
   const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
-  return filteredLoans.reduce((sum, loan) => {
+  totalLoans =  filteredLoans.reduce((sum, loan) => {
     return sum + (Number(loan.loanAmount) || 0);
   }, 0);
+
+  const policyDuration = (new Date().getFullYear() - new Date(policy.commencementDate)?.getFullYear());
+  let gsv = 0;
+  if(3 < policyDuration && policyDuration < 5)
+  {
+    //Guaranteed Surrender Value Factor
+     gsv = 0.3
+  }
+  else if(5 < policyDuration && policyDuration < 10)
+  {
+     gsv = 0.5
+  }
+  else if(policyDuration > 10)
+  {
+     gsv = 0.9
+  }
+  console.log(gsv)
+  const policySurrenderValue = (premium * policyDuration) - (premium) * gsv;
+  console.log(premium)
+  console.log(policySurrenderValue * 0.9)
+  return((policySurrenderValue * 0.9))
+
 };
 
 const totalLoanGrantedValue = form.policyId
@@ -389,11 +415,11 @@ const totalLoanGrantedValue = form.policyId
                     );
                     setSelectedPolicy(policy)
                if (!form.totalLoanGranted) {
-      handleChange(
-        "totalLoanGranted",
-        getTotalLoanForPolicy(nextPolicyId).toString(),
-      );
-    }
+                  handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
+                    );
+                   }
+              checkPolicyLoanEligibility(policy)
+          
               }}
               className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.policyId
                 ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
@@ -462,8 +488,16 @@ const totalLoanGrantedValue = form.policyId
             </table>
           </div>
           </CustomerSectionCard>
-          {/* Form Fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+          {!policyLoanEligiblity ? (
+            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+              {selectedPolicy ? (
+                "This policy is not eligible for loan creation. Loans are available only for policies older than 3 years."
+              ) : (
+                "Select a policy to determine loan eligibility."
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
 
             <Input
               label="Loan Number"
@@ -482,7 +516,7 @@ const totalLoanGrantedValue = form.policyId
             />
 
             <Input
-              label="Total Loan Granted"
+              label="Max Loan Grantable"
               placeholder="e.g. 500000"
               value={totalLoanGrantedValue}
               onChange={(e) => handleChange("totalLoanGranted", e.target.value)}
@@ -493,7 +527,7 @@ const totalLoanGrantedValue = form.policyId
             <Input
               label="Prev. Loan Taken"
               placeholder="e.g. 50000"
-              value={totalLoanGrantedValue}
+              value={0}
               onChange={(e) => handleChange("prevLoanTaken", e.target.value)}
               error={errors.prevLoanTaken}
               disabled
@@ -501,19 +535,19 @@ const totalLoanGrantedValue = form.policyId
 
             <Input
               label="New Loan Amount (₹)"
-              type="number"
+              type="text"
               placeholder="e.g. 50000"
               value={form.loanAmount}
+              max={totalLoanGrantedValue}
               onChange={(e) => handleChange("loanAmount", e.target.value)}
               error={errors.loanAmount}
             />
             
             <Input
               label="Interest Rate (%)"
-              type="number"
+              type="text"
               min="0"
               max="100"
-              step="0.01"
               placeholder="e.g. 9.5"
               value={form.interestRate}
               onChange={(e) => handleChange("interestRate", e.target.value)}
@@ -554,7 +588,7 @@ const totalLoanGrantedValue = form.policyId
 
             <Input
               label="Loan Tenure (Months)"
-              type="number"
+              type="text"
               min="1"
               placeholder="e.g. 12"
               value={form.loanTenure}
@@ -597,11 +631,12 @@ const totalLoanGrantedValue = form.policyId
               value={loanNetAmount}
               onChange={(e) => handleChange("netAmount", e.target.value)}
                error={errors.netAmount}
+               disabled
             />
 
             <Input
               label="Cheque Amount"
-              type="number"
+              type="text"
               min="1"
               placeholder="e.g. 12"
               value={form.chequeAmount}
@@ -622,10 +657,11 @@ const totalLoanGrantedValue = form.policyId
                 className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               />
             </div>
-          </div>
+          </div>)}
       </CustomerSectionCard>
-
-      <CustomerSectionCard className="mt-5" title="Repayment Information" icon={FileText}>
+      
+      {policyLoanEligiblity && 
+      (<CustomerSectionCard className="mt-5" title="Repayment Information" icon={FileText}>
               <div className="space-y-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                       label="Date Of Repayment"
@@ -637,10 +673,9 @@ const totalLoanGrantedValue = form.policyId
 
                     <Input
               label="Prev. Loan Interest Rate (%)"
-              type="number"
+              type="text"
               min="0"
               max="100"
-              step="0.01"
               placeholder="e.g. 9.5"
               value={form.prevLoanInterestRate}
               onChange={(e) => handleChange("prevLoanInterestRate", e.target.value)}
@@ -649,7 +684,7 @@ const totalLoanGrantedValue = form.policyId
 
             <Input
               label="Loan Repayed Amount (₹)"
-              type="number"
+              type="text"
               placeholder="e.g. 50000"
               value={form.loanRepaidAmount}
               onChange={(e) => handleChange("loanRepaidAmount", e.target.value)}
@@ -660,16 +695,16 @@ const totalLoanGrantedValue = form.policyId
               label="Total Loan Amount (₹)"
               type="number"
               min="0"
-              step="0.01"
               placeholder="e.g. 50000"
-              value={totalLoanGrantedValue}
+              value={totalLoans}
               onChange={(e) => handleChange("totalLoanAmount", e.target.value)}
               error={errors.totalLoanAmount}
+              disabled
             />
 
               <Input
               label="New BPI Interest (%)"
-              type="number"
+              type="text"
               min="0"
               step="0.01"
               placeholder="e.g. 9.5"
@@ -680,7 +715,7 @@ const totalLoanGrantedValue = form.policyId
 
               <Input
               label="New HLY Interest (%)"
-              type="number"
+              type="text"
               min="0"
               step="0.01"
               placeholder="e.g. 9.5"
@@ -710,8 +745,10 @@ const totalLoanGrantedValue = form.policyId
               />
               </div>
         </div>
-      </CustomerSectionCard>
+      </CustomerSectionCard>)}
+      
        {/* Footer */}
+       {policyLoanEligiblity && (
         <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
 
           <button
@@ -722,21 +759,21 @@ const totalLoanGrantedValue = form.policyId
             Cancel
           </button>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
+          
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
 
-            {mode === "create" ? "Create Loan" : "Save Changes"}
-          </button>
-
-        </div>
+              {mode === "create" ? "Create Loan" : "Save Changes"}
+            </button>
+        </div>)}
       </form>
     </div>
   );

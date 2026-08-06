@@ -49,7 +49,7 @@ export default function LoanDetailsPage() {
   const customer = selectedLoan.policy?.CustomerMaster;
 
   const detailFields = [
-  { key: "totalLoanGranted", label: "Total Loan Granted" },
+  { key: "totalLoanGranted", label: "Total Loan Grantable" },
   { key: "prevLoanTaken", label: "Previous Loan Taken" },
   { key: "prevLoanInterestRate", label: "Previous Loan Interest Rate" },
   { key: "otherDeduction", label: "Other Deduction" },
