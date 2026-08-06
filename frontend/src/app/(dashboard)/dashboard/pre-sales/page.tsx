@@ -2,9 +2,9 @@ import QuickHlvCalculator from "@/features/pre-sales/components/QuickHlvCalculat
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Human Life Value Calculator | Pre-Sales Tools",
+  title: "JEM Soft",
   description:
-    "Calculate Human Life Value (HLV) to assess life insurance coverage requirements based on future income replacement and inflation.",
+    "Assess life insurance coverage and financial planning requirements with pre-sales calculators.",
 };
 
 export default function PreSalesDefaultPage() {
