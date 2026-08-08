@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import {
+  useForm,
+  useFieldArray,
+  Controller,
+  type SubmitHandler,
+  type Resolver,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,1219 +19,2787 @@ import { fetchInsuranceProviders } from "@/features/insurance/insuranceProviderS
 import { fetchRiders } from "@/features/riders/riderMasterSlice";
 import { fetchProducts } from "@/features/insurance/productMasterSlice";
 import { fetchAdvisors } from "@/features/advisor/advisorSlice";
-import {
-    fetchPolicyById,
-    updatePolicy,
-} from "@/features/policy/policySlice";
+import { fetchPolicyById, updatePolicy } from "@/features/policy/policySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
-import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchAgencies } from "@/features/agency/agencySlice";
+import { fetchProductAttributeValues } from "@/features/insurance/productAttributeValueSlice";
+import { useNotificationStore } from "@/store/notificationStore";
+
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
-    ChevronLeft,
-    Save,
-    X,
-    User,
-    DollarSign,
-    FileText,
-    Plus,
-    Trash2,
-    ChevronDown,
-    ChevronRight,
-    Shield,
-    Settings,
-    Search,
+  ChevronLeft,
+  Save,
+  X,
+  User,
+  IndianRupee,
+  FileText,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Settings,
+  Search,
+  Hash,
+  CreditCard,
+  Banknote,
+  Building,
+  Home,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useNotificationStore } from "@/store/notificationStore";
-import { SearchableSelect } from "@/features/customers/components/CustomerUi";
-
+import DatePicker from "../../new/DatePicker";
+import { format, addYears, differenceInYears } from "date-fns";
 
 function getFullName(customer: {
-    salutation?: string | null;
+  salutation?: string | null;
+  firstName: string;
+  middleName?: string | null;
+  lastName?: string | null;
+}) {
+  return [
+    customer.salutation,
+    customer.firstName,
+    customer.middleName,
+    customer.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+import {
+  CustomerSectionCard,
+  SearchableSelect,
+  type SelectOption,
+} from "@/features/customers/components/CustomerUi";
+
+// A reusable component for selecting a customer group with search functionality.
+const GroupAutoComplete = ({
+  value,
+  onChange,
+  groups,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  groups: {
+    id: string;
+    groupCode?: string | null;
+    groupName?: string | null;
+  }[];
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = groups.find((g) => g.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = groups
+    .filter((g) => {
+      const q = query.toLowerCase();
+      return (
+        g.groupName?.toLowerCase().includes(q) ||
+        g.groupCode?.toLowerCase().includes(q)
+      );
+    })
+    .slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Group Name <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
+        <input
+          value={
+            selected
+              ? `${selected.groupCode ? `[${selected.groupCode}] ` : ""}${selected.groupName || ""}`
+              : query
+          }
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+            if (!e.target.value) onChange("");
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search group by name or code..."
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9"
+        />
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange(""); // Clear the value
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => {
+                onChange(g.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+            >
+              <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                {g.groupCode || "—"}
+              </span>
+              <span className="text-sm font-medium text-slate-800">
+                {g.groupName || "—"}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AdvisorAutoComplete = ({
+  value,
+  onChange,
+  advisors,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  advisors: { id: string; advisorCode: string; advisorName: string }[];
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = advisors.find((a) => a.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = advisors
+    .filter((a) => {
+      const q = query.toLowerCase();
+      return (
+        a.advisorName.toLowerCase().includes(q) ||
+        a.advisorCode.toLowerCase().includes(q)
+      );
+    })
+    .slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Advisor <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
+        <input
+          value={
+            selected
+              ? `[${selected.advisorCode}] ${selected.advisorName}`
+              : query
+          }
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+            if (!e.target.value) onChange("");
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder || "Search advisor by name or code..."}
+          disabled={disabled}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        />
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => {
+                onChange(a.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+            >
+              <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                {a.advisorCode}
+              </span>
+              <span className="text-sm font-medium text-slate-800">
+                {a.advisorName}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const LifeAssuredAutoComplete = ({
+  value,
+  onChange,
+  members,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  members: {
+    id: string;
     firstName: string;
     middleName?: string | null;
     lastName?: string | null;
-}) {
-    return [customer.salutation, customer.firstName, customer.middleName, customer.lastName].filter(Boolean).join(" ");
-}
+    salutation?: string | null;
+  }[];
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = members.find((m) => m.id === value);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = members
+    .filter((m) => {
+      const q = query.toLowerCase();
+      return getFullName(m).toLowerCase().includes(q);
+    })
+    .slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Life Assured <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
+        <input
+          value={selected ? getFullName(selected) : query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+            if (!e.target.value) onChange("");
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+        />
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => {
+                onChange(m.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+            >
+              <span className="text-sm font-medium text-slate-800">
+                {getFullName(m)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const BranchAutoComplete = ({
+  value,
+  onChange,
+  branches,
+  disabled,
+  placeholder,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  branches: { id: string; branchCode: string; branchName: string }[];
+  disabled?: boolean;
+  placeholder?: string;
+}) => {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = branches.find((b) => b.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        Branch
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <Search size={16} />
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          disabled={disabled}
+          className="w-full text-left px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          aria-label={
+            selected
+              ? `[${selected.branchCode}] ${selected.branchName}`
+              : placeholder || "Select a branch..."
+          }
+        >
+          {selected
+            ? `[${selected.branchCode}] ${selected.branchName}`
+            : placeholder || "Select a branch..."}
+        </button>
+        {selected && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setQuery("");
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+      {open && branches.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+          {branches.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => {
+                onChange(b.id);
+                setQuery("");
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+            >
+              <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                {b.branchCode}
+              </span>
+              <span className="text-sm font-medium text-slate-800">
+                {b.branchName}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const riderSchema = z.object({
-    description: z.string().min(1, "Description is required"),
+  description: z.string().min(1, "Description is required"),
 
-    sum: z.preprocess(
-        (val) => (val === "" ? null : val),
-        z.coerce.number().positive("Must be positive").nullable()
-    ),
+  sum: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce.number().positive("Must be positive").nullable(),
+  ),
 
-    term: z.preprocess(
-        (val) => (val === "" ? null : val),
-        z.coerce.number().int().positive("Must be positive").nullable()
-    ),
+  term: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce.number().int().positive("Must be positive").nullable(),
+  ),
 
-    ppt: z.preprocess(
-        (val) => (val === "" ? null : val),
-        z.coerce.number().int().positive("Must be positive").nullable()
-    ),
+  ppt: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce.number().int().positive("Must be positive").nullable(),
+  ),
 
-    premium: z.preprocess(
-        (val) => (val === "" ? null : val),
-        z.coerce.number().positive("Must be positive").nullable()
-    ),
-    mode: z.string().optional(),
+  premium: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce.number().positive("Must be positive").nullable(),
+  ),
+  mode: z.string().optional(),
+});
+
+const nomineeSchema = z.object({
+  nomineeName: z.string().min(1, "Nominee name is required"),
+  relationship: z.string().min(1, "Relationship is required"),
+  dateOfBirth: z.string().optional(),
+  percentage: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.coerce
+      .number()
+      .positive("Must be positive")
+      .max(100, "Cannot exceed 100")
+      .nullable(),
+  ),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
 const policySchema = z.object({
-    groupId: z.string().min(1, "Group is required"),
-    groupCode: z.string().optional(),
-    lifeAssuredId: z.string().min(1, "Life Assured is required"),
-    dob: z.string().optional(),
-    age: z.string().optional(),
-    gender: z.string().optional(),
-    pan: z.string().optional(),
+  groupId: z.string().min(1, "Group is required"),
+  groupCode: z.string().optional(),
+  lifeAssuredId: z.string().min(1, "Life Assured is required"),
+  dob: z.string().optional(),
+  age: z.string().optional(),
+  gender: z.string().optional(),
+  pan: z.string().optional(),
 
-    providerType: z.string().min(1, "Provider type is required"),
-    productType: z.string().optional(),
-    providerId: z.string().min(1, "Provider is required"),
-    policyNumber: z
-        .string()
-        .trim()
-        .min(1, "Policy number is required")
-        .regex(/^\d{9}$/, "Policy number must be exactly 9 digits"),
-    productId: z.string().min(1, "Plan is required"),
-    mode: z.string().min(1, "Mode is required"),
-    commencementDate: z.string().min(1, "Commencement date is required"),
-    completionDate: z.string().min(1, "Completion date is required"),
+  providerType: z.string().min(1, "Provider type is required"),
+  productType: z.string().optional(),
+  providerId: z.string().min(1, "Provider is required"),
+  policyNumber: z
+    .string()
+    .regex(/^\d{9}$/, "Policy number must be exactly 9 digits."),
+  productId: z.string().min(1, "Plan is required"),
+  mode: z.string().min(1, "Mode is required"),
+  commencementDate: z.string().min(1, "Commencement date is required."),
+  completionDate: z.string().min(1, "Completion date is required."),
+  term: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().positive().optional(),
+  ),
+  ppt: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().int().positive().optional(),
+  ),
+  extraClass: z.string().optional(),
+  ratePercent: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
 
-    term: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().int().nonnegative().optional()
-    ),
+  sumAssured: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  basicYearlyPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  totalYearlyPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  totalRiderPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  installmentPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  gst: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
+  totalInstallmentPremium: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive().optional(),
+  ),
 
-    ppt: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().int().nonnegative().optional()
-    ),
+  riders: z.array(riderSchema).optional(),
+  nominees: z.array(nomineeSchema).optional(),
 
-    extraClass: z.string().optional(),
+  advisorId: z.string().min(1, "Advisor is required."),
+  agencyId: z.string().min(1, "Agency is required."),
+  branchId: z.string().optional(),
+  agentCode: z.string().optional(),
+  fupDate: z.string().optional(),
+  fuliDate: z.string().optional(),
+  statusId: z.string().optional(),
 
-    ratePercent: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
+  bankName: z.string().optional(),
+  bankBranch: z.string().optional(),
+  city: z.string().optional(),
+  accountType: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  micrNumber: z.string().optional(),
+  accountHolderName: z.string().optional(),
 
-    sumAssured: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    basicYearlyPremium: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    totalYearlyPremium: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    totalRiderPremium: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    installmentPremium: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    gst: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    totalInstallmentPremium: z.preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().nonnegative().optional()
-    ),
-
-    riders: z.array(riderSchema).optional(),
-
-    advisorId: z.string().optional(),
-    agentCode: z.string().optional(),
-    accountHolderName: z.string().optional(),
-    branchId: z.string().optional(),
+  neftBankName: z.string().optional(),
+  neftBankBranch: z.string().optional(),
+  neftAccountNumber: z.string().optional(),
+  neftIfscCode: z.string().optional(),
+  neftAccountHolderName: z.string().optional(),
+  neftSubmissionDate: z.string().optional(),
 });
 
 type PolicyFormValues = z.infer<typeof policySchema>;
 
 export default function EditLICPolicyPage() {
-    const router = useRouter();
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isLoading: authLoading } = useAuth();
 
-    const params = useParams();
-    const id = params.id as string;
+  const { customers: groups, isLoading: groupsLoading } = useSelector(
+    (s: RootState) => s.customers,
+  );
+  const { customers: masterCustomers, isLoading: masterLoading } = useSelector(
+    (s: RootState) => s.customerMaster,
+  );
+  const { providers, isLoading: providersLoading } = useSelector(
+    (s: RootState) => s.insuranceProviders,
+  );
+  const { products, isLoading: productsLoading } = useSelector(
+    (s: RootState) => s.products,
+  );
+  const { riders, isLoading: ridersLoading } = useSelector(
+    (s: RootState) => s.riderMaster,
+  );
+  const { advisors, isLoading: advisorsLoading } = useSelector(
+    (s: RootState) => s.advisors,
+  );
+  const { statuses, isLoading: statusesLoading } = useSelector(
+    (s: RootState) => s.policyStatuses,
+  );
+  const { modes, isLoading: modesLoading } = useSelector(
+    (s: RootState) => s.premiumModes,
+  );
+  const { branches, isLoading: branchesLoading } = useSelector(
+    (s: RootState) => s.licBranch,
+  );
+  const { agencies, isLoading: agenciesLoading } = useSelector(
+    (s: RootState) => s.agency,
+  );
+  const { values: productAttributeValues, isLoading: attributesLoading } =
+    useSelector((s: RootState) => s.productAttributeValues);
+  const { selectedPolicy, isLoading: policyLoading } = useSelector(
+    (s: RootState) => s.policies,
+  );
 
-    const dispatch = useDispatch<AppDispatch>();
+  const [activeSection, setActiveSection] = useState("policy-holder");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const [useNach, setUseNach] = useState(false);
+  const [useNeft, setUseNeft] = useState(false);
+  const { fetchNotifications } = useNotificationStore();
+  const [attributeHints, setAttributeHints] = useState({
+    term: "",
+    ppt: "",
+    sumAssured: "",
+    age: "",
+  });
 
-    const { fetchNotifications } = useNotificationStore();
+  useEffect(() => {
+    dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
+    dispatch(fetchInsuranceProviders());
+    dispatch(fetchProducts());
+    dispatch(fetchRiders());
+    dispatch(fetchAdvisors());
+    dispatch(fetchPolicyStatuses());
+    dispatch(fetchPremiumModes());
+    dispatch(fetchLicBranches());
+    dispatch(fetchAgencies());
+    dispatch(fetchProductAttributeValues());
+    setIsMounted(true);
+  }, [dispatch]);
 
-    const { selectedPolicy } = useSelector(
-        (state: RootState) => state.policies
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchPolicyById(id as string));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (isMounted && !authLoading && user) {
+      if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
+        toast.error("You do not have permission to edit a policy.");
+        router.replace("/dashboard/lic/policies");
+      }
+    }
+  }, [isMounted, authLoading, user, router]);
+
+  const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    clearErrors,
+    setError,
+    reset,
+    formState: { errors },
+  } = useForm<PolicyFormValues>({
+    resolver: async (values, context, options) => {
+      const selectedProductAttributes = productAttributeValues.filter(
+        (attr) => attr.productId === values.productId,
+      );
+      const getAttributeValue = (code: string) =>
+        selectedProductAttributes.find(
+          (a) => a.attribute.attributeCode === code,
+        )?.value;
+
+      let refinedSchema = policySchema;
+
+      const minTerm = getAttributeValue("MIN_POLICY_TERM");
+      const maxTerm = getAttributeValue("MAX_POLICY_TERM");
+      if (minTerm || maxTerm) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.term) return true;
+            const term = Number(data.term);
+            if (minTerm && term < Number(minTerm)) return false;
+            if (maxTerm && term > Number(maxTerm)) return false;
+            return true;
+          },
+          {
+            message: `Term must be between ${minTerm || "N/A"} and ${maxTerm || "N/A"}.`,
+            path: ["term"],
+          },
+        );
+      }
+
+      if (maxTerm) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.commencementDate || !data.completionDate) return true;
+            try {
+              const startDate = new Date(data.commencementDate);
+              const endDate = new Date(data.completionDate);
+              const diffYears =
+                (endDate.getTime() - startDate.getTime()) /
+                (1000 * 60 * 60 * 24 * 365.25);
+              return diffYears <= Number(maxTerm);
+            } catch (e) {
+              return true;
+            }
+          },
+          {
+            message: `The duration between commencement and completion cannot exceed the maximum term of ${maxTerm} years.`,
+            path: ["completionDate"],
+          },
+        );
+      }
+
+      const minSum = getAttributeValue("MIN_SUM_ASSURED");
+      const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+      if (minSum || maxSum) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.sumAssured) return true;
+            const sum = Number(data.sumAssured);
+            if (minSum && sum < Number(minSum)) return false;
+            if (maxSum && sum > Number(maxSum)) return false;
+            return true;
+          },
+          {
+            message: `Sum Assured must be between ${minSum || "N/A"} and ${maxSum || "N/A"}.`,
+            path: ["sumAssured"],
+          },
+        );
+      }
+
+      const minPpt = getAttributeValue("MIN_PPT");
+      const maxPpt = getAttributeValue("MAX_PPT");
+      if (minPpt || maxPpt) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.ppt) return true;
+            const ppt = Number(data.ppt);
+            if (minPpt && ppt < Number(minPpt)) return false;
+            if (maxPpt && ppt > Number(maxPpt)) return false;
+            return true;
+          },
+          {
+            message: `PPT must be between ${minPpt || "N/A"} and ${maxPpt || "N/A"}.`,
+            path: ["ppt"],
+          },
+        );
+      }
+
+      return zodResolver(refinedSchema as any)(
+        values as any,
+        context as any,
+        options as any,
+      ) as any;
+    },
+    defaultValues: {
+      riders: [],
+      nominees: [],
+    },
+  });
+
+  const sectionRefs = {
+    "policy-holder": useRef<HTMLDivElement>(null),
+    "policy-details": useRef<HTMLDivElement>(null),
+    "premium-calculation": useRef<HTMLDivElement>(null),
+    riders: useRef<HTMLDivElement>(null),
+    advanced: useRef<HTMLDivElement>(null),
+  };
+
+  const {
+    fields: riderFields,
+    append: appendRider,
+    remove: removeRider,
+  } = useFieldArray({
+    control,
+    name: "riders",
+  });
+
+  const {
+    fields: nomineeFields,
+    append: appendNominee,
+    remove: removeNominee,
+  } = useFieldArray({
+    control,
+    name: "nominees",
+  });
+
+  const watchGroupId = watch("groupId");
+  const watchLifeAssuredId = watch("lifeAssuredId");
+  const watchAdvisorId = watch("advisorId");
+  const watchBasicYearlyPremium = watch("basicYearlyPremium");
+  const watchBranchId = watch("branchId");
+  const watchSumAssured = watch("sumAssured");
+  const watchTerm = watch("term");
+  const watchCommencementDate = watch("commencementDate");
+  const watchCompletionDate = watch("completionDate");
+  const watchPpt = watch("ppt");
+  const watchMode = watch("mode");
+  const watchAgencyId = watch("agencyId");
+  const watchTotalRiderPremium = watch("totalRiderPremium");
+  const watchRiders = watch("riders");
+  const watchFupDate = watch("fupDate");
+  const watchPolicyNumber = watch("policyNumber");
+
+  const watchProductId = watch("productId");
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.id === watchGroupId),
+    [watchGroupId, groups],
+  );
+
+  const groupMembers = useMemo(() => {
+    if (!watchGroupId) return [];
+    return masterCustomers.filter((m) => m.groupId === watchGroupId);
+  }, [watchGroupId, masterCustomers]);
+
+  // Reset form with selected policy data
+  useEffect(() => {
+    if (!selectedPolicy) return;
+
+    const policyBranch = branches.find((b) => b.id === selectedPolicy.branchId);
+
+    reset({
+      groupId: selectedPolicy.clientId,
+      groupCode: selectedGroup?.groupCode || "",
+      lifeAssuredId: selectedPolicy.CustomerMasterId,
+
+      providerType: selectedPolicy.provider?.type ?? "",
+      providerId: selectedPolicy.providerId,
+      productId: selectedPolicy.productId,
+
+      policyNumber: selectedPolicy.policyNumber,
+
+      statusId: selectedPolicy.statusId ?? "",
+
+      fupDate: selectedPolicy.nextPremiumDueDate
+        ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
+        : "",
+
+      fuliDate:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "fuliDate",
+        )?.value ?? "",
+
+      commencementDate: selectedPolicy.commencementDate?.substring(0, 10),
+
+      completionDate: selectedPolicy.maturityDate
+        ? selectedPolicy.maturityDate.substring(0, 10)
+        : "",
+
+      productType: (selectedPolicy.product as any)?.productType ?? "",
+
+      advisorId: selectedPolicy.advisorId ?? "",
+      agencyId: selectedPolicy.advisor?.agencyId ?? "",
+
+      agentCode: selectedPolicy.agentCode ?? "",
+
+      branchId: selectedPolicy.branchId ?? "",
+
+      accountHolderName: selectedPolicy.CustomerMaster
+        ? getFullName(selectedPolicy.CustomerMaster)
+        : "",
+
+      term: selectedPolicy.policyTerm ?? undefined,
+
+      ppt: selectedPolicy.premiumPayingTerm ?? undefined,
+
+      mode: selectedPolicy.premiumMode?.modeName ?? "",
+
+      sumAssured: selectedPolicy.premium?.sumAssured ?? undefined,
+
+      basicYearlyPremium:
+        selectedPolicy.premium?.basicYearlyPremium ?? undefined,
+
+      totalYearlyPremium:
+        selectedPolicy.premium?.totalYearlyPremium ?? undefined,
+
+      totalRiderPremium:
+        (selectedPolicy.premium as any)?.totalRiderPremium ?? undefined,
+
+      installmentPremium:
+        selectedPolicy.premium?.installmentPremium ?? undefined,
+
+      totalInstallmentPremium:
+        selectedPolicy.premium?.totalInstallmentPremium ?? undefined,
+
+      gst: selectedPolicy.premium?.gst ?? undefined,
+
+      dob: selectedPolicy.CustomerMaster?.dob
+        ? new Date(selectedPolicy.CustomerMaster.dob)
+            .toISOString()
+            .substring(0, 10)
+        : "",
+      age: selectedPolicy.CustomerMaster?.dob
+        ? Math.floor(
+            (Date.now() -
+              new Date(selectedPolicy.CustomerMaster.dob).getTime()) /
+              (365.25 * 24 * 60 * 60 * 1000),
+          ).toString()
+        : "",
+      gender: selectedPolicy.CustomerMaster?.gender ?? "",
+      pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
+
+      bankName:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankName ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
+        "",
+      bankBranch:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankBranch ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
+        "",
+      city:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.city ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.city ??
+        "",
+      accountType:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountType ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountType ??
+        "",
+      accountNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
+        "",
+      ifscCode:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.ifscCode ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
+        "",
+      micrNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.micrNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.micrNumber ??
+        "",
+
+      neftBankName:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankName ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
+        "",
+      neftBankBranch:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankBranch ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
+        "",
+      neftAccountNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
+        "",
+      neftIfscCode:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.ifscCode ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
+        "",
+      neftAccountHolderName: selectedPolicy.CustomerMaster
+        ? getFullName(selectedPolicy.CustomerMaster)
+        : "",
+      neftSubmissionDate: "",
+
+      riders:
+        selectedPolicy.policyRiders?.map((r: any) => ({
+          description: r.rider.riderName,
+          sum: r.riderAmount,
+          premium: r.riderPremium,
+          term: undefined,
+          mode: r.rider.mode,
+          ppt: undefined,
+        })) ?? [],
+
+      nominees:
+        selectedPolicy.nominees?.map((n: any) => ({
+          nomineeName: n.nomineeName,
+          relationship: n.relationship,
+          dateOfBirth: n.dateOfBirth ? n.dateOfBirth.substring(0, 10) : "",
+          percentage: n.percentage,
+          phone: n.phone,
+          email: n.email,
+        })) ?? [],
+    });
+
+    // Enable NACH/NEFT if bank details exist
+    if (selectedPolicy.CustomerMaster?.bankDetails?.length) {
+      setUseNach(true);
+      setUseNeft(true);
+    }
+  }, [selectedPolicy, reset, branches, selectedGroup]);
+
+  useEffect(() => {
+    setValue("groupCode", selectedGroup?.groupCode || "");
+  }, [watchGroupId, selectedGroup, setValue]);
+
+  useEffect(() => {
+    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    setValue(
+      "dob",
+      member?.dob ? new Date(member.dob).toISOString().split("T")[0] : "",
+    );
+    setValue(
+      "age",
+      member?.dob
+        ? String(new Date().getFullYear() - new Date(member.dob).getFullYear())
+        : "",
+    );
+    setValue("gender", member?.gender || "");
+    setValue("pan", member?.panNumber || "");
+
+    // Auto-fill bank details from the selected customer's default bank account
+    if (member && member.bankDetails && member.bankDetails.length > 0) {
+      const defaultBank =
+        member.bankDetails.find((b) => b.isDefault) || member.bankDetails[0];
+      if (defaultBank) {
+        // NACH fields
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+
+        // NEFT fields
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
+      }
+    } else {
+      // Clear all bank fields if no bank details exist
+      setValue("bankName", "");
+      setValue("bankBranch", "");
+      setValue("city", "");
+      setValue("accountType", "");
+      setValue("accountNumber", "");
+      setValue("ifscCode", "");
+      setValue("micrNumber", "");
+      setValue("neftBankName", "");
+      setValue("neftBankBranch", "");
+      setValue("neftAccountNumber", "");
+      setValue("neftIfscCode", "");
+    }
+
+    if (member) {
+      setValue("accountHolderName", getFullName(member));
+      setValue("neftAccountHolderName", getFullName(member));
+    } else {
+      setValue("accountHolderName", "");
+      setValue("neftAccountHolderName", "");
+    }
+  }, [watchLifeAssuredId, masterCustomers, setValue]);
+
+  useEffect(() => {
+    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (useNach && member) {
+      const defaultBank =
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(member));
+      }
+    }
+  }, [useNach, watchLifeAssuredId, masterCustomers, setValue]);
+
+  useEffect(() => {
+    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (useNeft && member) {
+      const defaultBank =
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(member));
+      }
+    }
+  }, [useNeft, watchLifeAssuredId, masterCustomers, setValue]);
+
+  const availableProducts = useMemo(() => {
+    return [...products].sort((a, b) =>
+      (a.planNumber ?? "").localeCompare(b.planNumber ?? ""),
+    );
+  }, [products]);
+
+  const filteredAdvisors = useMemo(() => {
+    if (!watchAgencyId) return [];
+    return advisors.filter((a) => a.agencyId === watchAgencyId);
+  }, [watchAgencyId, advisors]);
+
+  useEffect(() => {
+    const agency = agencies.find((a) => a.id === watchAgencyId);
+    // When agency changes, reset the advisor
+    setValue("advisorId", "");
+
+    if (agency) {
+      if (agency.agencyCode === "AG002" || agency.agencyCode === "AG003") {
+        const directBranch = branches.find((b) => b.branchCode === "955");
+        setValue("branchId", directBranch?.id || "");
+      } else {
+        setValue("branchId", agency.branchId || "");
+      }
+    }
+  }, [watchAgencyId, agencies, branches, setValue]);
+
+  useEffect(() => {
+    const advisor = advisors.find((a) => a.id === watchAdvisorId);
+    setValue("agentCode", advisor?.advisorCode || "");
+  }, [watchAdvisorId, advisors, setValue]);
+
+  useEffect(() => {
+    const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
+    const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+    const total = basic + rider;
+    setValue("totalYearlyPremium", total > 0 ? total : undefined);
+  }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
+
+  // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
+  useEffect(() => {
+    if (Array.isArray(watchRiders)) {
+      let totalInstallmentRiderPremium = 0;
+      let totalYearlyRiderPremium = 0;
+
+      watchRiders.forEach((rider, index) => {
+        const sum = parseFloat(String(rider.sum)) || 0;
+        const term = parseFloat(String(rider.term)) || 0;
+        const ppt = parseFloat(String(rider.ppt)) || 0;
+        const mode = rider.mode;
+        let currentPremium = parseFloat(String(rider.premium)) || 0;
+        let yearlyRiderPremium = 0;
+
+        if (sum > 0 && term > 0 && ppt > 0 && mode) {
+          yearlyRiderPremium = sum * 0.01;
+          let installmentRiderPremium = 0;
+
+          switch (mode) {
+            case "Yearly":
+              installmentRiderPremium = yearlyRiderPremium;
+              break;
+            case "Half-yearly":
+            case "Half-Yearly":
+              installmentRiderPremium = yearlyRiderPremium * 0.51;
+              break;
+            case "Quarterly":
+              installmentRiderPremium = yearlyRiderPremium * 0.26;
+              break;
+            case "Monthly":
+              installmentRiderPremium = yearlyRiderPremium * 0.088;
+              break;
+            default:
+              installmentRiderPremium = 0;
+          }
+
+          const finalRiderPremium = parseFloat(
+            installmentRiderPremium.toFixed(2),
+          );
+          if (finalRiderPremium !== currentPremium) {
+            setValue(`riders.${index}.premium`, finalRiderPremium);
+            currentPremium = finalRiderPremium;
+          }
+        }
+        totalInstallmentRiderPremium += currentPremium;
+        totalYearlyRiderPremium += yearlyRiderPremium;
+      });
+      setValue(
+        "totalRiderPremium",
+        totalInstallmentRiderPremium > 0
+          ? totalInstallmentRiderPremium
+          : undefined,
+      );
+    }
+  }, [watchRiders, setValue]);
+
+  // Auto-calculate Completion Date
+  useEffect(() => {
+    const term = Number(watchTerm);
+    if (watchCommencementDate && term > 0) {
+      try {
+        const startDate = new Date(watchCommencementDate);
+        const completionDate = addYears(startDate, term);
+        setValue("completionDate", format(completionDate, "yyyy-MM-dd"));
+      } catch (e) {
+        // Do nothing if the date is invalid
+      }
+    }
+  }, [watchCommencementDate, watchTerm, setValue]);
+
+  // Auto-calculate Term from dates
+  useEffect(() => {
+    if (watchCommencementDate && watchCompletionDate) {
+      try {
+        const startDate = new Date(watchCommencementDate);
+        const endDate = new Date(watchCompletionDate);
+        const term = differenceInYears(endDate, startDate);
+        if (term >= 0) setValue("term", term);
+      } catch (e) {
+        // Do nothing if dates are invalid
+      }
+    }
+  }, [watchCommencementDate, watchCompletionDate, setValue]);
+
+  useEffect(() => {
+    const sum = parseFloat(String(watchSumAssured)) || 0;
+    const term = parseFloat(String(watchTerm)) || 0;
+    const ppt = parseFloat(String(watchPpt)) || 0;
+    const mode = watchMode;
+
+    if (sum > 0 && term > 0 && ppt > 0 && mode) {
+      const basicYearlyPremium = sum * 0.05;
+      setValue(
+        "basicYearlyPremium",
+        basicYearlyPremium > 0
+          ? parseFloat(basicYearlyPremium.toFixed(2))
+          : undefined,
+      );
+
+      let installmentPremium = 0;
+      switch (mode) {
+        case "Yearly":
+        case "Single":
+          installmentPremium = basicYearlyPremium;
+          break;
+        case "Half-yearly":
+        case "Half-Yearly":
+          installmentPremium = basicYearlyPremium * 0.51;
+          break;
+        case "Quarterly":
+          installmentPremium = basicYearlyPremium * 0.26;
+          break;
+        case "Monthly":
+          installmentPremium = basicYearlyPremium * 0.088;
+          break;
+        default:
+          installmentPremium = 0;
+      }
+      setValue(
+        "installmentPremium",
+        installmentPremium > 0
+          ? parseFloat(installmentPremium.toFixed(2))
+          : undefined,
+      );
+      setValue("gst", undefined);
+      setValue(
+        "totalInstallmentPremium",
+        installmentPremium > 0
+          ? parseFloat(installmentPremium.toFixed(2))
+          : undefined,
+      );
+    }
+  }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
+
+  // When product changes, update attribute hints and pre-fill fields with minimum values.
+  useEffect(() => {
+    if (!watchProductId || !productAttributeValues || !products.length) {
+      setAttributeHints({ term: "", ppt: "", sumAssured: "", age: "" });
+      return;
+    }
+
+    const selectedProductAttributes = productAttributeValues.filter(
+      (attr) => attr.productId === watchProductId,
     );
 
-    const {
-        register,
-        handleSubmit,
-        control,
-        watch,
-        setValue,
-        reset,
-        formState: { errors },
-    } = useForm<PolicyFormValues>({
-        resolver: zodResolver(policySchema),
-        defaultValues: {
-            riders: [],
-            statusId: "",
-            fupDate: ""
+    const getAttributeValue = (code: string) =>
+      selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
+        ?.value;
+
+    const minTerm = getAttributeValue("MIN_POLICY_TERM");
+    const maxTerm = getAttributeValue("MAX_POLICY_TERM");
+    const minPpt = getAttributeValue("MIN_PPT");
+    const maxPpt = getAttributeValue("MAX_PPT");
+    const minSum = getAttributeValue("MIN_SUM_ASSURED");
+    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+    const minAge = getAttributeValue("MIN_ENTRY_AGE");
+    const maxAge = getAttributeValue("MAX_ENTRY_AGE");
+
+    setAttributeHints({
+      term:
+        minTerm || maxTerm
+          ? `Range: ${minTerm || "N/A"} - ${maxTerm || "N/A"}`
+          : "",
+      ppt:
+        minPpt || maxPpt
+          ? `Range: ${minPpt || "N/A"} - ${maxPpt || "N/A"}`
+          : "",
+      sumAssured:
+        minSum || maxSum
+          ? `Range: ${minSum || "N/A"} - ${maxSum || "N/A"}`
+          : "",
+      age:
+        minAge || maxAge
+          ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
+          : "",
+    });
+  }, [watchProductId, productAttributeValues, products, setValue]);
+
+  const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        ...data,
+        advisorId: data.advisorId || null,
+        branchId: data.branchId || null,
+        attributes: {
+          MIN_POLICY_TERM: data.term,
+          MAX_POLICY_TERM: data.term,
+          MIN_PPT: data.ppt,
+          MAX_PPT: data.ppt,
+          MIN_SUM_ASSURED: data.sumAssured,
+          MAX_SUM_ASSURED: data.sumAssured,
         },
-    });
-
-    const { customers: groups, isLoading: groupsLoading } = useSelector((s: RootState) => s.customers);
-    const { customers: masterCustomers, isLoading: masterLoading } = useSelector((s: RootState) => s.customerMaster);
-    const { providers, isLoading: providersLoading } = useSelector((s: RootState) => s.insuranceProviders);
-    const { products, isLoading: productsLoading } = useSelector((s: RootState) => s.products);
-    const { riders, isLoading: ridersLoading } = useSelector((s: RootState) => s.riderMaster);
-    const { advisors, isLoading: advisorsLoading } = useSelector((s: RootState) => s.advisors);
-    const { statuses, isLoading: statusesLoading } = useSelector((s: RootState) => s.policyStatuses);
-    const { modes, isLoading: modesLoading } = useSelector((s: RootState) => s.premiumModes);
-    const { branches: licBranches, isLoading: licBranchesLoading } = useSelector((s: RootState) => s.licBranch);
-
-    const [activeSection, setActiveSection] = useState("policy-holder");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [glowingSection, setGlowingSection] = useState<string | null>(null);
-
-    useEffect(() => {
-        dispatch(fetchCustomers());
-        dispatch(fetchCustomersMaster());
-        dispatch(fetchInsuranceProviders());
-        dispatch(fetchProducts());
-        dispatch(fetchRiders());
-        dispatch(fetchAdvisors());
-        dispatch(fetchPolicyStatuses());
-        dispatch(fetchPremiumModes());
-        dispatch(fetchLicBranches());
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (id) {
-            dispatch(fetchPolicyById(id as string));
-        }
-    }, [dispatch, id]);
-
-
-
-    useEffect(() => {
-        if (!selectedPolicy) return;
-
-        const policyBranch = licBranches.find(b => b.id === selectedPolicy.branchId);
-
-
-        reset({
-            groupId: selectedPolicy.clientId,
-            lifeAssuredId: selectedPolicy.CustomerMasterId,
-
-            providerType:
-                selectedPolicy.provider?.type ?? "",
-
-            providerId: selectedPolicy.providerId,
-            productId: selectedPolicy.productId,
-
-            policyNumber: selectedPolicy.policyNumber,
-
-            statusId: selectedPolicy.statusId,
-
-            fupDate: selectedPolicy.nextPremiumDueDate
-                ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
-                : "",
-
-            commencementDate: selectedPolicy.commencementDate
-                ?.substring(0, 10),
-
-            completionDate: selectedPolicy.maturityDate
-                ? selectedPolicy.maturityDate.substring(0, 10)
-                : "",
-
-            productType: selectedPolicy.product?.productType ?? "",
-
-            advisorId: selectedPolicy.advisorId ?? "",
-
-            agentCode: selectedPolicy.agentCode ?? "",
-
-            branchId: policyBranch?.branchCode ?? "",
-
-            accountHolderName: selectedPolicy.CustomerMaster
-                ? getFullName(selectedPolicy.CustomerMaster)
-                : "",
-
-            term: selectedPolicy.policyTerm ?? undefined,
-
-            ppt:
-                selectedPolicy.premiumPayingTerm ?? undefined,
-
-            mode: selectedPolicy.premiumMode?.modeName ?? "",
-
-            sumAssured:
-                selectedPolicy.premium?.sumAssured ?? undefined,
-
-            basicYearlyPremium:
-                selectedPolicy.premium?.basicYearlyPremium ?? undefined,
-
-            totalYearlyPremium:
-                selectedPolicy.premium?.totalYearlyPremium ?? undefined,
-
-            installmentPremium:
-                selectedPolicy.premium?.installmentPremium ?? undefined,
-
-            totalInstallmentPremium:
-                selectedPolicy.premium?.totalInstallmentPremium ??
-                undefined,
-
-            gst:
-                selectedPolicy.premium?.gst ?? undefined,
-
-            riders:
-                selectedPolicy.policyRiders?.map((r: any) => ({
-                    description: r.rider.riderName,
-                    sum: r.riderAmount,
-                    premium: r.riderPremium,
-                    term: "",
-                    mode: r.rider.mode,
-                    ppt: "",
-                })) ?? [],
-        });
-    }, [selectedPolicy, reset, licBranches]);
-
-
-    const sectionRefs = {
-        'policy-holder': useRef<HTMLDivElement>(null),
-        'policy-details': useRef<HTMLDivElement>(null),
-        'premium-calculation': useRef<HTMLDivElement>(null),
-        'riders': useRef<HTMLDivElement>(null),
-        'advanced': useRef<HTMLDivElement>(null),
-    };
-
-    const { fields: riderFields, append: appendRider, remove: removeRider } = useFieldArray({
-        control,
-        name: "riders",
-    });
-
-    const watchGroupId = watch("groupId");
-    const watchLifeAssuredId = watch("lifeAssuredId");
-    const watchProviderType = watch("providerType");
-    const watchProviderId = watch("providerId");
-    const watchProductType = watch("productType");
-    const watchAdvisorId = watch("advisorId");
-    const watchBasicYearlyPremium = watch("basicYearlyPremium");
-    const watchTotalRiderPremium = watch("totalRiderPremium");
-    const watchRiders = watch("riders");
-
-
-    const selectedGroup = useMemo(() => groups.find(g => g.id === watchGroupId), [watchGroupId, groups]);
-
-    const groupMembers = useMemo(() => {
-        if (!watchGroupId) return [];
-        return masterCustomers.filter(m => m.groupId === watchGroupId);
-    }, [watchGroupId, masterCustomers]);
-
-    const previousGroupId = useRef<string | undefined>(undefined);
-
-    useEffect(() => {
-        setValue("groupCode", selectedGroup?.groupCode || "");
-
-        // Only clear Life Assured when the user changes the group,
-        // not during the initial form load.
-        if (
-            previousGroupId.current !== undefined &&
-            previousGroupId.current !== watchGroupId
-        ) {
-            setValue("lifeAssuredId", "");
-        }
-
-        previousGroupId.current = watchGroupId;
-    }, [watchGroupId, selectedGroup, setValue]);
-
-    useEffect(() => {
-        const member = masterCustomers.find(m => m.id === watchLifeAssuredId);
-        setValue("dob", member?.dob ? new Date(member.dob).toISOString().split("T")[0] : "");
-        setValue("age", member?.dob ? String(new Date().getFullYear() - new Date(member.dob).getFullYear()) : "");
-        setValue("gender", member?.gender || "");
-        setValue("pan", member?.panNumber || "");
-
-        if (member) {
-            setValue("accountHolderName", getFullName(member));
-        }
-    }, [watchLifeAssuredId, masterCustomers, setValue]);
-
-    const providerTypes = useMemo(() => {
-        return [...new Set(providers.map(p => p.type))];
-    }, [providers]);
-
-    const filteredProviders = useMemo(() => {
-        if (!watchProviderType) return [];
-        return providers.filter(p => p.type === watchProviderType);
-    }, [watchProviderType, providers]);
-
-    const selectedProvider = useMemo(() => {
-        return providers.find((p) => p.id === watchProviderId);
-    }, [watchProviderId, providers]);
-    const isLicProviderSelected = selectedProvider?.code === 'LIC';
-
-
-    const filteredProducts = useMemo(() => {
-        return [...products].sort((a, b) =>
-            (a.planNumber ?? "").localeCompare(b.planNumber ?? "")
-        );
-    }, [products]);
-
-
-    useEffect(() => {
-        const advisor = advisors.find(a => a.id === watchAdvisorId);
-        setValue("agentCode", advisor?.advisorCode || "");
-    }, [watchAdvisorId, advisors, setValue]);
-
-    useEffect(() => {
-        const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
-        const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
-        const total = basic + rider;
-        // Use setValue to update the form value; using a string to avoid potential issues with number formatting
-        setValue(
-            "totalYearlyPremium",
-            total > 0 ? total : undefined
-        );
-    }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
-
-    // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
-    useEffect(() => {
-        if (watchRiders) {
-            let totalRiderPremium = 0;
-            watchRiders.forEach((rider, index) => {
-                const sum = parseFloat(String(rider.sum)) || 0;
-                const term = parseFloat(String(rider.term)) || 0;
-                const ppt = parseFloat(String(rider.ppt)) || 0;
-                const mode = rider.mode;
-                let currentPremium = parseFloat(String(rider.premium)) || 0;
-
-                if (sum > 0 && term > 0 && ppt > 0 && mode) {
-                    // Placeholder: Assume yearly premium is 1% of sum assured.
-                    const yearlyRiderPremium = sum * 0.01;
-                    let installmentRiderPremium = 0;
-
-                    // Apply mode factors to calculate installment premium for the rider
-                    switch (mode) {
-                        case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
-                        case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
-                        case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
-                        case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
-                        default: installmentRiderPremium = 0;
-                    }
-                    const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
-                    if (finalRiderPremium !== currentPremium) {
-                        setValue(`riders.${index}.premium`, finalRiderPremium);
-                        currentPremium = finalRiderPremium;
-                    }
-                }
-                totalRiderPremium += currentPremium;
-            });
-            setValue("totalRiderPremium", totalRiderPremium > 0 ? totalRiderPremium : undefined);
-        }
-    }, [JSON.stringify(watchRiders), setValue]);
-
-    const onSubmit = async (data: PolicyFormValues) => {
-        setIsSubmitting(true);
-
-        try {
-
-            const payload = {
-                ...data,
-
-                advisorId: data.advisorId || null,
-                branchId: data.branchId || null,
-                attributes: {
-                    SUM_ASSURED: data.sumAssured,
-                    POLICY_TERM: data.term,
-                    PREMIUM_PAYING_TERM: data.ppt,
-                    // Add other dynamic attributes here if they are on the form
-                },
-
-                policyTerm: data.term,
-                premiumPayingTerm: data.ppt,
-            };
-
-            console.log("Advisor ID:", payload.advisorId);
-            console.log(payload);
-
-            await dispatch(
-                updatePolicy({
-                    id,
-                    data: payload,
-                })
-            ).unwrap();
-
-
-            await fetchNotifications();
-
-            toast.success("Policy updated successfully!");
-            router.push("/dashboard/lic/policies");
-
-        } catch (err: any) {
-
-            toast.error(err.message || "Failed to update policy.");
-            console.error("Failed to update policy:", err);
-
-        } finally {
-
-            setIsSubmitting(false);
-
-        }
-    };
-
-
-
-    const sections = [
-        { id: "policy-holder", label: "Policy Holder's Details" },
-        { id: "policy-details", label: "Policy Details" },
-        { id: "premium-calculation", label: "Policy Premium Calculation" },
-        { id: "riders", label: "Riders Details" },
-        { id: "advanced", label: "Advanced Options" },
-    ];
-
-    const handleSectionClick = useCallback((sectionId: keyof typeof sectionRefs) => {
-        const ref = sectionRefs[sectionId];
-        if (ref.current) {
-            // We add an offset to account for the sticky header if you have one.
-            const yOffset = -80;
-            const y = ref.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-            window.scrollTo({ top: y, behavior: 'smooth' });
-
-            setActiveSection(sectionId);
-            setGlowingSection(sectionId);
-            // Remove the glow after 1.5 seconds
-            setTimeout(() => setGlowingSection(null), 1500);
-        }
-    }, [sectionRefs]);
-
+        policyTerm: data.term,
+        premiumPayingTerm: data.ppt,
+      };
+
+      await dispatch(
+        updatePolicy({
+          id,
+          data: payload,
+        }),
+      ).unwrap();
+
+      await fetchNotifications();
+
+      toast.success("Policy updated successfully!");
+      router.push("/dashboard/lic/policies");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update policy.");
+      console.error("Failed to update policy:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const states = [
+    "Maharashtra",
+    "Gujarat",
+    "Rajasthan",
+    "Uttar Pradesh",
+    "Delhi",
+    "Karnataka",
+  ];
+
+  const sections = [
+    { id: "policy-holder", label: "Policy Holder's Details" },
+    { id: "policy-details", label: "Policy Details" },
+    { id: "premium-calculation", label: "Policy Premium Calculation" },
+    { id: "riders", label: "Riders Details" },
+    { id: "advanced", label: "Advanced Options" },
+  ];
+
+  const handleSectionClick = useCallback(
+    (sectionId: keyof typeof sectionRefs) => {
+      const ref = sectionRefs[sectionId];
+      if (ref.current) {
+        const yOffset = -80;
+        const y =
+          ref.current.getBoundingClientRect().top +
+          window.pageYOffset +
+          yOffset;
+
+        window.scrollTo({ top: y, behavior: "smooth" });
+
+        setActiveSection(sectionId);
+
+        setGlowingSection(sectionId);
+        setTimeout(() => setGlowingSection(null), 1500);
+      }
+    },
+    [sectionRefs],
+  );
+
+  if (!isMounted || authLoading || !canEdit || policyLoading) {
     return (
-        <div className="max-w-7xl mx-auto pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.push("/dashboard/lic/policies")}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition"
-                    >
-                        <ChevronLeft size={20} className="text-slate-600" />
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Link href="/dashboard/lic/policies" className="hover:text-blue-600">
-                                Policies
-                            </Link>
-                            <ChevronRight size={16} />
-                            <span className="font-medium text-slate-700">Edit Policy</span>
-                        </div>
-                        <h1 className="text-2xl font-bold text-slate-900 mt-1">Edit LIC Policy</h1>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={() => router.push("/dashboard/lic/policies")} className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit(onSubmit)}
-                        className="..."
-                    >
-                        <Save size={16} />
-                        Update Policy
-                    </button>
-                </div>
-            </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
-            {/* Navigation Tabs */}
-            <div className="bg-white border border-slate-200 rounded-xl p-1 mb-6 overflow-x-auto flex">
-                {sections.map((section) => (
-                    <button
-                        type="button"
-                        key={section.id}
-                        onClick={() => handleSectionClick(section.id as keyof typeof sectionRefs)}
-                        className={`
+  return (
+    <div className="max-w-7xl mx-auto pb-20">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/dashboard/lic/policies")}
+            className="p-2 hover:bg-slate-100 rounded-lg transition"
+          >
+            <ChevronLeft size={20} className="text-slate-600" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Link
+                href="/dashboard/lic/policies"
+                className="hover:text-blue-600"
+              >
+                Policies
+              </Link>
+              <ChevronRight size={16} />
+              <span className="font-medium text-slate-700">Edit Policy</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mt-1">
+              Edit LIC Policy
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/dashboard/lic/policies")}
+            className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="policy-form"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2"
+          >
+            <Save size={16} />
+            Update Policy
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border border-slate-200 rounded-xl p-1 mb-6 overflow-x-auto flex">
+        {sections.map((section) => (
+          <button
+            type="button"
+            key={section.id}
+            onClick={() =>
+              handleSectionClick(section.id as keyof typeof sectionRefs)
+            }
+            className={`
               px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition
-              ${activeSection === section.id
-                                ? "bg-blue-50 text-blue-700"
-                                : "text-slate-600 hover:bg-slate-50"
-                            }
+              ${
+                activeSection === section.id
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-600 hover:bg-slate-50"
+              }
             `}
-                    >
-                        {section.label}
-                    </button>
-                ))}
-            </div>
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
 
-            {/* Form Content - Grid Layout */}
-            <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                {/* Section 1: Policy Holder's Details */}
-                <div
-                    ref={sectionRefs['policy-holder']}
-                    className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'policy-holder' ? 'shadow-lg shadow-blue-500/20' : ''
-                        }`}
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                            <User size={20} className="text-blue-600" />
-                            Policy Holder's Details
-                        </h2>
-                        <Link
-                            href="/dashboard/customers/new"
-                            target="_blank"
-                            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                            <Plus size={16} />
-                            Add New Group
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div>
-                            <Controller
+      {/* Form Content - Grid Layout */}
+      <form
+        id="policy-form"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="space-y-6"
+      >
+        {/* Section 1: Policy Holder's Details */}
+        <div ref={sectionRefs["policy-holder"]}>
+          <CustomerSectionCard
+            title="Policy Holder's Details"
+            icon={User}
+            actions={
+              <Link
+                href="/dashboard/customers/new"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                <Plus size={14} />
+                New Group
+              </Link>
+            }
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <Controller
                   name="groupId"
                   control={control}
                   render={({ field }) => (
-                    <SearchableSelect
-                      label="Group Name"
-                      required
-                      placeholder="Search group..."
-                      searchPlaceholder="Search by name or code"
-                      options={groups.map(g => ({ value: g.id, label: g.groupName || "Unnamed", sublabel: g.groupCode }))}
+                    <GroupAutoComplete
                       value={field.value}
                       onChange={field.onChange}
-                      error={errors.groupId?.message}
+                      groups={groups}
                     />
                   )}
                 />
-                            {errors.groupId && <p className="text-xs text-red-500 mt-1">{errors.groupId.message}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Group Code
-                            </label>
-                            <input
-                                type="text"
-                                value={selectedGroup?.groupCode || ""}
-                                placeholder="Auto-filled"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" readOnly
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Life Assured
-                            </label>
-                            <select
-                                {...register("lifeAssuredId")}
-                                disabled={!watchGroupId || groupMembers.length === 0}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                            >
-                                <option value="">
-                                    {watchGroupId ? (groupMembers.length > 0 ? "Select a member" : "No members in group") : "Select a group first"}
-                                </option>
-                                {groupMembers.map(member => (
-                                    <option key={member.id} value={member.id}>{getFullName(member)}</option>
-                                ))}
-                            </select>
-                            {errors.lifeAssuredId && <p className="text-xs text-red-500 mt-1">{errors.lifeAssuredId.message}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Date of Birth
-                            </label>
-                            <input
-                                {...register("dob")}
-                                type="date"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
-                                readOnly
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Age
-                            </label>
-                            <input
-                                {...register("age")}
-                                type="number"
-                                placeholder="Age"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
-                                readOnly
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Gender
-                            </label>
-
-                            <select
-                                {...register("gender")}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
-                                disabled
-                            >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                PAN Regi.
-                            </label>
-                            <input
-                                {...register("pan")}
-                                type="text"
-                                placeholder="Enter PAN number"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50"
-                                readOnly
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left Column */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Section 2: Policy Details */}
-                        <div
-                            ref={sectionRefs['policy-details']}
-                            className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'policy-details' ? 'shadow-lg shadow-blue-500/20' : ''
-                                }`}
-                        >
-                            <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                                <FileText size={20} className="text-blue-600" />
-                                Policy Details
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Policy Number <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("policyNumber")}
-                                        placeholder="Enter policy number"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.policyNumber && <p className="text-xs text-red-500 mt-1">{errors.policyNumber.message}</p>}
-                                </div>
-                                <div>
-                  <Controller
-                    name="productId"
-                    control={control}
-                    render={({ field }) => (
-                      <SearchableSelect
-                        label="Plan"
-                        required
-                        placeholder="Search plan..."
-                        searchPlaceholder="Search by name or number"
-                        options={filteredProducts.map(p => ({ value: p.id, label: p.productName, sublabel: `Plan No. ${p.planNumber}` }))}
-                        value={field.value || ""}
-                        onChange={(productId) => {
-                          field.onChange(productId);
-                          const selectedProduct = products.find((p) => p.id === productId);
-                          if (selectedProduct) {
-                            setValue("providerId", selectedProduct.providerId);
-                            if (selectedProduct.productType) setValue("productType", selectedProduct.productType);
-                          }
-                        }}
-                        error={errors.productId?.message}
-                      />
-                    )}
-                  />
-
-                                    {errors.productId && (
-                                        <p className="text-xs text-red-500 mt-1">
-                                            {errors.productId.message}
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Mode <span className="text-red-500">*</span>
-                                    </label>
-                                    <select {...register("mode")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                        <option value="">Select Mode</option>
-                                        {modes.map((mode) => (
-                                            <option key={mode.id} value={mode.modeName}>{mode.modeName}</option>
-                                        ))}
-                                    </select>
-                                    {errors.mode && <p className="text-xs text-red-500 mt-1">{errors.mode.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Commencement Date <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        {...register("commencementDate")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.commencementDate && <p className="text-xs text-red-500 mt-1">{errors.commencementDate.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Completion Date <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        {...register("completionDate")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.completionDate && <p className="text-xs text-red-500 mt-1">{errors.completionDate.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Term
-                                    </label>
-                                    <input
-                                        type="number"
-                                        {...register("term")}
-                                        placeholder="Enter term"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.term && <p className="text-xs text-red-500 mt-1">{errors.term.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        PPT
-                                    </label>
-                                    <input
-                                        type="number"
-                                        {...register("ppt")}
-                                        placeholder="Enter PPT"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.ppt && <p className="text-xs text-red-500 mt-1">{errors.ppt.message}</p>}
-                                </div>
-                            </div>
-                        </div>
-                        {/* Section 4: Riders Details */}
-                        <div
-                            ref={sectionRefs['riders']}
-                            className={`bg-white border border-slate-200 rounded-xl p-6 transition-all duration-500 ${glowingSection === 'riders' ? 'shadow-lg shadow-blue-500/20' : ''
-                                }`}
-                        >
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                                    <Shield size={20} className="text-blue-600" />
-                                    Riders Details
-                                </h2>
-                                <button
-                                    type="button"
-                                    onClick={() => appendRider({ description: "", sum: null, term: null, ppt: null, premium: null })}
-                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-                                    <Plus size={16} />
-                                    Add Rider
-                                </button>
-                            </div>
-                            <div className="border border-slate-200 rounded-lg overflow-hidden">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Rider Description</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Sum</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Term</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">PPT</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Mode</th>
-                                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Premium</th>
-                                            <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200">
-                                        {riderFields.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={7} className="px-4 py-6 text-center text-slate-500 text-sm">
-                                                    No Rider to Show
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            riderFields.map((field, index) => (
-                                                <tr key={field.id}>
-                                                    <td className="px-2 py-1.5 w-1/3">
-                                                        <select {...register(`riders.${index}.description`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500">
-                                                            <option value="">Select Rider</option>
-                                                            {riders.map(rider => (
-                                                                <option key={rider.id} value={rider.riderName}>
-                                                                    {rider.riderCode ? `[${rider.riderCode}] ` : ""}{rider.riderName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        {errors.riders?.[index]?.description && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.description?.message}</p>}
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        <input type="text" {...register(`riders.${index}.sum`)} placeholder="Sum" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
-                                                        {errors.riders?.[index]?.sum && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.sum?.message}</p>}
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        <input type="text" {...register(`riders.${index}.term`)} placeholder="Term" className="w-20 text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
-                                                        {errors.riders?.[index]?.term && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.term?.message}</p>}
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        <input type="text" {...register(`riders.${index}.ppt`)} placeholder="PPT" className="w-20 text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
-                                                        {errors.riders?.[index]?.ppt && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.ppt?.message}</p>}
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        <select {...register(`riders.${index}.mode`)} className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" defaultValue="">
-                                                          <option value="">Mode</option>
-                                                          {modes.map(mode => (
-                                                              <option key={mode.id} value={mode.modeName}>
-                                                                  {mode.modeName}
-                                                              </option>
-                                                          ))}
-                                                      </select>
-                                                    </td>
-                                                    <td className="px-2 py-1.5">
-                                                        <input type="text" {...register(`riders.${index}.premium`)} placeholder="Premium" className="w-full text-sm border-slate-200 rounded-md focus:ring-blue-500/20 focus:border-blue-500" />
-                                                        {errors.riders?.[index]?.premium && <p className="text-xs text-red-500 mt-1">{errors.riders[index]?.premium?.message}</p>}
-                                                    </td>
-                                                    <td className="px-2 py-1.5 text-center">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeRider(index)}
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Remove Rider"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className="lg:col-span-1">
-                        {/* Section 3: Policy Premium Calculation */}
-                        <div
-                            ref={sectionRefs['premium-calculation']}
-                            className={`bg-white border border-slate-200 rounded-xl p-6 sticky top-6 transition-all duration-500 ${glowingSection === 'premium-calculation' ? 'shadow-lg shadow-blue-500/20' : ''
-                                }`}
-                        >
-                            <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
-                                <DollarSign size={20} className="text-blue-600" />
-                                Policy Premium Calculation
-                            </h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Sum Assured
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("sumAssured")}
-                                        placeholder="Enter sum assured"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.sumAssured && <p className="text-xs text-red-500 mt-1">{errors.sumAssured.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Basic Yearly Premium
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("basicYearlyPremium")}
-                                        placeholder="Enter basic yearly premium"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.basicYearlyPremium && <p className="text-xs text-red-500 mt-1">{errors.basicYearlyPremium.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Total Yearly Premium
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("totalYearlyPremium")}
-                                        placeholder="Enter total yearly premium"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-
-                                        readOnly
-                                    />
-                                    {errors.totalYearlyPremium && <p className="text-xs text-red-500 mt-1">{errors.totalYearlyPremium.message}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Total Rider Premium
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("totalRiderPremium")}
-                                        placeholder="Total rider premium"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.totalRiderPremium && <p className="text-xs text-red-500 mt-1">{errors.totalRiderPremium.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Installment Premium
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("installmentPremium")}
-                                        placeholder="Installment premium"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.installmentPremium && <p className="text-xs text-red-500 mt-1">{errors.installmentPremium.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Rate %
-                                    </label>
-                                    <input
-                                        type="number"
-                                        {...register("ratePercent")}
-                                        placeholder="Rate %"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        GST
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("gst")}
-                                        placeholder="Enter GST"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                    {errors.gst && <p className="text-xs text-red-500 mt-1">{errors.gst.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        Total Installment Premium
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("totalInstallmentPremium")}
-                                        placeholder="Total with GST"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    ref={sectionRefs['advanced']}
-                    className={`bg-white border border-slate-200 rounded-xl p-6 mt-6 transition-all duration-500 ${glowingSection === 'advanced' ? 'shadow-lg shadow-blue-500/20' : ''
-                        }`}
+                {errors.groupId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.groupId.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Group Code
+                </label>
+                <input
+                  type="text"
+                  value={selectedGroup?.groupCode || ""}
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
+              <div>
+                <Controller
+                  name="lifeAssuredId"
+                  control={control}
+                  render={({ field }) => (
+                    <LifeAssuredAutoComplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      members={groupMembers}
+                      disabled={!watchGroupId || groupMembers.length === 0}
+                      placeholder={
+                        watchGroupId
+                          ? groupMembers.length > 0
+                            ? "Search member..."
+                            : "No members in group"
+                          : "Select a group first"
+                      }
+                    />
+                  )}
+                />
+                {errors.lifeAssuredId && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.lifeAssuredId.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Date of Birth
+                </label>
+                <input
+                  {...register("dob")}
+                  type="date"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Age
+                </label>
+                <input
+                  {...register("age")}
+                  type="number"
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+                {attributeHints.age && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {attributeHints.age}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Gender
+                </label>
+                <select
+                  {...register("gender")}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  disabled
                 >
-                    <div className="flex items-center">
-                        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                            <Settings size={20} className="text-blue-600" />
-                            Advanced Options
-                        </h2>
-                    </div>
-
-
-                    <div className="mt-6 grid grid-cols-1 gap-6">
-                        {/* Current Status */}
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Current Status</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Policy Status</label>
-                                    <select
-                                        {...register("statusId")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    >
-                                        <option value="">Select Status</option>
-
-                                        {statuses.map((status) => (
-                                            <option
-                                                key={status.id}
-                                                value={status.id}
-                                            >
-                                                {status.statusName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Premium Adjusted</label>
-                                    <input type="text" placeholder="Premium adjusted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Loan Taken</label>
-                                    <input type="text" placeholder="Loan taken" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Check Current Status of Policy</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                                        First Unpaid Premium (F.U.P) Date
-                                    </label>
-
-                                    <input
-                                        type="date"
-                                        {...register("fupDate")}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Nomination Details</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Annuity Details</label>
-                                    <input type="text" placeholder="Annuity details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Other Information</label>
-                                    <input type="text" placeholder="Other information" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                            </div>
-                            <button className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium">Add / Edit Nomination Details</button>
-                            <p className="text-xs text-slate-400 mt-1">This will be enable for Annuity Policies</p>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Advisor Details</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                  <Controller
-                    name="advisorId"
-                    control={control}
-                    render={({ field }) => (
-                      <SearchableSelect
-                        label="Advisor"
-                        placeholder="Search advisor..."
-                        options={advisors.map(a => ({ value: a.id, label: a.advisorName, sublabel: a.advisorCode }))}
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                      />
-                    )}
-                  />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Agent Code</label>
-                                    <input
-                                        {...register("agentCode")}
-                                        type="text" placeholder="Auto-filled"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-slate-50" readOnly
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">NACH & NEFT Details</h3>
-                            <p className="text-sm text-slate-500 mb-4">Provide NACH / NEFT Details for bank transactions</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
-                                    <input type="text" placeholder="Enter bank name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Number</label>
-                                    <input type="text" placeholder="Enter account number" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">IFSC Code</label>
-                                    <input type="text" placeholder="Enter IFSC code" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name</label>
-                                    <input type="text" placeholder="Enter account holder name" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                    <input
-                                        {...register("accountHolderName")}
-                                        type="text" placeholder="Enter account holder name"
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg p-4">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Additional Fields</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-                                    <select {...register("branchId")} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                        <option value="">Select Branch</option>
-                                        {licBranches.map((branch) => (
-                                            <option key={branch.branchCode} value={branch.branchCode}>{branch.branchCode} - {branch.branchName}</option>
-                                        ))}
-                                    </select>
-                                    {errors.branchId && <p className="text-xs text-red-500 mt-1">{errors.branchId.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Medical</label>
-                                    <input type="text" placeholder="Medical details" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Sales Channel</label>
-                                    <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                                        <option value="direct">Direct</option>
-                                        <option value="agent">Agent</option>
-                                        <option value="broker">Broker</option>
-                                        <option value="online">Online</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Age Admitted</label>
-                                    <input type="number" placeholder="Age admitted" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Tax Beneficiary</label>
-                                    <input type="text" placeholder="Tax beneficiary" className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm" />
-                                </div>
-                                <div className="lg:col-span-3">
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-                                    <textarea
-                                        placeholder="Add notes"
-                                        rows={2}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm resize-y"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </form>
-
-            {/* Sticky Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 flex justify-end gap-3">
-                <button onClick={() => router.push("/dashboard/lic/policies")} className="px-6 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm font-medium">
-                    Cancel
-                </button>
-                <button onClick={handleSubmit(onSubmit)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center gap-2 disabled:opacity-60" disabled={isSubmitting}>
-                    <Save size={16} />
-                    {isSubmitting ? "Saving..." : "Update Policy"}
-                </button>
+                  <option value="">Select Gender</option>
+                  <option value={watch("gender")} disabled>
+                    {watch("gender")}
+                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  PAN Regi.
+                </label>
+                <input
+                  {...register("pan")}
+                  type="text"
+                  placeholder="Autofilled"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                  readOnly
+                />
+              </div>
             </div>
+          </CustomerSectionCard>
         </div>
-    );
+
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Section 2: Policy Details */}
+            <div ref={sectionRefs["policy-details"]}>
+              <CustomerSectionCard title="Policy Details" icon={FileText}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <input type="hidden" {...register("providerType")} />
+                  <input type="hidden" {...register("productType")} />
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register("policyNumber")}
+                      placeholder="Enter policy number"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.policyNumber && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.policyNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Plan <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="productId"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search plan..."
+                          searchPlaceholder="Search by name or number"
+                          options={availableProducts.map((p) => ({
+                            value: p.id,
+                            label: p.productName,
+                            sublabel: p.planNumber
+                              ? `Plan No: ${p.planNumber}`
+                              : undefined,
+                          }))}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            const selectedProduct = products.find(
+                              (p) => p.id === val,
+                            );
+                            if (selectedProduct) {
+                              setValue(
+                                "providerId",
+                                selectedProduct.providerId || "",
+                              );
+                              setValue(
+                                "productType",
+                                (selectedProduct as any).productType || "",
+                              );
+                            }
+                          }}
+                          error={errors.productId?.message}
+                          disabled={productsLoading}
+                        />
+                      )}
+                    />
+                    {errors.productId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.productId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Commencement Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="commencementDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.commencementDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.commencementDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mode <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      {...register("mode")}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    >
+                      <option value="">Select Mode</option>
+                      {modes.map((mode) => (
+                        <option key={mode.id} value={mode.modeName}>
+                          {mode.modeName}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.mode && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.mode.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="completionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.completionDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.completionDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Term
+                    </label>
+                    <input
+                      type="text"
+                      {...register("term")}
+                      placeholder="Enter term"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.term && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.term.message}
+                      </p>
+                    )}
+                    {attributeHints.term && !errors.term && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.term}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      PPT
+                    </label>
+                    <input
+                      type="text"
+                      {...register("ppt")}
+                      placeholder="Enter PPT"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.ppt && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.ppt.message}
+                      </p>
+                    )}
+                    {attributeHints.ppt && !errors.ppt && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.ppt}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CustomerSectionCard>
+            </div>
+            {/* Section 4: Riders Details */}
+            <div ref={sectionRefs["riders"]}>
+              <CustomerSectionCard
+                title="Riders Details"
+                icon={Shield}
+                actions={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      appendRider({
+                        description: "",
+                        sum: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        premium: null,
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={14} />
+                    Add Rider
+                  </button>
+                }
+              >
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Rider Description
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Sum
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Term
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          PPT
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Mode
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Premium
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {riderFields.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-4 py-6 text-center text-slate-500 text-sm"
+                          >
+                            No Rider to Show
+                          </td>
+                        </tr>
+                      ) : (
+                        riderFields.map((field, index) => (
+                          <tr key={field.id}>
+                            <td className="px-2 py-1.5 w-1/3">
+                              <select
+                                {...register(`riders.${index}.description`)}
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              >
+                                <option value="">Select Rider</option>
+                                {riders.map((rider) => (
+                                  <option
+                                    key={rider.id}
+                                    value={rider.riderName}
+                                  >
+                                    {rider.riderCode
+                                      ? `[${rider.riderCode}] `
+                                      : ""}
+                                    {rider.riderName}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors.riders?.[index]?.description && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.description?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.sum`)}
+                                placeholder="Sum"
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.sum && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.sum?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.term`)}
+                                placeholder="Term"
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.term && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.term?.message}
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.ppt`)}
+                                placeholder="PPT"
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.ppt && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.ppt?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <select
+                                {...register(`riders.${index}.mode`)}
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              >
+                                <option value="">Mode</option>
+                                {modes.map((mode) => (
+                                  <option key={mode.id} value={mode.modeName}>
+                                    {mode.modeName}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors.riders?.[index]?.mode && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.mode?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.premium`)}
+                                placeholder="Premium"
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                              />
+                              {errors.riders?.[index]?.premium && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.premium?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <button
+                                type="button"
+                                onClick={() => removeRider(index)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove Rider"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="lg:col-span-1">
+            {/* Section 3: Policy Premium Calculation */}
+            <div
+              ref={sectionRefs["premium-calculation"]}
+              className="sticky top-6"
+            >
+              <CustomerSectionCard
+                title="Policy Premium Calculation"
+                icon={Banknote}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Sum Assured
+                    </label>
+                    <input
+                      type="text"
+                      {...register("sumAssured")}
+                      placeholder="Enter sum assured"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.sumAssured && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.sumAssured.message}
+                      </p>
+                    )}
+                    {attributeHints.sumAssured && !errors.sumAssured && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.sumAssured}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Basic Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("basicYearlyPremium")}
+                      placeholder="Enter basic yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.basicYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.basicYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalYearlyPremium")}
+                      placeholder="Enter total yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                      readOnly
+                    />
+                    {errors.totalYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Rider Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalRiderPremium")}
+                      placeholder="Total rider premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.totalRiderPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalRiderPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("installmentPremium")}
+                      placeholder="Installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.installmentPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.installmentPremium.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalInstallmentPremium")}
+                      placeholder="Total installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
+        </div>
+
+        <div ref={sectionRefs["advanced"]}>
+          <CustomerSectionCard
+            title="Advanced Options"
+            icon={Settings}
+            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
+          >
+            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* ================= LEFT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Current Status ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">
+                        Current Status
+                      </h3>
+                    </div>
+                    <span className="text-sm text-slate-500">
+                      Check Current Status of Policy
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-1.5">
+                          Policy Status
+                        </label>
+                        <select
+                          {...register("statusId")}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {statuses.map((status) => (
+                            <option key={status.id} value={status.id}>
+                              {status.statusName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          First Unpaid Premium (F.U.P.) Date
+                        </label>
+                        <Controller
+                          control={control}
+                          name="fupDate"
+                          render={({ field }) => (
+                            <DatePicker
+                              value={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onChange={(date) =>
+                                field.onChange(
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                )
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Premium Adjusted
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Premium Adjusted"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        />
+                      </div>
+                      <div className="flex items-center pt-8">
+                        <input
+                          id="premiumDeposit"
+                          type="checkbox"
+                          className="h-5 w-5"
+                        />
+                        <label
+                          htmlFor="premiumDeposit"
+                          className="ml-3 text-sm"
+                        >
+                          Create Premium Deposit Entries
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Loan Taken
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Loan Taken"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          First Unpaid Loan Int. (FULI) Date
+                        </label>
+                        <Controller
+                          control={control}
+                          name="fuliDate"
+                          render={({ field }) => (
+                            <DatePicker
+                              value={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onChange={(date) =>
+                                field.onChange(
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                )
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* ================= NACH & NEFT ================= */}
+                {watchProductId && (
+                  <div className="border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                      <h3 className="font-semibold text-slate-900">
+                        NACH & NEFT Details
+                      </h3>
+                      <span className="text-sm text-slate-500">
+                        Provide NACH / NEFT Details for Bank Transactions
+                      </span>
+                    </div>
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="md:col-span-2 flex items-center gap-3">
+                          <input
+                            id="useNachCheckbox"
+                            type="checkbox"
+                            checked={useNach}
+                            onChange={(e) => setUseNach(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="useNachCheckbox"
+                            className="text-sm font-medium text-slate-700 cursor-pointer"
+                          >
+                            Premiums will be paid through NACH
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Bank Name"
+                            {...register("bankName")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Number
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Number"
+                            {...register("accountNumber")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            IFSC Code
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="IFSC Code"
+                            {...register("ifscCode")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Holder Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Holder Name"
+                            {...register("accountHolderName")}
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Branch
+                          </label>
+                          <input
+                            {...register("bankBranch")}
+                            type="text"
+                            placeholder="Bank Branch"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            City
+                          </label>
+                          <input
+                            {...register("city")}
+                            type="text"
+                            placeholder="City"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Type
+                          </label>
+                          <input
+                            {...register("accountType")}
+                            placeholder="Account Type"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="bolck text-sm font-medium mb-2">
+                            Debt Date
+                          </label>
+                          <input
+                            value={watchFupDate || ""}
+                            readOnly
+                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            MICR Number
+                          </label>
+                          <input
+                            {...register("micrNumber")}
+                            type="text"
+                            placeholder="MICR Number"
+                            readOnly={!useNach}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+
+                        {/* NEFT Section */}
+                        <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+
+                        <div className="md:col-span-2 flex items-center gap-3">
+                          <input
+                            id="useNeftCheckbox"
+                            type="checkbox"
+                            checked={useNeft}
+                            onChange={(e) => setUseNeft(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="useNeftCheckbox"
+                            className="text-sm font-medium text-slate-700 cursor-pointer"
+                          >
+                            NEFT details are available
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Bank Name"
+                            {...register("neftBankName")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Number
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Number"
+                            {...register("neftAccountNumber")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            IFSC Code
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="IFSC Code"
+                            {...register("neftIfscCode")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Account Holder Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Account Holder Name"
+                            {...register("neftAccountHolderName")}
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Bank Branch
+                          </label>
+                          <input
+                            {...register("neftBankBranch")}
+                            type="text"
+                            placeholder="Bank Branch"
+                            readOnly={!useNeft}
+                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Submission Date
+                          </label>
+                          <Controller
+                            control={control}
+                            name="neftSubmissionDate"
+                            render={({ field }) => (
+                              <DatePicker
+                                value={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
+                                onChange={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : "",
+                                  )
+                                }
+                                readOnly={!useNeft}
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* ================= RIGHT COLUMN ================= */}
+              <div className="space-y-6">
+                {/* ================= Nomination Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                    <h3 className="font-semibold text-slate-900">
+                      Nomination Details
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        appendNominee({
+                          nomineeName: "",
+                          relationship: "",
+                          dateOfBirth: "",
+                          percentage: null,
+                          phone: "",
+                          email: "",
+                        })
+                      }
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                    >
+                      <Plus size={16} />
+                      Add Nominee
+                    </button>
+                  </div>
+                  <div className="p-5">
+                    {nomineeFields.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-4">
+                        No nominees added. Click Add Nominee to start.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {nomineeFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Nominee Name
+                                </label>
+                                <input
+                                  {...register(`nominees.${index}.nomineeName`)}
+                                  placeholder="Full Name"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                />
+                                {errors.nominees?.[index]?.nomineeName && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {
+                                      errors.nominees[index]?.nomineeName
+                                        ?.message
+                                    }
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Relationship
+                                </label>
+                                <input
+                                  {...register(
+                                    `nominees.${index}.relationship`,
+                                  )}
+                                  placeholder="e.g., Spouse, Son"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                />
+                                {errors.nominees?.[index]?.relationship && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {
+                                      errors.nominees[index]?.relationship
+                                        ?.message
+                                    }
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Date of Birth
+                                </label>
+                                <Controller
+                                  control={control}
+                                  name={`nominees.${index}.dateOfBirth`}
+                                  render={({ field }) => (
+                                    <DatePicker
+                                      value={
+                                        field.value
+                                          ? new Date(field.value)
+                                          : undefined
+                                      }
+                                      onChange={(date) =>
+                                        field.onChange(
+                                          date
+                                            ? format(date, "yyyy-MM-dd")
+                                            : "",
+                                        )
+                                      }
+                                    />
+                                  )}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Share %
+                                </label>
+                                <input
+                                  type="number"
+                                  {...register(`nominees.${index}.percentage`)}
+                                  placeholder="e.g., 100"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                {errors.nominees?.[index]?.percentage && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {
+                                      errors.nominees[index]?.percentage
+                                        ?.message
+                                    }
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Phone
+                                </label>
+                                <input
+                                  type="tel"
+                                  {...register(`nominees.${index}.phone`)}
+                                  placeholder="Mobile Number"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">
+                                  Email
+                                </label>
+                                <input
+                                  type="email"
+                                  {...register(`nominees.${index}.email`)}
+                                  placeholder="Email Address"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                />
+                                {errors.nominees?.[index]?.email && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {errors.nominees[index]?.email?.message}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeNominee(index)}
+                              className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove Nominee"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* ================= Annuity Details ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h3 className="font-semibold text-slate-900">
+                      Annuity Details
+                    </h3>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-sm text-slate-500">
+                      This will be enabled for Annuity Policies.
+                    </p>
+                  </div>
+                </div>
+                {/* ================= Other Information ================= */}
+                <div className="border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h3 className="font-semibold text-slate-900">
+                      Other Information
+                    </h3>
+                    <span className="text-sm text-slate-500">
+                      Agency, Branch, Notes & Other Policy Information
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Agency <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("agencyId")}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Agency</option>
+                          {agencies.map((agency) => (
+                            <option key={agency.id} value={agency.id}>
+                              {agency.agencyName}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.agencyId && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.agencyId.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Controller
+                          name="branchId"
+                          control={control}
+                          render={({ field }) => (
+                            <BranchAutoComplete
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              branches={branches}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="relative">
+                        <Controller
+                          name="advisorId"
+                          control={control}
+                          render={({ field }) => (
+                            <AdvisorAutoComplete
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              advisors={filteredAdvisors}
+                              disabled={!watchAgencyId}
+                              placeholder={
+                                watchAgencyId
+                                  ? "Search Advisor..."
+                                  : "Select Agency First"
+                              }
+                            />
+                          )}
+                        />
+                        {errors.advisorId && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.advisorId.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Agent Code (Autofilled)
+                        </label>
+                        <input
+                          {...register("agentCode")}
+                          readOnly
+                          placeholder="Auto Filled"
+                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Medical
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Medical Details"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Tax Beneficiary
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Tax Beneficiary"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                        />
+                      </div>
+                      <div className="flex items-center mt-8">
+                        <input
+                          id="ageAdmitted"
+                          type="checkbox"
+                          className="h-5 w-5"
+                        />
+                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">
+                          Age Admitted
+                        </label>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">
+                          Notes
+                        </label>
+                        <textarea
+                          rows={4}
+                          placeholder="Enter Notes..."
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CustomerSectionCard>
+        </div>
+      </form>
+    </div>
+  );
 }

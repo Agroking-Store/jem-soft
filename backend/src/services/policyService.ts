@@ -465,23 +465,27 @@ export const updatePolicy = async (
 
     // Update Premium Calculation
 
-    await tx.policyPremiumCalculation.update({
+    await tx.policyPremiumCalculation.upsert({
       where: {
         policyId: id,
       },
-
-      data: {
+      update: {
         sumAssured: sumAssured ?? 0,
-
         basicYearlyPremium: basicYearlyPremium ?? 0,
-
         totalYearlyPremium:
           (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
-
         installmentPremium: installmentPremium ?? 0,
-
         totalInstallmentPremium: totalInstallmentPremium ?? 0,
-
+        gst: gst ?? 0,
+      },
+      create: {
+        policyId: id,
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: basicYearlyPremium ?? 0,
+        totalYearlyPremium:
+          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
+        installmentPremium: installmentPremium ?? 0,
+        totalInstallmentPremium: totalInstallmentPremium ?? 0,
         gst: gst ?? 0,
       },
     });

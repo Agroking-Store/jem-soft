@@ -115,6 +115,12 @@ const policySchema = z.object({
   ifscCode: z.string().optional(),
   micrNumber: z.string().optional(),
   accountHolderName: z.string().optional(),
+  neftBankName: z.string().optional(),
+  neftBankBranch: z.string().optional(),
+  neftAccountNumber: z.string().optional(),
+  neftIfscCode: z.string().optional(),
+  neftAccountHolderName: z.string().optional(),
+  neftSubmissionDate: z.string().optional(),
   branchName: z.string().optional(),
   medical: z.string().optional(),
   salesChannel: z.string().optional(),
@@ -1236,6 +1242,16 @@ export default function ViewLICPolicyPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
+                          Debt Date
+                        </label>
+                        <input
+                          value={watch("fupDate") || ""}
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
                           MICR Number
                         </label>
                         <input
@@ -1244,6 +1260,94 @@ export default function ViewLICPolicyPage() {
                           placeholder="MICR Number"
                           readOnly
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* NEFT Section */}
+                      <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT Bank Name
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            watch("neftBankName") || watch("bankName") || ""
+                          }
+                          placeholder="Bank Name"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT Account Number
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            watch("neftAccountNumber") ||
+                            watch("accountNumber") ||
+                            ""
+                          }
+                          placeholder="Account Number"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT IFSC Code
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            watch("neftIfscCode") || watch("ifscCode") || ""
+                          }
+                          placeholder="IFSC Code"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            watch("neftAccountHolderName") ||
+                            watch("accountHolderName") ||
+                            ""
+                          }
+                          placeholder="Account Holder Name"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT Bank Branch
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            watch("neftBankBranch") || watch("bankBranch") || ""
+                          }
+                          placeholder="Bank Branch"
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          NEFT Submission Date
+                        </label>
+                        <input
+                          type="date"
+                          value={watch("neftSubmissionDate") || ""}
+                          readOnly
+                          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-500 cursor-not-allowed"
                         />
                       </div>
                     </div>
@@ -1445,22 +1549,6 @@ export default function ViewLICPolicyPage() {
                           placeholder="Auto Filled"
                           className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Sales Channel
-                        </label>
-                        <select
-                          value={watch("salesChannel") || ""}
-                          disabled
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        >
-                          <option value="">Select Channel</option>
-                          <option value="direct">Direct</option>
-                          <option value="agent">Agent</option>
-                          <option value="broker">Broker</option>
-                          <option value="online">Online</option>
-                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">
