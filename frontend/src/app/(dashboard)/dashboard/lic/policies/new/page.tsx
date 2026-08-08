@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import axios from "axios";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
   useForm,
@@ -517,11 +518,14 @@ const policySchema = z.object({
   groupCode: z.string().optional(),
   lifeAssuredId: z.string().min(1, "Life Assured is required"),
   dob: z.string().optional(),
-  age: z.string().optional(),
+  age: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive("Age must be positive"),
+  ),
   gender: z.string().optional(),
   pan: z.string().optional(),
 
-  providerType: z.string().min(1, "Provider type is required"),
+  providerType: z.string().optional(),
   productType: z.string().optional(),
   providerId: z.string().min(1, "Provider is required"),
   policyNumber: z
@@ -567,7 +571,7 @@ const policySchema = z.object({
   ),
   gst: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.coerce.number().positive().optional(),
+    z.coerce.number().nonnegative().optional(),
   ),
   totalInstallmentPremium: z.preprocess(
     (val) => (val === "" ? undefined : val),
@@ -843,10 +847,20 @@ export default function NewLICPolicyPage() {
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
   const watchRiders = watch("riders");
+  const watchAge = watch("age");
   const watchFupDate = watch("fupDate");
   const watchPolicyNumber = watch("policyNumber");
 
   const watchProductId = watch("productId");
+  const premiumPreviewKey = [
+    watchProductId ?? "",
+    watchAge ?? "",
+    watchMode ?? "",
+    watchPpt ?? "",
+    watchSumAssured ?? "",
+    watchTerm ?? "",
+    watchTotalRiderPremium ?? "",
+  ].join("::");
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
     [watchGroupId, groups],
@@ -972,27 +986,41 @@ export default function NewLICPolicyPage() {
     // Do NOT clear fields when NEFT is unchecked - user may have edited them manually
   }, [useNeft, watchLifeAssuredId, masterCustomers, setValue]);
 
-  const availableProducts = useMemo(() => {
-    return [...products]
-      .filter((product) => {
-        const provider = providers.find(
-          (provider) => provider.id === product.providerId,
-        );
-        const providerCode = provider?.code?.toLowerCase();
+  const productOptions = useMemo(() => {
+    const filteredProducts = [...products].filter((product) => {
+      const provider = providers.find((p) => p.id === product.providerId);
+      const providerCode = provider?.code?.toLowerCase();
+      const isLICProvider = providerCode === "lic";
 
-        const isLICProvider = providerCode === "lic";
+      if (selectedPolicyType === "lic") return isLICProvider;
+      if (selectedPolicyType === "other") return providerCode ? !isLICProvider : false;
+      return true;
+    });
 
-        if (selectedPolicyType === "lic") {
-          return isLICProvider;
-        }
+    const active = filteredProducts
+      .filter(p => p.productType !== 'Withdrawn')
+      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""))
+      .map(p => ({
+        value: p.id,
+        label: p.productName,
+        label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
+        sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
+      }));
 
-        if (selectedPolicyType === "other") {
-          return providerCode ? providerCode !== "lic" : false;
-        }
+    const withdrawn = filteredProducts
+      .filter(p => p.productType === 'Withdrawn')
+      .sort((a, b) => a.productName.localeCompare(b.productName))
+      .map(p => ({
+        value: p.id,
+        label: p.productName,
+        label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
+        sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
+      }));
 
-        return true;
-      })
-      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""));
+    if (withdrawn.length > 0) {
+      return [...active, { label: "Withdrawn Plans", options: withdrawn, isCollapsible: true }];
+    }
+    return active;
   }, [products, providers, selectedPolicyType]);
 
   const filteredAdvisors = useMemo(() => {
@@ -1005,10 +1033,26 @@ export default function NewLICPolicyPage() {
       setValue("providerType", "LIC", { shouldValidate: true });
     } else if (selectedPolicyType === "other") {
       setValue("providerType", "OTHER", { shouldValidate: true });
-    } else {
-      setValue("providerType", "", { shouldValidate: true });
     }
   }, [selectedPolicyType, setValue]);
+
+  useEffect(() => {
+    if (!watchProductId || !products.length || !providers.length) return;
+
+    const selectedProduct = products.find((p) => p.id === watchProductId);
+    if (!selectedProduct) return;
+
+    const provider = providers.find((p) => p.id === selectedProduct.providerId);
+    const providerCode = provider?.code?.toLowerCase();
+
+    setValue("providerId", selectedProduct.providerId || "");
+    setValue("productType", selectedProduct.productType || "");
+    setValue(
+      "providerType",
+      providerCode === "lic" ? "LIC" : "OTHER",
+      { shouldValidate: true },
+    );
+  }, [watchProductId, products, providers, setValue]);
 
   useEffect(() => {
     const agency = agencies.find((a) => a.id === watchAgencyId);
@@ -1131,55 +1175,98 @@ export default function NewLICPolicyPage() {
     const term = parseFloat(String(watchTerm)) || 0;
     const ppt = parseFloat(String(watchPpt)) || 0;
     const mode = watchMode;
+    const age = parseFloat(String(watchAge)) || 0;
+    const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
 
-    if (sum > 0 && term > 0 && ppt > 0 && mode) {
-      // Placeholder logic for basic yearly premium.
-      // This should be replaced with your actual business logic.
-      // For example, it could be a lookup from a rate table based on age, term, ppt.
-      const basicYearlyPremium = sum * 0.05; // Example: 5% of sum assured
-      setValue(
-        "basicYearlyPremium",
-        basicYearlyPremium > 0
-          ? parseFloat(basicYearlyPremium.toFixed(2))
-          : undefined,
-      );
-
-      // Calculate installment premium based on mode
-      let installmentPremium = 0;
-      switch (mode) {
-        case "Yearly":
-        case "Single":
-          installmentPremium = basicYearlyPremium;
-          break;
-        case "Half-yearly":
-        case "Half-Yearly":
-          installmentPremium = basicYearlyPremium * 0.51; // Example factor for half-yearly
-          break;
-        case "Quarterly":
-          installmentPremium = basicYearlyPremium * 0.26; // Example factor for quarterly
-          break;
-        case "Monthly":
-          installmentPremium = basicYearlyPremium * 0.088; // Example factor for monthly
-          break;
-        default:
-          installmentPremium = 0;
-      }
-      setValue(
-        "installmentPremium",
-        installmentPremium > 0
-          ? parseFloat(installmentPremium.toFixed(2))
-          : undefined,
-      );
-      setValue("gst", undefined);
-      setValue(
-        "totalInstallmentPremium",
-        installmentPremium > 0
-          ? parseFloat(installmentPremium.toFixed(2))
-          : undefined,
-      );
+    if (!watchProductId || !sum || !term || !ppt || !mode || !age) {
+      return;
     }
-  }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
 
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      console.log("Premium Payload:", {
+  productId: watchProductId,
+  age,
+  policyTerm: term,
+  premiumPayingTerm: ppt,
+  sumAssured: sum,
+  premiumMode: mode,
+});
+
+console.log("watchSumAssured =", watchSumAssured);
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/premium-preview`,
+          {
+            productId: watchProductId,
+            age,
+            policyTerm: term,
+            premiumPayingTerm: ppt,
+            sumAssured: sum,
+            premiumMode: mode,
+          },
+          {
+            signal: controller.signal,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+          },
+        );
+
+        const premium = response.data?.data?.premium;
+        if (!premium) return;
+
+        setValue(
+          "basicYearlyPremium",
+          premium.basicYearlyPremium > 0
+            ? parseFloat(premium.basicYearlyPremium.toFixed(2))
+            : undefined,
+        );
+        setValue(
+          "installmentPremium",
+          premium.installmentPremium > 0
+            ? parseFloat(premium.installmentPremium.toFixed(2))
+            : undefined,
+        );
+        setValue("gst", premium.gst ?? 0);
+
+        const totalInstallmentPremium = premium.installmentPremium + totalRider;
+        setValue(
+          "totalInstallmentPremium",
+          totalInstallmentPremium > 0
+            ? parseFloat(totalInstallmentPremium.toFixed(2))
+            : undefined,
+        );
+      } catch (error: any) {
+        if (!axios.isCancel(error)) {
+          const msg = error?.response?.data?.message || error?.message || "Failed to fetch premium preview";
+          console.error("Failed to fetch premium preview", error);
+          toast.error(msg);
+        }
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [premiumPreviewKey, setValue, watchAge, watchMode, watchPpt, watchProductId, watchSumAssured, watchTerm, watchTotalRiderPremium]);
+
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === watchProductId),
+    [watchProductId, products],
+  );
+
+  useEffect(() => {
+    if (!selectedProduct) return;
+
+    if (["771", "745", "883"].includes(selectedProduct.planNumber) && watchAge) {
+      setValue("term", 100 - Number(watchAge), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [watchProductId, watchAge, selectedProduct, setValue]);
   // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
     if (!watchProductId || !productAttributeValues || !products.length) {
@@ -1208,9 +1295,13 @@ export default function NewLICPolicyPage() {
     const minAge = getAttributeValue("MIN_ENTRY_AGE");
     const maxAge = getAttributeValue("MAX_ENTRY_AGE");
 
-    // Pre-fill with minimum values. The `z.coerce` in the schema will handle the type.
-    if (minTerm) setValue("term", minTerm as any);
-    else setValue("term", undefined);
+    const selectedProduct = products.find((p) => p.id === watchProductId);
+
+    // For plan 771, the term is calculated, not pre-filled from attributes.
+    if (!["771", "745", "883"].includes(selectedProduct?.planNumber ?? "")) {
+      if (minTerm) setValue("term", minTerm as any);
+      else setValue("term", undefined);
+    }
 
     if (minPpt) setValue("ppt", minPpt as any);
     else setValue("ppt", undefined);
@@ -1239,6 +1330,15 @@ export default function NewLICPolicyPage() {
   }, [watchProductId, productAttributeValues, products, setValue]);
 
   const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
+    console.log("Submit clicked. Form data:", data);
+    console.log("isSubmitting:", isSubmitting, "canCreate:", canCreate);
+    
+    if (!canCreate) {
+      toast.error("You do not have permission to create a policy.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const selectedProduct = products.find((p) => p.id === data.productId);
     if (selectedProduct && selectedProduct.productType === "Withdrawn") {
       toast.error(
@@ -1250,17 +1350,32 @@ export default function NewLICPolicyPage() {
     setIsSubmitting(true);
 
     try {
+      const normalizeNumber = (value: any) =>
+        value === undefined || value === null || value === ""
+          ? undefined
+          : Number(value);
+
       const payload = {
         ...data,
+        age: normalizeNumber(data.age),
+        term: normalizeNumber(data.term),
+        ppt: normalizeNumber(data.ppt),
+        sumAssured: normalizeNumber(data.sumAssured),
+        basicYearlyPremium: normalizeNumber(data.basicYearlyPremium),
+        totalYearlyPremium: normalizeNumber(data.totalYearlyPremium),
+        totalRiderPremium: normalizeNumber(data.totalRiderPremium),
+        installmentPremium: normalizeNumber(data.installmentPremium),
+        totalInstallmentPremium: normalizeNumber(data.totalInstallmentPremium),
+        gst: normalizeNumber(data.gst),
         attributes: {
-          MIN_POLICY_TERM: data.term,
-          MAX_POLICY_TERM: data.term,
+          MIN_POLICY_TERM: normalizeNumber(data.term),
+          MAX_POLICY_TERM: normalizeNumber(data.term),
 
-          MIN_PPT: data.ppt,
-          MAX_PPT: data.ppt,
+          MIN_PPT: normalizeNumber(data.ppt),
+          MAX_PPT: normalizeNumber(data.ppt),
 
-          MIN_SUM_ASSURED: data.sumAssured,
-          MAX_SUM_ASSURED: data.sumAssured,
+          MIN_SUM_ASSURED: normalizeNumber(data.sumAssured),
+          MAX_SUM_ASSURED: normalizeNumber(data.sumAssured),
         },
       };
       const result = await dispatch(createPolicy(payload)).unwrap();
@@ -1272,9 +1387,12 @@ export default function NewLICPolicyPage() {
 
       router.push("/dashboard/lic/policies");
     } catch (err: any) {
-      toast.error(
-        err.message || "Failed to create policy. Please check the details.",
-      );
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.response?.data?.message || err?.message ||
+            "Failed to create policy. Please check the details.";
+      toast.error(msg);
       console.error("Failed to create policy:", err);
     } finally {
       setIsSubmitting(false);
@@ -1369,11 +1487,17 @@ export default function NewLICPolicyPage() {
           </button>
           <button
             type="button"
-            onClick={handleSubmit(onSubmit)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2"
+            onClick={handleSubmit(
+              onSubmit,
+              (errors) => {
+                console.log("Validation Errors:", errors);
+              }
+            )}
+            disabled={isSubmitting || !canCreate}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Save size={16} />
-            Save Policy
+            {isSubmitting ? "Saving..." : "Save Policy"}
           </button>
         </div>
       </div>
@@ -1552,184 +1676,158 @@ export default function NewLICPolicyPage() {
                   <input type="hidden" {...register("providerType")} />
                   <input type="hidden" {...register("productType")} />
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Policy Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register("policyNumber")}
-                      placeholder="Enter policy number"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.policyNumber && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.policyNumber.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Plan <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="productId" // Use Controller for custom components
-                      render={({ field }) => (
-                        <SearchableSelect
-                          placeholder="Search plan..."
-                          searchPlaceholder="Search by name or number"
-                          options={availableProducts.map((p) => ({
-                            value: p.id,
-                            label: p.productName,
-                            sublabel: p.planNumber
-                              ? `Plan No: ${p.planNumber}`
-                              : undefined,
-                          }))}
-                          value={field.value}
-                          onChange={(val) => {
-                            field.onChange(val);
-                            const selectedProduct = products.find(
-                              (p) => p.id === val,
-                            );
-                            if (selectedProduct) {
-                              setValue(
-                                "providerId",
-                                selectedProduct.providerId || "",
-                              );
-                              setValue(
-                                "productType",
-                                selectedProduct.productType || "",
-                              );
-                            }
-                          }}
-                          error={errors.productId?.message}
-                          disabled={productsLoading}
-                        />
-                      )}
-                    />
-                    {errors.productId && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.productId.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Commencement Date <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="commencementDate"
-                      render={({ field }) => (
-                        <DatePicker
-                          value={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onChange={(date) =>
-                            field.onChange(
-                              date ? format(date, "yyyy-MM-dd") : "",
-                            )
-                          }
-                        />
-                      )}
-                    />
-                    {errors.commencementDate && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.commencementDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Mode <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      {...register("mode")}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    >
-                      <option value="">Select Mode</option>
-                      {modes.map((mode) => (
-                        <option key={mode.id} value={mode.modeName}>
-                          {mode.modeName}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.mode && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.mode.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Completion Date <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="completionDate"
-                      render={({ field }) => (
-                        <DatePicker
-                          value={
-                            field.value ? new Date(field.value) : undefined
-                          }
-                          onChange={(date) =>
-                            field.onChange(
-                              date ? format(date, "yyyy-MM-dd") : "",
-                            )
-                          }
-                        />
-                      )}
-                    />
-                    {errors.completionDate && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.completionDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Term
-                    </label>
-                    <input
-                      type="text"
-                      {...register("term")}
-                      placeholder="Enter term"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.term && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.term.message}
-                      </p>
-                    )}
-                    {attributeHints.term && !errors.term && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {attributeHints.term}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      PPT
-                    </label>
-                    <input
-                      type="text"
-                      {...register("ppt")}
-                      placeholder="Enter PPT"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.ppt && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.ppt.message}
-                      </p>
-                    )}
-                    {attributeHints.ppt && !errors.ppt && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {attributeHints.ppt}
-                      </p>
-                    )}
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Policy Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("policyNumber")}
+                    placeholder="Enter policy number"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                  />
+                  {errors.policyNumber && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.policyNumber.message}
+                    </p>
+                  )}
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Plan <span className="text-red-500">*</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="productId" // Use Controller for custom components
+                    render={({ field }) => (
+                      <SearchableSelect
+                        placeholder="Search plan..."
+                        searchPlaceholder="Search by name or plan number"
+                        options={productOptions}
+                        value={field.value}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          const selectedProduct = products.find((p) => p.id === val);
+                          if (selectedProduct) {
+                            setValue("providerId", selectedProduct.providerId || "");
+                            setValue("productType", selectedProduct.productType || "");
+                          }
+                        }}
+                        error={errors.productId?.message}
+                        disabled={productsLoading}
+                      />
+                    )}
+                  />
+                  {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Commencement Date <span className="text-red-500">*</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="commencementDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                      />
+                    )}
+                  />
+                  {errors.commencementDate && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.commencementDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Mode <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    {...register("mode")}
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                  >
+                    <option value="">Select Mode</option>
+                    {modes.map((mode) => (
+                      <option key={mode.id} value={mode.modeName}>
+                        {mode.modeName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.mode && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.mode.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Completion Date <span className="text-red-500">*</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="completionDate"
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                      />
+                    )}
+                  />
+                  {errors.completionDate && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.completionDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Term
+                  </label>
+                  <input
+                    type="text"
+                    {...register("term")}
+                    placeholder="Enter term"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                  />
+                  {errors.term && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.term.message}
+                    </p>
+                  )}
+                  {attributeHints.term && !errors.term && (
+                    <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {selectedProduct?.planNumber === "883"
+                      ? "Gua.Addn.Period"
+                      : "PPT"}
+                  </label>
+                  <input
+                    type="text"
+                    {...register("ppt")}
+                    placeholder={
+                      selectedProduct?.planNumber === "883" ? "Enter Gua.Addn.Period" : "Enter PPT"
+                    }
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                  />
+                  {errors.ppt && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.ppt.message}
+                    </p>
+                  )}
+                  {attributeHints.ppt && !errors.ppt && (
+                    <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
+                  )}
+                </div>
+              </div>
               </CustomerSectionCard>
             </div>
             {/* Section 4: Riders Details */}
