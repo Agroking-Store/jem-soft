@@ -1,12 +1,12 @@
-import RetirementNeedsCalculator from "@/features/pre-sales/components/RetirementNeeds";
+import QuickHlvCalculator from "@/features/pre-sales/components/QuickHlvCalculator";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Retirement Needs Calculator | Pre-Sales Tools",
+  title: "JEM Soft",
   description:
-    "Project your cost of living at retirement and the corpus required today to sustain it, based on inflation.",
+    "Assess life insurance coverage and financial planning requirements with pre-sales calculators.",
 };
 
-export default function RetirementNeedsPage() {
-  return <RetirementNeedsCalculator />;
+export default function PreSalesDefaultPage() {
+  return <QuickHlvCalculator />;
 }

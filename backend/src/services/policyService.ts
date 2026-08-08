@@ -100,15 +100,15 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   }
 
   const product = await prisma.productMaster.findUnique({
-  where: { id: data.productId },
-  select: {
-    providerId: true,
-  },
-});
+    where: { id: data.productId },
+    select: {
+      providerId: true,
+    },
+  });
 
-if (!product) {
-  throw new AppError("Product not found.", 404);
-}
+  if (!product) {
+    throw new AppError("Product not found.", 404);
+  }
 
   return prisma.$transaction(async (tx) => {
     const newPolicy = await tx.policy.create({
@@ -151,7 +151,6 @@ if (!product) {
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
-              mode: riderData.mode,
             },
           });
         }
@@ -242,13 +241,18 @@ if (!product) {
 export const getAllPolicies = async (): Promise<any[]> => {
   return prisma.policy.findMany({
     include: {
-      CustomerMaster: true,
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
       customer: true,
       provider: true,
       product: true,
       status: true,
       premiumMode: true,
       premium: true,
+      nominees: true,
     },
   });
 };
@@ -358,13 +362,18 @@ export const getPoliciesByMember = async (memberId: string): Promise<any[]> => {
   return prisma.policy.findMany({
     where: { CustomerMasterId: memberId },
     include: {
-      CustomerMaster: true,
+      CustomerMaster: {
+        include: {
+          bankDetails: true,
+        },
+      },
       customer: true,
       provider: true,
       product: true,
       status: true,
       premiumMode: true,
       premium: true,
+      nominees: true,
     },
     orderBy: { commencementDate: "desc" },
   });
@@ -443,15 +452,15 @@ export const updatePolicy = async (
   }
 
   const product = await prisma.productMaster.findUnique({
-  where: { id: data.productId },
-  select: {
-    providerId: true,
-  },
-});
+    where: { id: data.productId },
+    select: {
+      providerId: true,
+    },
+  });
 
-if (!product) {
-  throw new AppError("Product not found.", 404);
-}
+  if (!product) {
+    throw new AppError("Product not found.", 404);
+  }
 
   return prisma.$transaction(async (tx) => {
     const updatedPolicy = await tx.policy.update({
@@ -511,7 +520,6 @@ if (!product) {
               riderId: riderMaster.id,
               riderAmount: riderData.sum,
               riderPremium: riderData.premium,
-              mode: riderData.mode,
             },
           });
         }

@@ -25,12 +25,12 @@ export default function EditLoanPage() {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Edit Loan</h1>
         <p className="text-slate-500 text-sm mt-1">
           Update the loan details below
         </p>
-      </div>
+      </div> */}
 
       {isLoading || !selectedLoan ? (
         <div className="text-center py-12">

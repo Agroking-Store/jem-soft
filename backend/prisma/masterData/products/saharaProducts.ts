@@ -3,7 +3,7 @@
 export const saharaProducts = [
       //Sahara Life Insurance Active plan (12 plans)
 {
-    productName: 'Sahara Shrestha Nivesh Jeevan Bima',
+    productName: 'Sahara Shrestha Nivesh-Jeevan Bima',
     productCode: '127N033V01',
     planNumber: 'SAHARA001',
     providerCode: 'SAHARA',

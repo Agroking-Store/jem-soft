@@ -2,7 +2,7 @@ import ChildEducationNeeds from "@/features/pre-sales/components/ChildEducationN
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Child Education Needs Calculator | Pre-Sales Tools",
+  title: "JEM Soft",
   description: "Project future education costs and the lumpsum corpus required today, based on education inflation and saving rate.",
 };
 

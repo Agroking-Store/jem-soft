@@ -2,90 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   ShieldCheck,
-  TrendingUp,
-  Settings,
-  LogOut,
-  User,
-  Calendar,
   FileText,
-  MessageSquare,
-  ChevronDown,
-  ChevronRight,
   Users,
-  Building2,
-  UserCog,
-  FileSpreadsheet,
-  PlusCircle,
-  List,
   Landmark,
   Calculator,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-
-// AdminDropdown component - Only for ADMIN users
-const AdminDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname();
-
-  // const adminItems = [
-  //   { name: "User Management", href: "/dashboard/users", icon: Users },
-  //   { name: "Organization", href: "/dashboard/organization", icon: Building2 },
-  //   { name: "Settings", href: "/dashboard/settings", icon: Settings },
-  //   { name: "My Account", href: "/dashboard/account", icon: UserCog },
-  // ];
-
-  // const isAdminActive = adminItems.some(item => pathname === item.href);
-
-  return (
-    <div className="space-y-1">
-      {/* <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-medium transition-all
-          ${isAdminActive || isOpen
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          }
-        `}
-      >
-        <div className="flex items-center gap-3">
-          <ShieldCheck size={20} />
-          <span>User Management</span>
-        </div>
-        {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-      </button> */}
-
-      {/* {isOpen && (
-        <div className="ml-4 space-y-1 border-l-2 border-slate-200 pl-2">
-          {adminItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all
-                  ${isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  }
-                `}
-              >
-                <item.icon size={16} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </div>
-      )} */}
-    </div>
-  );
-};
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -100,7 +26,6 @@ export const Sidebar = () => {
   const isAdvisor = user?.role === "ADVISOR";
   const isViewer = user?.role === "VIEWER";
 
-  // Navigation items for all logged-in users
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
@@ -148,11 +73,11 @@ export const Sidebar = () => {
           );
         })}
 
-        {/* LIC Link - Show for all users */}
+        {/* LIC Link */}
         {isMounted &&
           (isAdmin || isAdvisor || isViewer) &&
           (() => {
-            const licPath = "/dashboard/lic/policies";
+            const licPath = "/dashboard/lic";
             const isLicActive = pathname.startsWith(licPath);
 
             return (
@@ -172,8 +97,23 @@ export const Sidebar = () => {
             );
           })()}
 
-        {/* User Management section - Only show for ADMIN users */}
-        {isMounted && isAdmin && <AdminDropdown />}
+        {/* User Management - Admin only */}
+        {isMounted && isAdmin && (
+          <Link
+            href="/dashboard/users"
+            className={`
+              flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+              ${
+                pathname.startsWith("/dashboard/users")
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }
+            `}
+          >
+            <Users size={20} />
+            User Management
+          </Link>
+        )}
       </nav>
     </aside>
   );
