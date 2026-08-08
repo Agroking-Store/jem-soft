@@ -334,7 +334,12 @@ export default function LICPoliciesPage() {
                     <div className="flex items-center divide-x divide-slate-300 text-sm text-slate-500 mt-1">
                       {policy.provider?.name && <span className="pr-2">{policy.provider.name}</span>}
                       {policy.product?.productName && (
-                        <span className="pl-2">{policy.product.productName}</span>
+                        <span className="pl-2">
+                          {policy.product.planNumber
+                            ? `${policy.product.planNumber} - `
+                            : ""}
+                          {policy.product.productName}
+                        </span>
                       )}
                     </div>
                   </div>

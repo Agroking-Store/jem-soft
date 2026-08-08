@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
 import * as policyService from "../services/policyService.js";
+import { calculatePremium } from "../services/premiumCalculationService.js";
 import { AppError } from "../utils/AppError.js";
 
 export const createPolicy = catchAsync(
@@ -10,6 +11,32 @@ export const createPolicy = catchAsync(
       status: "success",
       data: {
         policy: newPolicy,
+      },
+    });
+  }
+);
+
+export const previewPremium = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { productId, age, policyTerm, premiumPayingTerm, sumAssured, premiumMode } = req.body;
+
+    if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
+      throw new AppError("Product, age, term, sum assured, and mode are required.", 400);
+    }
+
+    const premium = await calculatePremium({
+      productId,
+      age: Number(age),
+      policyTerm: Number(policyTerm),
+      premiumPayingTerm: premiumPayingTerm ? Number(premiumPayingTerm) : null,
+      sumAssured: Number(sumAssured),
+      premiumMode,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        premium,
       },
     });
   }

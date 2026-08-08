@@ -212,6 +212,12 @@ export interface SelectOption {
   sublabel?: string;
 }
 
+export interface SelectOptionGroup {
+  label: string;
+  options: SelectOption[];
+  isCollapsible?: boolean;
+}
+
 function useOutsideClose(onClose: () => void, refs: React.RefObject<HTMLElement>[]) {
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -228,7 +234,7 @@ function DropdownPanel({
   query,
   onQueryChange,
   searchPlaceholder,
-  options,
+  options: optionsOrGroups,
   value,
   onSelect,
   style,
@@ -237,13 +243,14 @@ function DropdownPanel({
   query: string;
   onQueryChange: (v: string) => void;
   searchPlaceholder: string;
-  options: SelectOption[];
+  options: (SelectOption | SelectOptionGroup)[];
   value?: string;
   onSelect: (value: string) => void;
   style: React.CSSProperties;
   panelRef: React.RefObject<HTMLDivElement>;
 }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   // Auto-focus the search input when the panel opens.
   // A small timeout ensures the element is rendered and ready for focus.
@@ -253,9 +260,26 @@ function DropdownPanel({
     }, 50);
     return () => clearTimeout(timer);
   }, []);
-  const filtered = options.filter((o) =>
-    `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase())
-  );
+
+  const toggleGroup = (label: string) => {
+    setCollapsedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  const hasQuery = query.trim().length > 0;
+
+  const filterOption = (o: SelectOption) =>
+    `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase());
+
+  const allOptions = optionsOrGroups.flatMap(item => 'options' in item ? item.options : [item]);
+  const hasAnyResults = allOptions.some(filterOption);
 
   // Rendered in a portal to document.body so it overlays above any
   // overflow:hidden / overflow:auto parent (cards, modal shells) instead of
@@ -279,25 +303,57 @@ function DropdownPanel({
         />
       </div>
       <div className="max-h-60 overflow-y-auto py-1">
-        {filtered.length === 0 ? (
+        {!hasAnyResults ? (
           <p className="px-3 py-4 text-center text-sm text-slate-400">No results found</p>
         ) : (
-          filtered.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onSelect(opt.value)}
-              className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
-                opt.value === value ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"
-              }`}
-            >
-              <span className="min-w-0">
-                <span className="block truncate">{opt.label}</span>
-                {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
-              </span>
-              {opt.value === value && <Check size={14} className="shrink-0 text-[#B8873A]" />}
-            </button>
-          ))
+          optionsOrGroups.map((item, index) => {
+            if ('options' in item) { // It's a group
+              const filteredGroupOptions = item.options.filter(filterOption);
+              if (filteredGroupOptions.length === 0) return null;
+
+              const isCollapsed = !hasQuery && item.isCollapsible && collapsedGroups.has(item.label);
+
+              return (
+                <div key={item.label}>
+                  {item.isCollapsible ? (
+                     <button type="button" onClick={() => toggleGroup(item.label)} className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:bg-slate-50">
+                       <span>{item.label}</span>
+                       <ChevronDown size={14} className={`transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                     </button>
+                  ) : (
+                    <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{item.label}</div>
+                  )}
+                  {!isCollapsed && filteredGroupOptions.map(opt => (
+                    <button key={opt.value} type="button" onClick={() => onSelect(opt.value)} className={`flex w-full items-center justify-between gap-2 pl-6 pr-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${opt.value === value ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"}`}>
+                      <span className="min-w-0">
+                        <span className="block truncate">{opt.label}</span>
+                        {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
+                      </span>
+                      {opt.value === value && <Check size={14} className="shrink-0 text-[#B8873A]" />}
+                    </button>
+                  ))}
+                </div>
+              );
+            } else { // It's a single option
+              if (!filterOption(item)) return null;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => onSelect(item.value)}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
+                    item.value === value ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate">{item.label}</span>
+                    {item.sublabel && <span className="block truncate text-xs text-slate-400">{item.sublabel}</span>}
+                  </span>
+                  {item.value === value && <Check size={14} className="shrink-0 text-[#B8873A]" />}
+                </button>
+              );
+            }
+          })
         )}
       </div>
     </div>,
@@ -309,7 +365,7 @@ export function SearchableSelect({
   label,
   required,
   error,
-  options,
+  options: optionsOrGroups,
   value,
   onChange,
   placeholder = "Select...",
@@ -320,7 +376,7 @@ export function SearchableSelect({
   label?: string;
   required?: boolean;
   error?: string;
-  options: SelectOption[];
+  options: (SelectOption | SelectOptionGroup)[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -355,7 +411,8 @@ export function SearchableSelect({
     }
   }, [open]);
 
-  const selected = options.find((o) => o.value === value);
+  const allOptions = optionsOrGroups.flatMap(item => 'options' in item ? item.options : [item]);
+  const selected = allOptions.find((o) => o.value === value);
 
   return (
     <div ref={ref} className="relative">
@@ -391,7 +448,7 @@ export function SearchableSelect({
           query={query}
           onQueryChange={setQuery}
           searchPlaceholder={searchPlaceholder}
-          options={options}
+          options={optionsOrGroups}
           value={value}
           onSelect={(v) => {
             onChange(v);
