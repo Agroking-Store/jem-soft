@@ -6,12 +6,15 @@ import {
   getPoliciesByMember,
   updatePolicy,
   deletePolicy,
+  previewPremium,
 } from "../controllers/policyController.js";
 import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
+
+router.post("/premium-preview", restrictTo("ADMIN", "ADVISOR", "VIEWER"), previewPremium);
 
 // Scoped to a specific member (life assured)
 router.get("/member/:memberId", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getPoliciesByMember);

@@ -3,6 +3,7 @@ import { Policy } from "@prisma/client";
 import { AppError } from "../utils/AppError.js";
 import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
+import { calculatePremium } from "./premiumCalculationService.js";
 
 interface RiderData {
   description: string;
@@ -26,7 +27,8 @@ interface NomineeData {
 interface PolicyData {
   groupId: string;
   lifeAssuredId: string;
-
+  age: number;
+  
   productId: string;
   policyNumber: string;
   commencementDate: string;
@@ -62,18 +64,25 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
   const {
     riders,
-    sumAssured,
-    basicYearlyPremium,
     totalRiderPremium,
-    installmentPremium,
-    totalInstallmentPremium,
-    gst,
     statusId,
     // Destructure only what's needed for this specific scope
     term,
     ppt, // Rename to avoid conflict with `sumAssured` from premium
     fupDate,
   } = data;
+
+  const age = data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
+  const sumAssured = data.sumAssured !== undefined && data.sumAssured !== null ? Number(data.sumAssured) : undefined;
+  const policyTerm = term !== undefined && term !== null ? Number(term) : undefined;
+  const premiumPayingTerm = ppt !== undefined && ppt !== null ? Number(ppt) : null;
+
+  if (!age || !sumAssured || !policyTerm) {
+    throw new AppError(
+      "Age, sum assured, and policy term are required to calculate premium.",
+      400,
+    );
+  }
 
   // Use the provided statusId, or fall back to 'ACTIVE' if not provided
   const status = statusId
@@ -125,8 +134,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           : undefined,
 
         nextPremiumDueDate: fupDate ? new Date(fupDate) : undefined,
-        policyTerm: term,
-        premiumPayingTerm: ppt,
+        policyTerm: policyTerm,
+        premiumPayingTerm: premiumPayingTerm,
       },
     });
 
@@ -148,21 +157,33 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       }
     }
 
+    const premium = await calculatePremium({
+      productId: data.productId,
+      age: age!,
+      policyTerm: policyTerm!,
+      premiumPayingTerm: premiumPayingTerm,
+      sumAssured: sumAssured!, // Ensure sumAssured is not null
+      premiumMode: data.mode,
+    });
+
     await tx.policyPremiumCalculation.create({
       data: {
         policyId: newPolicy.id,
-
         sumAssured: sumAssured ?? 0,
-        basicYearlyPremium: basicYearlyPremium ?? 0,
-        totalYearlyPremium:
-          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
 
-        installmentPremium: installmentPremium ?? 0,
-        totalInstallmentPremium: totalInstallmentPremium ?? 0,
+    basicYearlyPremium: premium.basicYearlyPremium, // From service
 
-        gst: gst ?? 0,
-      },
-    });
+    totalYearlyPremium:
+      premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+
+    installmentPremium: premium.installmentPremium, // From service
+
+    totalInstallmentPremium:
+      premium.installmentPremium + (totalRiderPremium ?? 0),
+
+    gst: premium.gst, // From service
+  },
+});
 
     // Save Policy Attributes using values entered in the form
     if (data.attributes && Object.keys(data.attributes).length > 0) {
@@ -302,6 +323,41 @@ export const deletePolicy = async (policyId: string): Promise<Policy> => {
   });
 };
 
+export const getProductTerms = async (
+  productId: string,
+): Promise<{ terms: number[]; ppts: (number | null)[] }> => {
+  if (!productId) {
+    throw new AppError("Product ID is required.", 400);
+  }
+
+  const rates = await prisma.productPremiumRate.findMany({
+    where: {
+      productId: productId,
+    },
+    select: {
+      policyTerm: true,
+      premiumPayingTerm: true,
+    },
+    distinct: ["policyTerm", "premiumPayingTerm"],
+  });
+
+  if (rates.length === 0) {
+    return { terms: [], ppts: [] };
+  }
+
+  const terms = [...new Set(rates.map((r) => r.policyTerm))].sort(
+    (a, b) => a - b,
+  );
+  const ppts = [
+    ...new Set(rates.map((r) => r.premiumPayingTerm)),
+  ].sort((a, b) => (a === null ? -1 : b === null ? 1 : a - b));
+
+  return {
+    terms,
+    ppts,
+  };
+};
+
 export const getPoliciesByMember = async (memberId: string): Promise<any[]> => {
   return prisma.policy.findMany({
     where: { CustomerMasterId: memberId },
@@ -366,14 +422,21 @@ export const updatePolicy = async (
 ): Promise<Policy> => {
   const {
     riders,
-    sumAssured,
-    basicYearlyPremium,
     totalRiderPremium,
-    installmentPremium,
-    totalInstallmentPremium,
-    gst,
     attributes,
   } = data;
+
+  const age = data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
+  const sumAssured = data.sumAssured !== undefined && data.sumAssured !== null ? Number(data.sumAssured) : undefined;
+  const policyTerm = data.term !== undefined && data.term !== null ? Number(data.term) : undefined;
+  const premiumPayingTerm = data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null;
+
+  if (!age || !sumAssured || !policyTerm) {
+    throw new AppError(
+      "Age, sum assured, and policy term are required to calculate premium.",
+      400,
+    );
+  }
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: {
@@ -426,7 +489,7 @@ export const updatePolicy = async (
 
         policyTerm: data.term,
 
-        premiumPayingTerm: data.ppt,
+        premiumPayingTerm: premiumPayingTerm,
 
         statusId: data.statusId,
 
@@ -465,24 +528,34 @@ export const updatePolicy = async (
 
     // Update Premium Calculation
 
+
+    const premium = await calculatePremium({
+  productId: data.productId,
+  age: data.age,
+  policyTerm: data.term!,
+  premiumPayingTerm: data.ppt,
+  sumAssured: data.sumAssured!, // Ensure sumAssured is not null
+  premiumMode: data.mode, // Pass the premium mode
+    });
     await tx.policyPremiumCalculation.update({
       where: {
         policyId: id,
       },
 
       data: {
-        sumAssured: sumAssured ?? 0,
+        sumAssured: data.sumAssured ?? 0,
 
-        basicYearlyPremium: basicYearlyPremium ?? 0,
+        basicYearlyPremium: premium.basicYearlyPremium, // From service
 
         totalYearlyPremium:
-          (basicYearlyPremium ?? 0) + (totalRiderPremium ?? 0),
+          premium.basicYearlyPremium + (totalRiderPremium ?? 0),
 
-        installmentPremium: installmentPremium ?? 0,
+        installmentPremium: premium.installmentPremium, // From service
 
-        totalInstallmentPremium: totalInstallmentPremium ?? 0,
+        totalInstallmentPremium:
+          premium.installmentPremium + (totalRiderPremium ?? 0),
 
-        gst: gst ?? 0,
+        gst: premium.gst, // From service
       },
     });
 

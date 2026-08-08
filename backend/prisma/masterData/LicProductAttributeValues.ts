@@ -28,12 +28,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "Single Premium Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "Single Premium Endowment Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -65,12 +65,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Jeevan Anand",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {   
     productCode: "LIC's New Jeevan Anand",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -103,7 +103,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -136,12 +136,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jeevan Lakshya",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {
     productCode: "LIC Jeevan Lakshya",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,0000",
+    value: "500000000",
   },
 
 
@@ -169,13 +169,8 @@ export const LicProductAttributeValues = [
   },
   {
     productCode: "LIC Jeevan Labh",
-    attributeCode: "MAX_MATURITY_AGE",
-    value: "75",
-  },
-  {
-    productCode: "LIC Jeevan Labh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -208,7 +203,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Amritbaal",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -242,7 +237,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Bima Jyoti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,25,000",
+    value: "125000",
   },
 
 
@@ -276,7 +271,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Nav Jeevan Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -305,7 +300,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Bima Lakshmi",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -348,7 +343,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Jeevan Sathi Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3,00,000",
+    value: "300000",
   },
 
 
@@ -381,7 +376,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Jeevan Sathi Limited Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3,00,000",
+    value: "300000",
   },
 
 
@@ -414,7 +409,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jeevan Umang",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
   
@@ -442,7 +437,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jeevan Utsav",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -450,12 +445,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MIN_PPT",
-    value: "1",
+    value: "7",
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MAX_PPT",
-    value: "1",
+    value: "17",
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
@@ -469,18 +464,13 @@ export const LicProductAttributeValues = [
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
-    attributeCode: "MIN_POLICY_TERM",
-    value: "Up_To_100",
-  },
-  {
-    productCode: "LIC Jeevan Utsav Single Premium",
-    attributeCode: "MAX_POLICY_TERM",
-    value: "Up_To_100",
+    attributeCode: "MAX_AGE_AT_MATURITY",
+    value: "100",
   },
   {
     productCode: "LIC Jeevan Utsav Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -513,7 +503,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Bima Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "10,00,000",
+    value: "1000000",
   },
 
   
@@ -546,7 +536,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Money Back Plan 20 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -579,7 +569,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Money Back Plan 25 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -613,7 +603,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Children's Money Back Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
   
@@ -650,7 +640,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jeevan Tarun",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -683,12 +673,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Digi Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,00,000",
+    value: "5000000",
   },
   {
     productCode: "LIC Digi Term",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -731,12 +721,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Digi Credit Life",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,00,000",
+    value: "5000000",
   },
   {
     productCode: "LIC Digi Credit Life",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -779,12 +769,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Yuva Credit Life",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "20,00,000",
+    value: "2000000",
   },
   {
     productCode: "LIC Yuva Credit Life",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -827,12 +817,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Yuva Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,00,000",
+    value: "5000000",
   },
   {
     productCode: "LIC Yuva Term",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50,000,000",
+    value: "50000000",
   },
 
 
@@ -875,7 +865,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Tech-Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,00,000",
+    value: "5000000",
   },
 
 
@@ -913,7 +903,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC New Jeevan Amar",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "25,00,000",
+    value: "2500000",
   },
 
 
@@ -951,12 +941,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Saral Jeevan Bima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
   {
     productCode: "LIC Saral Jeevan Bima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "25,00,000",
+    value: "2500000",
   },
 
 
@@ -994,7 +984,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Bima Kavach",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "20,000,000",
+    value: "20000000",
   },
 
 
@@ -1328,12 +1318,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Micro Bachat",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "LIC Micro Bachat",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -1371,12 +1361,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Jan Suraksha",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
   {
     productCode: "LIC Jan Suraksha",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -1414,7 +1404,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Nav Jeevan Shree - Single Premium",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -1442,7 +1432,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Akshay VII",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -1479,7 +1469,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "lIC's New Jeevan Shanti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,50,000",
+    value: "150000",
   },
 
 
@@ -1516,7 +1506,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Nav Jeevan Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -1587,7 +1577,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Bima Ratna",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -1625,12 +1615,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -1668,7 +1658,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Dhan Vriddhi",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,25,000",
+    value: "125000",
   },
 
 
@@ -1705,7 +1695,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Jeevan Shanti",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,50,000",
+    value: "150000",
   },
 
 
@@ -1732,7 +1722,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Dhara - II",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "11,000",
+    value: "11000",
   },
 
   
@@ -1924,7 +1914,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Index Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,500",
+    value: "2500",
   },
 
 
@@ -1961,7 +1951,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Endowment Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "3,000",
+    value: "3000",
   },
 
 
@@ -1998,12 +1988,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Bhagya Lakshmi Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,000",
+    value: "50000",
   },
   {
     productCode: "LIC's Bhagya Lakshmi Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -2185,12 +2175,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000"
+    value: "200000"
   },
   {
     productCode: "LIC's Jeevan Azad",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000"
+    value: "500000"
   },
 
 
@@ -2227,7 +2217,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -2264,7 +2254,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Lakshya",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -2301,7 +2291,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Labh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -2338,12 +2328,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Aadhaar Stambh",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {
     productCode: "LIC's Aadhaar Stambh",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -2380,12 +2370,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Aadhaar Shila",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
   {
     productCode: "LIC's Aadhaar Shila",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -2417,7 +2407,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Utsav",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5,00,000",
+    value: "500000",
   },
 
 
@@ -2449,7 +2439,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Umang",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -2486,7 +2476,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Dhan Rekha",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2,00,000",
+    value: "200000",
   },
 
 
@@ -2523,7 +2513,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Bima Bachat",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "35,000",
+    value: "35000",
   },
 
 
@@ -2560,7 +2550,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Money Back Plan 20 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -2597,7 +2587,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Money Back Plan 25 Years",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -2624,7 +2614,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Children's Money Back Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1,00,000",
+    value: "100000",
   },
 
 
@@ -2661,7 +2651,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Tarun",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "75,000",
+    value: "75000",
   },
 
 
@@ -2698,7 +2688,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Jeevan Shiromani",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "10,000,000",
+    value: "10000000",
   },
 
 
@@ -2735,7 +2725,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's Bima Shree",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "10,00,000",
+    value: "1000000",
   },
 
 
@@ -2772,7 +2762,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Tech-Term",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "50,00,000",
+    value: "500000",
   },
 
   
@@ -2809,7 +2799,7 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC's New Jeevan Amar",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "25,00,000",
+    value: "2500000",
   },
 
 {
@@ -2845,12 +2835,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Linked Accidental Death Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10,000",
+  value: "10000",
 },
 {
   productCode: "LIC's Linked Accidental Death Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "10,000,000",
+  value: "10000000",
 },
 
 // LIC's Accident Benefit Rider
@@ -2887,12 +2877,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Accident Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "20,000",
+  value: "20000",
 },
 {
   productCode: "LIC's Accident Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "10,000,000",
+  value: "10000000",
 },
 
 // LIC's Premium Waiver Benefit Rider
@@ -2929,12 +2919,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Premium Waiver Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10,000",
+  value: "10000",
 },
 {
   productCode: "LIC's Premium Waiver Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50,000,0000",
+  value: "50000000",
 },
 
 // LIC's New Critical Illness Benefit Rider
@@ -2971,12 +2961,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's New Critical Illness Benefit Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,00,000",
+  value: "100000",
 },
 {
   productCode: "LIC's New Critical Illness Benefit Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "25,00,000",
+  value: "2500000",
 },
 
 // LIC's New Term Assurance Rider
@@ -3013,12 +3003,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's New Term Assurance Rider",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,00,000",
+  value: "100000",
 },
 {
   productCode: "LIC's New Term Assurance Rider",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "25,00,000",
+  value: "2500000",
 },
 
 {
@@ -3034,12 +3024,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "25,000",
+  value: "25000",
 },
 {
   productCode: "LIC's Premium Waiver Benefit Rider(with Auto Cover)",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "1,00,00,000",
+  value: "1000000",
 },
 
 // LIC's Jeevan Akshay VII
@@ -3076,7 +3066,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Jeevan Akshay VII",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,00,000",
+  value: "100000",
 },
 {
   productCode: "LIC's Jeevan Akshay VII",
@@ -3118,7 +3108,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's New Jeevan Shanti",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,50,000",
+  value: "150000",
 },
 {
   productCode: "LIC's New Jeevan Shanti",
@@ -3160,7 +3150,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Jeevan Kiran",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "15,00,000",
+  value: "1500000",
 },
 {
   productCode: "LIC's Jeevan Kiran",
@@ -3202,12 +3192,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Digi Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "50,00,000",
+  value: "5000000",
 },
 {
   productCode: "LIC's Digi Term",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50,000,000",
+  value: "50000000",
 },
 
 // LIC's Yuva Term
@@ -3244,12 +3234,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Yuva Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "50,00,000",
+  value: "5000000",
 },
 {
   productCode: "LIC's Yuva Term",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50,000,000",
+  value: "50000000",
 },
 
 // LIC's Cancer Cover
@@ -3286,12 +3276,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10,00,000",
+  value: "1000000",
 },
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50,00,000",
+  value: "5000000",
 },
 
 // LIC's Dhan Varsha
@@ -3328,7 +3318,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Dhan Varsha",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,25,000",
+  value: "125000",
 },
 {
   productCode: "LIC's Dhan Varsha",
@@ -3412,7 +3402,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's New One Year Renewal Group Term Assurance Plan-II",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "5,000",
+  value: "5000",
 },
 {
   productCode: "LIC's New One Year Renewal Group Term Assurance Plan-II",
@@ -3454,7 +3444,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Tech Term",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "50,00,000",
+  value: "5000000",
 },
 {
   productCode: "LIC's Tech Term",
@@ -3496,7 +3486,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Jeevan Amar",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "25,00,000",
+  value: "2500000",
 },
 {
   productCode: "LIC's Jeevan Amar",
@@ -3657,7 +3647,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Bachat Plus",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,00,000",
+  value: "100000",
 },
 {
   productCode: "LIC's Bachat Plus",
@@ -4099,12 +4089,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "10,00,000",
+  value: "100000",
 },
 {
   productCode: "LIC's Cancer Cover",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "50,00,000",
+  value: "5000000",
 },
 
 {
@@ -4949,12 +4939,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "Pradhan Mantri Vaya Vandana Yojana",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,44,578",
+  value: "144578",
 },
 {
   productCode: "Pradhan Mantri Vaya Vandana Yojana",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "15,00,000",
+  value: "1500000",
 },
 
 // LIC's Jeevan Umang
@@ -5088,7 +5078,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Jeevan Shanti",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,50,000",
+  value: "150000",
 },
 {
   productCode: "LIC's Jeevan Shanti",
@@ -5119,7 +5109,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's Jeevan Shanti",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,50,000",
+  value: "150000",
 },
 {
   productCode: "LIC's Jeevan Shanti",
@@ -5151,7 +5141,7 @@ export const LicProductAttributeValues = [
 {
   productCode: "LIC's New Jeevan Amar",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "25,00,000",
+  value: "2500000",
 },
 {
   productCode: "LIC's New Jeevan Amar",
@@ -5199,12 +5189,12 @@ export const LicProductAttributeValues = [
 {
   productCode: "Pradhan Mantri Vaya Vandana Yojana",
   attributeCode: "MIN_SUM_ASSURED",
-  value: "1,44,578",
+  value: "144578",
 },
 {
   productCode: "Pradhan Mantri Vaya Vandana Yojana",
   attributeCode: "MAX_SUM_ASSURED",
-  value: "7,50,000",
+  value: "750000",
 },
 
 

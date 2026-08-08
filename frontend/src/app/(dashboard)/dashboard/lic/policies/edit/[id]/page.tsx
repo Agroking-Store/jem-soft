@@ -405,42 +405,6 @@ export default function EditLICPolicyPage() {
         );
     }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
-    // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
-    useEffect(() => {
-        if (watchRiders) {
-            let totalRiderPremium = 0;
-            watchRiders.forEach((rider, index) => {
-                const sum = parseFloat(String(rider.sum)) || 0;
-                const term = parseFloat(String(rider.term)) || 0;
-                const ppt = parseFloat(String(rider.ppt)) || 0;
-                const mode = rider.mode;
-                let currentPremium = parseFloat(String(rider.premium)) || 0;
-
-                if (sum > 0 && term > 0 && ppt > 0 && mode) {
-                    // Placeholder: Assume yearly premium is 1% of sum assured.
-                    const yearlyRiderPremium = sum * 0.01;
-                    let installmentRiderPremium = 0;
-
-                    // Apply mode factors to calculate installment premium for the rider
-                    switch (mode) {
-                        case "Yearly": installmentRiderPremium = yearlyRiderPremium; break;
-                        case "Half-yearly": installmentRiderPremium = yearlyRiderPremium * 0.51; break;
-                        case "Quarterly": installmentRiderPremium = yearlyRiderPremium * 0.26; break;
-                        case "Monthly": installmentRiderPremium = yearlyRiderPremium * 0.088; break;
-                        default: installmentRiderPremium = 0;
-                    }
-                    const finalRiderPremium = parseFloat(installmentRiderPremium.toFixed(2));
-                    if (finalRiderPremium !== currentPremium) {
-                        setValue(`riders.${index}.premium`, finalRiderPremium);
-                        currentPremium = finalRiderPremium;
-                    }
-                }
-                totalRiderPremium += currentPremium;
-            });
-            setValue("totalRiderPremium", totalRiderPremium > 0 ? totalRiderPremium : undefined);
-        }
-    }, [JSON.stringify(watchRiders), setValue]);
-
     const onSubmit = async (data: PolicyFormValues) => {
         setIsSubmitting(true);
 
