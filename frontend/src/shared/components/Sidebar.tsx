@@ -9,6 +9,7 @@ import {
   FileText,
   Users,
   Landmark,
+  Calculator,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -30,6 +31,7 @@ export const Sidebar = () => {
     { name: "Customers", href: "/dashboard/customers", icon: Users },
     { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Loans", href: "/dashboard/loans", icon: Landmark },
+    { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },
   ];
 
   return (

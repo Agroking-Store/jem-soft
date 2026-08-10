@@ -25,6 +25,22 @@ export interface Loan {
   } | null;
   loanTenure?: number;
   remarks?: string;
+  totalLoanGranted?: number | null;
+  prevLoanTaken?: number | null;
+  prevLoanInterestRate?: number | null;
+  otherDeduction?: number | null;
+  xChargeDeduction?: number | null;
+  revivalDeduction?: number | null;
+  addDeposit?: number | null;
+  netAmount?: number | null;
+  chequeAmount?: number | null;
+  repaymentDate?: string | Date | null;
+  loanRepaidAmount?: number | null;
+  totalLoanAmount?: number | null;
+  bpiInterest?: number | null;
+  hlyInterest?: number | null;
+  fuliDate?: string | Date | null;
+  repaymentRemarks?: string | null;
 }
 
 export interface LoanInput {

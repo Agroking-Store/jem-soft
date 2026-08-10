@@ -1172,33 +1172,32 @@ export default function EditLICPolicyPage() {
     const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
     const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
     const total = basic + rider;
+    // Use setValue to update the form value; using a string to avoid potential issues with number formatting
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
-    if (Array.isArray(watchRiders)) {
-      let totalInstallmentRiderPremium = 0;
-      let totalYearlyRiderPremium = 0;
-
+    if (watchRiders) {
+      let totalRiderPremium = 0;
       watchRiders.forEach((rider, index) => {
         const sum = parseFloat(String(rider.sum)) || 0;
         const term = parseFloat(String(rider.term)) || 0;
         const ppt = parseFloat(String(rider.ppt)) || 0;
         const mode = rider.mode;
         let currentPremium = parseFloat(String(rider.premium)) || 0;
-        let yearlyRiderPremium = 0;
 
         if (sum > 0 && term > 0 && ppt > 0 && mode) {
-          yearlyRiderPremium = sum * 0.01;
+          // Placeholder: Assume yearly premium is 1% of sum assured.
+          const yearlyRiderPremium = sum * 0.01;
           let installmentRiderPremium = 0;
 
+          // Apply mode factors to calculate installment premium for the rider
           switch (mode) {
             case "Yearly":
               installmentRiderPremium = yearlyRiderPremium;
               break;
             case "Half-yearly":
-            case "Half-Yearly":
               installmentRiderPremium = yearlyRiderPremium * 0.51;
               break;
             case "Quarterly":
@@ -1210,7 +1209,6 @@ export default function EditLICPolicyPage() {
             default:
               installmentRiderPremium = 0;
           }
-
           const finalRiderPremium = parseFloat(
             installmentRiderPremium.toFixed(2),
           );
@@ -1219,159 +1217,37 @@ export default function EditLICPolicyPage() {
             currentPremium = finalRiderPremium;
           }
         }
-        totalInstallmentRiderPremium += currentPremium;
-        totalYearlyRiderPremium += yearlyRiderPremium;
+        totalRiderPremium += currentPremium;
       });
       setValue(
         "totalRiderPremium",
-        totalInstallmentRiderPremium > 0
-          ? totalInstallmentRiderPremium
-          : undefined,
+        totalRiderPremium > 0 ? totalRiderPremium : undefined,
       );
     }
-  }, [watchRiders, setValue]);
+  }, [JSON.stringify(watchRiders), setValue]);
 
-  // Auto-calculate Completion Date
-  useEffect(() => {
-    const term = Number(watchTerm);
-    if (watchCommencementDate && term > 0) {
-      try {
-        const startDate = new Date(watchCommencementDate);
-        const completionDate = addYears(startDate, term);
-        setValue("completionDate", format(completionDate, "yyyy-MM-dd"));
-      } catch (e) {
-        // Do nothing if the date is invalid
-      }
-    }
-  }, [watchCommencementDate, watchTerm, setValue]);
-
-  // Auto-calculate Term from dates
-  useEffect(() => {
-    if (watchCommencementDate && watchCompletionDate) {
-      try {
-        const startDate = new Date(watchCommencementDate);
-        const endDate = new Date(watchCompletionDate);
-        const term = differenceInYears(endDate, startDate);
-        if (term >= 0) setValue("term", term);
-      } catch (e) {
-        // Do nothing if dates are invalid
-      }
-    }
-  }, [watchCommencementDate, watchCompletionDate, setValue]);
-
-  useEffect(() => {
-    const sum = parseFloat(String(watchSumAssured)) || 0;
-    const term = parseFloat(String(watchTerm)) || 0;
-    const ppt = parseFloat(String(watchPpt)) || 0;
-    const mode = watchMode;
-
-    if (sum > 0 && term > 0 && ppt > 0 && mode) {
-      const basicYearlyPremium = sum * 0.05;
-      setValue(
-        "basicYearlyPremium",
-        basicYearlyPremium > 0
-          ? parseFloat(basicYearlyPremium.toFixed(2))
-          : undefined,
-      );
-
-      let installmentPremium = 0;
-      switch (mode) {
-        case "Yearly":
-        case "Single":
-          installmentPremium = basicYearlyPremium;
-          break;
-        case "Half-yearly":
-        case "Half-Yearly":
-          installmentPremium = basicYearlyPremium * 0.51;
-          break;
-        case "Quarterly":
-          installmentPremium = basicYearlyPremium * 0.26;
-          break;
-        case "Monthly":
-          installmentPremium = basicYearlyPremium * 0.088;
-          break;
-        default:
-          installmentPremium = 0;
-      }
-      setValue(
-        "installmentPremium",
-        installmentPremium > 0
-          ? parseFloat(installmentPremium.toFixed(2))
-          : undefined,
-      );
-      setValue("gst", undefined);
-      setValue(
-        "totalInstallmentPremium",
-        installmentPremium > 0
-          ? parseFloat(installmentPremium.toFixed(2))
-          : undefined,
-      );
-    }
-  }, [watchSumAssured, watchTerm, watchPpt, watchMode, setValue]);
-
-  // When product changes, update attribute hints and pre-fill fields with minimum values.
-  useEffect(() => {
-    if (!watchProductId || !productAttributeValues || !products.length) {
-      setAttributeHints({ term: "", ppt: "", sumAssured: "", age: "" });
-      return;
-    }
-
-    const selectedProductAttributes = productAttributeValues.filter(
-      (attr) => attr.productId === watchProductId,
-    );
-
-    const getAttributeValue = (code: string) =>
-      selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
-        ?.value;
-
-    const minTerm = getAttributeValue("MIN_POLICY_TERM");
-    const maxTerm = getAttributeValue("MAX_POLICY_TERM");
-    const minPpt = getAttributeValue("MIN_PPT");
-    const maxPpt = getAttributeValue("MAX_PPT");
-    const minSum = getAttributeValue("MIN_SUM_ASSURED");
-    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
-    const minAge = getAttributeValue("MIN_ENTRY_AGE");
-    const maxAge = getAttributeValue("MAX_ENTRY_AGE");
-
-    setAttributeHints({
-      term:
-        minTerm || maxTerm
-          ? `Range: ${minTerm || "N/A"} - ${maxTerm || "N/A"}`
-          : "",
-      ppt:
-        minPpt || maxPpt
-          ? `Range: ${minPpt || "N/A"} - ${maxPpt || "N/A"}`
-          : "",
-      sumAssured:
-        minSum || maxSum
-          ? `Range: ${minSum || "N/A"} - ${maxSum || "N/A"}`
-          : "",
-      age:
-        minAge || maxAge
-          ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
-          : "",
-    });
-  }, [watchProductId, productAttributeValues, products, setValue]);
-
-  const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
+  const onSubmit = async (data: PolicyFormValues) => {
     setIsSubmitting(true);
 
     try {
       const payload = {
         ...data,
+
         advisorId: data.advisorId || null,
         branchId: data.branchId || null,
         attributes: {
-          MIN_POLICY_TERM: data.term,
-          MAX_POLICY_TERM: data.term,
-          MIN_PPT: data.ppt,
-          MAX_PPT: data.ppt,
-          MIN_SUM_ASSURED: data.sumAssured,
-          MAX_SUM_ASSURED: data.sumAssured,
+          SUM_ASSURED: data.sumAssured,
+          POLICY_TERM: data.term,
+          PREMIUM_PAYING_TERM: data.ppt,
+          // Add other dynamic attributes here if they are on the form
         },
+
         policyTerm: data.term,
         premiumPayingTerm: data.ppt,
       };
+
+      console.log("Advisor ID:", payload.advisorId);
+      console.log(payload);
 
       await dispatch(
         updatePolicy({

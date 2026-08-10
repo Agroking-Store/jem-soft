@@ -474,7 +474,7 @@ export const licProducts = [
   },
   {
     productName: "LIC's Jeevan Labh",
-    productCode: "512N304V03",
+    productCode: "512N304V00",// same 736 so i chnaged it to "512N304V00" from "512N304V03"
     planNumber: "936",
     providerCode: "LIC",
     productType: "Withdrawn",

@@ -196,11 +196,143 @@ model ProductMaster {
 
   attributes ProductAttributeValue[]
   policies   Policy[]
+  premiumRates       ProductPremiumRate[]
+  sumAssuredRebates  ProductSumAssuredRebate[]
+  premiumModeFactors ProductPremiumModeFactor[]
+  riders ProductRider[]
+  modeRebates ProductModeRebate[]
+  modeRebateRates  ProductModeRebateRate[]
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([providerId, productCode])
+}
+
+// ======================================================
+// ProductPremiumRate
+// Stores the tabular premium rates published by the insurer.
+// ======================================================
+
+model ProductPremiumRate {
+  id String @id @default(uuid())
+
+  productId String
+
+  entryAge Int
+  policyTerm Int
+  premiumPayingTerm Int?
+
+  tabularRate Decimal @db.Decimal(10,2)
+
+  effectiveFrom DateTime?
+  effectiveTo DateTime?
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, entryAge, policyTerm, premiumPayingTerm])
+}
+
+// ======================================================
+// ProductSumAssuredRebate
+// Stores High Sum Assured rebates.
+// ======================================================
+
+model ProductSumAssuredRebate {
+  id String @id @default(uuid())
+
+  productId String
+
+  minSumAssured Decimal @db.Decimal(18,2)
+  maxSumAssured Decimal? @db.Decimal(18,2)
+
+  rebatePerThousand Decimal @db.Decimal(10,3)
+
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([productId, minSumAssured])
+}
+
+// for plan 717 and 771
+model ProductModeRebate {
+  id String @id @default(uuid())
+
+  productId String
+  premiumModeId String
+
+  rebatePerThousand Decimal @db.Decimal(10,2)
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+  premiumMode PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  @@unique([productId, premiumModeId])
+}
+
+model ProductModeRebateRate {
+  id              String   @id @default(uuid())
+  productId       String
+  premiumModeId   String
+  entryAge        Int
+  policyTerm      Int
+  rebatePerThousand Decimal @db.Decimal(10,2)
+
+  product      ProductMaster     @relation(fields: [productId], references: [id])
+  premiumMode  PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  @@unique([productId, premiumModeId, entryAge, policyTerm])
+}
+
+// ======================================================
+// ProductPremiumModeFactor
+// Different plans have different premium mode rebates/loadings.
+// ======================================================
+
+model ProductPremiumModeFactor {
+  id String @id @default(uuid())
+
+  productId String
+  premiumModeId String
+
+  factor Decimal @db.Decimal(8,4)
+
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  premiumMode PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, premiumModeId])
+}
+
+
+// ======================================================
+// RiderPremiumRate
+// Rider Premium rate
+// ======================================================
+
+
+model RiderPremiumRate {
+  id String @id @default(uuid())
+
+  riderId String
+
+  entryAge Int
+
+  ratePerThousand Decimal @db.Decimal(10,2)
+
+  rider RiderMaster @relation(fields: [riderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([riderId, entryAge])
 }
 
 // ======================================================
@@ -240,8 +372,8 @@ model ProductAttributeValue {
 
   value String
 
-  product   ProductMaster          @relation(fields: [productId], references: [id])
-  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+  product   ProductMaster          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -271,8 +403,27 @@ model PremiumModeMaster {
 
   policies Policy[]
 
+  premiumModeFactors ProductPremiumModeFactor[]
+  productModeRebates ProductModeRebate[]
+  modeRebateRates  ProductModeRebateRate[]
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ProductRider {
+  id String @id @default(uuid())
+
+  productId String
+  riderId String
+
+  isMandatory Boolean @default(false)
+
+  product ProductMaster @relation(fields:[productId], references:[id], onDelete: Cascade)
+  rider RiderMaster @relation(fields:[riderId], references:[id], onDelete: Cascade)
+
+  @@unique([productId,riderId])
 }
 
 model RiderMaster {
@@ -283,6 +434,8 @@ model RiderMaster {
   isActive    Boolean @default(true)
 
   policyRiders PolicyRider[]
+  premiumRates RiderPremiumRate[]
+  productRiders ProductRider[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -324,7 +477,7 @@ model Policy {
   customer       Customer           @relation(fields: [clientId], references: [id])
   CustomerMaster CustomerMaster     @relation(fields: [CustomerMasterId], references: [id])
   provider       InsuranceProvider  @relation(fields: [providerId], references: [id])
-  product        ProductMaster      @relation(fields: [productId], references: [id])
+  product        ProductMaster      @relation(fields: [productId], references: [id], onDelete: Restrict)
   status         PolicyStatusMaster @relation(fields: [statusId], references: [id])
   premiumMode    PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
 
@@ -370,7 +523,7 @@ model PolicyAttribute {
 
   value String
 
-  policy    Policy                 @relation(fields: [policyId], references: [id])
+  policy    Policy                 @relation(fields: [policyId], references: [id], onDelete: Cascade)
   attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
 
   @@unique([policyId, attributeId])
@@ -385,7 +538,7 @@ model PolicyRider {
   riderAmount  Decimal?
   riderPremium Decimal?
 
-  policy Policy      @relation(fields: [policyId], references: [id])
+  policy Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
   rider  RiderMaster @relation(fields: [riderId], references: [id])
 
   @@unique([policyId, riderId])
@@ -405,7 +558,7 @@ model Nominee {
   email   String?
   address String?
 
-  policy Policy @relation(fields: [policyId], references: [id])
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   claims Claim[]
 
@@ -434,7 +587,7 @@ model PremiumPayment {
 
   paymentStatus PaymentStatusMaster @relation(fields: [paymentStatusId], references: [id])
 
-  policy Policy @relation(fields: [policyId], references: [id])
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -453,11 +606,29 @@ model PolicyLoan {
   loanTenure Int?
   remarks String?
 
+  // New fields from LoanForm
+  totalLoanGranted     Float?
+  prevLoanTaken        Float?
+  prevLoanInterestRate Float?
+  otherDeduction       Float?
+  xChargeDeduction     Float?
+  revivalDeduction     Float?
+  addDeposit           Float?
+  netAmount            Float?
+  chequeAmount         Float?
+  repaymentDate        DateTime?
+  loanRepaidAmount     Float?
+  totalLoanAmount      Float?
+  bpiInterest       Float?
+  hlyInterest       Float?
+  fuliDate             DateTime?
+  repaymentRemarks     String?
+
   loanStatusId String
 
   loanStatus LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
 
-  policy Policy @relation(fields: [policyId], references: [id])
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -473,7 +644,7 @@ model PolicyDocument {
 
   filePath String
 
-  policy Policy @relation(fields: [policyId], references: [id])
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -521,20 +692,39 @@ model PolicyPremiumCalculation {
 
   policyId String @unique
 
-  sumAssured Decimal
+  sumAssured Decimal @db.Decimal(18,2)
 
-  basicYearlyPremium Decimal
-  totalYearlyPremium Decimal
+  // Premium Table
+  tabularRate Decimal? @db.Decimal(10,2)
 
-  installmentPremium Decimal
+  tabularPremium Decimal? @db.Decimal(18,2)
 
-  gst Decimal?
+  // Rebate
+  rebateRate Decimal? @db.Decimal(10,3)
 
-  extraClass Decimal?
+  rebateAmount Decimal? @db.Decimal(18,2)
 
-  rebate Decimal?
+  // Mode
+  modeFactor Decimal? @db.Decimal(8,4)
 
-  totalInstallmentPremium Decimal
+  // Extra Loading
+  extraClassRate Decimal? @db.Decimal(10,2)
+
+  extraClassAmount Decimal? @db.Decimal(18,2)
+
+  // Riders
+  riderPremium Decimal? @db.Decimal(18,2)
+
+  // Premiums
+  basicYearlyPremium Decimal @db.Decimal(18,2)
+
+  totalYearlyPremium Decimal @db.Decimal(18,2)
+
+  installmentPremium Decimal @db.Decimal(18,2)
+
+  gst Decimal? @db.Decimal(18,2)
+
+  totalInstallmentPremium Decimal @db.Decimal(18,2)
 
   policy Policy @relation(fields: [policyId], references: [id])
 

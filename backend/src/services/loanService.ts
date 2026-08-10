@@ -12,7 +12,37 @@ export interface LoanData {
 
     loanTenure?: number;
     remarks?: string;
+
+    // New fields from LoanForm
+  totalLoanGranted?: number;
+  prevLoanTaken?: number;
+  prevLoanInterestRate?: number;
+  otherDeduction?: number;
+  xChargeDeduction?: number;
+  revivalDeduction?: number;
+  addDeposit?: number;
+  netAmount?: number;
+  chequeAmount?: number;
+  repaymentDate?: string;
+  loanRepaidAmount?: number;
+  totalLoanAmount?: number;
+  bpiInterest?: number;
+  hlyInterest?: number;
+  fuliDate?: string;
+  repaymentRemarks?: string;
 }
+
+const toOptionalNumber = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === "") return undefined;
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const toOptionalDate = (value: unknown): Date | undefined => {
+  if (value === null || value === undefined || value === "") return undefined;
+  const date = new Date(value as string | number | Date);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
 
 const loanInclude = {
     policy: {
@@ -62,6 +92,23 @@ export const createLoan = async (data: LoanData) => {
 
         loanTenure: data.loanTenure,
         remarks: data.remarks,
+
+        totalLoanGranted: data.totalLoanGranted,
+      prevLoanTaken: toOptionalNumber(data.prevLoanTaken),
+      prevLoanInterestRate: toOptionalNumber(data.prevLoanInterestRate),
+      otherDeduction: toOptionalNumber(data.otherDeduction),
+      xChargeDeduction: toOptionalNumber(data.xChargeDeduction),
+      revivalDeduction: toOptionalNumber(data.revivalDeduction),
+      addDeposit: toOptionalNumber(data.addDeposit),
+      netAmount: toOptionalNumber(data.netAmount),
+      chequeAmount: toOptionalNumber(data.chequeAmount),
+      repaymentDate: toOptionalDate(data.repaymentDate),
+      loanRepaidAmount: toOptionalNumber(data.loanRepaidAmount),
+      totalLoanAmount: toOptionalNumber(data.totalLoanAmount),
+      bpiInterest: toOptionalNumber(data.newBpiInterest),
+      hlyInterest: toOptionalNumber(data.newHlyInterest),
+      fuliDate: toOptionalDate(data.fuliDate),
+      repaymentRemarks: data.repaymentRemarks,
     },
     include: loanInclude,
 });

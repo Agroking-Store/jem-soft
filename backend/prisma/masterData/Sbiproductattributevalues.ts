@@ -15,22 +15,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Smart Term Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Smart Term Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "40",
+    value: "100",
   },
   {
     productCode: "SBI Life - Smart Term Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2500000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Smart Term Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Smart Term Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Smart Term Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - eShield Next
@@ -47,22 +57,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - eShield Next",
     attributeCode: "MIN_POLICY_TERM",
-    value: "5",
+    value: "0",
   },
   {
     productCode: "SBI Life - eShield Next",
     attributeCode: "MAX_POLICY_TERM",
-    value: "40",
+    value: "100",
   },
   {
     productCode: "SBI Life - eShield Next",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2000000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - eShield Next",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - eShield Next",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - eShield Next",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Elite Life Insurance
@@ -79,22 +99,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Elite Life Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Elite Life Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "35",
+    value: "100",
   },
   {
     productCode: "SBI Life - Elite Life Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "5000000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Elite Life Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "30000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Elite Life Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Elite Life Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Endowment Plan
@@ -111,22 +141,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Endowment Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Endowment Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "25",
+    value: "100",
   },
   {
     productCode: "SBI Life - Endowment Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Endowment Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Endowment Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Endowment Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Advantage Plan
@@ -143,22 +183,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Advantage Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "8",
+    value: "0",
   },
   {
     productCode: "SBI Life - Advantage Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "20",
+    value: "100",
   },
   {
     productCode: "SBI Life - Advantage Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Advantage Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Advantage Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Advantage Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Smart Goal Assure
@@ -175,22 +225,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Smart Goal Assure",
     attributeCode: "MIN_POLICY_TERM",
-    value: "5",
+    value: "0",
   },
   {
     productCode: "SBI Life - Smart Goal Assure",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "SBI Life - Smart Goal Assure",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Smart Goal Assure",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Smart Goal Assure",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Smart Goal Assure",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Guaranteed Plan
@@ -207,22 +267,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Guaranteed Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Guaranteed Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "25",
+    value: "100",
   },
   {
     productCode: "SBI Life - Guaranteed Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Guaranteed Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "20000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Guaranteed Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Guaranteed Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Super Retirement Plan
@@ -239,22 +309,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Super Retirement Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Super Retirement Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "SBI Life - Super Retirement Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Super Retirement Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Super Retirement Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Super Retirement Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Immediate Annuity Plan
@@ -270,18 +350,33 @@ export const sbiProductAttributeValues = [
   },
   {
     productCode: "SBI Life - Immediate Annuity Plan",
+    attributeCode: "MIN_POLICY_TERM",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Immediate Annuity Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "LIFETIME",
+    value: "100",
   },
   {
     productCode: "SBI Life - Immediate Annuity Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Immediate Annuity Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "100000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Immediate Annuity Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Immediate Annuity Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Smart Child Plan
@@ -298,22 +393,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Smart Child Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "10",
+    value: "0",
   },
   {
     productCode: "SBI Life - Smart Child Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "20",
+    value: "100",
   },
   {
     productCode: "SBI Life - Smart Child Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Smart Child Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Smart Child Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Smart Child Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Junior Insurance Plan
@@ -330,22 +435,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Junior Insurance Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "8",
+    value: "0",
   },
   {
     productCode: "SBI Life - Junior Insurance Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "18",
+    value: "100",
   },
   {
     productCode: "SBI Life - Junior Insurance Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Junior Insurance Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Junior Insurance Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Junior Insurance Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Health Gain Plus
@@ -362,88 +477,128 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Health Gain Plus",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI Life - Health Gain Plus",
     attributeCode: "MAX_POLICY_TERM",
-    value: "LIFETIME",
+    value: "100",
   },
   {
     productCode: "SBI Life - Health Gain Plus",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Health Gain Plus",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Health Gain Plus",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Health Gain Plus",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Motor Insurance (Third Party)
   {
     productCode: "SBI General - Motor Insurance (Third Party)",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Motor Insurance (Third Party)",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
   },
   {
     productCode: "SBI General - Motor Insurance (Third Party)",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "750000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Motor Insurance (Third Party)",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Motor Insurance (Third Party)",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Motor Insurance (Third Party)",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Comprehensive Motor Insurance
   {
     productCode: "SBI General - Comprehensive Motor Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Comprehensive Motor Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
   },
   {
     productCode: "SBI General - Comprehensive Motor Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1000000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Comprehensive Motor Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Comprehensive Motor Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Comprehensive Motor Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Two Wheeler Insurance
   {
     productCode: "SBI General - Two Wheeler Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Two Wheeler Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
   },
   {
     productCode: "SBI General - Two Wheeler Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Two Wheeler Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "2000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Two Wheeler Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Two Wheeler Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Health Insurance
@@ -460,22 +615,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI General - Health Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Health Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "LIFETIME",
+    value: "100",
   },
   {
     productCode: "SBI General - Health Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "300000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Health Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "5000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Health Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Health Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Senior Citizens Health Plan
@@ -492,100 +657,160 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI General - Senior Citizens Health Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Senior Citizens Health Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "LIFETIME",
+    value: "100",
   },
   {
     productCode: "SBI General - Senior Citizens Health Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Senior Citizens Health Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "1000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Senior Citizens Health Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Senior Citizens Health Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Travel Insurance
   {
     productCode: "SBI General - Travel Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "7-365_DAYS",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Travel Insurance",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
   },
   {
     productCode: "SBI General - Travel Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Travel Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Travel Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Travel Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - International Travel Insurance
   {
     productCode: "SBI General - International Travel Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "7-365_DAYS",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - International Travel Insurance",
+    attributeCode: "MAX_POLICY_TERM",
+    value: "100",
   },
   {
     productCode: "SBI General - International Travel Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1000000",
+    value: "50000",
   },
   {
     productCode: "SBI General - International Travel Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "20000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - International Travel Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - International Travel Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Home Insurance
   {
     productCode: "SBI General - Home Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Home Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
   },
   {
     productCode: "SBI General - Home Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "1000000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Home Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "20000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Home Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Home Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Comprehensive Home Insurance
   {
     productCode: "SBI General - Comprehensive Home Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Comprehensive Home Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "5",
+    value: "100",
   },
   {
     productCode: "SBI General - Comprehensive Home Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "2000000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Comprehensive Home Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Comprehensive Home Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Comprehensive Home Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Personal Accident Insurance
@@ -602,44 +827,64 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI General - Personal Accident Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Personal Accident Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "SBI General - Personal Accident Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "200000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Personal Accident Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "10000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Personal Accident Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Personal Accident Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI General - Cyber Insurance
   {
     productCode: "SBI General - Cyber Insurance",
     attributeCode: "MIN_POLICY_TERM",
-    value: "1",
+    value: "0",
   },
   {
     productCode: "SBI General - Cyber Insurance",
     attributeCode: "MAX_POLICY_TERM",
-    value: "1",
+    value: "100",
   },
   {
     productCode: "SBI General - Cyber Insurance",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "500000",
+    value: "50000",
   },
   {
     productCode: "SBI General - Cyber Insurance",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "50000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI General - Cyber Insurance",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI General - Cyber Insurance",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Saral Jeevan Bima
@@ -656,22 +901,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Saral Jeevan Bima",
     attributeCode: "MIN_POLICY_TERM",
-    value: "5",
+    value: "0",
   },
   {
     productCode: "SBI Life - Saral Jeevan Bima",
     attributeCode: "MAX_POLICY_TERM",
-    value: "30",
+    value: "100",
   },
   {
     productCode: "SBI Life - Saral Jeevan Bima",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "25000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Saral Jeevan Bima",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "1000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Saral Jeevan Bima",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Saral Jeevan Bima",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
   // SBI Life - Dignity Plan
@@ -688,22 +943,32 @@ export const sbiProductAttributeValues = [
   {
     productCode: "SBI Life - Dignity Plan",
     attributeCode: "MIN_POLICY_TERM",
-    value: "5",
+    value: "0",
   },
   {
     productCode: "SBI Life - Dignity Plan",
     attributeCode: "MAX_POLICY_TERM",
-    value: "20",
+    value: "100",
   },
   {
     productCode: "SBI Life - Dignity Plan",
     attributeCode: "MIN_SUM_ASSURED",
-    value: "100000",
+    value: "50000",
   },
   {
     productCode: "SBI Life - Dignity Plan",
     attributeCode: "MAX_SUM_ASSURED",
-    value: "1000000",
+    value: "No Limit",
+  },
+  {
+    productCode: "SBI Life - Dignity Plan",
+    attributeCode: "MIN_PPT",
+    value: "0",
+  },
+  {
+    productCode: "SBI Life - Dignity Plan",
+    attributeCode: "MAX_PPT",
+    value: "100",
   },
 
 ];

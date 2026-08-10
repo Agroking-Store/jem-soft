@@ -12,6 +12,12 @@ import { seedPaymentStatuses } from './paymentStatus.seed';
 import { seedProductAttributes } from './productattributemaster.seed';
 import { seedProductAttributeValues } from './productattributevalue.seed';
 import { seedLoanStatuses } from './loanStatus.seed';
+import { seedLIC714SumAssuredRebates } from "../masterData/rebates/lic714";
+import { seedLIC715SumAssuredRebates } from "../masterData/rebates/lic715";
+import { seedLIC717SumAssuredRebates } from "../masterData/rebates/lic717";
+import { seedLIC717ModeRebates } from "../masterData/moderebates/lic717";
+import { seedLIC751SumAssuredRebates } from "../masterData/rebates/lic751";
+import { seedLIC748SumAssuredRebates } from "../masterData/rebates/lic748";
 
 export const runSeeders = async (prisma: PrismaClient) => {
   await seedPolicyStatuses(prisma);
@@ -27,4 +33,10 @@ export const runSeeders = async (prisma: PrismaClient) => {
   await seedRiders(prisma);
   await seedPaymentStatuses(prisma);
   await seedLoanStatuses(prisma);
+  await seedLIC714SumAssuredRebates(prisma);
+  await seedLIC715SumAssuredRebates(prisma);
+  await seedLIC717SumAssuredRebates(prisma);
+  await seedLIC717ModeRebates(prisma);
+  await seedLIC751SumAssuredRebates(prisma);
+  await seedLIC748SumAssuredRebates(prisma);
 };
