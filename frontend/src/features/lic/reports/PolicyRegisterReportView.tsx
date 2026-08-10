@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useMemo } from "react";
-import { ArrowLeft, Download, Printer, FilterX } from "lucide-react";
+import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { PolicyRegisterFormData } from "./PolicyRegisterForm";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
@@ -191,15 +191,32 @@ export default function PolicyRegisterReportView({
       const nomineeName = p.nominees?.[0]?.nomineeName || p.nominee || "—";
       const nomineeRelation = p.nominees?.[0]?.relationship || p.nominees?.[0]?.relation || "—";
 
-      nomineeList.push({
-        srNo: nomineeList.length + 1,
-        policyNo: p.policyNumber || `91789457${idx + 1}`,
-        nomineeName: nomineeName,
-        relation: nomineeRelation,
-        sharePct: "100.00 %",
-        nomineeType: "Single",
-        memberName: ownerName,
+      // All nominees from the policy push to the nominee list (support multiple nominees per policy)
+      const nominees = p.nominees && p.nominees.length > 0 ? p.nominees : [];
+      nominees.forEach((nom: any) => {
+        const pct = nom.percentage != null ? `${Number(nom.percentage).toFixed(2)} %` : "100.00 %";
+        nomineeList.push({
+          srNo: nomineeList.length + 1,
+          policyNo: p.policyNumber || `91789457${idx + 1}`,
+          nomineeName: nom.nomineeName || "—",
+          relation: nom.relationship || nom.relation || "—",
+          sharePct: pct,
+          nomineeType: nominees.length > 1 ? "Joint" : "Single",
+          memberName: ownerName,
+        });
       });
+      // If no nominees, still push a blank row so the policy appears in the list
+      if (nominees.length === 0) {
+        nomineeList.push({
+          srNo: nomineeList.length + 1,
+          policyNo: p.policyNumber || `91789457${idx + 1}`,
+          nomineeName: "—",
+          relation: "—",
+          sharePct: "—",
+          nomineeType: "—",
+          memberName: ownerName,
+        });
+      }
 
       return {
         policyNo: p.policyNumber || `91789457${idx + 1}`,
@@ -498,14 +515,6 @@ export default function PolicyRegisterReportView({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-slate-200 hover:text-white font-bold text-xs rounded-xl border border-slate-700 hover:bg-slate-700 transition uppercase tracking-wider"
-          >
-            <Printer size={16} />
-            <span>Print Report</span>
-          </button>
-
           <button
             onClick={handleDownloadPDF}
             disabled={isExporting}
