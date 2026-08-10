@@ -9,6 +9,7 @@ import { calculateLIC771 } from "./premiumcalculators/lic771Calculator.js";
 import { calculateLIC745 } from "./premiumcalculators/lic745Calculator.js";
 import { calculateLIC883 } from "./premiumcalculators/lic883Calculator.js";
 import { calculateLIC736 } from "./premiumcalculators/lic736Calculator.js";
+import { calculateLIC720 } from "./premiumcalculators/lic720Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -283,6 +284,18 @@ if (!premiumRate) {
     tabularPremium,
     rate,
   });
+
+  case "720":
+  case "721":
+      premiumResult = await calculateLIC720({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm: data.policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
   break;
 
     default: {
