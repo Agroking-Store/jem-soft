@@ -313,6 +313,7 @@ export default function LICReportsPage() {
         <PolicyRegisterForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePolicyRegisterReport}
+          initialData={selectedPolicyRegisterData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
