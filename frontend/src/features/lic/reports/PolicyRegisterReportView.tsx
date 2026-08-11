@@ -269,29 +269,58 @@ export default function PolicyRegisterReportView({
           gCode = p.product?.planNumber || "836";
           gHeadName = `Plan ${gCode} - ${p.product?.productName || "LIC Plan"}`;
         } else if (isMemberwise) {
-          gCode = p.customer?.id || p.customer?.groupCode || `M${idx + 1}`;
-          gHeadName = p.customer?.name || "Individual Member";
+          // Each member is its OWN block, keyed by the member's own unique
+          // CustomerMaster id (NOT p.customer.id, which is the GROUP id shared
+          // by every member of that group — that was the actual bug: Aarav and
+          // Priya share the same group id, so keying on it merged/dropped them).
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || `M${idx + 1}`;
+          const memberOwnGroupCode = p.customer?.groupCode || "";
+          const memberOwnName = p.CustomerMaster
+            ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`
+                .replace(/\s+/g, " ")
+                .trim()
+            : p.customer?.name || "Individual Member";
+          gCode = memberId;
+          gHeadName = memberOwnGroupCode ? `${memberOwnGroupCode} - ${memberOwnName}` : memberOwnName;
         }
 
         // Apply selected sorting item filter (customer/member selection)
-        // Match against: group code, group head name, CustomerMaster full name, or customer name
-        if (selectedSortingCodesOrNames.length > 0) {
-          const memberFullName = p.CustomerMaster
-            ? `${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`.toLowerCase().trim()
-            : "";
-          const custName = (p.customer?.name || "").toLowerCase().trim();
-          const custGroupCode = gCode.toLowerCase();
-          const custGroupName = gHeadName.toLowerCase();
+        if (selectedSortingItems.length > 0) {
+          let matches: boolean;
 
-          const matches = selectedSortingCodesOrNames.some(
-            (sc) =>
-              custGroupCode.includes(sc) ||
-              custGroupName.includes(sc) ||
-              memberFullName.includes(sc) ||
-              sc.includes(memberFullName.split(" ")[0]) || // first name match
-              custName.includes(sc) ||
-              sc.includes(custName.split(" ")[0]) // first name match
-          );
+          if (isMemberwise) {
+            // Group Memberwise: match EXACTLY by the member's own CustomerMaster
+            // id. p.customer.id is the GROUP id (shared by Aarav and Priya in
+            // group A001) — matching on that was the bug. Each policy's own
+            // CustomerMaster.id is unique per member, which is what the
+            // Sorting Filter modal's rows are now keyed by too.
+            const selectedMemberIds = new Set(
+              selectedSortingItems.map((item) => item.id)
+            );
+            const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+            matches = Boolean(memberId) && selectedMemberIds.has(memberId);
+          } else {
+            // All other sorting modes (groupsWise, areaWise, branchNoWise, planWise, ...):
+            // fuzzy match against group code, group head name, CustomerMaster full name,
+            // or customer name — unchanged, this is the behaviour that already works.
+            const memberFullName = p.CustomerMaster
+              ? `${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`.toLowerCase().trim()
+              : "";
+            const custName = (p.customer?.name || "").toLowerCase().trim();
+            const custGroupCode = gCode.toLowerCase();
+            const custGroupName = gHeadName.toLowerCase();
+
+            matches = selectedSortingCodesOrNames.some(
+              (sc) =>
+                custGroupCode.includes(sc) ||
+                custGroupName.includes(sc) ||
+                memberFullName.includes(sc) ||
+                sc.includes(memberFullName.split(" ")[0]) || // first name match
+                custName.includes(sc) ||
+                sc.includes(custName.split(" ")[0]) // first name match
+            );
+          }
+
           if (!matches) return;
         }
 
