@@ -170,7 +170,7 @@ export default function LICReportsPage() {
       {/* Top Shared Nav */}
       <LicModuleNav />
 
-      {/* VIEW 1: All 17 Cards Grid */}
+      {/* VIEW 1: All 16 Cards Grid */}
       {currentView === "cards" && (
         <div className="space-y-6">
           {/* Header Banner matching Website Theme `#0B1220` with `#E8C77A` */}
@@ -191,7 +191,7 @@ export default function LICReportsPage() {
 
               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
                 <div className="text-center px-2">
-                  <span className="block text-2xl font-bold text-[#E8C77A]">17</span>
+                  <span className="block text-2xl font-bold text-[#E8C77A]">16</span>
                   <span className="text-slate-300 font-serif text-[10px] uppercase tracking-wider">Reports</span>
                 </div>
               </div>
