@@ -133,6 +133,7 @@ export default function PolicyRegisterReportView({
 
     const isMemberwise = formData.sortingOption === "groupMemberwise";
     const isAreaWise = formData.sortingOption === "areaWise";
+    const isSubAreaWise = formData.sortingOption === "subAreaWise";
     const isBranchWise = formData.sortingOption === "branchNoWise";
     const isPlanWise = formData.sortingOption === "planWise";
 
@@ -259,9 +260,24 @@ export default function PolicyRegisterReportView({
         let gCode = p.customer?.groupCode || `A${p.clientId || "001"}`;
         let gHeadName = p.customer?.groupName || p.customer?.name || "Customer Group";
 
-        if (isAreaWise) {
-          gCode = p.customer?.resArea || "Katraj, Pune";
-          gHeadName = `Area: ${gCode}`;
+        if (isAreaWise || isSubAreaWise) {
+          // p.customer on the policy can be a partial embed that's missing
+          // resArea/resCity — fall back to the full customers list (which
+          // reliably has these fields) so the filter has real data to match
+          // against instead of silently defaulting to one fake group.
+          const custForArea =
+            p.customer || rawCustomers.find((c) => c.id === p.customerId || c.id === p.clientId) || {};
+          if (isAreaWise) {
+            gCode = custForArea.resArea || custForArea.resCity || "Unassigned";
+            gHeadName = `Area: ${gCode}`;
+          } else {
+            // Sub-Area Wise had no handling at all before — it silently fell
+            // through to the default (grouped by Group Code), which is why
+            // selecting a sub-area never matched anything. Groups by resCity,
+            // the same field the Sorting Filter modal's list is built from.
+            gCode = custForArea.resCity || "Unassigned";
+            gHeadName = `Sub-Area: ${gCode}`;
+          }
         } else if (isBranchWise) {
           gCode = p.branch?.branchCode || "955";
           gHeadName = `Branch ${gCode}`;
@@ -604,9 +620,6 @@ export default function PolicyRegisterReportView({
             <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
               {getReportTitle()}
             </h2>
-            <p className="text-[11px] text-slate-300">
-              Filtered between {formData.fromCommDate || "01/03/2016"} and {formData.toCommDate || new Date().toLocaleDateString("en-GB")}
-            </p>
           </div>
           <div className="text-right text-xs text-[#E8C77A] font-bold">
             Total Groups: {groupData.length} | Policies: {grandTotalPolicies}
