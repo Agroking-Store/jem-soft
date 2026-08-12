@@ -482,7 +482,7 @@ export default function LICPoliciesPage() {
                       </div>
                       {policy.customer?.groupCode && (
                         <div className="mt-1 text-xs text-slate-500">
-                          {policy.customer.groupCode}
+                          {`GR code - ${policy.customer.groupCode}`}
                         </div>
                       )}
                     </td>

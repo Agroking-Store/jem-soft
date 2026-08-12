@@ -483,6 +483,7 @@ export const updatePolicy = async (
 
         advisorId: data.advisorId || null,
         agentCode: data.agentCode,
+        branchId: data.branchId || null,
 
         premiumModeId: premiumMode.id,
 
@@ -529,6 +530,30 @@ export const updatePolicy = async (
           });
         }
       }
+    }
+
+    // Update Nominees
+    await tx.nominee.deleteMany({
+      where: {
+        policyId: id,
+      },
+    });
+
+    if (data.nominees && data.nominees.length > 0) {
+      await tx.nominee.createMany({
+        data: data.nominees.map((nominee) => ({
+          policyId: id,
+          nomineeName: nominee.nomineeName,
+          relationship: nominee.relationship,
+          dateOfBirth: nominee.dateOfBirth
+            ? new Date(nominee.dateOfBirth)
+            : null,
+          percentage: nominee.percentage,
+          phone: nominee.phone,
+          email: nominee.email,
+          address: nominee.address,
+        })),
+      });
     }
 
     // Update Premium Calculation

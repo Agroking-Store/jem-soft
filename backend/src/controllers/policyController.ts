@@ -112,11 +112,12 @@ export const updatePolicy = catchAsync(async (req: Request, res: Response) => {
   console.log("updatePolicy controller - req.body:", req.body);
 
   const updatedPolicy = await policyService.updatePolicy(id, req.body);
+  const refreshedPolicy = await policyService.getPolicyById(updatedPolicy.id);
 
   res.status(200).json({
     status: "success",
     data: {
-      policy: updatedPolicy,
+      policy: refreshedPolicy,
     },
   });
 });
