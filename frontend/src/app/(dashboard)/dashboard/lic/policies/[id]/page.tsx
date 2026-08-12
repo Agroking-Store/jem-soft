@@ -999,18 +999,6 @@ export default function ViewLICPolicyPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Rate %
-                    </label>
-                    <input
-                      type="text"
-                      value={watch("ratePercent") ?? ""}
-                      placeholder="Rate %"
-                      readOnly
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
                       Total Installment Premium
                     </label>
                     <input

@@ -564,7 +564,10 @@ const policySchema = z.object({
   ),
   gst: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.coerce.number().positive().optional(),
+    z.coerce
+      .number()
+      .min(0, "GST must be zero or a positive number")
+      .optional(),
   ),
   totalInstallmentPremium: z.preprocess(
     (val) => (val === "" ? undefined : val),
@@ -890,7 +893,7 @@ export default function EditLICPolicyPage() {
 
       productType: (selectedPolicy.product as any)?.productType ?? "",
 
-      advisorId: selectedPolicy.advisorId ?? "",
+      advisorId: selectedPolicy.advisorId ?? selectedPolicy.advisor?.id ?? "",
       agencyId: selectedPolicy.advisor?.agencyId ?? "",
 
       agentCode: selectedPolicy.agentCode ?? "",
@@ -1150,9 +1153,6 @@ export default function EditLICPolicyPage() {
 
   useEffect(() => {
     const agency = agencies.find((a) => a.id === watchAgencyId);
-    // When agency changes, reset the advisor
-    setValue("advisorId", "");
-
     if (agency) {
       if (agency.agencyCode === "AG002" || agency.agencyCode === "AG003") {
         const directBranch = branches.find((b) => b.branchCode === "955");
@@ -1227,6 +1227,7 @@ export default function EditLICPolicyPage() {
   }, [JSON.stringify(watchRiders), setValue]);
 
   const onSubmit = async (data: PolicyFormValues) => {
+    console.log("Submit clicked");
     setIsSubmitting(true);
 
     try {
@@ -1247,14 +1248,15 @@ export default function EditLICPolicyPage() {
       };
 
       console.log("Advisor ID:", payload.advisorId);
-      console.log(payload);
+      console.log("Payload:", payload);
 
-      await dispatch(
+      const result = await dispatch(
         updatePolicy({
           id,
           data: payload,
         }),
       ).unwrap();
+      console.log("Dispatch result:", result);
 
       await fetchNotifications();
 
@@ -1313,6 +1315,8 @@ export default function EditLICPolicyPage() {
       </div>
     );
   }
+
+  console.log("Form errors:", errors);
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
@@ -2564,7 +2568,9 @@ export default function EditLICPolicyPage() {
                           Agency <span className="text-red-500">*</span>
                         </label>
                         <select
-                          {...register("agencyId")}
+                          {...register("agencyId", {
+                            onChange: () => setValue("advisorId", ""),
+                          })}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select Agency</option>
