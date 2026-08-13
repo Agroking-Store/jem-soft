@@ -2,6 +2,7 @@ import express from "express";
 import {
   getClaims,
   getClaimById,
+  calculateClaimAmount,
   addClaim,
   updateClaim,
   deleteClaim,
@@ -11,6 +12,7 @@ import { protect } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.route("/").get(protect, getClaims).post(protect, addClaim);
+router.route("/calculate").get(protect, calculateClaimAmount);
 
 router
   .route("/:id")

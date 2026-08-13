@@ -33,6 +33,26 @@ export const getClaimById = catchAsync(
   },
 );
 
+export const calculateClaimAmount = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { policyId, claimType } = req.query as {
+      policyId?: string;
+      claimType?: string;
+    };
+
+    if (!policyId || !claimType) {
+      return next(new AppError("policyId and claimType are required.", 400));
+    }
+
+    const calculation = await claimService.calculateClaimAmount(
+      policyId,
+      claimType,
+    );
+
+    res.status(200).json({ success: true, data: calculation });
+  },
+);
+
 export const addClaim = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     // Validate request body

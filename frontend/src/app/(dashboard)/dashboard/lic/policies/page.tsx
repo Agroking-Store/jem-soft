@@ -480,9 +480,21 @@ export default function LICPoliciesPage() {
                       <div className="font-semibold text-slate-900">
                         {holderName || "—"}
                       </div>
-                      {policy.customer?.groupCode && (
+                      {(policy.customer?.groupName ||
+                        policy.customer?.groupCode) && (
                         <div className="mt-1 text-xs text-slate-500">
-                          {`GR code - ${policy.customer.groupCode}`}
+                          {(() => {
+                            const groupName = policy.customer?.groupName;
+                            const groupCode = policy.customer?.groupCode;
+
+                            if (groupName && groupCode) {
+                              return `${groupName} - ${groupCode}`;
+                            } else if (groupName) {
+                              return groupName;
+                            } else {
+                              return groupCode;
+                            }
+                          })()}
                         </div>
                       )}
                     </td>

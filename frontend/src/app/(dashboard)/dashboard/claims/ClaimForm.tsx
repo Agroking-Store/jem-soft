@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import {
+  calculateClaimAmount,
   createClaim,
   updateClaim,
   type Claim,
@@ -42,6 +43,17 @@ interface ClaimFormProps {
   initialClaim?: Claim | null;
 }
 
+type ClaimCalculation = {
+  maxClaimAmount: number | null;
+  calculation: {
+    sumAssured: number;
+    reversionaryBonus: number;
+    finalAdditionalBonus: number;
+    outstandingLoan: number;
+    loanInterest: number;
+  };
+};
+
 /* ────────────────────────────────────────────────────────────────
  * Payment Details types
  * ──────────────────────────────────────────────────────────────── */
@@ -58,6 +70,11 @@ interface ChequeFields {
 export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+
+  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [confirmedCalculation, setConfirmedCalculation] =
+    useState<ClaimCalculation | null>(null);
+  const [isCalculatingClaim, setIsCalculatingClaim] = useState(false);
 
   const claimSchema = z
     .object({
@@ -77,10 +94,23 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       (data) => {
         const sumAssured = selectedPolicy?.premium?.sumAssured;
         if (!sumAssured) return true;
+        if (data.claimType === "Death") return true;
         return data.claimAmount <= sumAssured;
       },
       {
         message: "Claim amount must be less than or equal to sum assured",
+        path: ["claimAmount"],
+      },
+    )
+    .refine(
+      (data) => {
+        if (data.claimType !== "Death") return true;
+        if (!confirmedCalculation?.maxClaimAmount) return true;
+        return data.claimAmount <= confirmedCalculation.maxClaimAmount;
+      },
+      {
+        message:
+          "Requested claim amount cannot exceed the maximum payable amount.",
         path: ["claimAmount"],
       },
     )
@@ -102,7 +132,6 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
   const { policies } = useSelector((state: RootState) => state.policies);
 
-  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [validatedData, setValidatedData] = useState<ClaimFormData | null>(
     null,
@@ -178,6 +207,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     register,
     handleSubmit,
     control,
+    watch,
     reset,
     formState: { errors },
   } = useForm<ClaimFormData>({
@@ -271,18 +301,45 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   }, [mode, initialClaim, selectedPolicy]);
 
   // Sync selectedPolicy when policyId changes
+  const selectedPolicyId = watch("policyId");
+  const selectedClaimType = watch("claimType");
+
   useEffect(() => {
-    const subscription = (control as any).watch?.(
-      (value: any, { name }: any) => {
-        if (name === "policyId") {
-          const policy = policies.find((p) => p.id === value.policyId);
-          setSelectedPolicy(policy || null);
-          setSelectedNominee(null); // Reset nominee when policy changes
-        }
-      },
-    );
-    return () => subscription?.unsubscribe();
-  }, [control, policies]);
+    const policy = policies.find((p) => p.id === selectedPolicyId);
+    setSelectedPolicy(policy || null);
+    setSelectedNominee(null); // Reset nominee when policy changes
+  }, [selectedPolicyId, policies]);
+
+  useEffect(() => {
+    const fetchCalculation = async () => {
+      if (!selectedPolicyId || !selectedClaimType) {
+        setConfirmedCalculation(null);
+        return;
+      }
+
+      if (selectedClaimType !== "Death") {
+        setConfirmedCalculation(null);
+        return;
+      }
+
+      setIsCalculatingClaim(true);
+      try {
+        const result = await dispatch(
+          calculateClaimAmount({
+            policyId: selectedPolicyId,
+            claimType: selectedClaimType,
+          }),
+        ).unwrap();
+        setConfirmedCalculation(result);
+      } catch (error) {
+        setConfirmedCalculation(null);
+      } finally {
+        setIsCalculatingClaim(false);
+      }
+    };
+
+    fetchCalculation();
+  }, [dispatch, selectedPolicyId, selectedClaimType]);
 
   const policyRegister = register("policyId");
 
@@ -537,6 +594,13 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                       {errors.claimAmount?.message}
                     </p>
                   )}
+                  {selectedPolicy &&
+                    confirmedCalculation?.maxClaimAmount != null && (
+                      <p className="mt-2 rounded-lg border border-emerald-200 bg-[#F0FDF4] px-3 py-2 text-sm text-emerald-700">
+                        ✓ Maximum claimable amount:{" "}
+                        {`₹${confirmedCalculation.maxClaimAmount.toLocaleString("en-IN")}`}
+                      </p>
+                    )}
                 </div>
                 <div>
                   <label className={labelClass}>

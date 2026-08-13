@@ -202,3 +202,112 @@ export const updateClaimById = async (
 export const deleteClaimById = async (id: string) => {
   return await prisma.claim.delete({ where: { id } });
 };
+
+const toNumber = (value: any) => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (typeof value === "object" && typeof value.toNumber === "function") {
+    return value.toNumber();
+  }
+  return 0;
+};
+
+const findAttributeValue = (
+  policyAttributes: any[] | undefined,
+  attributeCodes: string[],
+  attributeNames: string[],
+) => {
+  if (!policyAttributes) return 0;
+
+  const attr = policyAttributes.find((policyAttribute) => {
+    const code = policyAttribute.attribute?.attributeCode;
+    const name = policyAttribute.attribute?.attributeName;
+    return attributeCodes.includes(code) || attributeNames.includes(name);
+  });
+
+  if (!attr) return 0;
+  return toNumber(attr.value);
+};
+
+export const calculateClaimAmount = async (
+  policyId: string,
+  claimType: string,
+) => {
+  if (!policyId) {
+    throw new Error("Policy ID is required.");
+  }
+
+  const policy = await prisma.policy.findUnique({
+    where: { id: policyId },
+    include: {
+      premium: true,
+      loans: true,
+      policyAttributes: {
+        include: {
+          attribute: true,
+        },
+      },
+    },
+  });
+
+  if (!policy) {
+    throw new Error("Policy not found.");
+  }
+
+  const sumAssured = toNumber(policy.premium?.sumAssured);
+  const reversionaryBonus = findAttributeValue(
+    policy.policyAttributes,
+    ["REVERSIONARY_BONUS"],
+    ["Reversionary Bonus"],
+  );
+  const finalAdditionalBonus = findAttributeValue(
+    policy.policyAttributes,
+    ["FINAL_ADDITIONAL_BONUS"],
+    ["Final Additional Bonus", "F.A.B"],
+  );
+
+  const outstandingLoan = policy.loans.reduce((total, loan) => {
+    const loanAmount = toNumber(loan.loanAmount);
+    const loanRepaidAmount = toNumber(loan.loanRepaidAmount);
+    const outstanding = loanAmount - loanRepaidAmount;
+    return total + Math.max(0, outstanding);
+  }, 0);
+
+  const loanInterest = policy.loans.reduce((total, loan) => {
+    const totalLoanAmount = toNumber(loan.totalLoanAmount);
+    const loanAmount = toNumber(loan.loanAmount);
+    const interestFromTotal = Math.max(0, totalLoanAmount - loanAmount);
+    const interestFromDetail =
+      toNumber(loan.bpiInterest) + toNumber(loan.hlyInterest);
+    return total + (interestFromTotal || interestFromDetail);
+  }, 0);
+
+  const calculation = {
+    sumAssured,
+    reversionaryBonus,
+    finalAdditionalBonus,
+    outstandingLoan,
+    loanInterest,
+  };
+
+  const maxClaimAmount =
+    claimType === "Death"
+      ? Math.max(
+          0,
+          sumAssured +
+            reversionaryBonus +
+            finalAdditionalBonus -
+            outstandingLoan -
+            loanInterest,
+        )
+      : null;
+
+  return {
+    maxClaimAmount,
+    calculation,
+  };
+};

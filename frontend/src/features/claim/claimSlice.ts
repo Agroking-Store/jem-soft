@@ -137,6 +137,13 @@ const createClaimApi = (claimData: CreateClaimPayload) =>
 const updateClaimApi = (id: string, claimData: Partial<CreateClaimPayload>) =>
   api.put(`/claims/${id}`, claimData);
 
+const getClaimCalculationApi = (policyId: string, claimType: string) =>
+  api.get(
+    `/claims/calculate?policyId=${policyId}&claimType=${encodeURIComponent(
+      claimType,
+    )}`,
+  );
+
 const deleteClaimApi = (id: string) => api.delete(`/claims/${id}`);
 
 export const fetchClaims = createAsyncThunk(
@@ -192,6 +199,30 @@ export const createClaim = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to create claim",
+      );
+    }
+  },
+);
+
+export const calculateClaimAmount = createAsyncThunk(
+  "claims/calculateClaimAmount",
+  async (
+    {
+      policyId,
+      claimType,
+    }: {
+      policyId: string;
+      claimType: string;
+    },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await getClaimCalculationApi(policyId, claimType);
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message ||
+          "Failed to calculate maximum claim amount",
       );
     }
   },
