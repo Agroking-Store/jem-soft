@@ -1,6 +1,5 @@
 import {
   FileText,
-  ShieldCheck,
   Calendar,
   AlertCircle,
   Clock,
@@ -38,13 +37,7 @@ export const LIC_REPORT_CARDS: LicReportCard[] = [
     isFeatured: true,
     statusBadge: "Featured Report",
   },
-  {
-    id: "current-status-register",
-    title: "Current Status Register",
-    category: "Register",
-    description: "Real-time snapshot of policies categorized by Inforce, Reduced Paidup, Lapsed, Surrendered, or Matured status.",
-    icon: ShieldCheck,
-  },
+
   {
     id: "premium-due",
     title: "Premium Due",
