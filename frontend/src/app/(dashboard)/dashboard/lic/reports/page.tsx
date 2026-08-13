@@ -13,7 +13,7 @@ import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licRepor
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
 import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
-import PremiumDueReportView from "@/features/lic/reports/PremiumDueForm";
+import PremiumDueReportView from "@/features/lic/reports/PremiumDueReportView";
 import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
 import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
 import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
@@ -336,6 +336,7 @@ export default function LICReportsPage() {
         <PremiumDueForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePremiumDueReport}
+          initialData={selectedPremiumDueData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -359,6 +360,7 @@ export default function LICReportsPage() {
         <PremiumOutstandingForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePremiumOutstandingReport}
+          initialData={selectedPremiumOutstandingData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}

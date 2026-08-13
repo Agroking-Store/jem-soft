@@ -48,6 +48,7 @@ export interface PremiumOutstandingFormData {
 interface PremiumOutstandingFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PremiumOutstandingFormData) => void;
+  initialData?: PremiumOutstandingFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -88,13 +89,17 @@ const getDefaultFormData = (): PremiumOutstandingFormData => ({
 export default function PremiumOutstandingForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: PremiumOutstandingFormProps) {
-  const [formData, setFormData] = useState<PremiumOutstandingFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<PremiumOutstandingFormData>(() => {
+    if (initialData) return initialData;
+    return getDefaultFormData();
+  });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);

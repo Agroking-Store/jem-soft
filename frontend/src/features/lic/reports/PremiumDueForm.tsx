@@ -50,6 +50,7 @@ export interface PremiumDueFormData {
 interface PremiumDueFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PremiumDueFormData) => void;
+  initialData?: PremiumDueFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -95,13 +96,17 @@ const getDefaultFormData = (): PremiumDueFormData => ({
 export default function PremiumDueForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: PremiumDueFormProps) {
-  const [formData, setFormData] = useState<PremiumDueFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<PremiumDueFormData>(() => {
+    if (initialData) return initialData;
+    return getDefaultFormData();
+  });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useMemo, Fragment } from "react";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { PremiumOutstandingFormData } from "./PremiumOutstandingForm";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
@@ -95,7 +95,7 @@ export default function PremiumOutstandingReportView({
     if (validDbPolicies.length > 0) {
       const groupMap: { [key: string]: any } = {};
 
-      validDbPolicies.forEach((p) => {
+      validDbPolicies.forEach((p, idx) => {
         const gCode = p.customer?.groupCode || `0000${p.clientId || "02"}`;
         const gHeadName = p.customer?.groupName || p.customer?.name || "Customer Group";
 
@@ -134,7 +134,7 @@ export default function PremiumOutstandingReportView({
 
         const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "H";
         const installmentPremium = Number(
-          p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || p.premiumAmount || 4118
+          p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || p.premiumAmount || 0
         );
         const fupRaw = p.nextPremiumDueDate || p.fupDate;
         const fupDate = fupRaw ? new Date(fupRaw) : new Date(formData.fupDatesUpto || Date.now());
@@ -145,12 +145,12 @@ export default function PremiumOutstandingReportView({
         const tier2Amount = installmentPremium + TIER2_LATE_FEE;
 
         mem.policies.push({
-          policyNo: p.policyNumber || "917894575",
-          agCd: p.agentCode || "J",
-          commDate: fmtDate(p.commencementDate) || "28/01/20",
-          planTermPpt: `${p.product?.planNumber || "855"}/${p.policyTerm || 25}/${p.premiumPayingTerm || 25}`,
+          policyNo: p.policyNumber || `PO-${idx + 1}`,
+          agCd: p.agentCode || p.agency?.agencyCode || "—",
+          commDate: fmtDate(p.commencementDate),
+          planTermPpt: `${p.product?.planNumber || "—"}/${p.policyTerm || "—"}/${p.premiumPayingTerm || "—"}`,
           md: mode,
-          brn: p.branch?.branchCode || "955",
+          brn: p.branch?.branchCode || "—",
           installmentPremium,
           fupDate: fmtDate(fupDate),
           tier1Amount,
@@ -176,41 +176,9 @@ export default function PremiumOutstandingReportView({
       if (result.length > 0) return result;
     }
 
-    const selectedGroupHead =
-      formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
-        ? formData.selectedGroups[0].groupHeadName
-        : formData.sortingFilterSelection?.selectedItems?.[0]?.name || "Musale Kiran";
-    const selectedGroupCode =
-      formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
-        ? formData.selectedGroups[0].groupCode
-        : formData.sortingFilterSelection?.selectedItems?.[0]?.code || "M101";
-
-    const demoPolicies = [
-      { policyNo: "917894575", commDate: "28/01/20", planTermPpt: "855/25/25", md: "H", installmentPremium: 4118.0, fupDate: "28/07/26", tier1Amount: 4118.0, tier1Date: "28/08", tier2Amount: 4151.0, tier2Date: "11/09" },
-      { policyNo: "917894577", commDate: "22/01/20", planTermPpt: "836/25/16", md: "Q", installmentPremium: 3739.0, fupDate: "22/07/26", tier1Amount: 3739.0, tier1Date: "22/08", tier2Amount: 3769.0, tier2Date: "05/09" },
-      { policyNo: "935074254", commDate: "19/05/22", planTermPpt: "936/21/15", md: "H", installmentPremium: 17077.0, fupDate: "19/05/26", tier1Amount: 17347.0, tier1Date: "01/08", tier2Amount: 17483.0, tier2Date: "01/09" },
-    ].map((p) => ({ ...p, agCd: "J", brn: "955", taxBen: "0.00", depsXCharge: "0.00" }));
-
-    const memberTotalTier1 = demoPolicies.reduce((a, p) => a + p.tier1Amount, 0);
-    const memberTotalTier2 = demoPolicies.reduce((a, p) => a + p.tier2Amount, 0);
-
-    return [
-      {
-        groupCode: selectedGroupCode,
-        groupHeadName: selectedGroupHead,
-        members: [
-          {
-            name: `Mr ${selectedGroupHead.replace(/^Mrs?\s*/i, "")}`,
-            policies: demoPolicies,
-            memberTotalTier1,
-            memberTotalTier2,
-          },
-        ],
-        totalPolicies: demoPolicies.length,
-        groupTotalTier1: memberTotalTier1,
-        groupTotalTier2: memberTotalTier2,
-      },
-    ];
+    // 100% PURE DYNAMIC — No hardcoded/demo data. If nothing in DB matches
+    // the applied filters, show an empty state instead of a fake statement.
+    return [];
   }, [rawPolicies, formData]);
 
   const grandTotalTier1 = groupData.reduce((acc, g) => acc + g.groupTotalTier1, 0);
@@ -242,16 +210,24 @@ export default function PremiumOutstandingReportView({
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
-    const toastId = toast.loading("Generating PDF report...");
+    const toastId = toast.loading("Generating Pristine Executive PDF...");
+
+    const elem = reportRef.current;
+    const originalWidth = elem.style.width;
 
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
+      // Temporarily lock to strict A4 print width for crystal-clear, consistent scale
+      elem.style.width = "820px";
+
+      const canvas = await html2canvas(elem, {
+        scale: 2.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
       });
+
+      elem.style.width = originalWidth;
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
@@ -264,7 +240,7 @@ export default function PremiumOutstandingReportView({
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
-      while (heightLeft >= 0) {
+      while (heightLeft > 5) {
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
@@ -272,9 +248,10 @@ export default function PremiumOutstandingReportView({
       }
 
       pdf.save(`Premium_Outstanding_${formData.reportDate || "Report"}.pdf`);
-      toast.success("PDF downloaded successfully!", { id: toastId });
+      toast.success("Executive PDF exported successfully!", { id: toastId });
     } catch (err: any) {
       console.error(err);
+      elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
       setIsExporting(false);
@@ -282,18 +259,18 @@ export default function PremiumOutstandingReportView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220] p-4 rounded-2xl border border-slate-800 shadow-xl print:hidden">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220] p-4 rounded-2xl border border-slate-800 shadow-xl print:hidden w-full">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToForm}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider"
           >
             <ArrowLeft size={16} />
             <span>Edit Filters</span>
           </button>
-          <span className="text-xs bg-[#B8873A]/20 text-[#E8C77A] font-bold px-3 py-1 rounded-full border border-[#B8873A]/30 uppercase tracking-wider">
+          <span className="text-xs bg-[#B8873A]/20 text-[#E8C77A] font-bold px-3 py-1.5 rounded-full border border-[#B8873A]/40 uppercase tracking-wider">
             {getReportHeaderTitle()}
           </span>
         </div>
@@ -305,7 +282,7 @@ export default function PremiumOutstandingReportView({
             className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl shadow-lg hover:brightness-105 transition disabled:opacity-50 uppercase tracking-wider"
           >
             <Download size={16} />
-            <span>{isExporting ? "Exporting..." : "Download PDF"}</span>
+            <span>{isExporting ? "Exporting PDF..." : "Download PDF"}</span>
           </button>
         </div>
       </div>
@@ -313,44 +290,51 @@ export default function PremiumOutstandingReportView({
       {/* Main Printable Document Layout */}
       <div
         ref={reportRef}
-        className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+        className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-2xl text-slate-900 space-y-6 print:p-0 print:border-none print:shadow-none"
       >
-        {/* Advisor Letterhead  */}
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">
+        {/* Advisor Letterhead */}
+        <div style={{ borderBottom: "2px solid #0B1220" }} className="flex justify-between items-start pb-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
+              <span className="text-[10px] bg-[#0B1220] text-[#E8C77A] font-bold px-2 py-0.5 rounded uppercase tracking-widest">
+                LIC Authorized Advisor
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-[#B8873A]">MBA in Insurance & Finance</p>
+            <p className="text-xs text-slate-600 max-w-md leading-relaxed">
               84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
             </p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
+            <div className="flex items-center gap-4 text-xs font-medium text-slate-700 pt-1">
+              <span>Phone: 9822452896</span>
+              <span>Email: office@jayantmahbole.com</span>
+            </div>
           </div>
 
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-serif font-bold text-[#E8C77A] uppercase tracking-widest">
-              LIC INDIA
-            </span>
+          <div className="text-right space-y-1.5">
+            <div className="inline-block bg-[#0B1220] text-[#E8C77A] px-4 py-2 rounded-xl text-right border border-[#B8873A]/40 shadow-sm">
+              <p className="text-xs font-bold tracking-widest uppercase">Life Insurance Corporation</p>
+              <p className="text-[10px] text-slate-300">Official Premium Outstanding Statement</p>
+            </div>
+            <p className="text-xs font-bold text-slate-700 pt-1">
+              Date: {formData.reportDate ? fmtDate(formData.reportDate) : fmtDate(new Date())}
+            </p>
           </div>
         </div>
 
         {/* Title Banner */}
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-serif font-bold text-[#E8C77A] uppercase tracking-wider">
-            Premium Outstanding Statement
+        <div className="bg-[#0B1220] text-white rounded-xl px-5 py-3 flex items-center justify-between border-l-4 border-[#B8873A] shadow-sm">
+          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
+            Premium Outstanding — {getReportHeaderTitle()}
           </h2>
-          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-            {getReportHeaderTitle()}
-          </span>
+          <div className="text-right text-xs text-[#E8C77A] font-bold">
+            Groups: {groupData.length} | Policies: {grandTotalPolicies}
+          </div>
         </div>
 
         {/* Report Meta Line */}
         <div className="text-[11px] font-semibold text-slate-800 px-1 space-y-0.5">
-          <div>
-            <span>
-              Date of Report: {formData.reportDate ? fmtDate(formData.reportDate) : fmtDate(new Date())}
-            </span>
-          </div>
           <div className="flex justify-between">
             <span>
               Premium Outstanding between {fmtDate(windowFrom)} and {fmtDate(formData.fupDatesUpto)}
@@ -360,10 +344,27 @@ export default function PremiumOutstandingReportView({
         </div>
 
         {/* Premium Outstanding Table —  14 columns throughout */}
-        <div className="space-y-4">
+        {groupData.length === 0 ? (
+          <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
+            <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
+              <FilterX size={32} />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">No Premium Outstanding Policies Match Your Selected Filters</h3>
+            <p className="text-xs text-slate-600 max-w-md mx-auto">
+              No policies in the database matched the combined filter criteria. Please adjust your filters or click "Edit Filters" to try again.
+            </p>
+            <button
+              onClick={onBackToForm}
+              className="px-5 py-2 bg-[#0B1220] text-[#E8C77A] font-bold text-xs rounded-xl hover:bg-slate-900 transition"
+            >
+              Modify Filter Selection
+            </button>
+          </div>
+        ) : (
+        <div className="space-y-4 rounded-xl border border-slate-300 overflow-hidden shadow-xs">
           <table className="w-full text-left text-[11px] border-collapse">
             <thead>
-              <tr className="bg-emerald-50 border-y-2 border-slate-800 font-bold text-slate-900">
+              <tr className="bg-slate-200 border-y border-slate-400 font-bold text-slate-900">
                 <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Policy No.</th>
                 <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Ag Cd</th>
                 <th rowSpan={2} className="py-2 px-1 align-bottom">Comm. Date</th>
@@ -378,7 +379,7 @@ export default function PremiumOutstandingReportView({
                 <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Tax Benef.</th>
                 <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Deps./ X-charge</th>
               </tr>
-              <tr className="bg-emerald-50 border-b-2 border-slate-800 font-bold text-slate-900">
+              <tr className="bg-slate-200 border-b border-slate-400 font-bold text-slate-900">
                 <th className="py-1 px-1 text-right">Rs.</th>
                 <th className="py-1 px-1">dd/mm</th>
                 <th className="py-1 px-1 text-right">Rs.</th>
@@ -391,11 +392,13 @@ export default function PremiumOutstandingReportView({
                 <Fragment key={group.groupCode}>
                   {/* Group Banner */}
                   <tr className="border-t-2 border-slate-400">
-                    <td
-                      colSpan={14}
-                      className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900"
-                    >
-                      {group.groupCode}: {group.groupHeadName}
+                    <td colSpan={14} className="p-0">
+                      <div className="bg-[#0B1220] px-3 py-2 flex items-center gap-2 border-b border-[#B8873A]/40">
+                        <span className="text-[10px] bg-[#B8873A] text-[#0B1220] font-bold px-2 py-0.5 rounded font-mono">
+                          {group.groupCode}
+                        </span>
+                        <span className="font-bold text-xs text-[#E8C77A]">{group.groupHeadName}</span>
+                      </div>
                     </td>
                   </tr>
 
@@ -403,8 +406,10 @@ export default function PremiumOutstandingReportView({
                     <Fragment key={member.name}>
                       {/* Member Row */}
                       <tr>
-                        <td colSpan={14} className="px-2 font-bold text-[11px] text-slate-800 py-1">
-                          {member.name}
+                        <td colSpan={14} className="px-0 py-1">
+                          <div className="mx-2 mt-1 px-2.5 py-1 font-bold text-[11px] text-slate-900 bg-slate-100 rounded-md border-l-4 border-[#0B1220]">
+                            {member.name}
+                          </div>
                         </td>
                       </tr>
 
@@ -474,33 +479,37 @@ export default function PremiumOutstandingReportView({
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Summary Box */}
         {groupData.length > 0 && (
-          <div className="pt-4 flex justify-end">
-            <div className="w-full max-w-xl border-2 border-slate-800 rounded overflow-hidden">
-              <table className="w-full text-left text-xs font-semibold">
+          <div className="pt-2 flex justify-end">
+            <div className="w-full max-w-xl border-2 border-[#0B1220] rounded-xl overflow-hidden shadow-md">
+              <div className="bg-[#0B1220] text-[#E8C77A] p-2.5 text-xs font-bold uppercase tracking-wider border-b border-[#B8873A]">
+                Grand Premium Outstanding Summary
+              </div>
+              <table className="w-full text-left text-xs font-semibold border-collapse">
                 <thead>
-                  <tr className="bg-slate-100 border-b border-slate-400 text-slate-900">
-                    <th className="p-2 border-r border-slate-400"></th>
-                    <th className="p-2 text-right border-r border-slate-400">Amount (without Latefee)</th>
-                    <th className="p-2 text-right">Amount (with Latefee)</th>
+                  <tr className="bg-slate-100 border-b border-slate-300 text-slate-900">
+                    <th className="p-2.5 border-r border-slate-300"></th>
+                    <th className="p-2.5 text-right border-r border-slate-300">Amount (without Latefee)</th>
+                    <th className="p-2.5 text-right">Amount (with Latefee)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-300">
-                  <tr className="bg-slate-100 font-bold border-t-2 border-slate-700">
-                    <td className="p-2 border-r border-slate-400">Grand Total</td>
-                    <td className="p-2 text-right font-mono border-r border-slate-400">
+                <tbody className="divide-y divide-slate-200">
+                  <tr className="bg-[#0B1220] text-white font-bold border-t-2 border-[#B8873A]">
+                    <td className="p-2.5 border-r border-slate-700 text-[#E8C77A]">Grand Total</td>
+                    <td className="p-2.5 text-right font-mono border-r border-slate-700 text-[#E8C77A]">
                       {grandTotalTier1.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="p-2 text-right font-mono">
+                    <td className="p-2.5 text-right font-mono text-[#E8C77A]">
                       {grandTotalTier2.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                   <tr className="bg-slate-50 font-bold">
-                    <td className="p-2 border-r border-slate-400">Total No. of Policies</td>
-                    <td colSpan={2} className="p-2 text-center font-mono text-sm text-[#0B1220]">
-                      {grandTotalPolicies}
+                    <td className="p-2.5 border-r border-slate-300 text-slate-800">Total No. of Policies</td>
+                    <td colSpan={2} className="p-2.5 text-center font-mono text-sm text-[#0B1220]">
+                      {grandTotalPolicies} Policies
                     </td>
                   </tr>
                 </tbody>
@@ -510,19 +519,19 @@ export default function PremiumOutstandingReportView({
         )}
 
         {/* Legend Footer */}
-        <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span><strong className="font-bold">m :</strong> Policies with SSS Mode</span>
-            <span><strong className="font-bold">M :</strong> Policies with Monthly Mode</span>
-            <span><strong className="font-bold">Y :</strong> Policies with NACH Mode</span>
-            <span><strong className="font-bold">S :</strong> Cheque dishonoured/ Debit fail</span>
+        <div className="pt-6 border-t border-slate-300 space-y-2 text-[10px] text-slate-700 font-medium">
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            <span><strong className="font-bold text-[#0B1220]">m :</strong> SSS Mode</span>
+            <span><strong className="font-bold text-[#0B1220]">M :</strong> Monthly Mode</span>
+            <span><strong className="font-bold text-[#0B1220]">Y :</strong> NACH Mode</span>
+            <span><strong className="font-bold text-[#0B1220]">S :</strong> Cheque dishonoured/ Debit fail</span>
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span><strong className="font-bold">A :</strong> Policies with APPS Mode</span>
-            <span><strong className="font-bold">ρ :</strong> Pan Card is register for the Policy</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            <span><strong className="font-bold text-[#0B1220]">A :</strong> APPS Mode</span>
+            <span><strong className="font-bold text-[#0B1220]">ρ :</strong> PAN Card Registered</span>
           </div>
-          <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
-            <span>DSS000019899</span>
+          <div className="flex justify-between items-center pt-3 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+            <span>Statement Code: DSS000019899</span>
             <span>Generated via Premium Outstanding Engine</span>
           </div>
         </div>
