@@ -45,6 +45,7 @@ export interface LapsedPolicyFormData {
 interface LapsedPolicyFormProps {
   onBack: () => void;
   onGenerateReport: (formData: LapsedPolicyFormData) => void;
+  initialData?: LapsedPolicyFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -59,16 +60,23 @@ interface LapsedPolicyFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+const getFiveYearsAgoDateStr = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 5);
+  return d.toISOString().split("T")[0];
+};
+
 const getDefaultFormData = (): LapsedPolicyFormData => ({
   appliedFilters: [],
-  policiesLapsedSince: "2021-08-01",
-  revivalInterestCalculationDate: "2026-08-01",
+  policiesLapsedSince: getFiveYearsAgoDateStr(),
+  revivalInterestCalculationDate: getTodayDateStr(),
   paymentTypes: {
     nach: false,
     otherThanNach: true,
   },
   reportType: "Statement",
-  reportDate: "2026-08-01",
+  reportDate: getTodayDateStr(),
   sortingOption: "groupsWise",
   selectedGroups: [],
   sortingFilterSelection: null,
@@ -86,13 +94,14 @@ const getDefaultFormData = (): LapsedPolicyFormData => ({
 export default function LapsedPolicyForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: LapsedPolicyFormProps) {
-  const [formData, setFormData] = useState<LapsedPolicyFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<LapsedPolicyFormData>(initialData || getDefaultFormData());
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);

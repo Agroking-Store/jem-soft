@@ -384,6 +384,7 @@ export default function LICReportsPage() {
         <LapsedPolicyForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateLapsedPolicyReport}
+          initialData={selectedLapsedPolicyData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -407,6 +408,7 @@ export default function LICReportsPage() {
         <PolicyMaturityForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePolicyMaturityReport}
+          initialData={selectedPolicyMaturityData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
