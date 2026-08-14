@@ -144,13 +144,30 @@ export default function SortingFilterModal({
   const masterDataList: Array<{ id: string; code?: string; name: string; extra?: string }> =
     useMemo(() => {
       if (sortingOption === "groupMemberwise") {
-        // Members Wise: Dynamic from customers in DB
-        return customers.map((c, idx) => ({
-          id: c.id,
-          code: c.groupCode || `0000${(idx + 1).toString().padStart(2, "0")}`,
-          name: c.name,
-          extra: c.groupName || c.name,
-        }));
+        // Members Wise: `customers` prop is the GROUP table (one row per group,
+        // e.g. one row for "A001") — it does NOT contain individual members like
+        // Aarav / Priya. Those live in CustomerMaster, which is already embedded
+        // on every policy as `p.CustomerMaster`. So build the member list from
+        // `policies`, deduped by the member's own unique CustomerMaster id.
+        const membersMap: { [memberId: string]: { id: string; code?: string; name: string; extra?: string } } = {};
+        policies.forEach((p) => {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+          if (!memberId || membersMap[memberId]) return;
+
+          const fullName = p.CustomerMaster
+            ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`
+                .replace(/\s+/g, " ")
+                .trim()
+            : p.customer?.name || "Member";
+
+          membersMap[memberId] = {
+            id: memberId,
+            code: p.customer?.groupCode || p.clientId || "",
+            name: fullName || "Member",
+            extra: p.customer?.groupName || p.customer?.name || "",
+          };
+        });
+        return Object.values(membersMap);
       }
 
       if (sortingOption === "areaWise") {
@@ -361,7 +378,13 @@ export default function SortingFilterModal({
   const handleApply = () => {
     onApplySortingFilter({
       sortingOption,
-      selectedIds: selectedItems.map((s) => s.code || s.id),
+      // NOTE: always use the item's own unique `id` here, never `code`.
+      // For groupMemberwise, every member of the same group shares the same
+      // `code` (the Group Code, e.g. "A001"), so `code || id` used to collapse
+      // Aarav and Priya into the same selection key and one of them got lost.
+      // `id` (the customer's DB id) is unique per member in every sorting mode,
+      // so this keeps each member independently selectable.
+      selectedIds: selectedItems.map((s) => s.id),
       selectedItems,
     });
     onClose();
