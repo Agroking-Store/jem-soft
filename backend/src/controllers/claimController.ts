@@ -35,9 +35,10 @@ export const getClaimById = catchAsync(
 
 export const calculateClaimAmount = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { policyId, claimType } = req.query as {
+    const { policyId, claimType, claimDate } = req.query as {
       policyId?: string;
       claimType?: string;
+      claimDate?: string;
     };
 
     if (!policyId || !claimType) {
@@ -47,9 +48,30 @@ export const calculateClaimAmount = catchAsync(
     const calculation = await claimService.calculateClaimAmount(
       policyId,
       claimType,
+      claimDate,
     );
 
     res.status(200).json({ success: true, data: calculation });
+  },
+);
+
+export const getLoanDetails = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { policyId, claimDate } = req.query as {
+      policyId?: string;
+      claimDate?: string;
+    };
+
+    if (!policyId) {
+      return next(new AppError("policyId is required.", 400));
+    }
+
+    const loanDetails = await claimService.getLoanDetailsWithCalculatedInterest(
+      policyId,
+      claimDate,
+    );
+
+    res.status(200).json({ success: true, data: loanDetails });
   },
 );
 

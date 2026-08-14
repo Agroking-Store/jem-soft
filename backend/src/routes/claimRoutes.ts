@@ -3,6 +3,7 @@ import {
   getClaims,
   getClaimById,
   calculateClaimAmount,
+  getLoanDetails,
   addClaim,
   updateClaim,
   deleteClaim,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.route("/").get(protect, getClaims).post(protect, addClaim);
 router.route("/calculate").get(protect, calculateClaimAmount);
+router.route("/loan-details").get(protect, getLoanDetails);
 
 router
   .route("/:id")

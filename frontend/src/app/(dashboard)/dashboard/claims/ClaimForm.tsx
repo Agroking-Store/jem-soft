@@ -22,7 +22,6 @@ import {
   Save,
   User,
   FileText,
-  IndianRupee,
   Info,
   Search,
   ChevronDown,
@@ -76,6 +75,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     useState<ClaimCalculation | null>(null);
   const [isCalculatingClaim, setIsCalculatingClaim] = useState(false);
 
+  const isClaimCalculationSupported = (claimType: string) =>
+    ["Death", "Maturity", "Surrender", "Surrendered"].includes(claimType);
+
   const claimSchema = z
     .object({
       policyId: z.string().min(1, "Policy is required"),
@@ -94,7 +96,13 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       (data) => {
         const sumAssured = selectedPolicy?.premium?.sumAssured;
         if (!sumAssured) return true;
-        if (data.claimType === "Death") return true;
+        if (
+          ["Death", "Maturity", "Surrender", "Surrendered"].includes(
+            data.claimType,
+          )
+        ) {
+          return true;
+        }
         return data.claimAmount <= sumAssured;
       },
       {
@@ -104,13 +112,16 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     )
     .refine(
       (data) => {
-        if (data.claimType !== "Death") return true;
-        if (!confirmedCalculation?.maxClaimAmount) return true;
+        if (!isClaimCalculationSupported(data.claimType)) return true;
+        if (
+          !confirmedCalculation?.maxClaimAmount &&
+          confirmedCalculation?.maxClaimAmount !== 0
+        )
+          return true;
         return data.claimAmount <= confirmedCalculation.maxClaimAmount;
       },
       {
-        message:
-          "Requested claim amount cannot exceed the maximum payable amount.",
+        message: "Claim amount cannot exceed the maximum claimable amount.",
         path: ["claimAmount"],
       },
     )
@@ -303,6 +314,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   // Sync selectedPolicy when policyId changes
   const selectedPolicyId = watch("policyId");
   const selectedClaimType = watch("claimType");
+  const claimDateValue = watch("claimDate");
 
   useEffect(() => {
     const policy = policies.find((p) => p.id === selectedPolicyId);
@@ -317,7 +329,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         return;
       }
 
-      if (selectedClaimType !== "Death") {
+      if (!isClaimCalculationSupported(selectedClaimType)) {
         setConfirmedCalculation(null);
         return;
       }
@@ -328,6 +340,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           calculateClaimAmount({
             policyId: selectedPolicyId,
             claimType: selectedClaimType,
+            claimDate: claimDateValue,
           }),
         ).unwrap();
         setConfirmedCalculation(result);
@@ -339,7 +352,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     };
 
     fetchCalculation();
-  }, [dispatch, selectedPolicyId, selectedClaimType]);
+  }, [dispatch, selectedPolicyId, selectedClaimType, claimDateValue]);
 
   const policyRegister = register("policyId");
 
@@ -538,6 +551,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     <option value="Maturity Claimed">Maturity Claimed</option>
                     <option value="Pending">Pending</option>
                     <option value="Surrendered">Surrendered</option>
+                    <option value="Surrender">Surrender</option>
                     <option value="Death">Death</option>
                     <option value="Maturity">Maturity</option>
                     <option value="Rider">Rider</option>

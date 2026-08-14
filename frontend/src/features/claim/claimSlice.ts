@@ -137,12 +137,19 @@ const createClaimApi = (claimData: CreateClaimPayload) =>
 const updateClaimApi = (id: string, claimData: Partial<CreateClaimPayload>) =>
   api.put(`/claims/${id}`, claimData);
 
-const getClaimCalculationApi = (policyId: string, claimType: string) =>
-  api.get(
-    `/claims/calculate?policyId=${policyId}&claimType=${encodeURIComponent(
-      claimType,
-    )}`,
-  );
+const getClaimCalculationApi = (
+  policyId: string,
+  claimType: string,
+  claimDate?: string,
+) => {
+  let url = `/claims/calculate?policyId=${policyId}&claimType=${encodeURIComponent(
+    claimType,
+  )}`;
+  if (claimDate) {
+    url += `&claimDate=${encodeURIComponent(claimDate)}`;
+  }
+  return api.get(url);
+};
 
 const deleteClaimApi = (id: string) => api.delete(`/claims/${id}`);
 
@@ -210,14 +217,16 @@ export const calculateClaimAmount = createAsyncThunk(
     {
       policyId,
       claimType,
+      claimDate,
     }: {
       policyId: string;
       claimType: string;
+      claimDate?: string;
     },
     { rejectWithValue },
   ) => {
     try {
-      const res = await getClaimCalculationApi(policyId, claimType);
+      const res = await getClaimCalculationApi(policyId, claimType, claimDate);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(
