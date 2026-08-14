@@ -62,29 +62,39 @@ interface PremiumOutstandingFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
-const getDefaultFormData = (): PremiumOutstandingFormData => ({
-  appliedFilters: [],
-  fupDatesUpto: "2026-07-31",
-  latefeeCalculationDate: "2026-07-31",
-  paymentTypes: {
-    nach: false,
-    otherThanNach: true,
-  },
-  reportType: "Statement",
-  reportDate: "2026-07-31",
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  sortingFilterSelection: null,
-  reportOptions: {
-    address: false,
-    mobile: false,
-    email: false,
-    pan: false,
-    gst: false,
-    dob: false,
-    nachDetails: false,
-  },
-});
+function toISODate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+const getDefaultFormData = (): PremiumOutstandingFormData => {
+  const today = toISODate(new Date());
+  return {
+    appliedFilters: [],
+    fupDatesUpto: today,
+    latefeeCalculationDate: today,
+    paymentTypes: {
+      nach: false,
+      otherThanNach: true,
+    },
+    reportType: "Statement",
+    reportDate: today,
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    sortingFilterSelection: null,
+    reportOptions: {
+      address: false,
+      mobile: false,
+      email: false,
+      pan: false,
+      gst: false,
+      dob: false,
+      nachDetails: false,
+    },
+  };
+};
 
 export default function PremiumOutstandingForm({
   onBack,
