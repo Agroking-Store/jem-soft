@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo, Fragment } from "react";
+import { useRef, useState, useMemo } from "react";
 import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { PremiumOutstandingFormData } from "./PremiumOutstandingForm";
 import html2canvas from "html2canvas-pro";
@@ -106,14 +106,38 @@ export default function PremiumOutstandingReportView({
           if (!matches) return;
         }
 
+        const cust = p.customer || rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) || {};
+
+        const formattedAddressParts = [
+          cust.resAddressLine1,
+          cust.resAddressLine2,
+          cust.resArea || cust.offArea,
+          cust.resCity || cust.offCity,
+          cust.resPin || cust.offPin,
+        ].filter((part: any): part is string => Boolean(part && String(part).trim().length > 0));
+        const addressStr = formattedAddressParts.length > 0 ? formattedAddressParts.join(", ") : "Address Not Provided";
+        const mobileStr = cust.phone || cust.mobilePersonal || cust.mobile || "N/A";
+        const emailStr = cust.email || cust.emailPersonal || cust.emailBusiness || "N/A";
+        const panStr = cust.panNumber || cust.pan || "N/A";
+        const gstStr = cust.gstNumber || cust.gst || "N/A";
+
         const memberName = p.CustomerMaster
           ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName}`.trim()
-          : p.customer?.name || "Policy Holder";
+          : cust.name || p.customer?.name || "Policy Holder";
+
+        const dob = p.CustomerMaster?.dob
+          ? new Date(p.CustomerMaster.dob).toLocaleDateString("en-GB")
+          : cust.dob || p.customer?.dob || "";
 
         if (!groupMap[gCode]) {
           groupMap[gCode] = {
             groupCode: gCode,
             groupHeadName: gHeadName,
+            address: addressStr,
+            mobile: mobileStr,
+            email: emailStr,
+            pan: panStr,
+            gst: gstStr,
             membersMap: {},
             totalPolicies: 0,
             groupTotalTier1: 0,
@@ -125,6 +149,7 @@ export default function PremiumOutstandingReportView({
         if (!grp.membersMap[memberName]) {
           grp.membersMap[memberName] = {
             name: memberName,
+            dob,
             policies: [],
             memberTotalTier1: 0,
             memberTotalTier2: 0,
@@ -184,6 +209,13 @@ export default function PremiumOutstandingReportView({
   const grandTotalTier1 = groupData.reduce((acc, g) => acc + g.groupTotalTier1, 0);
   const grandTotalTier2 = groupData.reduce((acc, g) => acc + g.groupTotalTier2, 0);
   const grandTotalPolicies = groupData.reduce((acc, g) => acc + g.totalPolicies, 0);
+
+  const showAddress = formData.reportOptions?.address;
+  const showMobile = formData.reportOptions?.mobile;
+  const showEmail = formData.reportOptions?.email;
+  const showPan = formData.reportOptions?.pan;
+  const showGst = formData.reportOptions?.gst;
+  const showDob = formData.reportOptions?.dob;
 
   const getReportHeaderTitle = () => {
     switch (formData.sortingOption) {
@@ -343,7 +375,7 @@ export default function PremiumOutstandingReportView({
           </div>
         </div>
 
-        {/* Premium Outstanding Table —  14 columns throughout */}
+        {/* Premium Outstanding — group cards (same proven structure as Policy Register) */}
         {groupData.length === 0 ? (
           <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
             <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
@@ -361,123 +393,135 @@ export default function PremiumOutstandingReportView({
             </button>
           </div>
         ) : (
-        <div className="space-y-4 rounded-xl border border-slate-300 overflow-hidden shadow-xs">
-          <table className="w-full text-left text-[11px] border-collapse">
-            <thead>
-              <tr className="bg-slate-200 border-y border-slate-400 font-bold text-slate-900">
-                <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Policy No.</th>
-                <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Ag Cd</th>
-                <th rowSpan={2} className="py-2 px-1 align-bottom">Comm. Date</th>
-                <th rowSpan={2} className="py-2 px-1 align-bottom">Pl/Tm/Pt</th>
-                <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Md</th>
-                <th rowSpan={2} className="py-2 px-1 align-bottom">Brn</th>
-                <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Installment Premium</th>
-                <th rowSpan={2} className="py-2 px-1 align-bottom">FUP Date</th>
-                <th colSpan={4} className="py-1 px-1 text-center border-b border-slate-400">
-                  Amount to be Paid&nbsp; (Upto)
-                </th>
-                <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Tax Benef.</th>
-                <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Deps./ X-charge</th>
-              </tr>
-              <tr className="bg-slate-200 border-b border-slate-400 font-bold text-slate-900">
-                <th className="py-1 px-1 text-right">Rs.</th>
-                <th className="py-1 px-1">dd/mm</th>
-                <th className="py-1 px-1 text-right">Rs.</th>
-                <th className="py-1 px-1">dd/mm</th>
-              </tr>
-            </thead>
+        <div className="space-y-6">
+          {groupData.map((group) => (
+            <div key={group.groupCode} className="space-y-3 rounded-xl border border-slate-300 p-4 bg-white shadow-xs">
+              {/* Group Banner */}
+              <div className="bg-[#0B1220] text-white p-3.5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#B8873A]/40">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-[#B8873A] text-[#0B1220] font-bold px-2 py-0.5 rounded font-mono">
+                      {group.groupCode}
+                    </span>
+                    <h3 className="font-bold text-sm text-[#E8C77A]">{group.groupHeadName}</h3>
+                    {showPan && (
+                      <span className="text-[10px] bg-slate-800 text-[#E8C77A] font-bold px-2 py-0.5 rounded border border-[#B8873A]/40">
+                        PAN: {group.pan}
+                      </span>
+                    )}
+                    {showGst && (
+                      <span className="text-[10px] bg-slate-800 text-[#E8C77A] font-bold px-2 py-0.5 rounded border border-[#B8873A]/40">
+                        GST: {group.gst}
+                      </span>
+                    )}
+                  </div>
+                  {showAddress && (
+                    <p className="text-[11px] text-slate-300 pt-0.5">Address: {group.address}</p>
+                  )}
+                </div>
 
-            <tbody>
-              {groupData.map((group) => (
-                <Fragment key={group.groupCode}>
-                  {/* Group Banner */}
-                  <tr className="border-t-2 border-slate-400">
-                    <td colSpan={14} className="p-0">
-                      <div className="bg-[#0B1220] px-3 py-2 flex items-center gap-2 border-b border-[#B8873A]/40">
-                        <span className="text-[10px] bg-[#B8873A] text-[#0B1220] font-bold px-2 py-0.5 rounded font-mono">
-                          {group.groupCode}
-                        </span>
-                        <span className="font-bold text-xs text-[#E8C77A]">{group.groupHeadName}</span>
-                      </div>
-                    </td>
-                  </tr>
+                <div className="text-left sm:text-right space-y-0.5 text-[11px] text-slate-300">
+                  {showMobile && <p>Mobile: {group.mobile}</p>}
+                  {showEmail && <p>Email: {group.email}</p>}
+                </div>
+              </div>
 
-                  {group.members.map((member: any) => (
-                    <Fragment key={member.name}>
-                      {/* Member Row */}
-                      <tr>
-                        <td colSpan={14} className="px-0 py-1">
-                          <div className="mx-2 mt-1 px-2.5 py-1 font-bold text-[11px] text-slate-900 bg-slate-100 rounded-md border-l-4 border-[#0B1220]">
-                            {member.name}
-                          </div>
-                        </td>
-                      </tr>
+              {/* Member Sections */}
+              {group.members.map((member: any) => (
+                <div key={member.name} className="space-y-2 pt-1">
+                  <div className="flex justify-between items-center bg-slate-100 px-3 py-1.5 rounded-md border-l-4 border-[#0B1220] text-xs font-bold text-slate-900">
+                    <span>{member.name}</span>
+                    {showDob && member.dob && (
+                      <span className="font-mono text-slate-600">DOB : {member.dob}</span>
+                    )}
+                  </div>
 
-                      {/* Policy Rows */}
-                      {member.policies.map((p: any) => (
-                        <tr key={p.policyNo} className="hover:bg-slate-50 divide-x divide-slate-100">
-                          <td className="py-1 px-1 text-right font-mono font-bold text-[#0B1220]">
-                            {p.policyNo}
-                          </td>
-                          <td className="py-1 px-1 text-center font-bold">{p.agCd}</td>
-                          <td className="py-1 px-1">{p.commDate}</td>
-                          <td className="py-1 px-1 font-medium">{p.planTermPpt}</td>
-                          <td className="py-1 px-1 text-center font-bold">{p.md}</td>
-                          <td className="py-1 px-1 font-mono">{p.brn}</td>
-                          <td className="py-1 px-1 text-right font-mono">
-                            {p.installmentPremium.toFixed(2)}
-                          </td>
-                          <td className="py-1 px-1 font-medium text-slate-700">{p.fupDate}</td>
-                          <td className="py-1 px-1 text-right font-bold font-mono text-red-600">
-                            {p.tier1Amount.toFixed(2)}
-                          </td>
-                          <td className="py-1 px-1 text-slate-700">{p.tier1Date}</td>
-                          <td className="py-1 px-1 text-right font-bold font-mono text-red-600">
-                            {p.tier2Amount.toFixed(2)}
-                          </td>
-                          <td className="py-1 px-1 text-slate-700">{p.tier2Date}</td>
-                          <td className="py-1 px-1 text-center">{p.taxBen}</td>
-                          <td className="py-1 px-1 text-center">{p.depsXCharge}</td>
+                  <div className="overflow-x-auto rounded-lg border border-slate-300">
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead>
+                        <tr className="bg-slate-200 border-y border-slate-400 font-bold text-slate-900">
+                          <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Policy No.</th>
+                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Ag Cd</th>
+                          <th rowSpan={2} className="py-2 px-1 align-bottom">Comm. Date</th>
+                          <th rowSpan={2} className="py-2 px-1 align-bottom">Pl/Tm/Pt</th>
+                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Md</th>
+                          <th rowSpan={2} className="py-2 px-1 align-bottom">Brn</th>
+                          <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Instl. Premium</th>
+                          <th rowSpan={2} className="py-2 px-1 align-bottom">FUP Date</th>
+                          <th colSpan={4} className="py-1 px-1 text-center border-b border-slate-400">
+                            Amount to be Paid (Upto)
+                          </th>
+                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Tax Benef.</th>
+                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Deps./ X-charge</th>
                         </tr>
-                      ))}
+                        <tr className="bg-slate-200 border-b border-slate-400 font-bold text-slate-900">
+                          <th className="py-1 px-1 text-right">Rs.</th>
+                          <th className="py-1 px-1">dd/mm</th>
+                          <th className="py-1 px-1 text-right">Rs.</th>
+                          <th className="py-1 px-1">dd/mm</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {member.policies.map((p: any) => (
+                          <tr key={p.policyNo} className="hover:bg-slate-50">
+                            <td className="py-1.5 px-1 text-right font-mono font-bold text-[#0B1220]">
+                              {p.policyNo}
+                            </td>
+                            <td className="py-1.5 px-1 text-center font-bold">{p.agCd}</td>
+                            <td className="py-1.5 px-1">{p.commDate}</td>
+                            <td className="py-1.5 px-1 font-medium">{p.planTermPpt}</td>
+                            <td className="py-1.5 px-1 text-center font-bold">{p.md}</td>
+                            <td className="py-1.5 px-1 font-mono">{p.brn}</td>
+                            <td className="py-1.5 px-1 text-right font-mono">{p.installmentPremium.toFixed(2)}</td>
+                            <td className="py-1.5 px-1 font-medium text-slate-700">{p.fupDate}</td>
+                            <td className="py-1.5 px-1 text-right font-bold font-mono text-red-600">
+                              {p.tier1Amount.toFixed(2)}
+                            </td>
+                            <td className="py-1.5 px-1 text-slate-700">{p.tier1Date}</td>
+                            <td className="py-1.5 px-1 text-right font-bold font-mono text-red-600">
+                              {p.tier2Amount.toFixed(2)}
+                            </td>
+                            <td className="py-1.5 px-1 text-slate-700">{p.tier2Date}</td>
+                            <td className="py-1.5 px-1 text-center">{p.taxBen}</td>
+                            <td className="py-1.5 px-1 text-center">{p.depsXCharge}</td>
+                          </tr>
+                        ))}
 
-                      {/* Member Subtotal Row — 8 + 1 + 1 + 1 + 1 + 2 = 14 columns */}
-                      <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                        <td colSpan={8} className="text-right pr-4 py-1">
-                          Total :
-                        </td>
-                        <td className="text-right py-1 font-mono">
-                          {member.memberTotalTier1.toFixed(2)}
-                        </td>
-                        <td></td>
-                        <td className="text-right py-1 font-mono">
-                          {member.memberTotalTier2.toFixed(2)}
-                        </td>
-                        <td></td>
-                        <td colSpan={2}></td>
-                      </tr>
-                    </Fragment>
-                  ))}
-
-                  {/* Group Total Row */}
-                  <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                    <td colSpan={8} className="px-3 py-1.5">
-                      Total No. of Policies for this Group : {group.totalPolicies}
-                    </td>
-                    <td className="px-1 py-1.5 text-right font-mono">
-                      {group.groupTotalTier1.toFixed(2)}
-                    </td>
-                    <td></td>
-                    <td className="px-1 py-1.5 text-right font-mono">
-                      {group.groupTotalTier2.toFixed(2)}
-                    </td>
-                    <td></td>
-                    <td colSpan={2}></td>
-                  </tr>
-                </Fragment>
+                        <tr className="border-t-2 border-slate-300 font-bold text-[11px] bg-slate-50">
+                          <td colSpan={8} className="text-right pr-4 py-1.5 text-slate-700 uppercase tracking-wider">
+                            Member Total :
+                          </td>
+                          <td className="text-right py-1.5 font-mono text-[#0B1220]">
+                            {member.memberTotalTier1.toFixed(2)}
+                          </td>
+                          <td></td>
+                          <td className="text-right py-1.5 font-mono text-[#0B1220]">
+                            {member.memberTotalTier2.toFixed(2)}
+                          </td>
+                          <td></td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+
+              {/* Group Total Footer */}
+              <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg font-bold text-xs border-t-2 border-[#B8873A]">
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr>
+                      <td className="text-left font-bold">Total Policies for Group : {group.totalPolicies}</td>
+                      <td className="text-right font-bold text-[#E8C77A] pr-4">Group Total :</td>
+                      <td className="text-right font-mono text-[#E8C77A] w-28">{group.groupTotalTier1.toFixed(2)}</td>
+                      <td className="text-right font-mono w-28">{group.groupTotalTier2.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
         )}
 
