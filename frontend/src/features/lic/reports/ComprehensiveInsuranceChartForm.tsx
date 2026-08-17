@@ -422,6 +422,7 @@ export default function ComprehensiveInsuranceChartForm({
         policyStatuses={policyStatuses}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
+        enableDefaultStatusSelection={false}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}

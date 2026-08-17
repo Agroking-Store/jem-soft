@@ -39,11 +39,43 @@ export default function CashFlowChartReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
+    const selectedAgencies = (formData.appliedFilters || []).filter((f) => f.type === "Agencies").map((f) => f.name.toLowerCase());
+    const selectedStatuses = (formData.appliedFilters || []).filter((f) => f.type === "Policy Status").map((f) => f.name.toLowerCase());
+    const selectedModes = (formData.appliedFilters || []).filter((f) => f.type === "Payment Modes").map((f) => f.name.toLowerCase());
+
+    const selectedGroupCodesOrNames =
+      formData.sortingOption === "groupsWise"
+        ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
+        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
+
     const usable = rawPolicies.filter((p) => {
+      const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
+      if (selectedStatuses.length > 0 && !selectedStatuses.some((st) => rawStatus.includes(st))) return false;
+
+      const agencyName = (p.agentCode || p.agency?.agencyName || p.agencyName || "").toLowerCase();
+      if (selectedAgencies.length > 0 && !selectedAgencies.some((ag) => agencyName.includes(ag))) return false;
+
+      const modeName = (p.premiumMode?.modeName || "").toLowerCase();
+      if (selectedModes.length > 0 && !selectedModes.some((m) => modeName.includes(m))) return false;
+
       const isRecordOnly = Boolean(p.isRecordOnly);
       if (isRecordOnly && !formData.printOptions.includeRecordOnlyPolicies) return false;
 
-      // Filter by maturity date falling within the cash flow date range
+      // Group/Sorting Filter match
+      if (selectedGroupCodesOrNames.length > 0) {
+        const gCode = (p.customer?.groupCode || "").toLowerCase();
+        const gHeadName = (p.customer?.groupName || p.customer?.name || "").toLowerCase();
+        const polNo = (p.policyNumber || "").toLowerCase();
+        const planNo = (p.product?.planNumber || "").toLowerCase();
+        const brnCode = (p.branch?.branchCode || p.branchNo || "").toLowerCase();
+
+        const matches = selectedGroupCodesOrNames.some(
+          (sc) => gCode.includes(sc) || gHeadName.includes(sc) || polNo.includes(sc) || planNo.includes(sc) || brnCode.includes(sc)
+        );
+        if (!matches) return false;
+      }
+
+      // Filter by maturity date falling within the cash flow date range (if specified)
       const maturityRaw = p.maturityDate;
       if (!maturityRaw) return false;
       const md = new Date(maturityRaw);
@@ -187,20 +219,21 @@ export default function CashFlowChartReportView({
             </table>
 
             {formData.printOptions.showGraphs && (
-              <div className="pt-4">
+              <div className="pt-4 overflow-x-auto">
                 <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Yearwise Cash Flow</h3>
-                <svg viewBox={`0 0 ${yearRows.length * 70 + 20} 220`} className="w-full max-w-2xl h-auto">
+                <svg viewBox={`0 0 ${Math.max(500, yearRows.length * 75 + 40)} 220`} className="w-full max-w-3xl h-auto">
                   {yearRows.map((row, i) => {
-                    const barHeight = (row.amount / maxAmount) * 160;
-                    const x = 20 + i * 70;
+                    const barHeight = Math.max(4, (row.amount / maxAmount) * 150);
+                    const x = 25 + i * 75;
+                    const formattedValue = row.amount >= 100000 ? `${(row.amount / 100000).toFixed(1)}L` : `${(row.amount / 1000).toFixed(0)}k`;
                     return (
                       <g key={row.year}>
-                        <rect x={x} y={190 - barHeight} width={40} height={barHeight} fill="#B8873A" rx={3} />
-                        <text x={x + 20} y={205} textAnchor="middle" fontSize="9" fill="#334155">
+                        <rect x={x} y={190 - barHeight} width={42} height={barHeight} fill="#B8873A" rx={3} />
+                        <text x={x + 21} y={205} textAnchor="middle" fontSize="9" fill="#334155" fontWeight="600">
                           {row.year}
                         </text>
-                        <text x={x + 20} y={185 - barHeight} textAnchor="middle" fontSize="8" fill="#0B1220" fontWeight="bold">
-                          {(row.amount / 1000).toFixed(0)}k
+                        <text x={x + 21} y={183 - barHeight} textAnchor="middle" fontSize="8" fill="#0B1220" fontWeight="bold">
+                          {formattedValue}
                         </text>
                       </g>
                     );

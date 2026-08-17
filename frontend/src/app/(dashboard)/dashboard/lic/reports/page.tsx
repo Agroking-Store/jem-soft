@@ -459,6 +459,9 @@ export default function LICReportsPage() {
           initialData={selectedCashFlowChartData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
         />
       )}
 

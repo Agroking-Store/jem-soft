@@ -44,31 +44,49 @@ interface SurvivalBenefitFormProps {
 }
 
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
-const getOneYearLaterDateStr = () => {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().split("T")[0];
+
+const getNextMonthDateRange = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstNextMonth = new Date(year, month + 1, 1);
+  const lastNextMonth = new Date(year, month + 2, 0);
+
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  return {
+    dateFrom: fmt(firstNextMonth),
+    dateTo: fmt(lastNextMonth),
+  };
 };
 
-const getDefaultFormData = (): SurvivalBenefitFormData => ({
-  appliedFilters: [],
-  dateFrom: getTodayDateStr(),
-  dateTo: getOneYearLaterDateStr(),
-  reportDate: getTodayDateStr(),
-  reportType: "Statement",
-  includeLapsedPolicies: false,
-  includeRecordOnlyPolicies: false,
-  sbAmountFilterEnabled: false,
-  sbAmountAboveOrEqualTo: 0,
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  sortingFilterSelection: null,
-  reportOptions: {
-    printWithAddress: false,
-    printWithTelNo: false,
-    dob: false,
-  },
-});
+const getDefaultFormData = (): SurvivalBenefitFormData => {
+  const nextMonthDates = getNextMonthDateRange();
+  return {
+    appliedFilters: [],
+    dateFrom: nextMonthDates.dateFrom,
+    dateTo: nextMonthDates.dateTo,
+    reportDate: getTodayDateStr(),
+    reportType: "Statement",
+    includeLapsedPolicies: false,
+    includeRecordOnlyPolicies: false,
+    sbAmountFilterEnabled: false,
+    sbAmountAboveOrEqualTo: 0,
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    sortingFilterSelection: null,
+    reportOptions: {
+      printWithAddress: false,
+      printWithTelNo: false,
+      dob: false,
+    },
+  };
+};
 
 export default function SurvivalBenefitForm({
   onBack,
