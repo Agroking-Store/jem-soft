@@ -432,6 +432,7 @@ export default function LICReportsPage() {
         <SurvivalBenefitForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateSurvivalBenefitReport}
+          initialData={selectedSurvivalBenefitData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -455,6 +456,7 @@ export default function LICReportsPage() {
         <CashFlowChartForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateCashFlowChartReport}
+          initialData={selectedCashFlowChartData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
         />
@@ -475,6 +477,7 @@ export default function LICReportsPage() {
         <ComprehensiveInsuranceChartForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateComprehensiveInsuranceChartReport}
+          initialData={selectedComprehensiveInsuranceChartData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}

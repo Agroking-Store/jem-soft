@@ -29,6 +29,7 @@ export interface SurvivalBenefitFormData {
 interface SurvivalBenefitFormProps {
   onBack: () => void;
   onGenerateReport: (formData: SurvivalBenefitFormData) => void;
+  initialData?: SurvivalBenefitFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -42,11 +43,18 @@ interface SurvivalBenefitFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+const getOneYearLaterDateStr = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().split("T")[0];
+};
+
 const getDefaultFormData = (): SurvivalBenefitFormData => ({
   appliedFilters: [],
-  dateFrom: "2026-09-01",
-  dateTo: "2026-09-30",
-  reportDate: "2026-08-03",
+  dateFrom: getTodayDateStr(),
+  dateTo: getOneYearLaterDateStr(),
+  reportDate: getTodayDateStr(),
   reportType: "Statement",
   includeLapsedPolicies: false,
   includeRecordOnlyPolicies: false,
@@ -65,13 +73,14 @@ const getDefaultFormData = (): SurvivalBenefitFormData => ({
 export default function SurvivalBenefitForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: SurvivalBenefitFormProps) {
-  const [formData, setFormData] = useState<SurvivalBenefitFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<SurvivalBenefitFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);

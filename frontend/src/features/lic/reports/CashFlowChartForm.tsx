@@ -27,15 +27,23 @@ export interface CashFlowChartFormData {
 interface CashFlowChartFormProps {
   onBack: () => void;
   onGenerateReport: (formData: CashFlowChartFormData) => void;
+  initialData?: CashFlowChartFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
 }
 
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+const getTwentyYearsLaterDateStr = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 20);
+  return d.toISOString().split("T")[0];
+};
+
 const getDefaultFormData = (): CashFlowChartFormData => ({
   appliedFilters: [],
-  cashFlowFromDate: "",
-  cashFlowToDate: "",
-  reportDate: "2026-08-03",
+  cashFlowFromDate: getTodayDateStr(),
+  cashFlowToDate: getTwentyYearsLaterDateStr(),
+  reportDate: getTodayDateStr(),
   yearBasis: "financialYear",
   annuityMode: "yearly",
   calculationOptions: {
@@ -46,7 +54,7 @@ const getDefaultFormData = (): CashFlowChartFormData => ({
   },
   printOptions: {
     includeCashInOut: false,
-    showGraphs: false,
+    showGraphs: true,
     includeRecordOnlyPolicies: false,
   },
 });
@@ -54,10 +62,11 @@ const getDefaultFormData = (): CashFlowChartFormData => ({
 export default function CashFlowChartForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
 }: CashFlowChartFormProps) {
-  const [formData, setFormData] = useState<CashFlowChartFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<CashFlowChartFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const handleReset = () => setFormData(getDefaultFormData());
