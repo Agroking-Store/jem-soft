@@ -178,69 +178,30 @@ export default function CashFlowChartForm({
         </div>
 
         {/* Sorting Options */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sorting Options</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6 pb-4">
-            {[
-              { id: "groupsWise", label: "Groups Wise" },
-              { id: "groupMemberwise", label: "Group Memberwise" },
-              { id: "agencyWise", label: "Agency Wise" },
-              { id: "branchNoWise", label: "Branch No. Wise" },
-              { id: "policyNoWise", label: "Policy Wise" },
-              { id: "planWise", label: "Plan Wise" },
-            ].map((opt) => (
-              <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-                <input
-                  type="radio"
-                  name="sortingOption"
-                  checked={formData.sortingOption === opt.id}
-                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id, selectedGroups: [], sortingFilterSelection: null }))}
-                  className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] border-slate-300"
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-
-          <div className="pt-2 max-w-lg">
-            <div className="flex items-center gap-3">
-              <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Items</span>
-              <input
-                type="text"
-                readOnly
-                value={getSelectGroupsLabel()}
-                onClick={openSelectGroupsModal}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 cursor-pointer"
-              />
-              <button type="button" onClick={openSelectGroupsModal} className="p-2.5 bg-[#0B1220] hover:bg-slate-900 text-[#E8C77A] rounded-xl transition shadow-md border border-slate-800">
-                <Filter size={16} />
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sorting Options</h2>
+            <div className="flex items-center gap-8">
+              {([
+                { id: "calendarYear", label: "Calender Year" },
+                { id: "financialYear", label: "Financial Year" },
+              ] as const).map((opt) => (
+                <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                  <input
+                    type="radio"
+                    name="yearBasis"
+                    checked={formData.yearBasis === opt.id}
+                    onChange={() => setFormData((prev) => ({ ...prev, yearBasis: opt.id }))}
+                    className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] border-slate-300"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 
-          <div className="border-t border-slate-200 mt-4 pt-4 flex items-center gap-8">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Year Basis:</span>
-            {([
-              { id: "calendarYear", label: "Calender Year" },
-              { id: "financialYear", label: "Financial Year" },
-            ] as const).map((opt) => (
-              <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-                <input
-                  type="radio"
-                  name="yearBasis"
-                  checked={formData.yearBasis === opt.id}
-                  onChange={() => setFormData((prev) => ({ ...prev, yearBasis: opt.id }))}
-                  className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] border-slate-300"
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Annuity Mode */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Annuity Mode</h2>
@@ -263,6 +224,7 @@ export default function CashFlowChartForm({
             </div>
           </div>
 
+          {/* Calculation Options */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Calculation Options</h2>
@@ -326,6 +288,7 @@ export default function CashFlowChartForm({
             </div>
           </div>
 
+          {/* Print Options */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Print Options</h2>
@@ -367,9 +330,11 @@ export default function CashFlowChartForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        defaultCategory="Groups Wise"
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}
