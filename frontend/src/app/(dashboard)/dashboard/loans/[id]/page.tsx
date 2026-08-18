@@ -9,8 +9,9 @@ import {
   clearSelectedLoan,
 } from "@/features/loans/loanSlice";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit,FileText } from "lucide-react";
 import { Input } from "@/shared/components/ui/Input";
+import { CustomerBreadcrumbs,CustomerSectionCard } from "@/features/customers/components/CustomerUi";
 
 export default function LoanDetailsPage() {
   const params = useParams();
@@ -48,24 +49,6 @@ export default function LoanDetailsPage() {
 
   const customer = selectedLoan.policy?.CustomerMaster;
 
-  const detailFields = [
-  { key: "totalLoanGranted", label: "Total Loan Grantable" },
-  { key: "prevLoanTaken", label: "Previous Loan Taken" },
-  { key: "prevLoanInterestRate", label: "Previous Loan Interest Rate" },
-  { key: "otherDeduction", label: "Other Deduction" },
-  { key: "xChargeDeduction", label: "XCharge Deduction" },
-  { key: "revivalDeduction", label: "Revival Deduction" },
-  { key: "addDeposit", label: "Add Deposit" },
-  { key: "netAmount", label: "Net Amount" },
-  { key: "chequeAmount", label: "Cheque Amount" },
-  { key: "repaymentDate", label: "Repayment Date" },
-  { key: "loanRepaidAmount", label: "Loan Repaid Amount" },
-  { key: "totalLoanAmount", label: "Total Loan Amount" },
-  { key: "bpiInterest", label: "BPI Interest" },
-  { key: "hlyInterest", label: "HLY Interest" },
-  { key: "fuliDate", label: "Fuli Date" },
-  { key: "repaymentRemarks", label: "Repayment Remarks" },
-];
 
 const formatLoanValue = (value: unknown) => {
   if (value === null || value === undefined || value === "") return "—";
@@ -83,164 +66,132 @@ const formatLoanValue = (value: unknown) => {
   return String(value);
 };
 
-// const loanData = (loan ?? selectedLoan) as Record<string, unknown> | null;
-
   return (
 
-    
-    <div className="w-full">
-      {/* Top */}
-
-      <button
-        onClick={() => router.push("/dashboard/loans")}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition mb-4"
-      >
-        <ArrowLeft size={16} />
-        Back to Loans
-      </button>
-
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Loan Details
-        </h1>
-
-        <p className="text-slate-500 text-sm mt-1">
-          View loan information
-        </p>
-      </div>
-
-      {/* Card */}
-
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-
-        {/* Header */}
-
-        <div className="px-6 pt-6 pb-2">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Loan Information
-          </h2>
+     <div className="max-w-7xl mx-auto space-y-6">
+          {/* Breadcrumb */}
+          <CustomerBreadcrumbs
+            items={[
+              { label: "Loans", href: "/dashboard/loans" },
+              { label: "Loan Details" },
+            ]}
+          />
+         <div>
+          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+            Loan Details
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            View complete Loan information.
+          </p>
         </div>
-
-        {/* Body */}
-
-        <div className="p-6 space-y-5">
-
-          {/* Policy */}
-
-          <div>
-            <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Policy
-            </label>
-
-            <input
-              type="text"
-              disabled
-              value={`${selectedLoan.policy?.policyNumber ?? ""}${customer
-                  ? ` — ${customer.firstName} ${customer.lastName}`
-                  : ""
-                }`}
-              className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column - Claim Information */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <CustomerSectionCard title="Loan Information" icon={FileText}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Policy Number
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                            {selectedLoan?.policy?.policyNumber}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Loan Date
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                            {new Date(
+                              selectedLoan?.createdAt || "",
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Customer Name
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                             {customer?.firstName} {customer?.lastName}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Loan Amount
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                              ₹{selectedLoan?.loanAmount?.toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Interest Rate (%)
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                              {selectedLoan.interestRate?.toString() || ""}
+                          </p>
+                        </div>
+                         <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Loan Status
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                              {selectedLoan.loanStatus?.statusName || ""}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+                            Loan Remarks
+                          </p>
+                          <p className="font-semibold text-slate-900">
+                              {selectedLoan?.remarks || ""}
+                          </p>
+                        </div>
+                      </div>
+                    </CustomerSectionCard>
+                  </div>
+                  <div>      
+                    <CustomerSectionCard title="Repayment Information" icon={FileText}>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Repayment Date
+                          </p>
+                          <p className="font-semibold text-slate-900 text-sm">
+                            {selectedLoan?.repaymentDate ? new Date(
+                              selectedLoan?.repaymentDate
+                            ).toLocaleDateString() : "-"}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Total Loan Amount Repaid
+                          </p>
+                          <p className="font-semibold text-slate-900 text-sm">
+                            ₹{selectedLoan.totalLoanRepaidAmount?.toLocaleString("en-IN") || "—"}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Total Loan Interest Paid
+                          </p>
+                          <p className="font-semibold text-slate-900 text-sm">
+                            ₹{selectedLoan.totalLoanInterestPaid?.toLocaleString("en-IN") || "—" }
+                          </p>
+                        </div>
+                         <div className="flex justify-between items-center">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Total Loan Balance
+                          </p>
+                          <p className="font-semibold text-slate-900 text-sm">
+                            ₹{(selectedLoan.loanAmount - (selectedLoan?.totalLoanRepaidAmount? selectedLoan.totalLoanRepaidAmount : 0)).toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </div>
+                    </CustomerSectionCard>
+                 </div>
           </div>
-
-          {/* Grid */}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-            <Input
-              label="Loan Number"
-              value={selectedLoan.loanNumber || ""}
-              disabled
-            />
-
-            <Input
-              label="Loan Date"
-              value={
-                selectedLoan.loanDate
-                  ? new Date(selectedLoan.loanDate)
-                    .toISOString()
-                    .slice(0, 10)
-                  : ""
-              }
-              disabled
-            />
-
-            <Input
-              label="Loan Amount (₹)"
-              value={selectedLoan.loanAmount.toString()}
-              disabled
-            />
-
-            <Input
-              label="Interest Rate (%)"
-              value={
-                selectedLoan.interestRate?.toString() || ""
-              }
-              disabled
-            />
-
-            <Input
-              label="Loan Tenure (Months)"
-              value={
-                selectedLoan.loanTenure?.toString() || ""
-              }
-              disabled
-            />
-
-            <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Loan Status
-              </label>
-
-              <input
-                type="text"
-                disabled
-                value={
-                  selectedLoan.loanStatus?.statusName || ""
-                }
-                className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm"
-              />
-            </div>
-
-            {/* Remarks */}
-
-            <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Remarks (Optional)
-              </label>
-
-              <textarea
-                rows={3}
-                disabled
-                value={selectedLoan.remarks || ""}
-                className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none"
-              />
-            </div>
-
-          </div>
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
-  <h2 className="text-lg font-semibold text-slate-900">Additional Loan Details</h2>
-
-  <dl className="mt-4 grid gap-4 md:grid-cols-2">
-    {detailFields.map(({ key, label }) => (
-      <div
-        key={key}
-        className="rounded-xl border border-slate-100 bg-slate-50 p-3"
-      >
-        <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          {label}
-        </dt>
-        <dd className="mt-1 text-sm font-semibold text-slate-900">
-          {selectedLoan[key] ? formatLoanValue(selectedLoan[key]) : "—"}
-        </dd>
-      </div>
-    ))}
-  </dl>
-</div>
-
-        {/* Footer */}
+ {/* Footer */}
 
         <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
 
@@ -264,10 +215,9 @@ const formatLoanValue = (value: unknown) => {
               Edit Loan
             </button>
           )}
-
-        </div>
-
-      </div>
+          
     </div>
+    </div>
+    
   );
 }

@@ -181,13 +181,22 @@ export default function LoansPage() {
         </span>
       </div>
         {isClient && canEdit && (
-          <button
-            onClick={() => router.push("/dashboard/loans/new")}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
-          >
-            <Plus size={18} />
-            New Loan
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => router.push("/dashboard/loans/new")}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
+            >
+              <Plus size={18} />
+              New Loan
+            </button>
+            <button
+              onClick={() => router.push("/dashboard/loans/repay")}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
+            >
+              <Plus size={18} />
+              Repay Loan
+            </button>
+          </div>
         )}
       </div>
 
@@ -419,9 +428,9 @@ export default function LoansPage() {
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                {/* <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Loan #
-                </th>
+                </th> */}
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Policy #
                 </th>
@@ -452,11 +461,11 @@ export default function LoansPage() {
                 const customer = loan.policy?.CustomerMaster;
                 return (
                   <tr key={loan.id} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-3">
+                    {/* <td className="px-4 py-3">
                       <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                         {loan.loanNumber || "—"}
                       </span>
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3">
                       <span className="text-sm text-slate-600">
                         {loan.policy?.policyNumber || "—"}

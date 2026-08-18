@@ -4,45 +4,21 @@ const prisma = new PrismaClient();
 
 export interface LoanData {
     policyId: string;
-    loanNumber?: string;
     loanAmount: number;
     interestRate?: number;
     loanDate: string;
     loanStatusId: string;
-
-    loanTenure?: number;
     remarks?: string;
 
     // New fields from LoanForm
-  totalLoanGranted?: number;
   prevLoanTaken?: number;
-  prevLoanInterestRate?: number;
-  otherDeduction?: number;
-  xChargeDeduction?: number;
-  revivalDeduction?: number;
-  addDeposit?: number;
-  netAmount?: number;
-  chequeAmount?: number;
   repaymentDate?: string;
-  loanRepaidAmount?: number;
+  repayAmount?: number;
   totalLoanAmount?: number;
-  bpiInterest?: number;
-  hlyInterest?: number;
-  fuliDate?: string;
+  totalLoanRepaidAmount? : number;
+  totalLoanInterestPaid? : number;
   repaymentRemarks?: string;
 }
-
-const toOptionalNumber = (value: unknown): number | undefined => {
-  if (value === null || value === undefined || value === "") return undefined;
-  const parsed = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
-const toOptionalDate = (value: unknown): Date | undefined => {
-  if (value === null || value === undefined || value === "") return undefined;
-  const date = new Date(value as string | number | Date);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
 
 const loanInclude = {
     policy: {
@@ -84,30 +60,16 @@ export const createLoan = async (data: LoanData) => {
    return await prisma.policyLoan.create({
     data: {
         policyId: data.policyId,
-        loanNumber: data.loanNumber,
         loanAmount: data.loanAmount,
         interestRate: data.interestRate,
         loanDate: new Date(data.loanDate),
         loanStatusId: data.loanStatusId,
-
-        loanTenure: data.loanTenure,
         remarks: data.remarks,
+      repaymentDate: data.repaymentDate,
+      repayAmount : data.repayAmount,
+      totalLoanRepaidAmount: data.totalLoanRepaidAmount,
+      totalLoanInterestPaid: data.totalLoanInterestPaid,
 
-        totalLoanGranted: data.totalLoanGranted,
-      prevLoanTaken: toOptionalNumber(data.prevLoanTaken),
-      prevLoanInterestRate: toOptionalNumber(data.prevLoanInterestRate),
-      otherDeduction: toOptionalNumber(data.otherDeduction),
-      xChargeDeduction: toOptionalNumber(data.xChargeDeduction),
-      revivalDeduction: toOptionalNumber(data.revivalDeduction),
-      addDeposit: toOptionalNumber(data.addDeposit),
-      netAmount: toOptionalNumber(data.netAmount),
-      chequeAmount: toOptionalNumber(data.chequeAmount),
-      repaymentDate: toOptionalDate(data.repaymentDate),
-      loanRepaidAmount: toOptionalNumber(data.loanRepaidAmount),
-      totalLoanAmount: toOptionalNumber(data.totalLoanAmount),
-      bpiInterest: toOptionalNumber(data.newBpiInterest),
-      hlyInterest: toOptionalNumber(data.newHlyInterest),
-      fuliDate: toOptionalDate(data.fuliDate),
       repaymentRemarks: data.repaymentRemarks,
     },
     include: loanInclude,
@@ -122,8 +84,8 @@ export const updateLoanById = async (id: string, data: Partial<LoanData>) => {
     loanDate: data.loanDate
         ? new Date(data.loanDate)
         : undefined,
-
-    loanTenure: data.loanTenure,
+    repaymentDate : data.repaymentDate 
+    ? new Date(data.repaymentDate) : undefined,
     remarks: data.remarks,
 },
         include: loanInclude,

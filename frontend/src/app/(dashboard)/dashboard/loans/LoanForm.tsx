@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchLoanStatuses } from "@/features/loans/loanStatusMasterSlice";
 import { createLoan, fetchLoans, updateLoan, type Loan } from "@/features/loans/loanSlice";
-import { Input } from "@/shared/components/ui/Input";
+import { type Policy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import { Save, Loader2 ,FileText} from "lucide-react";
 import DatePicker from "../lic/policies/new/DatePicker";
@@ -28,107 +28,25 @@ interface LoanFormProps {
 
 interface FormState {
   policyId: string;
-  loanNumber: string;
   loanAmount: string;
   interestRate: string;
   loanDate: string;
   loanStatusId: string;
-  loanTenure: string;
   remarks: string;
-  totalLoanGranted: string;
-  prevLoanTaken: string;
-  prevLoanInterestRate: string;
-  otherDeduction: string;
-  xChargeDeduction: string;
-  revivalDeduction: string;
-  addDeposit: string;
-  netAmount: string;
-  chequeAmount: string;
-  repaymentDate: string;
-  loanRepaidAmount: string;
-  totalLoanAmount: string;
-  bpiInterest: string;
-  hlyInterest: string;
-  fuliDate: string;
-  repaymentRemarks: string;
+   totalLoanRepaidAmount: Number;
+   totalLoanInterestPaid: Number;
 }
 
 const emptyForm: FormState = {
   policyId: "",
-  loanNumber: "",
   loanAmount: "",
   interestRate: "",
   loanDate: "",
   loanStatusId: "",
-  loanTenure: "",
   remarks: "",
-  totalLoanGranted: "",
-  prevLoanTaken: "",
-  prevLoanInterestRate: "",
-  otherDeduction: "",
-  xChargeDeduction: "",
-  revivalDeduction: "",
-  addDeposit: "",
-  netAmount: "",
-  chequeAmount: "",
-  repaymentDate: "",
-  loanRepaidAmount: "",
-  totalLoanAmount: "",
-  bpiInterest: "",
-  hlyInterest: "",
-  fuliDate: "",
-  repaymentRemarks: "",
+   totalLoanRepaidAmount: 0,
+   totalLoanInterestPaid: 0,
 };
-
-const validateOptionalNumber = (
-  value: string,
-  label: string,
-  options?: { min?: number; max?: number },
-) => {
-  if (!value) return undefined;
-
-  const num = Number(value);
-  if (!Number.isFinite(num)) {
-    return `${label} must be a valid number`;
-  }
-
-  if (options?.min !== undefined && num < options.min) {
-    return `${label} must be at least ${options.min}`;
-  }
-
-  if (options?.max !== undefined && num > options.max) {
-    return `${label} must be at most ${options.max}`;
-  }
-
-  return undefined;
-};
-
-const validateOptionalPercentage = (value: string, label: string) => {
-  if (!value) return undefined;
-
-  const num = Number(value);
-  if (!Number.isFinite(num) || num < 0 || num > 100) {
-    return `${label} must be between 0 and 100`;
-  }
-
-  return undefined;
-};
-
-const validateOptionalDate = (value: string, label: string) => {
-  if (!value) return undefined;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return `${label} must be a valid date`;
-  }
-
-  if (date > new Date()) {
-    return `${label} cannot be in the future`;
-  }
-
-  return undefined;
-};
-
 
 
 export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
@@ -159,6 +77,9 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
     newErrors.loanAmount = "Loan amount must be a positive number";
   }
 
+  if(!form.interestRate)
+    newErrors.interestRate = "Interest rate is required"
+
   if (
     form.interestRate &&
     (isNaN(Number(form.interestRate)) ||
@@ -174,54 +95,6 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
     newErrors.loanDate = "Loan date cannot be in the future";
   }
 
-  if (!form.loanStatusId) newErrors.loanStatusId = "Loan status is required";
-
-  if (form.loanTenure) {
-    const tenure = Number(form.loanTenure);
-    if (!Number.isFinite(tenure) || tenure <= 0) {
-      newErrors.loanTenure = "Loan tenure must be a positive number";
-    }
-  }
-
-  const optionalNumericFields: Array<{ key: keyof FormState; label: string }> = [
-    { key: "totalLoanGranted", label: "Total loan granted" },
-    { key: "prevLoanTaken", label: "Previous loan taken" },
-    { key: "otherDeduction", label: "Other deduction" },
-    { key: "xChargeDeduction", label: "XCharge deduction" },
-    { key: "revivalDeduction", label: "Revival deduction" },
-    { key: "addDeposit", label: "Additional deposit" },
-    { key: "netAmount", label: "Net amount" },
-    { key: "chequeAmount", label: "Cheque amount" },
-    { key: "loanRepaidAmount", label: "Loan repaid amount" },
-    { key: "totalLoanAmount", label: "Total loan amount" },
-  ];
-
-  for (const field of optionalNumericFields) {
-    const error = validateOptionalNumber(form[field.key], field.label, { min: 0 });
-    if (error) newErrors[field.key] = error;
-  }
-
-  const optionalPercentageFields: Array<{ key: keyof FormState; label: string }> = [
-    { key: "prevLoanInterestRate", label: "Previous loan interest rate" },
-    { key: "bpiInterest", label: "New BPI interest" },
-    { key: "hlyInterest", label: "New HLY interest" },
-  ];
-
-  for (const field of optionalPercentageFields) {
-    const error = validateOptionalPercentage(form[field.key], field.label);
-    if (error) newErrors[field.key] = error;
-  }
-
-  const optionalDateFields: Array<{ key: keyof FormState; label: string }> = [
-    { key: "repaymentDate", label: "Repayment date" },
-    { key: "fuliDate", label: "Fuli date" },
-  ];
-
-  for (const field of optionalDateFields) {
-    const error = validateOptionalDate(form[field.key], field.label);
-    if (error) newErrors[field.key] = error;
-  }
-
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
@@ -232,6 +105,12 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
     setPolicyLoanEligiblity(loanEligible);
   }
 
+  const getPrevLoanDetails= (policyId: string) => {
+    const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
+    const previousLoanDetails = filteredLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    return previousLoanDetails;
+  }
+
 const getTotalLoanForPolicy = (policyId: string) => {
   const policy : Policy = policies.find((p) => p.id === policyId);
   if (!policy) return 0;
@@ -240,6 +119,8 @@ const getTotalLoanForPolicy = (policyId: string) => {
   if (!premium) return 0;
 
   const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
+  // const previousLoanDetails = filteredLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
   totalLoans =  filteredLoans.reduce((sum, loan) => {
     return sum + (Number(loan.loanAmount) || 0);
   }, 0);
@@ -259,61 +140,56 @@ const getTotalLoanForPolicy = (policyId: string) => {
   {
      gsv = 0.9
   }
-  console.log(gsv)
-  const policySurrenderValue = (premium * policyDuration) - (premium) * gsv;
+ 
+  const policySurrenderValue = ((premium * policyDuration) - (premium)) * gsv;
   console.log(premium)
+   console.log(policySurrenderValue)
   console.log(policySurrenderValue * 0.9)
   return((policySurrenderValue * 0.9))
 
 };
 
-const totalLoanGrantedValue = form.policyId
-  ? ( getTotalLoanForPolicy(form.policyId).toString())
-  : form.totalLoanGranted;
+const totalLoanGrantedValue =  getTotalLoanForPolicy(form.policyId).toString();
+ 
+
+const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : null;
+
+  //const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId).toString()) : form.prevLoanTaken;
+
+  /* ── Shared class strings ──────────────────────────────────── */
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  const disabledInputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 outline-none cursor-not-allowed";
+  const selectClass =
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  const labelClass =
+    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
 
   useEffect(() => {
     dispatch(fetchPolicies());
     dispatch(fetchLoanStatuses());
+    dispatch(fetchLoans());
   }, [dispatch]);
 
   useEffect(() => {
     if (mode === "edit" && initialLoan) {
       setForm({
         policyId: initialLoan.policyId || "",
-        loanNumber: initialLoan.loanNumber || "",
         loanAmount: initialLoan.loanAmount?.toString() || "",
         interestRate: initialLoan.interestRate?.toString() || "",
         loanDate: initialLoan.loanDate
           ? new Date(initialLoan.loanDate).toISOString().slice(0, 10)
           : "",
         loanStatusId: initialLoan.loanStatusId || "",
-        loanTenure: initialLoan.loanTenure?.toString() || "",
         remarks: initialLoan.remarks || "",
-         totalLoanGranted: initialLoan.totalLoanGranted?.toString() || "",
-      prevLoanTaken: initialLoan.prevLoanTaken?.toString() || "",
-      prevLoanInterestRate: initialLoan.prevLoanInterestRate?.toString() || "",
-      otherDeduction: initialLoan.otherDeduction?.toString() || "",
-      xChargeDeduction: initialLoan.xChargeDeduction?.toString() || "",
-      revivalDeduction: initialLoan.revivalDeduction?.toString() || "",
-      addDeposit: initialLoan.addDeposit?.toString() || "",
-      netAmount: initialLoan.netAmount?.toString() || "",
-      chequeAmount: initialLoan.chequeAmount?.toString() || "",
-      repaymentDate: initialLoan.repaymentDate
-        ? new Date(initialLoan.repaymentDate).toISOString().slice(0, 10)
-        : "",
-      loanRepaidAmount: initialLoan.loanRepaidAmount?.toString() || "",
-      totalLoanAmount: initialLoan.totalLoanAmount?.toString() || "",
-      bpiInterest: initialLoan.bpiInterest?.toString() || "",
-      hlyInterest: initialLoan.hlyInterest?.toString() || "",
-      fuliDate: initialLoan.fuliDate
-        ? new Date(initialLoan.fuliDate).toISOString().slice(0, 10)
-        : "",
-      repaymentRemarks: initialLoan.repaymentRemarks || "",
+
+      
+      totalLoanRepaidAmount: initialLoan.totalLoanRepaidAmount || 0,
+      totalLoanInterestPaid: initialLoan.totalLoanInterestPaid|| 0,
       });
     }
   }, [mode, initialLoan]);
-
-  const loanNetAmount = Number(form.loanAmount) - Number(form.otherDeduction) - Number(form.xChargeDeduction) - Number(form.revivalDeduction) + Number(form.addDeposit);
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -330,36 +206,17 @@ const totalLoanGrantedValue = form.policyId
 
     setIsSubmitting(true);
 
-
     const payload = {
       policyId: form.policyId,
-      loanNumber: form.loanNumber || undefined,
       loanAmount: Number(form.loanAmount),
       interestRate: form.interestRate
         ? Number(form.interestRate)
         : undefined,
       loanDate: form.loanDate,
-      loanStatusId: form.loanStatusId,
-      loanTenure: form.loanTenure
-        ? Number(form.loanTenure)
-        : undefined,
+      loanStatusId: loanStatuses[0].id,
       remarks: form.remarks || undefined,
-      totalLoanGranted: form.totalLoanGranted ? Number(form.totalLoanGranted) : getTotalLoanForPolicy(form.policyId),
-      prevLoanTaken: Number(form.prevLoanTaken),
-      prevLoanInterestRate: form.prevLoanInterestRate,
-      otherDeduction: Number(form.otherDeduction),
-      xChargeDeduction: Number(form.xChargeDeduction),
-      revivalDeduction: Number(form.revivalDeduction),
-    addDeposit: Number(form.addDeposit),
-    netAmount: loanNetAmount,
-    chequeAmount: Number(form.chequeAmount),
-    repaymentDate :form.repaymentDate,
-    loanRepaidAmount: Number(form.loanRepaidAmount),
-    totalLoanAmount: Number(form.totalLoanAmount),
-    newBpiInterest: Number(form.bpiInterest),
-    newHlyInterest: Number(form.hlyInterest),
-    fuliDate: form.fuliDate,
-    repaymentRemarks: form.repaymentRemarks || null,
+      totalLoanRepaidAmount :  0,
+      totalLoanInterestPaid : 0,
     };
 
     try {
@@ -406,6 +263,7 @@ const totalLoanGrantedValue = form.policyId
             </label>
             <span className="ml-0.5 text-rose-500">*</span>
             <select
+            
               value={form.policyId}
               onChange={(e) => { 
                 const nextPolicyId = e.target.value;
@@ -414,10 +272,10 @@ const totalLoanGrantedValue = form.policyId
                       (p) => p.id === e.target.value,
                     );
                     setSelectedPolicy(policy)
-               if (!form.totalLoanGranted) {
-                  handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
-                    );
-                   }
+              //  if (!form.totalLoanGranted) {
+              //     handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
+              //       );
+              //      }
               checkPolicyLoanEligibility(policy)
           
               }}
@@ -445,6 +303,7 @@ const totalLoanGrantedValue = form.policyId
             )}
           </div>
           {/* Policy Details Table */}
+           {selectedPolicy && (
           <CustomerSectionCard className="mt-3" title="Policy Information" icon={FileText}>
           <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
             <table className="w-full">
@@ -471,7 +330,7 @@ const totalLoanGrantedValue = form.policyId
                     {selectedPolicy?.CustomerMaster?.lastName}
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    {selectedPolicy?.premium?.sumAssured || "-"}
+                    ₹{Number(selectedPolicy?.premium?.sumAssured)?.toLocaleString("en-IN") || "-"}
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold text-slate-900">
                     {selectedPolicy?.status?.statusName || "-"}
@@ -487,7 +346,7 @@ const totalLoanGrantedValue = form.policyId
               </tbody>
             </table>
           </div>
-          </CustomerSectionCard>
+          </CustomerSectionCard>)}
           {!policyLoanEligiblity ? (
             <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
               {selectedPolicy ? (
@@ -498,110 +357,111 @@ const totalLoanGrantedValue = form.policyId
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-
-            <Input
-              label="Loan Number"
-              placeholder="e.g. LN-2026-001"
-              value={form.loanNumber}
-              onChange={(e) => handleChange("loanNumber", e.target.value)}
-              error={errors.loanNumber}
-            />
-
-            <Input
-              label="Loan Date"
-              type="date"
-              value={form.loanDate}
-              onChange={(e) => handleChange("loanDate", e.target.value)}
-              error={errors.loanDate}
-            />
-
-            <Input
-              label="Max Loan Grantable"
-              placeholder="e.g. 500000"
-              value={totalLoanGrantedValue}
-              onChange={(e) => handleChange("totalLoanGranted", e.target.value)}
-              error={errors.totalLoanGranted}
-              disabled
-            />
-
-            <Input
-              label="Prev. Loan Taken"
-              placeholder="e.g. 50000"
-              value={0}
-              onChange={(e) => handleChange("prevLoanTaken", e.target.value)}
-              error={errors.prevLoanTaken}
-              disabled
-            />
-
-            <Input
-              label="New Loan Amount (₹)"
-              type="text"
-              placeholder="e.g. 50000"
-              value={form.loanAmount}
-              max={totalLoanGrantedValue}
-              onChange={(e) => handleChange("loanAmount", e.target.value)}
-              error={errors.loanAmount}
-            />
-            
-            <Input
-              label="Interest Rate (%)"
-              type="text"
-              min="0"
-              max="100"
-              placeholder="e.g. 9.5"
-              value={form.interestRate}
-              onChange={(e) => handleChange("interestRate", e.target.value)}
-              error={errors.interestRate}
-            />
-
-            <Input
-              label="Other Deduction"
-              placeholder="e.g. 2000"
-              value={form.otherDeduction}
-              onChange={(e) => handleChange("otherDeduction", e.target.value)}
-              error={errors.otherDeduction}
-            />
-
-            <Input
-              label="XCharge Deduction"
-              placeholder="e.g. 1000"
-              value={form.xChargeDeduction}
-              onChange={(e) => handleChange("xChargeDeduction", e.target.value)}
-              error={errors.xChargeDeduction}
-            />
-
-            <Input
-              label="Revival Deduction"
-              placeholder="e.g. 1000"
-              value={form.revivalDeduction}
-              onChange={(e) => handleChange("revivalDeduction", e.target.value)}
-              error={errors.revivalDeduction}
-            />
-
-            <Input
-              label="Add. Deposit"
-              placeholder="e.g. 5000"
-              value={form.addDeposit}
-              onChange={(e) => handleChange("addDeposit", e.target.value)}
-              error={errors.addDeposit}
-            />
-
-            <Input
-              label="Loan Tenure (Months)"
-              type="text"
-              min="1"
-              placeholder="e.g. 12"
-              value={form.loanTenure}
-              onChange={(e) => handleChange("loanTenure", e.target.value)}
-            />
+            <div>
+              <label className={labelClass}>
+                Loan Date
+                <span className="ml-0.5 text-rose-500">*</span>
+              </label>
+              <input
+                className={inputClass}
+                type="date"
+                value={form.loanDate}
+                onChange={(e) => handleChange("loanDate", e.target.value)}
+              />
+              {errors.loanDate && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.loanDate}
+                </p>
+              )}
+              {/* <Controller
+                // control={control}
+                name="claimDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any) =>
+                      field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                    }
+                  />
+                )}
+              /> */}
+            </div>
 
             <div>
+                <label className={labelClass}>
+                  Prev. Loan Taken (₹)
+                </label>
+                <input
+                  value={prevLoanDetails?.loanAmount || 0}
+                  //onChange={(e) => handleChange("prevLoanTaken", e.target.value)}
+                  // error={errors.prevLoanTaken}
+                  className={`${inputClass} bg-slate-50 cursor-not-allowed`}
+                  disabled
+                />
+            </div>
+
+            <div>
+                <label className={labelClass}>
+                  Loan Amount (₹)
+                  <span className="ml-0.5 text-rose-500">*</span>
+                </label>
+                <input
+                  className={inputClass}
+                  type="text"
+                  placeholder="e.g. 50000"
+                  value={form.loanAmount}
+                  max={totalLoanGrantedValue}
+                  onChange={(e) => handleChange("loanAmount", e.target.value)}
+                />
+                 {errors.loanAmount && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.loanAmount}
+                </p>
+              )}
+            </div>
+           
+            <div>
+                <label className={labelClass}>
+                  Interest Rate (%)
+                  <span className="ml-0.5 text-rose-500">*</span>
+                </label>
+                <input
+                  className={inputClass}
+                  type="text"
+                  min="0"
+                  max="100"
+                  placeholder="e.g. 9.5"
+                  value={form.interestRate}
+                  onChange={(e) => handleChange("interestRate", e.target.value)}
+                />
+                 {errors.interestRate && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.interestRate}
+                </p>
+              )}
+            </div>
+
+             {/* <div>
+                <label className={labelClass}>
+                  Loan Tenure (Months)
+                </label>
+                <input
+                  className={inputClass}
+                  type="text"
+                  min="1"
+                  placeholder="e.g. 12"
+                  value={form.loanTenure}
+                  onChange={(e) => handleChange("loanTenure", e.target.value)}
+                />
+          </div> */}
+            {/* <div>
               <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Loan Status
               </label>
 
               <select
                 value={form.loanStatusId}
+                defaultValue={loanStatuses[0].id}
                 onChange={(e) => handleChange("loanStatusId", e.target.value)}
                 className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.loanStatusId
                   ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
@@ -622,28 +482,7 @@ const totalLoanGrantedValue = form.policyId
                   {errors.loanStatusId}
                 </p>
               )}
-            </div>
-
-            <Input
-              label="Net Amount"
-              type="number"
-              placeholder="e.g. 12"
-              value={loanNetAmount}
-              onChange={(e) => handleChange("netAmount", e.target.value)}
-               error={errors.netAmount}
-               disabled
-            />
-
-            <Input
-              label="Cheque Amount"
-              type="text"
-              min="1"
-              placeholder="e.g. 12"
-              value={form.chequeAmount}
-              onChange={(e) => handleChange("chequeAmount", e.target.value)}
-               error={errors.chequeAmount}
-            />
-
+            </div> */}
             <div className="sm:col-span-2">
               <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Remarks (Optional)
@@ -659,94 +498,6 @@ const totalLoanGrantedValue = form.policyId
             </div>
           </div>)}
       </CustomerSectionCard>
-      
-      {policyLoanEligiblity && 
-      (<CustomerSectionCard className="mt-5" title="Repayment Information" icon={FileText}>
-              <div className="space-y-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                      label="Date Of Repayment"
-                      type="date"
-                      value={form.repaymentDate}
-                      onChange={(e) => handleChange("repaymentDate", e.target.value)}
-                      error={errors.repaymentDate}
-                    />
-
-                    <Input
-              label="Prev. Loan Interest Rate (%)"
-              type="text"
-              min="0"
-              max="100"
-              placeholder="e.g. 9.5"
-              value={form.prevLoanInterestRate}
-              onChange={(e) => handleChange("prevLoanInterestRate", e.target.value)}
-              error={errors.prevLoanInterestRate}
-            />
-
-            <Input
-              label="Loan Repayed Amount (₹)"
-              type="text"
-              placeholder="e.g. 50000"
-              value={form.loanRepaidAmount}
-              onChange={(e) => handleChange("loanRepaidAmount", e.target.value)}
-              error={errors.loanRepaidAmount}
-            />
-
-            <Input
-              label="Total Loan Amount (₹)"
-              type="number"
-              min="0"
-              placeholder="e.g. 50000"
-              value={totalLoans}
-              onChange={(e) => handleChange("totalLoanAmount", e.target.value)}
-              error={errors.totalLoanAmount}
-              disabled
-            />
-
-              <Input
-              label="New BPI Interest (%)"
-              type="text"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 9.5"
-              value={form.bpiInterest}
-              onChange={(e) => handleChange("bpiInterest", e.target.value)}
-              error={errors.bpiInterest}
-            />
-
-              <Input
-              label="New HLY Interest (%)"
-              type="text"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 9.5"
-              value={form.hlyInterest}
-              onChange={(e) => handleChange("hlyInterest", e.target.value)}
-              error={errors.hlyInterest}
-            />
-
-            <Input
-                      label="FULI Date"
-                      type="date"
-                      value={form.fuliDate}
-                      onChange={(e) => handleChange("fuliDate", e.target.value)}
-                      error={errors.fuliDate}
-                    />
-            <div className="sm:col-span-2">
-                    <label className="w-full text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Remarks (Optional)
-              </label>
-
-              <textarea
-                rows={3}
-                placeholder="Enter any remarks..."
-                value={form.repaymentRemarks}
-                onChange={(e) => handleChange("repaymentRemarks", e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              />
-              </div>
-        </div>
-      </CustomerSectionCard>)}
-      
        {/* Footer */}
        {policyLoanEligiblity && (
         <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
@@ -758,8 +509,6 @@ const totalLoanGrantedValue = form.policyId
           >
             Cancel
           </button>
-
-          
             <button
               type="submit"
               disabled={isSubmitting}
@@ -770,7 +519,6 @@ const totalLoanGrantedValue = form.policyId
               ) : (
                 <Save className="w-4 h-4" />
               )}
-
               {mode === "create" ? "Create Loan" : "Save Changes"}
             </button>
         </div>)}
