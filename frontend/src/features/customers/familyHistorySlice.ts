@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   getFamilyHistoriesApi,
   getFamilyHistoryApi,
+  getFamilyHistoriesByMemberApi,
   createFamilyHistoryApi,
   updateFamilyHistoryApi,
   deleteFamilyHistoryApi,
@@ -77,10 +78,8 @@ export const fetchFamilyHistoriesByMember = createAsyncThunk(
   "familyHistory/fetchByMember",
   async (memberId: string, { rejectWithValue }) => {
     try {
-      const data = await getFamilyHistoriesApi();
-      // Backend returns all records; scope to the member being viewed.
-      const all = (data.data.records ?? []) as FamilyHistoryItem[];
-      return all.filter((r) => r.memberId === memberId);
+      const data = await getFamilyHistoriesByMemberApi(memberId);
+      return (data.data.records ?? []) as FamilyHistoryItem[];
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch family history records");
     }
@@ -166,6 +165,10 @@ const familyHistorySlice = createSlice({
     clearCurrentRecord: (state) => {
       state.currentRecord = null;
     },
+    clearFamilyRecords: (state) => {
+      state.records = [];
+      state.error = null;
+    },
     clearCurrentGroup: (state) => {
       state.currentGroup = null;
       state.groupError = null;
@@ -173,6 +176,19 @@ const familyHistorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch by Member
+      .addCase(fetchFamilyHistoriesByMember.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFamilyHistoriesByMember.fulfilled, (state, action: PayloadAction<FamilyHistoryItem[]>) => {
+        state.isLoading = false;
+        state.records = action.payload;
+      })
+      .addCase(fetchFamilyHistoriesByMember.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       // Fetch One
       .addCase(fetchFamilyHistory.pending, (state) => {
         state.isLoading = true;
@@ -261,5 +277,5 @@ const familyHistorySlice = createSlice({
   },
 });
 
-export const { clearCurrentRecord, clearCurrentGroup } = familyHistorySlice.actions;
+export const { clearCurrentRecord, clearFamilyRecords, clearCurrentGroup } = familyHistorySlice.actions;
 export default familyHistorySlice.reducer;

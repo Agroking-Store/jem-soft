@@ -13,7 +13,7 @@ import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licRepor
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
 import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
-import PremiumDueReportView from "@/features/lic/reports/PremiumDueForm";
+import PremiumDueReportView from "@/features/lic/reports/PremiumDueReportView";
 import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
 import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
 import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
@@ -26,6 +26,10 @@ import CashFlowChartForm, { CashFlowChartFormData } from "@/features/lic/reports
 import CashFlowChartReportView from "@/features/lic/reports/CashFlowChartReportView";
 import ComprehensiveInsuranceChartForm, { ComprehensiveInsuranceChartFormData } from "@/features/lic/reports/ComprehensiveInsuranceChartForm";
 import ComprehensiveInsuranceChartReportView from "@/features/lic/reports/ComprehensiveInsuranceChartReportView";
+import PremiumCertificateForm, { PremiumCertificateFormData } from "@/features/lic/reports/PremiumCertificateForm";
+import PremiumCertificateReportView from "@/features/lic/reports/PremiumCertificateReportView";
+import AnnuityStatementForm, { AnnuityStatementFormData } from "@/features/lic/reports/AnnuityStatementForm";
+import AnnuityStatementReportView from "@/features/lic/reports/AnnuityStatementReportView";
 import {
   Search,
   ArrowRight,
@@ -51,7 +55,11 @@ type ViewState =
   | "cash-flow-chart-form"
   | "cash-flow-chart-report"
   | "comprehensive-insurance-chart-form"
-  | "comprehensive-insurance-chart-report";
+  | "comprehensive-insurance-chart-report"
+  | "premium-paid-details-form"
+  | "premium-paid-details-report"
+  | "annuity-statement-form"
+  | "annuity-statement-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -74,6 +82,10 @@ export default function LICReportsPage() {
     useState<CashFlowChartFormData | null>(null);
   const [selectedComprehensiveInsuranceChartData, setSelectedComprehensiveInsuranceChartData] =
     useState<ComprehensiveInsuranceChartFormData | null>(null);
+  const [selectedPremiumCertificateData, setSelectedPremiumCertificateData] =
+    useState<PremiumCertificateFormData | null>(null);
+  const [selectedAnnuityStatementData, setSelectedAnnuityStatementData] =
+    useState<AnnuityStatementFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -120,6 +132,10 @@ export default function LICReportsPage() {
       setCurrentView("cash-flow-chart-form");
     } else if (card.id === "comprehensive-insurance-chart") {
       setCurrentView("comprehensive-insurance-chart-form");
+    } else if (card.id === "premium-paid-details") {
+      setCurrentView("premium-paid-details-form");
+    } else if (card.id === "annuity-statement") {
+      setCurrentView("annuity-statement-form");
     } else {
       setPreviewModalCard(card);
     }
@@ -163,6 +179,16 @@ export default function LICReportsPage() {
   const handleGenerateComprehensiveInsuranceChartReport = (formData: ComprehensiveInsuranceChartFormData) => {
     setSelectedComprehensiveInsuranceChartData(formData);
     setCurrentView("comprehensive-insurance-chart-report");
+  };
+
+  const handleGeneratePremiumCertificateReport = (formData: PremiumCertificateFormData) => {
+    setSelectedPremiumCertificateData(formData);
+    setCurrentView("premium-paid-details-report");
+  };
+
+  const handleGenerateAnnuityStatementReport = (formData: AnnuityStatementFormData) => {
+    setSelectedAnnuityStatementData(formData);
+    setCurrentView("annuity-statement-report");
   };
 
   return (
@@ -336,6 +362,7 @@ export default function LICReportsPage() {
         <PremiumDueForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePremiumDueReport}
+          initialData={selectedPremiumDueData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -359,6 +386,7 @@ export default function LICReportsPage() {
         <PremiumOutstandingForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePremiumOutstandingReport}
+          initialData={selectedPremiumOutstandingData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -382,6 +410,7 @@ export default function LICReportsPage() {
         <LapsedPolicyForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateLapsedPolicyReport}
+          initialData={selectedLapsedPolicyData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -405,6 +434,7 @@ export default function LICReportsPage() {
         <PolicyMaturityForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePolicyMaturityReport}
+          initialData={selectedPolicyMaturityData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -428,6 +458,7 @@ export default function LICReportsPage() {
         <SurvivalBenefitForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateSurvivalBenefitReport}
+          initialData={selectedSurvivalBenefitData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -451,8 +482,12 @@ export default function LICReportsPage() {
         <CashFlowChartForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateCashFlowChartReport}
+          initialData={selectedCashFlowChartData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
         />
       )}
 
@@ -471,6 +506,7 @@ export default function LICReportsPage() {
         <ComprehensiveInsuranceChartForm
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateComprehensiveInsuranceChartReport}
+          initialData={selectedComprehensiveInsuranceChartData}
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
@@ -486,6 +522,52 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("comprehensive-insurance-chart-form")}
+        />
+      )}
+
+      {/* VIEW 18: Premium Paid Details / Certificate Form */}
+      {currentView === "premium-paid-details-form" && (
+        <PremiumCertificateForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumCertificateReport}
+          initialData={selectedPremiumCertificateData}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 19: Premium Paid Details / Certificate Report View */}
+      {currentView === "premium-paid-details-report" && selectedPremiumCertificateData && (
+        <PremiumCertificateReportView
+          formData={selectedPremiumCertificateData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-paid-details-form")}
+        />
+      )}
+
+      {/* VIEW 20: Annuity Statement Form */}
+      {currentView === "annuity-statement-form" && (
+        <AnnuityStatementForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateAnnuityStatementReport}
+          initialData={selectedAnnuityStatementData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 21: Annuity Statement Report View */}
+      {currentView === "annuity-statement-report" && selectedAnnuityStatementData && (
+        <AnnuityStatementReportView
+          formData={selectedAnnuityStatementData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("annuity-statement-form")}
         />
       )}
 

@@ -6,102 +6,97 @@ import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
 
-export interface SurvivalBenefitFormData {
+export interface AnnuityStatementFormData {
+  reportType: "Statement" | "Intimation";
   appliedFilters: SelectedFilterItem[];
   dateFrom: string;
   dateTo: string;
   reportDate: string;
-  reportType: "Statement" | "Intimation";
-  includeLapsedPolicies: boolean;
-  includeRecordOnlyPolicies: boolean;
-  sbAmountFilterEnabled: boolean;
-  sbAmountAboveOrEqualTo: number;
-  sortingOption: "groupsWise" | "groupMemberwise" | "sbDatewise" | "branchNoWise";
+  sortingOption: "groupsWise" | "groupMemberwise" | "policyNoWise";
   selectedGroups: GroupFilterItem[];
   sortingFilterSelection: SortingFilterSelection | null;
-  reportOptions: {
-    printWithAddress: boolean;
-    printWithTelNo: boolean;
-    dob: boolean;
+  statementOptions: {
+    statementWithAddress: boolean;
+    statementWithTelNo: boolean;
+  };
+  intimationOptions: {
+    mailingLabels: boolean;
+    despatchList: boolean;
+    costPerDespatch: number;
+    purpose: string;
   };
 }
 
-interface SurvivalBenefitFormProps {
+interface AnnuityStatementFormProps {
   onBack: () => void;
-  onGenerateReport: (formData: SurvivalBenefitFormData) => void;
-  initialData?: SurvivalBenefitFormData | null;
+  onGenerateReport: (formData: AnnuityStatementFormData) => void;
+  initialData?: AnnuityStatementFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
-  customers: Array<{
+  customers?: Array<{
     id: string;
     groupCode?: string | null;
     name: string;
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies?: Array<any>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 
-const getNextMonthDateRange = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const firstNextMonth = new Date(year, month + 1, 1);
-  const lastNextMonth = new Date(year, month + 2, 0);
-
-  const fmt = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-
-  return {
-    dateFrom: fmt(firstNextMonth),
-    dateTo: fmt(lastNextMonth),
-  };
+const getTenYearsAgoDateStr = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 10);
+  return d.toISOString().split("T")[0];
 };
 
-const getDefaultFormData = (): SurvivalBenefitFormData => {
-  const nextMonthDates = getNextMonthDateRange();
-  return {
-    appliedFilters: [],
-    dateFrom: nextMonthDates.dateFrom,
-    dateTo: nextMonthDates.dateTo,
-    reportDate: getTodayDateStr(),
-    reportType: "Statement",
-    includeLapsedPolicies: false,
-    includeRecordOnlyPolicies: false,
-    sbAmountFilterEnabled: false,
-    sbAmountAboveOrEqualTo: 0,
-    sortingOption: "groupsWise",
-    selectedGroups: [],
-    sortingFilterSelection: null,
-    reportOptions: {
-      printWithAddress: false,
-      printWithTelNo: false,
-      dob: false,
-    },
-  };
-};
+const getDefaultFormData = (): AnnuityStatementFormData => ({
+  reportType: "Statement",
+  appliedFilters: [],
+  dateFrom: "",
+  dateTo: "",
+  reportDate: getTodayDateStr(),
+  sortingOption: "groupsWise",
+  selectedGroups: [],
+  sortingFilterSelection: null,
+  statementOptions: {
+    statementWithAddress: false,
+    statementWithTelNo: true,
+  },
+  intimationOptions: {
+    mailingLabels: false,
+    despatchList: false,
+    costPerDespatch: 0,
+    purpose: "",
+  },
+});
 
-export default function SurvivalBenefitForm({
+export default function AnnuityStatementForm({
   onBack,
   onGenerateReport,
   initialData,
-  agencies,
-  policyStatuses,
-  customers,
-  policies,
+  agencies = [],
+  policyStatuses = [],
+  customers = [],
+  policies = [],
   branches = [],
-}: SurvivalBenefitFormProps) {
-  const [formData, setFormData] = useState<SurvivalBenefitFormData>(initialData || getDefaultFormData());
+}: AnnuityStatementFormProps) {
+  const [formData, setFormData] = useState<AnnuityStatementFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+
+  const handleReportTypeChange = (type: "Statement" | "Intimation") => {
+    setFormData((prev) => ({
+      ...prev,
+      reportType: type,
+      dateFrom: type === "Intimation" ? getTenYearsAgoDateStr() : "",
+      dateTo: type === "Intimation" ? getTodayDateStr() : "",
+      sortingOption: "groupsWise",
+    }));
+  };
 
   const handleReset = () => setFormData(getDefaultFormData());
 
@@ -111,17 +106,7 @@ export default function SurvivalBenefitForm({
       return count > 0 ? `${count} Groups selected` : "All Groups Selected";
     }
     const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
-    if (count > 0) return `${count} item(s) selected`;
-    switch (formData.sortingOption) {
-      case "groupMemberwise":
-        return "All Members Selected";
-      case "sbDatewise":
-        return "All S.B. Dates Selected";
-      case "branchNoWise":
-        return "All Branches Selected";
-      default:
-        return "All Groups Selected";
-    }
+    return count > 0 ? `${count} item(s) selected` : "All Items Selected";
   };
 
   const openSelectGroupsModal = () => {
@@ -131,6 +116,7 @@ export default function SurvivalBenefitForm({
 
   return (
     <div className="space-y-6">
+      {/* Top Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 text-white border border-slate-800 shadow-xl">
         <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -140,7 +126,7 @@ export default function SurvivalBenefitForm({
               <span>Reports</span>
             </button>
             <div className="h-6 w-px bg-white/15" />
-            <h1 className="font-serif text-xl font-bold text-[#E8C77A] tracking-wider uppercase">Survival Benefits</h1>
+            <h1 className="font-serif text-xl font-bold text-[#E8C77A] tracking-wider uppercase">Annuity Statement</h1>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => alert("Filter configuration saved!")} className="p-2 text-[#E8C77A] hover:bg-white/10 rounded-xl transition"><Save size={20} /></button>
@@ -151,9 +137,33 @@ export default function SurvivalBenefitForm({
       </div>
 
       <div className="space-y-6">
+        {/* Report Type Box */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Filter Options</h2>
+          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Report type</h2>
+          <div className="flex items-center gap-8">
+            {([
+              { id: "Statement", label: "Statement" },
+              { id: "Intimation", label: "Intimation" },
+            ] as const).map((opt) => (
+              <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="radio"
+                  name="reportType"
+                  checked={formData.reportType === opt.id}
+                  onChange={() => handleReportTypeChange(opt.id)}
+                  className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] border-slate-300"
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Data Filter Options Box */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Data Filter Options</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
@@ -173,7 +183,7 @@ export default function SurvivalBenefitForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date From</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date Range</label>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -200,75 +210,19 @@ export default function SurvivalBenefitForm({
                 className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
               />
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Type</label>
-              <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full">
-                {(["Statement", "Intimation"] as const).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, reportType: type }))}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${formData.reportType === type ? "bg-[#0B1220] text-[#E8C77A] shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-8 pt-6">
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.includeLapsedPolicies}
-                onChange={(e) => setFormData((prev) => ({ ...prev, includeLapsedPolicies: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>Include Lapsed Policies</span>
-            </label>
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.includeRecordOnlyPolicies}
-                onChange={(e) => setFormData((prev) => ({ ...prev, includeRecordOnlyPolicies: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>Include Record Only Policies</span>
-            </label>
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.sbAmountFilterEnabled}
-                onChange={(e) => setFormData((prev) => ({ ...prev, sbAmountFilterEnabled: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>SB Amount above or equal to</span>
-            </label>
-            <div className="relative">
-              <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">SB Amount</span>
-              <input
-                type="number"
-                min={0}
-                value={formData.sbAmountAboveOrEqualTo}
-                disabled={!formData.sbAmountFilterEnabled}
-                onChange={(e) => setFormData((prev) => ({ ...prev, sbAmountAboveOrEqualTo: Number(e.target.value) }))}
-                className="w-32 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A] disabled:bg-slate-100 disabled:text-slate-400"
-              />
-            </div>
           </div>
         </div>
 
+        {/* Sorting Options Box */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
           <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sorting Options</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6">
+
+          <div className="flex items-center gap-8 pb-4">
             {[
               { id: "groupsWise", label: "Groups Wise" },
               { id: "groupMemberwise", label: "Group Memberwise" },
-              { id: "sbDatewise", label: "S.B.Datewise" },
-              { id: "branchNoWise", label: "Branch No. Wise" },
+              ...(formData.reportType === "Statement" ? [{ id: "policyNoWise", label: "Policy No. Wise" }] : []),
             ].map((opt) => (
               <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
                 <input
@@ -283,7 +237,7 @@ export default function SurvivalBenefitForm({
             ))}
           </div>
 
-          <div className="pt-5 max-w-lg">
+          <div className="pt-2 max-w-lg">
             <div className="flex items-center gap-3">
               <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Groups</span>
               <input
@@ -300,28 +254,82 @@ export default function SurvivalBenefitForm({
           </div>
         </div>
 
+        {/* Report Options Box matching 4th SS (Statement) & 5th SS (Intimation) */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
           <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Report Options</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6">
-            {[
-              { key: "printWithAddress", label: "Print with Address" },
-              { key: "printWithTelNo", label: "Print with Tel. No." },
-              { key: "dob", label: "D.O.B" },
-            ].map((opt) => (
-              <label key={opt.key} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+
+          {formData.reportType === "Statement" ? (
+            <div className="flex items-center gap-8">
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, reportOptions: { ...prev.reportOptions, [opt.key]: e.target.checked } }))}
+                  checked={formData.statementOptions.statementWithAddress}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, statementOptions: { ...prev.statementOptions, statementWithAddress: e.target.checked } }))}
                   className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
                 />
-                <span>{opt.label}</span>
+                <span>Statement With Address</span>
               </label>
-            ))}
-          </div>
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.statementOptions.statementWithTelNo}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, statementOptions: { ...prev.statementOptions, statementWithTelNo: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                />
+                <span>Statement With Tel. NOS</span>
+              </label>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-8">
+                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                  <input
+                    type="checkbox"
+                    checked={formData.intimationOptions.mailingLabels}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, intimationOptions: { ...prev.intimationOptions, mailingLabels: e.target.checked } }))}
+                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                  />
+                  <span>Mailing Labels</span>
+                </label>
+                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                  <input
+                    type="checkbox"
+                    checked={formData.intimationOptions.despatchList}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, intimationOptions: { ...prev.intimationOptions, despatchList: e.target.checked } }))}
+                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                  />
+                  <span>Despatch List</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl pt-2">
+                <div className="relative">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">Cost per despatch</span>
+                  <input
+                    type="number"
+                    value={formData.intimationOptions.costPerDespatch}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, intimationOptions: { ...prev.intimationOptions, costPerDespatch: Number(e.target.value) } }))}
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                    placeholder="₹0"
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">Purpose</span>
+                  <input
+                    type="text"
+                    value={formData.intimationOptions.purpose}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, intimationOptions: { ...prev.intimationOptions, purpose: e.target.value } }))}
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                    placeholder="Purpose"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Action Buttons */}
         <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
           <button type="button" onClick={onBack} className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider">Cancel</button>
           <button
@@ -340,9 +348,11 @@ export default function SurvivalBenefitForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        defaultCategory="Groups Wise"
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}
