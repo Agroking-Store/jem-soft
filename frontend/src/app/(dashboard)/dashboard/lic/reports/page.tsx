@@ -30,6 +30,10 @@ import PremiumCertificateForm, { PremiumCertificateFormData } from "@/features/l
 import PremiumCertificateReportView from "@/features/lic/reports/PremiumCertificateReportView";
 import AnnuityStatementForm, { AnnuityStatementFormData } from "@/features/lic/reports/AnnuityStatementForm";
 import AnnuityStatementReportView from "@/features/lic/reports/AnnuityStatementReportView";
+import LoanInterestDueForm, { LoanInterestDueFormData } from "@/features/lic/reports/LoanInterestDueForm";
+import LoanInterestDueReportView from "@/features/lic/reports/LoanInterestDueReportView";
+import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/features/lic/reports/LoanInterestOutstandingForm";
+import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
 import {
   Search,
   ArrowRight,
@@ -59,7 +63,11 @@ type ViewState =
   | "premium-paid-details-form"
   | "premium-paid-details-report"
   | "annuity-statement-form"
-  | "annuity-statement-report";
+  | "annuity-statement-report"
+  | "loan-interest-due-form"
+  | "loan-interest-due-report"
+  | "loan-interest-outstanding-form"
+  | "loan-interest-outstanding-report";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -86,6 +94,10 @@ export default function LICReportsPage() {
     useState<PremiumCertificateFormData | null>(null);
   const [selectedAnnuityStatementData, setSelectedAnnuityStatementData] =
     useState<AnnuityStatementFormData | null>(null);
+  const [selectedLoanInterestDueData, setSelectedLoanInterestDueData] =
+    useState<LoanInterestDueFormData | null>(null);
+  const [selectedLoanInterestOutstandingData, setSelectedLoanInterestOutstandingData] =
+    useState<LoanInterestOutstandingFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -136,6 +148,10 @@ export default function LICReportsPage() {
       setCurrentView("premium-paid-details-form");
     } else if (card.id === "annuity-statement") {
       setCurrentView("annuity-statement-form");
+    } else if (card.id === "loan-interest-due") {
+      setCurrentView("loan-interest-due-form");
+    } else if (card.id === "loan-interest-outstanding") {
+      setCurrentView("loan-interest-outstanding-form");
     } else {
       setPreviewModalCard(card);
     }
@@ -189,6 +205,16 @@ export default function LICReportsPage() {
   const handleGenerateAnnuityStatementReport = (formData: AnnuityStatementFormData) => {
     setSelectedAnnuityStatementData(formData);
     setCurrentView("annuity-statement-report");
+  };
+
+  const handleGenerateLoanInterestDueReport = (formData: LoanInterestDueFormData) => {
+    setSelectedLoanInterestDueData(formData);
+    setCurrentView("loan-interest-due-report");
+  };
+
+  const handleGenerateLoanInterestOutstandingReport = (formData: LoanInterestOutstandingFormData) => {
+    setSelectedLoanInterestOutstandingData(formData);
+    setCurrentView("loan-interest-outstanding-report");
   };
 
   return (
@@ -568,6 +594,54 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("annuity-statement-form")}
+        />
+      )}
+
+      {/* VIEW 22: Loan Interest Due Form */}
+      {currentView === "loan-interest-due-form" && (
+        <LoanInterestDueForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestDueReport}
+          initialData={selectedLoanInterestDueData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 23: Loan Interest Due Report View */}
+      {currentView === "loan-interest-due-report" && selectedLoanInterestDueData && (
+        <LoanInterestDueReportView
+          formData={selectedLoanInterestDueData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("loan-interest-due-form")}
+        />
+      )}
+
+      {/* VIEW 24: Loan Interest Outstanding Form */}
+      {currentView === "loan-interest-outstanding-form" && (
+        <LoanInterestOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestOutstandingReport}
+          initialData={selectedLoanInterestOutstandingData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 25: Loan Interest Outstanding Report View */}
+      {currentView === "loan-interest-outstanding-report" && selectedLoanInterestOutstandingData && (
+        <LoanInterestOutstandingReportView
+          formData={selectedLoanInterestOutstandingData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("loan-interest-outstanding-form")}
         />
       )}
 
