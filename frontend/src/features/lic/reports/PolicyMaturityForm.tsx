@@ -31,6 +31,7 @@ export interface PolicyMaturityFormData {
 interface PolicyMaturityFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PolicyMaturityFormData) => void;
+  initialData?: PolicyMaturityFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -44,38 +45,55 @@ interface PolicyMaturityFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
-const getDefaultFormData = (): PolicyMaturityFormData => ({
-  appliedFilters: [],
-  fromMaturityDate: "2026-04-01",
-  toMaturityDate: "2027-03-31",
-  reportDate: "2026-08-03",
-  reportType: "Statement",
-  includeAnnuityPolicies: false,
-  includeRecordOnlyPolicies: false,
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  sortingFilterSelection: null,
-  reportOptions: {
-    printAddress: false,
-    printTelNo: false,
-    dob: false,
-    statementWithPan: false,
-  },
-  settlementOptions: {
-    maturitySettlement: false,
-  },
-});
+const getFinancialYearDates = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0 = Jan, 3 = April
+  const startYear = month >= 3 ? year : year - 1;
+  const endYear = startYear + 1;
+  return {
+    fromMaturityDate: `${startYear}-04-01`,
+    toMaturityDate: `${endYear}-03-31`,
+    reportDate: today.toISOString().split("T")[0],
+  };
+};
+
+const getDefaultFormData = (): PolicyMaturityFormData => {
+  const fyDates = getFinancialYearDates();
+  return {
+    appliedFilters: [],
+    fromMaturityDate: fyDates.fromMaturityDate,
+    toMaturityDate: fyDates.toMaturityDate,
+    reportDate: fyDates.reportDate,
+    reportType: "Statement",
+    includeAnnuityPolicies: false,
+    includeRecordOnlyPolicies: false,
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    sortingFilterSelection: null,
+    reportOptions: {
+      printAddress: false,
+      printTelNo: false,
+      dob: false,
+      statementWithPan: false,
+    },
+    settlementOptions: {
+      maturitySettlement: false,
+    },
+  };
+};
 
 export default function PolicyMaturityForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: PolicyMaturityFormProps) {
-  const [formData, setFormData] = useState<PolicyMaturityFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<PolicyMaturityFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);

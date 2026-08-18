@@ -50,6 +50,7 @@ export interface PremiumDueFormData {
 interface PremiumDueFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PremiumDueFormData) => void;
+  initialData?: PremiumDueFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -64,44 +65,63 @@ interface PremiumDueFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
-const getDefaultFormData = (): PremiumDueFormData => ({
-  // NOTE: unlike Policy Register, nothing is pre-selected here — Filter Options
-  // modal is opened with enableDefaultStatusSelection={false} below.
-  appliedFilters: [],
-  fromDueDate: "2026-08-01",
-  toDueDate: "2026-08-31",
-  reportBasedOn: "Standard Duedate",
-  paymentTypes: {
-    nach: false,
-    otherThanNach: true,
-  },
-  reportType: "Statement",
-  reportDate: "2026-07-30",
-  includeLapsedPolicies: false,
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  sortingFilterSelection: null,
-  reportOptions: {
-    address: false,
-    mobile: false,
-    email: false,
-    pan: false,
-    gst: false,
-    dob: false,
-    nachDetails: false,
-  },
-});
+function toISODate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+const getDefaultFormData = (): PremiumDueFormData => {
+  const today = new Date();
+  // Next month's 1st date
+  const nextMonthFirst = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  // Next month's last date (day 0 of the month after next month = last day of next month)
+  const nextMonthLast = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+  return {
+    // NOTE: unlike Policy Register, nothing is pre-selected here — Filter Options
+    // modal is opened with enableDefaultStatusSelection={false} below.
+    appliedFilters: [],
+    fromDueDate: toISODate(nextMonthFirst),
+    toDueDate: toISODate(nextMonthLast),
+    reportBasedOn: "Standard Duedate",
+    paymentTypes: {
+      nach: false,
+      otherThanNach: true,
+    },
+    reportType: "Statement",
+    reportDate: toISODate(today),
+    includeLapsedPolicies: false,
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    sortingFilterSelection: null,
+    reportOptions: {
+      address: false,
+      mobile: false,
+      email: false,
+      pan: false,
+      gst: false,
+      dob: false,
+      nachDetails: false,
+    },
+  };
+};
 
 export default function PremiumDueForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: PremiumDueFormProps) {
-  const [formData, setFormData] = useState<PremiumDueFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<PremiumDueFormData>(() => {
+    if (initialData) return initialData;
+    return getDefaultFormData();
+  });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);

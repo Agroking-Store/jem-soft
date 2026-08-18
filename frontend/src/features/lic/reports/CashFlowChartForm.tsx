@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
+import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
+import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
 
 export interface CashFlowChartFormData {
   appliedFilters: SelectedFilterItem[];
@@ -11,6 +13,9 @@ export interface CashFlowChartFormData {
   reportDate: string;
   yearBasis: "calendarYear" | "financialYear";
   annuityMode: "modeWise" | "yearly";
+  sortingOption: string;
+  selectedGroups: GroupFilterItem[];
+  sortingFilterSelection: SortingFilterSelection | null;
   calculationOptions: {
     includeLoyaltyAddition: boolean;
     includeFab: boolean;
@@ -27,17 +32,32 @@ export interface CashFlowChartFormData {
 interface CashFlowChartFormProps {
   onBack: () => void;
   onGenerateReport: (formData: CashFlowChartFormData) => void;
+  initialData?: CashFlowChartFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
+  customers?: Array<{
+    id: string;
+    groupCode?: string | null;
+    name: string;
+    groupName?: string | null;
+    resArea?: string | null;
+  }>;
+  policies?: Array<any>;
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
+
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 
 const getDefaultFormData = (): CashFlowChartFormData => ({
   appliedFilters: [],
   cashFlowFromDate: "",
   cashFlowToDate: "",
-  reportDate: "2026-08-03",
+  reportDate: getTodayDateStr(),
   yearBasis: "financialYear",
   annuityMode: "yearly",
+  sortingOption: "groupsWise",
+  selectedGroups: [],
+  sortingFilterSelection: null,
   calculationOptions: {
     includeLoyaltyAddition: false,
     includeFab: true,
@@ -46,7 +66,7 @@ const getDefaultFormData = (): CashFlowChartFormData => ({
   },
   printOptions: {
     includeCashInOut: false,
-    showGraphs: false,
+    showGraphs: true,
     includeRecordOnlyPolicies: false,
   },
 });
@@ -54,13 +74,33 @@ const getDefaultFormData = (): CashFlowChartFormData => ({
 export default function CashFlowChartForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
+  customers = [],
+  policies = [],
+  branches = [],
 }: CashFlowChartFormProps) {
-  const [formData, setFormData] = useState<CashFlowChartFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<CashFlowChartFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   const handleReset = () => setFormData(getDefaultFormData());
+
+  const getSelectGroupsLabel = () => {
+    if (formData.sortingOption === "groupsWise") {
+      const count = formData.selectedGroups.length;
+      return count > 0 ? `${count} Groups selected` : "No Groups Selected";
+    }
+    const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
+    return count > 0 ? `${count} item(s) selected` : "No Items Selected";
+  };
+
+  const openSelectGroupsModal = () => {
+    if (formData.sortingOption === "groupsWise") setIsGroupModalOpen(true);
+    else setIsSortingModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -84,6 +124,7 @@ export default function CashFlowChartForm({
       </div>
 
       <div className="space-y-6">
+        {/* Filter Options */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
           <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Filter Options</h2>
@@ -95,7 +136,7 @@ export default function CashFlowChartForm({
                 <input
                   type="text"
                   readOnly
-                  value={formData.appliedFilters.length > 0 ? `${formData.appliedFilters.length} filter(s) selected` : "All filters Selected"}
+                  value={formData.appliedFilters.length > 0 ? `${formData.appliedFilters.length} filter(s) selected` : "No filters selected"}
                   onClick={() => setIsFilterModalOpen(true)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
                 />
@@ -136,6 +177,7 @@ export default function CashFlowChartForm({
           </div>
         </div>
 
+        {/* Sorting Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
@@ -159,6 +201,7 @@ export default function CashFlowChartForm({
             </div>
           </div>
 
+          {/* Annuity Mode */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Annuity Mode</h2>
@@ -181,6 +224,7 @@ export default function CashFlowChartForm({
             </div>
           </div>
 
+          {/* Calculation Options */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Calculation Options</h2>
@@ -244,6 +288,7 @@ export default function CashFlowChartForm({
             </div>
           </div>
 
+          {/* Print Options */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
             <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Print Options</h2>
@@ -285,9 +330,28 @@ export default function CashFlowChartForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        defaultCategory="Groups Wise"
+      />
+      <SelectGroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        customers={customers}
+        selectedGroups={formData.selectedGroups}
+        onApplyGroups={(groups) => setFormData((prev) => ({ ...prev, selectedGroups: groups }))}
+      />
+      <SortingFilterModal
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
+        customers={customers}
+        policies={policies}
+        branches={branches}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection) => setFormData((prev) => ({ ...prev, sortingFilterSelection: selection }))}
       />
     </div>
   );

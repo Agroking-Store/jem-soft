@@ -12,6 +12,7 @@ import { fetchCustomerMaster, deleteCustomerMaster } from "@/features/customers/
 import {
   fetchFamilyHistoriesByMember,
   clearCurrentGroup,
+  clearFamilyRecords,
   type FamilyHistoryItem,
 } from "@/features/customers/familyHistorySlice";
 import {
@@ -37,7 +38,7 @@ interface CustomerMasterDetailsPageProps {
   modalStackLength?: number;
 }
 
-function InfoRow({ label, value }: { label: string; value?: string | null | boolean }) {
+function InfoRow({ label, value }: { label: string; value?: string | number | boolean | null }) {
   if (value === undefined || value === null || value === "") return null;
   return (
     <div className="flex flex-col">
@@ -119,6 +120,7 @@ export default function CustomerMasterDetailsPage({
     // (e.g. the group) never shows stale data for a different member.
     return () => {
       dispatch(clearCurrentGroup());
+      dispatch(clearFamilyRecords());
       dispatch(clearMedicalRecords());
     };
   }, [dispatch, id, modalStackLength]);

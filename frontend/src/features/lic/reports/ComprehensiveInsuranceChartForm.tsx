@@ -45,6 +45,7 @@ export interface ComprehensiveInsuranceChartFormData {
 interface ComprehensiveInsuranceChartFormProps {
   onBack: () => void;
   onGenerateReport: (formData: ComprehensiveInsuranceChartFormData) => void;
+  initialData?: ComprehensiveInsuranceChartFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -58,14 +59,12 @@ interface ComprehensiveInsuranceChartFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+
 const getDefaultFormData = (): ComprehensiveInsuranceChartFormData => ({
-  // NOTE: unlike every other report in this module, Comprehensive Insurance Chart's
-  // Filter Options modal opens WITH the 4 standard Policy Statuses pre-ticked —
-  // same as Policy Register (enableDefaultStatusSelection is left at its default
-  // `true` below, it is NOT passed `false`).
   appliedFilters: [],
-  cashFlowStartDate: "2026-08-03",
-  reportDate: "2026-08-03",
+  cashFlowStartDate: getTodayDateStr(),
+  reportDate: getTodayDateStr(),
   sortingOption: "groupsWise",
   selectedGroups: [],
   sortingFilterSelection: null,
@@ -101,13 +100,14 @@ const getDefaultFormData = (): ComprehensiveInsuranceChartFormData => ({
 export default function ComprehensiveInsuranceChartForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: ComprehensiveInsuranceChartFormProps) {
-  const [formData, setFormData] = useState<ComprehensiveInsuranceChartFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<ComprehensiveInsuranceChartFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -422,6 +422,7 @@ export default function ComprehensiveInsuranceChartForm({
         policyStatuses={policyStatuses}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
+        enableDefaultStatusSelection={false}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}

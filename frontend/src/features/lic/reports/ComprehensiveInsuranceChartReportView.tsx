@@ -39,40 +39,6 @@ function ageOn(dob: string, asOf: Date) {
   return age;
 }
 
-// The exact Musale Kiran & Family dataset from the sample PDF — used as the
-// fallback whenever no real grouped policy data is available, so this report
-// is never empty and matches the sample 1:1 for QA purposes.
-const DEMO_FAMILY = {
-  groupCode: "M101",
-  groupHeadName: "Musale Kiran",
-  address: "Chandrangan Phase 7, F-bldg, A-wing, Flat No.3, Ambegaon Pathar, Katraj, Pune, Pin:411046",
-  mobile: "+91918087746057 / +919022550944",
-  email: "swatimusale06@gmail.com",
-  members: [
-    {
-      name: "Mr Musale Kiran",
-      dob: "1980-10-23",
-      pan: "",
-      policies: [
-        { sr: 1, agCd: "J", policyNo: "917894577", comDate: "2020-01-22", planTermPpt: "836/25/16", planName: "Jeevan Labh", sumAssured: 300000, premium: 3739.0, md: "Qly.", brn: "955", nominee: "Musale Swati", accidentalRiskcover: 300000, abRiderSA: 0, dabRiderSA: 300000, riskCover: 391650, loanTaken: 97214, surrenderValue: 91650, vestedBonus: 63903, premiumPaid: 57513, loanAvailable: 0, status: "Inforce", nextDue: "2026-07-26", maturityDate: "2045-01-22" },
-        { sr: 2, agCd: "J", policyNo: "917894575", comDate: "2020-01-28", planTermPpt: "855/25/25", planName: "Jeevan Amar", sumAssured: 2500000, premium: 4118.0, md: "Hly.", brn: "955", nominee: "Musale Swati", accidentalRiskcover: 2500000, abRiderSA: 2500000, dabRiderSA: 0, riskCover: 2500000, loanTaken: 53534, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0, status: "Inforce", nextDue: "2026-07-26", maturityDate: null },
-        { sr: 3, agCd: "J", policyNo: "935074254", comDate: "2022-05-19", planTermPpt: "936/21/15", planName: "Jeevan Labh", sumAssured: 600000, premium: 17077.0, md: "Hly.", brn: "955", nominee: "Musale Swati", accidentalRiskcover: 600000, abRiderSA: 0, dabRiderSA: 600000, riskCover: 705600, loanTaken: 136616, surrenderValue: 105600, vestedBonus: 84316, premiumPaid: 0, loanAvailable: 75884, status: "Reduced Paid-up", nextDue: "2026-05-19", maturityDate: "2043-05-19" },
-      ],
-    },
-    {
-      name: "Mrs Musale Swati",
-      dob: "1986-06-06",
-      pan: "",
-      policies: [
-        { sr: 4, agCd: "M", policyNo: "999438395", comDate: "2017-01-26", planTermPpt: "836/25/16", planName: "Jeevan Labh", sumAssured: 500000, premium: 1948.0, md: "Mly.", brn: "955", nominee: "Musale Kiran", accidentalRiskcover: 0, abRiderSA: 0, dabRiderSA: 0, riskCover: 729708, loanTaken: 224020, surrenderValue: 229708, vestedBonus: 168070, premiumPaid: 0, loanAvailable: 151263, status: "Inforce", nextDue: "2026-08-26", maturityDate: "2042-01-26" },
-      ],
-    },
-  ],
-  dependents: [
-    { name: "Ms Musale Sakshi", dob: "2008-01-26" },
-    { name: "Kum. Musale Sara", dob: "2018-09-06" },
-  ],
-};
 
 export default function ComprehensiveInsuranceChartReportView({
   formData,
@@ -85,17 +51,15 @@ export default function ComprehensiveInsuranceChartReportView({
   const asOfDate = formData.reportDate ? new Date(formData.reportDate) : new Date();
 
   const family = useMemo(() => {
-    // Try to build a real family from DB data when a group is actually selected
-    // and matching policies exist. Falls back to the exact sample dataset otherwise.
     const selectedGroupCode =
       formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
         ? formData.selectedGroups[0].groupCode
         : formData.sortingFilterSelection?.selectedItems?.[0]?.code;
 
-    if (!selectedGroupCode || rawPolicies.length === 0) return DEMO_FAMILY;
+    if (!selectedGroupCode || rawPolicies.length === 0) return null;
 
     const groupPolicies = rawPolicies.filter((p) => p.customer?.groupCode === selectedGroupCode);
-    if (groupPolicies.length === 0) return DEMO_FAMILY;
+    if (groupPolicies.length === 0) return null;
 
     const membersMap: { [name: string]: any } = {};
     groupPolicies.forEach((p, idx) => {
@@ -155,13 +119,15 @@ export default function ComprehensiveInsuranceChartReportView({
     accidentalRiskcover: member.policies.reduce((a: number, p: any) => a + p.accidentalRiskcover, 0),
   });
 
-  const grandPolicyTotal = family.members.reduce(
-    (acc: any, m: any) => {
-      const t = memberTotals(m);
-      return { sumAssured: acc.sumAssured + t.sumAssured, premium: acc.premium + t.premium };
-    },
-    { sumAssured: 0, premium: 0 }
-  );
+  const grandPolicyTotal = family
+    ? family.members.reduce(
+        (acc: any, m: any) => {
+          const t = memberTotals(m);
+          return { sumAssured: acc.sumAssured + t.sumAssured, premium: acc.premium + t.premium };
+        },
+        { sumAssured: 0, premium: 0 }
+      )
+    : { sumAssured: 0, premium: 0 };
 
   // ---------- Premium Calendar (12 months from Cash Flow Start Date) ----------
   const calendarMonths = useMemo(() => {
@@ -201,23 +167,26 @@ export default function ComprehensiveInsuranceChartReportView({
       { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 }
     );
 
-  const groupStatusTotal = family.members.reduce(
-    (acc: any, m: any) => {
-      const t = statusTotals(m);
-      return {
-        riskCover: acc.riskCover + t.riskCover,
-        loanTaken: acc.loanTaken + t.loanTaken,
-        surrenderValue: acc.surrenderValue + t.surrenderValue,
-        vestedBonus: acc.vestedBonus + t.vestedBonus,
-        premiumPaid: acc.premiumPaid + t.premiumPaid,
-        loanAvailable: acc.loanAvailable + t.loanAvailable,
-      };
-    },
-    { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 }
-  );
+  const groupStatusTotal = family
+    ? family.members.reduce(
+        (acc: any, m: any) => {
+          const t = statusTotals(m);
+          return {
+            riskCover: acc.riskCover + t.riskCover,
+            loanTaken: acc.loanTaken + t.loanTaken,
+            surrenderValue: acc.surrenderValue + t.surrenderValue,
+            vestedBonus: acc.vestedBonus + t.vestedBonus,
+            premiumPaid: acc.premiumPaid + t.premiumPaid,
+            loanAvailable: acc.loanAvailable + t.loanAvailable,
+          };
+        },
+        { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 }
+      )
+    : { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 };
 
   // ---------- Projected Cash Flow (maturing policies only) ----------
   const cashFlowRows = useMemo(() => {
+    if (!family) return [];
     const rows: any[] = [];
     family.members.forEach((m: any) => {
       m.policies.forEach((p: any) => {
@@ -247,7 +216,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
   // ---------- Cash In / Cash Out Summary (year by year until last maturity) ----------
   const cashInOutRows = useMemo(() => {
-    if (cashFlowRows.length === 0) return [];
+    if (!family || cashFlowRows.length === 0) return [];
     const startYear = asOfDate.getFullYear();
     const endYear = Math.max(...cashFlowRows.map((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear()));
     const annualOutflow = grandPolicyTotal.premium;
@@ -255,9 +224,7 @@ export default function ComprehensiveInsuranceChartReportView({
     for (let y = startYear; y <= endYear; y++) {
       const maturingThisYear = cashFlowRows.filter((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear() === y);
       const cashIn = maturingThisYear.reduce((a, r) => a + r.total, 0);
-      // Premiums stop being an outflow once every policy for a member has matured —
-      // simplified: outflow drops by that member's annual premium once they've matured.
-      const stillPayingPolicies = family.members.flatMap((m: any) => m.policies).filter((p: any) => !p.maturityDate || new Date(p.maturityDate).getFullYear() >= y);
+      const stillPayingPolicies = family!.members.flatMap((m: any) => m.policies).filter((p: any) => !p.maturityDate || new Date(p.maturityDate).getFullYear() >= y);
       const cashOut = stillPayingPolicies.reduce((a: number, p: any) => {
         const interval = modeInterval[p.md] ?? 12;
         const occurrencesPerYear = interval > 0 ? 12 / interval : 1;
@@ -348,19 +315,28 @@ export default function ComprehensiveInsuranceChartReportView({
           <span className="text-xs font-bold text-slate-200">As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
         </div>
 
-        {/* Group Banner */}
-        <div className="text-center pt-2">
-          <h3 className="text-lg font-bold text-slate-900">
-            {family.groupHeadName} and Family [ {family.groupCode} ]
-          </h3>
-          {family.address && <p className="text-[11px] text-slate-600">{family.address}</p>}
-          {(family.mobile || family.email) && (
-            <p className="text-[11px] text-slate-600">
-              {family.mobile && <>Mobile : {family.mobile} </>}
-              {family.email && <>Email : {family.email}</>}
+        {/* Group Banner / Empty State */}
+        {!family ? (
+          <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 space-y-2 p-8">
+            <h3 className="font-bold text-slate-800 text-sm">No Group Data Found</h3>
+            <p className="text-xs text-slate-500">
+              Please select a group from the form filters and ensure policies exist for that group.
             </p>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            <div className="text-center pt-2">
+              <h3 className="text-lg font-bold text-slate-900">
+                {family.groupHeadName} and Family [ {family.groupCode} ]
+              </h3>
+              {family.address && <p className="text-[11px] text-slate-600">{family.address}</p>}
+              {(family.mobile || family.email) && (
+                <p className="text-[11px] text-slate-600">
+                  {family.mobile && <>Mobile : {family.mobile} </>}
+                  {family.email && <>Email : {family.email}</>}
+                </p>
+              )}
+            </div>
 
         {/* ---------------- Policy Details ---------------- */}
         {sectionBadge("Policy Details")}
@@ -796,6 +772,8 @@ export default function ComprehensiveInsuranceChartReportView({
             <span>Generated via Comprehensive Insurance Chart Engine</span>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
