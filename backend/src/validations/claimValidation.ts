@@ -4,7 +4,12 @@ export const createClaimSchema = z
   .object({
     policyId: z.string().min(1, "Policy is required"),
     claimantName: z.string().optional(),
-    claimType: z.string().min(1, "Claim type is required"),
+    claimType: z.enum(["Maturity", "Death", "Surrender", "Rider", "Other"], {
+      errorMap: () => ({
+        message:
+          "Claim type must be one of: Maturity, Death, Surrender, Rider, Other",
+      }),
+    }),
     claimAmount: z.number().positive("Claim amount must be greater than 0"),
     claimDate: z.string().min(1, "Claim date is required"),
     status: z.string().optional(),
@@ -79,7 +84,14 @@ export const updateClaimSchema = z
   .object({
     policyId: z.string().min(1, "Policy is required").optional(),
     claimantName: z.string().optional(),
-    claimType: z.string().optional(),
+    claimType: z
+      .enum(["Maturity", "Death", "Surrender", "Rider", "Other"], {
+        errorMap: () => ({
+          message:
+            "Claim type must be one of: Maturity, Death, Surrender, Rider, Other",
+        }),
+      })
+      .optional(),
     claimAmount: z
       .number()
       .positive("Claim amount must be greater than 0")

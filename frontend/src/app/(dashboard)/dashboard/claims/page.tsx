@@ -304,7 +304,10 @@ export default function Page() {
                   const StatusIcon = statusBadge.icon;
                   const claimIndex = `CLM - ${index + 1}`;
                   return (
-                    <tr key={claim.id} className="hover:bg-slate-50 transition">
+                    <tr
+                      key={claim.id}
+                      className="group hover:bg-slate-50 transition"
+                    >
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                           {claimIndex}
@@ -345,7 +348,7 @@ export default function Page() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {canEdit && (
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150">
                             <button
                               onClick={() =>
                                 router.push(

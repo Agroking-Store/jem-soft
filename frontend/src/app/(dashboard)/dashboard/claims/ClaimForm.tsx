@@ -76,7 +76,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const [isCalculatingClaim, setIsCalculatingClaim] = useState(false);
 
   const isClaimCalculationSupported = (claimType: string) =>
-    ["Death", "Maturity", "Surrender", "Surrendered"].includes(claimType);
+    ["Death", "Maturity", "Surrender"].includes(claimType);
 
   const claimSchema = z
     .object({
@@ -96,11 +96,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       (data) => {
         const sumAssured = selectedPolicy?.premium?.sumAssured;
         if (!sumAssured) return true;
-        if (
-          ["Death", "Maturity", "Surrender", "Surrendered"].includes(
-            data.claimType,
-          )
-        ) {
+        if (["Death", "Maturity", "Surrender"].includes(data.claimType)) {
           return true;
         }
         return data.claimAmount <= sumAssured;
@@ -354,6 +350,13 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     fetchCalculation();
   }, [dispatch, selectedPolicyId, selectedClaimType, claimDateValue]);
 
+  // Clear selected nominee when claim type is not "Death"
+  useEffect(() => {
+    if (selectedClaimType !== "Death") {
+      setSelectedNominee(null);
+    }
+  }, [selectedClaimType]);
+
   const policyRegister = register("policyId");
 
   const onValid = (data: ClaimFormData) => {
@@ -544,16 +547,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   </label>
                   <select {...register("claimType")} className={selectClass}>
                     <option value="">Select</option>
-                    <option value="Active">Active</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Fully Paid Up">Fully Paid Up</option>
-                    <option value="Lapsed">Lapsed</option>
-                    <option value="Maturity Claimed">Maturity Claimed</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Surrendered">Surrendered</option>
-                    <option value="Surrender">Surrender</option>
-                    <option value="Death">Death</option>
                     <option value="Maturity">Maturity</option>
+                    <option value="Death">Death</option>
+                    <option value="Surrender">Surrender</option>
                     <option value="Rider">Rider</option>
                     <option value="Other">Other</option>
                   </select>
@@ -842,164 +838,166 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             </CustomerSectionCard>
           </div>
 
-          {/* Right Column - Nominee Details */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <CustomerSectionCard title="Nominee Details" icon={User}>
-                {/* Nominee Dropdown */}
-                <div className="relative">
-                  <label className={labelClass}>Nominee</label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectedPolicy && nomineeList.length > 0) {
-                        setNomineeOpen((o) => !o);
-                      }
-                    }}
-                    disabled={!selectedPolicy || nomineeList.length === 0}
-                    className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
+          {/* Right Column - Nominee Details (shown only for Death claims) */}
+          {selectedClaimType === "Death" && (
+            <div className="lg:col-span-1">
+              <div className="sticky top-6">
+                <CustomerSectionCard title="Nominee Details" icon={User}>
+                  {/* Nominee Dropdown */}
+                  <div className="relative">
+                    <label className={labelClass}>Nominee</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedPolicy && nomineeList.length > 0) {
+                          setNomineeOpen((o) => !o);
+                        }
+                      }}
+                      disabled={!selectedPolicy || nomineeList.length === 0}
+                      className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
                       ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"}
                       ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}
                     `}
-                  >
-                    <span
-                      className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
                     >
-                      {selectedNominee
-                        ? selectedNominee.nomineeName
-                        : nomineeList.length === 0
-                          ? "No nominees available"
-                          : "Select Nominee"}
-                    </span>
-                    <ChevronDown
-                      size={15}
-                      className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
+                      <span
+                        className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
+                      >
+                        {selectedNominee
+                          ? selectedNominee.nomineeName
+                          : nomineeList.length === 0
+                            ? "No nominees available"
+                            : "Select Nominee"}
+                      </span>
+                      <ChevronDown
+                        size={15}
+                        className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
 
-                  {/* Dropdown Panel */}
-                  {nomineeOpen && nomineeList.length > 0 && (
-                    <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
-                      <div className="max-h-60 overflow-y-auto py-1">
-                        {nomineeList.map((nominee) => (
-                          <button
-                            key={nominee.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedNominee(nominee);
-                              setNomineeOpen(false);
-                            }}
-                            className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
-                              selectedNominee?.id === nominee.id
-                                ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
-                                : "text-slate-700"
-                            }`}
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate">
-                                {nominee.nomineeName}
+                    {/* Dropdown Panel */}
+                    {nomineeOpen && nomineeList.length > 0 && (
+                      <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+                        <div className="max-h-60 overflow-y-auto py-1">
+                          {nomineeList.map((nominee) => (
+                            <button
+                              key={nominee.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedNominee(nominee);
+                                setNomineeOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
+                                selectedNominee?.id === nominee.id
+                                  ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
+                                  : "text-slate-700"
+                              }`}
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate">
+                                  {nominee.nomineeName}
+                                </span>
+                                <span className="block truncate text-xs text-slate-400">
+                                  {nominee.relationship}
+                                </span>
                               </span>
-                              <span className="block truncate text-xs text-slate-400">
-                                {nominee.relationship}
-                              </span>
-                            </span>
-                          </button>
-                        ))}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Helper Text */}
+                  <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
+                    <Info size={12} className="mt-0.5 shrink-0" />
+                    <span>
+                      Nominee details are automatically fetched from the
+                      selected policy.
+                    </span>
+                  </p>
+
+                  {/* Auto-filled Nominee Details (read-only) */}
+                  {selectedNominee && (
+                    <div className="mt-5 space-y-4">
+                      <div className="border-t border-slate-100 pt-4">
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <label className={labelClass}>Nominee Name</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.nomineeName}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Relationship</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.relationship}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Date of Birth</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.dateOfBirth}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Phone Number</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.phone}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Share %</label>
+                            <input
+                              type="text"
+                              value={
+                                selectedNominee.percentage !== undefined
+                                  ? String(selectedNominee.percentage)
+                                  : "-"
+                              }
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Email Address</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.email}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Helper Text */}
-                <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
-                  <Info size={12} className="mt-0.5 shrink-0" />
-                  <span>
-                    Nominee details are automatically fetched from the selected
-                    policy.
-                  </span>
-                </p>
-
-                {/* Auto-filled Nominee Details (read-only) */}
-                {selectedNominee && (
-                  <div className="mt-5 space-y-4">
-                    <div className="border-t border-slate-100 pt-4">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <label className={labelClass}>Nominee Name</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.nomineeName}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Relationship</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.relationship}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Date of Birth</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.dateOfBirth}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Phone Number</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.phone}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Share %</label>
-                          <input
-                            type="text"
-                            value={
-                              selectedNominee.percentage !== undefined
-                                ? String(selectedNominee.percentage)
-                                : "-"
-                            }
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Email Address</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.email}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
+                  {/* No policy selected state */}
+                  {!selectedPolicy && (
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                        <p className="text-xs text-slate-400">
+                          Select a policy to view nominee details.
+                        </p>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* No policy selected state */}
-                {!selectedPolicy && (
-                  <div className="mt-5 border-t border-slate-100 pt-4">
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
-                      <p className="text-xs text-slate-400">
-                        Select a policy to view nominee details.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CustomerSectionCard>
+                  )}
+                </CustomerSectionCard>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Buttons */}
