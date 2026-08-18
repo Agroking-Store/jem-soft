@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { AppError } from "../utils/AppError.js";
 
 const prisma = new PrismaClient();
 
@@ -85,40 +86,116 @@ export const createClaim = async (data: ClaimData, userId: string) => {
     }
   }
 
-  return await prisma.claim.create({
-    data: {
-      policyId: data.policyId,
-      claimantName: data.claimantName,
-      claimType: data.claimType,
-      claimAmount: data.claimAmount,
-      claimDate: new Date(data.claimDate),
-      status: data.status || "Pending",
-      reasonForClaim: data.reasonForClaim,
-      nomineeId: data.nomineeId || null,
-      createdById: userId,
-      // Payment fields
-      paymentType: data.paymentType || null,
-      chequeNumber: data.chequeNumber || null,
-      chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
-      bankName: data.bankName || null,
-      branchName: data.branchName || null,
-      chequeAmount: data.chequeAmount || null,
-      accountHolderName: data.accountHolderName || null,
-      accountNumber: data.accountNumber || null,
-      ifscCode: data.ifscCode || null,
-    },
-    include: {
-      policy: {
-        include: {
-          product: true,
-          CustomerMaster: true,
-          status: true,
-          premium: true,
-          nominees: true,
-        },
+  return await prisma.$transaction(async (tx) => {
+    const policy = await tx.policy.findUnique({
+      where: { id: data.policyId },
+      include: { status: true },
+    });
+
+    if (!policy) {
+      throw new AppError("Policy not found.", 404);
+    }
+
+    const policyStatusCode = String(policy.status?.statusCode ?? "")
+      .trim()
+      .toUpperCase();
+    const policyStatusName = String(policy.status?.statusName ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
+      throw new AppError(
+        "Cannot create claim. This policy has already been claimed.",
+        400,
+      );
+    }
+
+    if (policyStatusCode !== "ACTIVE" && policyStatusName !== "ACTIVE") {
+      throw new AppError(
+        "Policy is not active. Claims can only be created for active policies.",
+        400,
+      );
+    }
+
+    const existingClaim = await tx.claim.findUnique({
+      where: { policyId: data.policyId },
+    });
+
+    if (existingClaim) {
+      throw new AppError(
+        "Cannot create claim. This policy has already been claimed.",
+        400,
+      );
+    }
+
+    const claimedStatus = await tx.policyStatusMaster.findFirst({
+      where: {
+        statusCode: { equals: "CLAIMED", mode: "insensitive" },
       },
-      nominee: true,
-    },
+    });
+
+    if (!claimedStatus) {
+      throw new AppError("Claimed policy status not found.", 500);
+    }
+
+    const newClaim = await tx.claim.create({
+      data: {
+        policyId: data.policyId,
+        claimantName: data.claimantName,
+        claimType: data.claimType,
+        claimAmount: data.claimAmount,
+        claimDate: new Date(data.claimDate),
+        status: data.status || "Pending",
+        reasonForClaim: data.reasonForClaim,
+        nomineeId: data.nomineeId || null,
+        createdById: userId,
+        // Payment fields
+        paymentType: data.paymentType || null,
+        chequeNumber: data.chequeNumber || null,
+        chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
+        bankName: data.bankName || null,
+        branchName: data.branchName || null,
+        chequeAmount: data.chequeAmount || null,
+        accountHolderName: data.accountHolderName || null,
+        accountNumber: data.accountNumber || null,
+        ifscCode: data.ifscCode || null,
+      },
+      include: {
+        policy: {
+          include: {
+            product: true,
+            CustomerMaster: true,
+            status: true,
+            premium: true,
+            nominees: true,
+          },
+        },
+        nominee: true,
+      },
+    });
+
+    await tx.policy.update({
+      where: { id: data.policyId },
+      data: {
+        statusId: claimedStatus.id,
+      },
+    });
+
+    return await tx.claim.findUnique({
+      where: { id: newClaim.id },
+      include: {
+        policy: {
+          include: {
+            product: true,
+            CustomerMaster: true,
+            status: true,
+            premium: true,
+            nominees: true,
+          },
+        },
+        nominee: true,
+      },
+    });
   });
 };
 
