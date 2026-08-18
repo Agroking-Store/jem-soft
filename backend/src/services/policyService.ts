@@ -28,7 +28,7 @@ interface PolicyData {
   groupId: string;
   lifeAssuredId: string;
   age: number;
-  
+
   productId: string;
   policyNumber: string;
   commencementDate: string;
@@ -72,10 +72,16 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     fupDate,
   } = data;
 
-  const age = data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
-  const sumAssured = data.sumAssured !== undefined && data.sumAssured !== null ? Number(data.sumAssured) : undefined;
-  const policyTerm = term !== undefined && term !== null ? Number(term) : undefined;
-  const premiumPayingTerm = ppt !== undefined && ppt !== null ? Number(ppt) : null;
+  const age =
+    data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
+  const sumAssured =
+    data.sumAssured !== undefined && data.sumAssured !== null
+      ? Number(data.sumAssured)
+      : undefined;
+  const policyTerm =
+    term !== undefined && term !== null ? Number(term) : undefined;
+  const premiumPayingTerm =
+    ppt !== undefined && ppt !== null ? Number(ppt) : null;
 
   if (!age || !sumAssured || !policyTerm) {
     throw new AppError(
@@ -170,20 +176,15 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       data: {
         policyId: newPolicy.id,
         sumAssured: sumAssured ?? 0,
-
-    basicYearlyPremium: premium.basicYearlyPremium, // From service
-
-    totalYearlyPremium:
-      premium.basicYearlyPremium + (totalRiderPremium ?? 0),
-
-    installmentPremium: premium.installmentPremium, // From service
-
-    totalInstallmentPremium:
-      premium.installmentPremium + (totalRiderPremium ?? 0),
-
-    gst: premium.gst, // From service
-  },
-});
+        basicYearlyPremium: premium.basicYearlyPremium, // From service
+        totalYearlyPremium:
+          premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+        installmentPremium: premium.installmentPremium, // From service
+        totalInstallmentPremium:
+          premium.installmentPremium + (totalRiderPremium ?? 0),
+        gst: premium.gst, // From service
+      },
+    });
 
     // Save Policy Attributes using values entered in the form
     if (data.attributes && Object.keys(data.attributes).length > 0) {
@@ -348,9 +349,9 @@ export const getProductTerms = async (
   const terms = [...new Set(rates.map((r) => r.policyTerm))].sort(
     (a, b) => a - b,
   );
-  const ppts = [
-    ...new Set(rates.map((r) => r.premiumPayingTerm)),
-  ].sort((a, b) => (a === null ? -1 : b === null ? 1 : a - b));
+  const ppts = [...new Set(rates.map((r) => r.premiumPayingTerm))].sort(
+    (a, b) => (a === null ? -1 : b === null ? 1 : a - b),
+  );
 
   return {
     terms,
@@ -420,16 +421,20 @@ export const updatePolicy = async (
   id: string,
   data: PolicyData,
 ): Promise<Policy> => {
-  const {
-    riders,
-    totalRiderPremium,
-    attributes,
-  } = data;
+  const { riders, totalRiderPremium, attributes } = data;
 
-  const age = data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
-  const sumAssured = data.sumAssured !== undefined && data.sumAssured !== null ? Number(data.sumAssured) : undefined;
-  const policyTerm = data.term !== undefined && data.term !== null ? Number(data.term) : undefined;
-  const premiumPayingTerm = data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null;
+  const age =
+    data.age !== undefined && data.age !== null ? Number(data.age) : undefined;
+  const sumAssured =
+    data.sumAssured !== undefined && data.sumAssured !== null
+      ? Number(data.sumAssured)
+      : undefined;
+  const policyTerm =
+    data.term !== undefined && data.term !== null
+      ? Number(data.term)
+      : undefined;
+  const premiumPayingTerm =
+    data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null;
 
   if (!age || !sumAssured || !policyTerm) {
     throw new AppError(
@@ -478,6 +483,7 @@ export const updatePolicy = async (
 
         advisorId: data.advisorId || null,
         agentCode: data.agentCode,
+        branchId: data.branchId || null,
 
         premiumModeId: premiumMode.id,
 
@@ -526,36 +532,64 @@ export const updatePolicy = async (
       }
     }
 
-    // Update Premium Calculation
-
-
-    const premium = await calculatePremium({
-  productId: data.productId,
-  age: data.age,
-  policyTerm: data.term!,
-  premiumPayingTerm: data.ppt,
-  sumAssured: data.sumAssured!, // Ensure sumAssured is not null
-  premiumMode: data.mode, // Pass the premium mode
-    });
-    await tx.policyPremiumCalculation.update({
+    // Update Nominees
+    await tx.nominee.deleteMany({
       where: {
         policyId: id,
       },
+    });
 
-      data: {
-        sumAssured: data.sumAssured ?? 0,
+    if (data.nominees && data.nominees.length > 0) {
+      await tx.nominee.createMany({
+        data: data.nominees.map((nominee) => ({
+          policyId: id,
+          nomineeName: nominee.nomineeName,
+          relationship: nominee.relationship,
+          dateOfBirth: nominee.dateOfBirth
+            ? new Date(nominee.dateOfBirth)
+            : null,
+          percentage: nominee.percentage,
+          phone: nominee.phone,
+          email: nominee.email,
+          address: nominee.address,
+        })),
+      });
+    }
 
-        basicYearlyPremium: premium.basicYearlyPremium, // From service
+    // Update Premium Calculation
+    const premium = await calculatePremium({
+      productId: data.productId,
+      age: age!,
+      policyTerm: policyTerm!,
+      premiumPayingTerm: premiumPayingTerm,
+      sumAssured: sumAssured!, // Ensure sumAssured is not null
+      premiumMode: data.mode, // Pass the premium mode
+    });
 
+    await tx.policyPremiumCalculation.upsert({
+      where: {
+        policyId: id,
+      },
+      update: {
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: premium.basicYearlyPremium,
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
-
-        installmentPremium: premium.installmentPremium, // From service
-
+        installmentPremium: premium.installmentPremium,
         totalInstallmentPremium:
           premium.installmentPremium + (totalRiderPremium ?? 0),
-
-        gst: premium.gst, // From service
+        gst: premium.gst,
+      },
+      create: {
+        policyId: id,
+        sumAssured: sumAssured ?? 0,
+        basicYearlyPremium: premium.basicYearlyPremium,
+        totalYearlyPremium:
+          premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+        installmentPremium: premium.installmentPremium,
+        totalInstallmentPremium:
+          premium.installmentPremium + (totalRiderPremium ?? 0),
+        gst: premium.gst,
       },
     });
 
