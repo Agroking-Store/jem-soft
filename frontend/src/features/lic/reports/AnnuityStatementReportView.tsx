@@ -21,6 +21,35 @@ function fmtDate(d: Date | string | null | undefined) {
   return date.toLocaleDateString("en-GB");
 }
 
+function getPolicyMemberName(p: any): string {
+  if (p.lifeAssured) {
+    if (typeof p.lifeAssured === "string") return p.lifeAssured;
+    const salutation = p.lifeAssured.salutation ? `${p.lifeAssured.salutation} ` : "";
+    const fullName = [p.lifeAssured.firstName, p.lifeAssured.middleName, p.lifeAssured.lastName]
+      .filter(Boolean)
+      .join(" ");
+    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
+    if (p.lifeAssured.name) return p.lifeAssured.name;
+  }
+
+  if (p.CustomerMaster) {
+    const salutation = p.CustomerMaster.salutation ? `${p.CustomerMaster.salutation} ` : "";
+    const fullName = [p.CustomerMaster.firstName, p.CustomerMaster.middleName, p.CustomerMaster.lastName]
+      .filter(Boolean)
+      .join(" ");
+    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
+    if (p.CustomerMaster.name) return p.CustomerMaster.name;
+  }
+
+  if (p.lifeAssuredName && typeof p.lifeAssuredName === "string") return p.lifeAssuredName;
+  if (p.holderName && typeof p.holderName === "string") return p.holderName;
+  if (p.insuredName && typeof p.insuredName === "string") return p.insuredName;
+
+  if (p.customer?.name) return p.customer.name;
+
+  return "Annuity Holder";
+}
+
 export default function AnnuityStatementReportView({
   formData,
   policies: rawPolicies = [],
@@ -40,7 +69,7 @@ export default function AnnuityStatementReportView({
     const selectedAgencies = (formData.appliedFilters || []).filter((f) => f.type === "Agencies").map((f) => f.name.toLowerCase());
     const selectedStatuses = (formData.appliedFilters || []).filter((f) => f.type === "Policy Status").map((f) => f.name.toLowerCase());
 
-    const selectedGroupCodesOrNames =
+    const selectedFilterCodesOrNames =
       formData.sortingOption === "groupsWise"
         ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
         : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
@@ -52,10 +81,15 @@ export default function AnnuityStatementReportView({
       const agencyName = (p.agentCode || p.agency?.agencyName || p.agencyName || "").toLowerCase();
       if (selectedAgencies.length > 0 && !selectedAgencies.some((ag) => agencyName.includes(ag))) return false;
 
-      if (selectedGroupCodesOrNames.length > 0) {
+      if (selectedFilterCodesOrNames.length > 0) {
         const gCode = (p.customer?.groupCode || "").toLowerCase();
         const gHeadName = (p.customer?.groupName || p.customer?.name || "").toLowerCase();
-        const matches = selectedGroupCodesOrNames.some((sc) => gCode.includes(sc) || gHeadName.includes(sc));
+        const polNo = (p.policyNumber || "").toLowerCase();
+        const memName = getPolicyMemberName(p).toLowerCase();
+
+        const matches = selectedFilterCodesOrNames.some(
+          (sc) => gCode.includes(sc) || gHeadName.includes(sc) || polNo.includes(sc) || memName.includes(sc)
+        );
         if (!matches) return false;
       }
 
@@ -66,11 +100,21 @@ export default function AnnuityStatementReportView({
 
     validPolicies.forEach((p, idx) => {
       const custObj = p.customer;
-      const gCode = custObj?.groupCode || `A-${(p.clientId || "01").toString().padStart(3, "0")}`;
-      const gHeadName = custObj?.groupName || custObj?.name || "Annuity Holder Group";
-      const memberName = custObj?.name || "Annuity Holder";
-      const memberMobile = custObj?.mobile || custObj?.mobile1 || "";
+      
+      let gCode = custObj?.groupCode || `A-${(p.clientId || "01").toString().padStart(3, "0")}`;
+      let gHeadName = custObj?.groupName || custObj?.name || "Annuity Holder Group";
+      const memberName = getPolicyMemberName(p);
+      const memberMobile = p.lifeAssured?.mobile || p.CustomerMaster?.contactInfo?.mobile1 || custObj?.mobile || custObj?.mobile1 || "";
       const memberAddress = custObj?.address || "";
+      const policyNo = p.policyNumber || `98${1000000 + idx}`;
+
+      if (formData.sortingOption === "policyNoWise") {
+        gCode = policyNo;
+        gHeadName = memberName;
+      } else if (formData.sortingOption === "groupMemberwise") {
+        gCode = `${gCode}_${memberName}`;
+        gHeadName = memberName;
+      }
 
       if (!groupMap[gCode]) {
         groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, membersMap: {}, totalAnnuityAmount: 0 };
@@ -89,11 +133,9 @@ export default function AnnuityStatementReportView({
 
       const mem = grp.membersMap[memberName];
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 500000);
-      // Annuity pension payout estimated at 7% per annum of sum assured
       const pensionAmount = Math.round(sumAssured * 0.07);
       const mode = p.premiumMode?.modeName || "Yearly";
       const planName = p.product?.productName || "Jeevan Akshay / Annuity Plan";
-      const policyNo = p.policyNumber || `98${1000000 + idx}`;
       const payoutDate = fmtDate(p.nextPremiumDueDate || p.commencementDate || new Date());
 
       const row = {
@@ -232,26 +274,30 @@ export default function AnnuityStatementReportView({
               <tbody>
                 {groupData.map((group) => (
                   <Fragment key={group.groupCode}>
-                    <tr className="border-t-2 border-slate-400">
-                      <td colSpan={8} className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900">
-                        {group.groupCode}: {group.groupHeadName}
-                      </td>
-                    </tr>
+                    {formData.sortingOption === "groupsWise" && (
+                      <tr className="border-t-2 border-slate-400">
+                        <td colSpan={8} className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900">
+                          {group.groupCode}: {group.groupHeadName}
+                        </td>
+                      </tr>
+                    )}
                     {group.members.map((member: any) => (
                       <Fragment key={member.name}>
-                        <tr>
-                          <td colSpan={8} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
-                            <div>{member.name}</div>
-                            {formData.reportType === "Statement" && (
-                              <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                {[
-                                  formData.statementOptions.statementWithAddress && member.address && `Address: ${member.address}`,
-                                  formData.statementOptions.statementWithTelNo && member.mobile && `Tel/Mob: ${member.mobile}`,
-                                ].filter(Boolean).join(" | ")}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
+                        {formData.sortingOption !== "policyNoWise" && (
+                          <tr>
+                            <td colSpan={8} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
+                              <div>{member.name}</div>
+                              {formData.reportType === "Statement" && (
+                                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                                  {[
+                                    formData.statementOptions.statementWithAddress && member.address && `Address: ${member.address}`,
+                                    formData.statementOptions.statementWithTelNo && member.mobile && `Tel/Mob: ${member.mobile}`,
+                                  ].filter(Boolean).join(" | ")}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
                         {member.policies.map((p: any) => (
                           <tr key={p.policyNo} className="hover:bg-slate-50 border-b border-slate-100">
                             <td className="py-1 px-2">{p.sr}</td>
@@ -264,18 +310,22 @@ export default function AnnuityStatementReportView({
                             <td className="py-1 px-2 text-center text-xs font-semibold text-emerald-700">{p.neftStatus}</td>
                           </tr>
                         ))}
-                        <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                          <td colSpan={5} className="text-right pr-4 py-1">Member Total Pension :</td>
-                          <td className="text-right py-1 font-mono text-[#0B1220]">{member.totalAnnuityAmount.toLocaleString("en-IN")}</td>
-                          <td colSpan={2}></td>
-                        </tr>
+                        {formData.sortingOption !== "policyNoWise" && (
+                          <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
+                            <td colSpan={5} className="text-right pr-4 py-1">Member Total Pension :</td>
+                            <td className="text-right py-1 font-mono text-[#0B1220]">{member.totalAnnuityAmount.toLocaleString("en-IN")}</td>
+                            <td colSpan={2}></td>
+                          </tr>
+                        )}
                       </Fragment>
                     ))}
-                    <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                      <td colSpan={5} className="px-3 py-1.5">Group Total Pension Payout :</td>
-                      <td className="px-2 py-1.5 text-right font-mono text-[#0B1220]">{group.totalAnnuityAmount.toLocaleString("en-IN")}</td>
-                      <td colSpan={2}></td>
-                    </tr>
+                    {formData.sortingOption === "groupsWise" && (
+                      <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
+                        <td colSpan={5} className="px-3 py-1.5">Group Total Pension Payout :</td>
+                        <td className="px-2 py-1.5 text-right font-mono text-[#0B1220]">{group.totalAnnuityAmount.toLocaleString("en-IN")}</td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    )}
                   </Fragment>
                 ))}
               </tbody>

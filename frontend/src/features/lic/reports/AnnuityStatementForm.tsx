@@ -105,6 +105,10 @@ export default function AnnuityStatementForm({
       const count = formData.selectedGroups.length;
       return count > 0 ? `${count} Groups selected` : "All Groups Selected";
     }
+    if (formData.sortingOption === "policyNoWise") {
+      const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
+      return count > 0 ? `${count} Policies selected` : "All Policies Selected";
+    }
     const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
     return count > 0 ? `${count} item(s) selected` : "All Items Selected";
   };
@@ -239,7 +243,9 @@ export default function AnnuityStatementForm({
 
           <div className="pt-2 max-w-lg">
             <div className="flex items-center gap-3">
-              <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Groups</span>
+              <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+                {formData.sortingOption === "policyNoWise" ? "Select Policies" : "Select Groups"}
+              </span>
               <input
                 type="text"
                 readOnly
