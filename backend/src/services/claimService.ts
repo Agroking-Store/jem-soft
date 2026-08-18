@@ -277,7 +277,57 @@ export const updateClaimById = async (
 };
 
 export const deleteClaimById = async (id: string) => {
-  return await prisma.claim.delete({ where: { id } });
+  return await prisma.$transaction(async (tx) => {
+    const claim = await tx.claim.findUnique({
+      where: { id },
+      select: { id: true, policyId: true },
+    });
+
+    if (!claim) {
+      throw new AppError("Claim not found.", 404);
+    }
+
+    const policy = await tx.policy.findUnique({
+      where: { id: claim.policyId },
+      include: { status: true },
+    });
+
+    if (!policy) {
+      throw new AppError("Policy not found.", 404);
+    }
+
+    // Delete ONLY the claim. Policy, nominees, bank details, customer details,
+    // and loans are not deleted.
+    await tx.claim.delete({ where: { id } });
+
+    // Business rule: If the deleted claim was associated with a policy whose
+    // status is CLAIMED, restore the policy status back to ACTIVE.
+    const policyStatusCode = String(policy.status?.statusCode ?? "")
+      .trim()
+      .toUpperCase();
+    const policyStatusName = String(policy.status?.statusName ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
+      const activeStatus = await tx.policyStatusMaster.findFirst({
+        where: {
+          statusCode: { equals: "ACTIVE", mode: "insensitive" },
+        },
+      });
+
+      if (!activeStatus) {
+        throw new AppError("Active policy status not found.", 500);
+      }
+
+      await tx.policy.update({
+        where: { id: claim.policyId },
+        data: { statusId: activeStatus.id },
+      });
+    }
+
+    return { id: claim.id, policyId: claim.policyId };
+  });
 };
 
 const toNumber = (value: any) => {
