@@ -400,13 +400,13 @@ export default function LICPoliciesPage() {
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[320px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[380px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Plan
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[120px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[130px] whitespace-nowrap px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Sum Assured
                 </th>
@@ -480,8 +480,25 @@ export default function LICPoliciesPage() {
                       <div className="font-semibold text-slate-900">
                         {holderName || "—"}
                       </div>
+                      {(policy.customer?.groupName ||
+                        policy.customer?.groupCode) && (
+                        <div className="mt-1 text-xs text-slate-500">
+                          {(() => {
+                            const groupName = policy.customer?.groupName;
+                            const groupCode = policy.customer?.groupCode;
+
+                            if (groupName && groupCode) {
+                              return `${groupName} - ${groupCode}`;
+                            } else if (groupName) {
+                              return groupName;
+                            } else {
+                              return groupCode;
+                            }
+                          })()}
+                        </div>
+                      )}
                     </td>
-                    <td className="break-words px-4 py-4 align-top text-sm text-slate-800">
+                    <td className="min-w-[380px] whitespace-normal break-words px-4 py-4 align-top text-sm text-slate-800">
                       <div className="font-semibold text-slate-900 break-words">
                         {policy.product?.planNumber
                           ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
