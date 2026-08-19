@@ -743,3 +743,89 @@ export const getLoanDetailsWithCalculatedInterest = async (
     outstandingLoan,
   };
 };
+
+// ======================================================
+// Document Management Functions
+// ======================================================
+
+export interface ClaimDocumentData {
+  claimId: string;
+  fileName: string;
+  originalName: string;
+  fileUrl: string;
+  fileType?: string;
+  fileSize?: number;
+}
+
+/**
+ * Create a claim document record
+ */
+export const createClaimDocument = async (documentData: ClaimDocumentData) => {
+  return await prisma.claimDocument.create({
+    data: documentData,
+  });
+};
+
+/**
+ * Get all documents for a claim
+ */
+export const getClaimDocuments = async (claimId: string) => {
+  return await prisma.claimDocument.findMany({
+    where: {
+      claimId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
+/**
+ * Get a specific document
+ */
+export const getClaimDocumentById = async (documentId: string) => {
+  return await prisma.claimDocument.findUnique({
+    where: {
+      id: documentId,
+    },
+  });
+};
+
+/**
+ * Delete a claim document
+ */
+export const deleteClaimDocument = async (documentId: string) => {
+  return await prisma.claimDocument.delete({
+    where: {
+      id: documentId,
+    },
+  });
+};
+
+/**
+ * Update claim with documents relation in query
+ */
+export const getClaimByIdWithDocuments = async (id: string) => {
+  return prisma.claim.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      policy: {
+        include: {
+          product: true,
+          CustomerMaster: true,
+          status: true,
+          premium: true,
+          nominees: true,
+        },
+      },
+      nominee: true,
+      documents: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+};

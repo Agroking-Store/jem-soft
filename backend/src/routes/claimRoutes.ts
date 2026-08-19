@@ -7,8 +7,13 @@ import {
   addClaim,
   updateClaim,
   deleteClaim,
+  uploadClaimDocuments,
+  deleteClaimDocument,
+  getClaimDocuments,
+  downloadClaimDocument,
 } from "../controllers/claimController.js";
 import { protect } from "../middlewares/authMiddleware.js";
+import { upload, handleUploadError } from "../utils/fileUpload.js";
 
 const router = express.Router();
 
@@ -21,5 +26,17 @@ router
   .get(protect, getClaimById)
   .put(protect, updateClaim)
   .delete(protect, deleteClaim);
+
+// Document routes
+router.get("/:id/documents", protect, getClaimDocuments);
+router.post(
+  "/:id/documents",
+  protect,
+  upload.array("documents", 10),
+  handleUploadError,
+  uploadClaimDocuments,
+);
+router.delete("/:id/documents/:documentId", protect, deleteClaimDocument);
+router.get("/documents/file/:fileName", downloadClaimDocument);
 
 export default router;

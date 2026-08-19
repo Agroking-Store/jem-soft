@@ -26,6 +26,8 @@ export interface Claim {
   updatedById?: string | null;
   createdAt: string;
   updatedAt: string;
+  // Documents
+  documents?: ClaimDocument[];
   policy: {
     id: string;
     clientId: string;
@@ -77,6 +79,18 @@ export interface Claim {
     nomineeName: string;
     relationship: string;
   } | null;
+}
+
+export interface ClaimDocument {
+  id: string;
+  claimId: string;
+  fileName: string;
+  originalName: string;
+  fileUrl: string;
+  fileType?: string;
+  fileSize?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateClaimPayload {
@@ -271,6 +285,47 @@ export const deleteClaim = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to delete claim",
+      );
+    }
+  },
+);
+
+export const uploadClaimDocuments = createAsyncThunk(
+  "claims/uploadDocuments",
+  async (
+    { claimId, files }: { claimId: string; files: File[] },
+    { rejectWithValue },
+  ) => {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("documents", file);
+      });
+
+      const response = await api.post(`/claims/${claimId}/documents`, formData);
+
+      return response.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to upload documents",
+      );
+    }
+  },
+);
+
+export const deleteClaimDocument = createAsyncThunk(
+  "claims/deleteDocument",
+  async (
+    { claimId, documentId }: { claimId: string; documentId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      await api.delete(`/claims/${claimId}/documents/${documentId}`);
+
+      return documentId;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete document",
       );
     }
   },
