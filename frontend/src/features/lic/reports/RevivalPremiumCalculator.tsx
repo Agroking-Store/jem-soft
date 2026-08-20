@@ -332,8 +332,8 @@ export default function RevivalPremiumCalculator({
           {/* LEFT: Policy Details Form */}
           <div className="lg:col-span-3 space-y-4">
             {/* Revival Type */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+            <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
               <label className="flex items-center gap-2.5 text-xs font-bold text-[#0B1220] cursor-pointer w-fit">
                 <input type="radio" defaultChecked className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A]" />
                 <span className="font-serif text-sm uppercase tracking-wider text-[#0B1220]">Ordinary Revival</span>
@@ -351,7 +351,14 @@ export default function RevivalPremiumCalculator({
                       type="text"
                       value={policySearch}
                       onChange={(e) => { setPolicySearch(e.target.value); setDropdownOpen(true); }}
-                      onFocus={() => setDropdownOpen(true)}
+                      onFocus={(e) => {
+                        setDropdownOpen(true);
+                        // Reopening after a selection: clear the filter so the full list shows again
+                        if (selectedPolicy && policySearch === selectedPolicy.policyNumber) {
+                          setPolicySearch("");
+                        }
+                        e.target.select();
+                      }}
                       placeholder="Search by policy number or member name..."
                       className="flex-1 px-3 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none bg-transparent"
                     />
@@ -389,7 +396,16 @@ export default function RevivalPremiumCalculator({
 
             {/* Overlay to close dropdown */}
             {dropdownOpen && (
-              <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => {
+                  setDropdownOpen(false);
+                  // Closed without picking a new one — restore the previously selected policy's number
+                  if (selectedPolicy && !policySearch) {
+                    setPolicySearch(selectedPolicy.policyNumber);
+                  }
+                }}
+              />
             )}
 
             {/* Policy Details */}
