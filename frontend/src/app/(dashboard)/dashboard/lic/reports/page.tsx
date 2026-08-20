@@ -34,6 +34,8 @@ import LoanInterestDueForm, { LoanInterestDueFormData } from "@/features/lic/rep
 import LoanInterestDueReportView from "@/features/lic/reports/LoanInterestDueReportView";
 import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/features/lic/reports/LoanInterestOutstandingForm";
 import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
+import PremiumCalendarForm, { PremiumCalendarFormData } from "@/features/lic/reports/PremiumCalenderForm";
+import PremiumCalendarReportView from "@/features/lic/reports/PremiumCalenderReportView";
 import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
@@ -69,6 +71,8 @@ type ViewState =
   | "loan-interest-due-report"
   | "loan-interest-outstanding-form"
   | "loan-interest-outstanding-report"
+  | "premium-calendar-form"
+  | "premium-calendar-report"
   | "revival-premium-calculator";
 
 export default function LICReportsPage() {
@@ -100,6 +104,8 @@ export default function LICReportsPage() {
     useState<LoanInterestDueFormData | null>(null);
   const [selectedLoanInterestOutstandingData, setSelectedLoanInterestOutstandingData] =
     useState<LoanInterestOutstandingFormData | null>(null);
+  const [selectedPremiumCalendarData, setSelectedPremiumCalendarData] =
+    useState<PremiumCalendarFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -154,6 +160,8 @@ export default function LICReportsPage() {
       setCurrentView("loan-interest-due-form");
     } else if (card.id === "loan-interest-outstanding") {
       setCurrentView("loan-interest-outstanding-form");
+    } else if (card.id === "premium-calender") {
+      setCurrentView("premium-calendar-form");
     } else if (card.id === "revival-premium-calculator") {
       setCurrentView("revival-premium-calculator");
     } else {
@@ -219,6 +227,11 @@ export default function LICReportsPage() {
   const handleGenerateLoanInterestOutstandingReport = (formData: LoanInterestOutstandingFormData) => {
     setSelectedLoanInterestOutstandingData(formData);
     setCurrentView("loan-interest-outstanding-report");
+  };
+
+  const handleGeneratePremiumCalendarReport = (formData: PremiumCalendarFormData) => {
+    setSelectedPremiumCalendarData(formData);
+    setCurrentView("premium-calendar-report");
   };
 
   return (
@@ -343,7 +356,8 @@ export default function LICReportsPage() {
                       card.id === "policy-maturity" ||
                       card.id === "survival-benefit" ||
                       card.id === "cash-flow-chart" ||
-                      card.id === "comprehensive-insurance-chart"
+                      card.id === "comprehensive-insurance-chart" ||
+                      card.id === "premium-calender"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -649,7 +663,28 @@ export default function LICReportsPage() {
         />
       )}
 
-      {/* VIEW 26: Revival Premium Calculator */}
+      {/* VIEW 26: Premium Calendar Form */}
+      {currentView === "premium-calendar-form" && (
+        <PremiumCalendarForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumCalendarReport}
+          initialData={selectedPremiumCalendarData}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 27: Premium Calendar Report View */}
+      {currentView === "premium-calendar-report" && selectedPremiumCalendarData && (
+        <PremiumCalendarReportView
+          formData={selectedPremiumCalendarData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-calendar-form")}
+        />
+      )}
+
+      {/* VIEW 28: Revival Premium Calculator */}
       {currentView === "revival-premium-calculator" && (
         <RevivalPremiumCalculator
           onBack={() => setCurrentView("cards")}
