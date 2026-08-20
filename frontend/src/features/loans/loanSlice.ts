@@ -5,7 +5,6 @@ import type { RootState } from "@/store/store";
 export interface Loan {
   id: string;
   policyId: string;
-  loanNumber?: string | null;
   loanAmount: number;
   interestRate?: number | null;
   loanDate: string;
@@ -23,23 +22,11 @@ export interface Loan {
     statusName: string;
     statusCode: string;
   } | null;
-  loanTenure?: number;
   remarks?: string;
-  totalLoanGranted?: number | null;
-  prevLoanTaken?: number | null;
-  prevLoanInterestRate?: number | null;
-  otherDeduction?: number | null;
-  xChargeDeduction?: number | null;
-  revivalDeduction?: number | null;
-  addDeposit?: number | null;
-  netAmount?: number | null;
-  chequeAmount?: number | null;
-  repaymentDate?: string | Date | null;
-  loanRepaidAmount?: number | null;
-  totalLoanAmount?: number | null;
-  bpiInterest?: number | null;
-  hlyInterest?: number | null;
-  fuliDate?: string | Date | null;
+  repaymentDate?: string | null;
+  repayAmount?:number | null,
+  totalLoanRepaidAmount?: number | null;
+  totalLoanInterestPaid?: number | null;
   repaymentRemarks?: string | null;
 }
 
@@ -52,6 +39,8 @@ export interface LoanInput {
   loanStatusId: string;
   loanTenure?: number;
   remarks?: string;
+  totalLoanRepaidAmount?: number;
+  totalLoanInterestPaid?: number;
 }
 
 interface LoanState {
@@ -166,7 +155,7 @@ export const deleteLoan = createAsyncThunk<
       (l) => l.id === id,
     );
     await api.delete(`/loans/${id}`);
-    return { id, loanNumber: loanToDelete?.loanNumber ?? "Unknown" };
+    return { id, loanNumber: loanToDelete?.policy?.policyNumber ?? "Unknown" };
   } catch (err) {
     if (isAxiosError(err)) {
       return rejectWithValue(

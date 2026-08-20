@@ -25,7 +25,6 @@ export default function NotificationDropdown({
         absolute
         right-0
         top-full
-        mt-2
         w-96
         bg-white
         rounded-xl

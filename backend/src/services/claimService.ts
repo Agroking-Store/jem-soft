@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { AppError } from "../utils/AppError.js";
 
 const prisma = new PrismaClient();
 
@@ -85,40 +86,116 @@ export const createClaim = async (data: ClaimData, userId: string) => {
     }
   }
 
-  return await prisma.claim.create({
-    data: {
-      policyId: data.policyId,
-      claimantName: data.claimantName,
-      claimType: data.claimType,
-      claimAmount: data.claimAmount,
-      claimDate: new Date(data.claimDate),
-      status: data.status || "Pending",
-      reasonForClaim: data.reasonForClaim,
-      nomineeId: data.nomineeId || null,
-      createdById: userId,
-      // Payment fields
-      paymentType: data.paymentType || null,
-      chequeNumber: data.chequeNumber || null,
-      chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
-      bankName: data.bankName || null,
-      branchName: data.branchName || null,
-      chequeAmount: data.chequeAmount || null,
-      accountHolderName: data.accountHolderName || null,
-      accountNumber: data.accountNumber || null,
-      ifscCode: data.ifscCode || null,
-    },
-    include: {
-      policy: {
-        include: {
-          product: true,
-          CustomerMaster: true,
-          status: true,
-          premium: true,
-          nominees: true,
-        },
+  return await prisma.$transaction(async (tx) => {
+    const policy = await tx.policy.findUnique({
+      where: { id: data.policyId },
+      include: { status: true },
+    });
+
+    if (!policy) {
+      throw new AppError("Policy not found.", 404);
+    }
+
+    const policyStatusCode = String(policy.status?.statusCode ?? "")
+      .trim()
+      .toUpperCase();
+    const policyStatusName = String(policy.status?.statusName ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
+      throw new AppError(
+        "Cannot create claim. This policy has already been claimed.",
+        400,
+      );
+    }
+
+    if (policyStatusCode !== "ACTIVE" && policyStatusName !== "ACTIVE") {
+      throw new AppError(
+        "Policy is not active. Claims can only be created for active policies.",
+        400,
+      );
+    }
+
+    const existingClaim = await tx.claim.findUnique({
+      where: { policyId: data.policyId },
+    });
+
+    if (existingClaim) {
+      throw new AppError(
+        "Cannot create claim. This policy has already been claimed.",
+        400,
+      );
+    }
+
+    const claimedStatus = await tx.policyStatusMaster.findFirst({
+      where: {
+        statusCode: { equals: "CLAIMED", mode: "insensitive" },
       },
-      nominee: true,
-    },
+    });
+
+    if (!claimedStatus) {
+      throw new AppError("Claimed policy status not found.", 500);
+    }
+
+    const newClaim = await tx.claim.create({
+      data: {
+        policyId: data.policyId,
+        claimantName: data.claimantName,
+        claimType: data.claimType,
+        claimAmount: data.claimAmount,
+        claimDate: new Date(data.claimDate),
+        status: data.status || "Pending",
+        reasonForClaim: data.reasonForClaim,
+        nomineeId: data.nomineeId || null,
+        createdById: userId,
+        // Payment fields
+        paymentType: data.paymentType || null,
+        chequeNumber: data.chequeNumber || null,
+        chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
+        bankName: data.bankName || null,
+        branchName: data.branchName || null,
+        chequeAmount: data.chequeAmount || null,
+        accountHolderName: data.accountHolderName || null,
+        accountNumber: data.accountNumber || null,
+        ifscCode: data.ifscCode || null,
+      },
+      include: {
+        policy: {
+          include: {
+            product: true,
+            CustomerMaster: true,
+            status: true,
+            premium: true,
+            nominees: true,
+          },
+        },
+        nominee: true,
+      },
+    });
+
+    await tx.policy.update({
+      where: { id: data.policyId },
+      data: {
+        statusId: claimedStatus.id,
+      },
+    });
+
+    return await tx.claim.findUnique({
+      where: { id: newClaim.id },
+      include: {
+        policy: {
+          include: {
+            product: true,
+            CustomerMaster: true,
+            status: true,
+            premium: true,
+            nominees: true,
+          },
+        },
+        nominee: true,
+      },
+    });
   });
 };
 
@@ -200,7 +277,57 @@ export const updateClaimById = async (
 };
 
 export const deleteClaimById = async (id: string) => {
-  return await prisma.claim.delete({ where: { id } });
+  return await prisma.$transaction(async (tx) => {
+    const claim = await tx.claim.findUnique({
+      where: { id },
+      select: { id: true, policyId: true },
+    });
+
+    if (!claim) {
+      throw new AppError("Claim not found.", 404);
+    }
+
+    const policy = await tx.policy.findUnique({
+      where: { id: claim.policyId },
+      include: { status: true },
+    });
+
+    if (!policy) {
+      throw new AppError("Policy not found.", 404);
+    }
+
+    // Delete ONLY the claim. Policy, nominees, bank details, customer details,
+    // and loans are not deleted.
+    await tx.claim.delete({ where: { id } });
+
+    // Business rule: If the deleted claim was associated with a policy whose
+    // status is CLAIMED, restore the policy status back to ACTIVE.
+    const policyStatusCode = String(policy.status?.statusCode ?? "")
+      .trim()
+      .toUpperCase();
+    const policyStatusName = String(policy.status?.statusName ?? "")
+      .trim()
+      .toUpperCase();
+
+    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
+      const activeStatus = await tx.policyStatusMaster.findFirst({
+        where: {
+          statusCode: { equals: "ACTIVE", mode: "insensitive" },
+        },
+      });
+
+      if (!activeStatus) {
+        throw new AppError("Active policy status not found.", 500);
+      }
+
+      await tx.policy.update({
+        where: { id: claim.policyId },
+        data: { statusId: activeStatus.id },
+      });
+    }
+
+    return { id: claim.id, policyId: claim.policyId };
+  });
 };
 
 const toNumber = (value: any) => {
@@ -615,4 +742,90 @@ export const getLoanDetailsWithCalculatedInterest = async (
     loanInterest,
     outstandingLoan,
   };
+};
+
+// ======================================================
+// Document Management Functions
+// ======================================================
+
+export interface ClaimDocumentData {
+  claimId: string;
+  fileName: string;
+  originalName: string;
+  fileUrl: string;
+  fileType?: string;
+  fileSize?: number;
+}
+
+/**
+ * Create a claim document record
+ */
+export const createClaimDocument = async (documentData: ClaimDocumentData) => {
+  return await prisma.claimDocument.create({
+    data: documentData,
+  });
+};
+
+/**
+ * Get all documents for a claim
+ */
+export const getClaimDocuments = async (claimId: string) => {
+  return await prisma.claimDocument.findMany({
+    where: {
+      claimId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
+/**
+ * Get a specific document
+ */
+export const getClaimDocumentById = async (documentId: string) => {
+  return await prisma.claimDocument.findUnique({
+    where: {
+      id: documentId,
+    },
+  });
+};
+
+/**
+ * Delete a claim document
+ */
+export const deleteClaimDocument = async (documentId: string) => {
+  return await prisma.claimDocument.delete({
+    where: {
+      id: documentId,
+    },
+  });
+};
+
+/**
+ * Update claim with documents relation in query
+ */
+export const getClaimByIdWithDocuments = async (id: string) => {
+  return prisma.claim.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      policy: {
+        include: {
+          product: true,
+          CustomerMaster: true,
+          status: true,
+          premium: true,
+          nominees: true,
+        },
+      },
+      nominee: true,
+      documents: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
 };

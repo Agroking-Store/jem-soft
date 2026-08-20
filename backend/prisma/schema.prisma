@@ -104,7 +104,7 @@ model InsuranceProvider {
 
 model Claim {
   id            String   @id @default(cuid())
-  policyId      String
+  policyId      String   @unique
   claimantName  String?
   claimType     String   // e.g., 'Death', 'Maturity', 'Rider', 'Other'
   claimAmount   Float
@@ -135,8 +135,32 @@ model Claim {
   updatedBy     User?    @relation("ClaimUpdatedBy", fields: [updatedById], references: [id])
   updatedById   String?
 
+  // Documents relation
+  documents     ClaimDocument[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// ======================================================
+// Claim Document Model
+// Stores metadata for documents uploaded with a claim
+// ======================================================
+model ClaimDocument {
+  id            String   @id @default(cuid())
+  claimId       String
+  fileName      String   // Storage file name (e.g., UUID.pdf)
+  originalName  String   // Original file name from upload
+  fileUrl       String   // URL/path to access the file
+  fileType      String?  // MIME type (e.g., application/pdf, image/jpeg)
+  fileSize      Int?     // File size in bytes
+
+  claim         Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([claimId])
 }
 
 
@@ -597,31 +621,16 @@ model PolicyLoan {
   id String @id @default(uuid())
 
   policyId String
-
-  loanNumber String?
   loanAmount Decimal
-  interestRate Decimal?
+  interestRate Decimal
   loanDate DateTime
-
-  loanTenure Int?
   remarks String?
 
   // New fields from LoanForm
-  totalLoanGranted     Float?
-  prevLoanTaken        Float?
-  prevLoanInterestRate Float?
-  otherDeduction       Float?
-  xChargeDeduction     Float?
-  revivalDeduction     Float?
-  addDeposit           Float?
-  netAmount            Float?
-  chequeAmount         Float?
   repaymentDate        DateTime?
-  loanRepaidAmount     Float?
-  totalLoanAmount      Float?
-  bpiInterest       Float?
-  hlyInterest       Float?
-  fuliDate             DateTime?
+  repayAmount          Decimal?
+  totalLoanRepaidAmount     Float?
+  totalLoanInterestPaid     Decimal?
   repaymentRemarks     String?
 
   loanStatusId String

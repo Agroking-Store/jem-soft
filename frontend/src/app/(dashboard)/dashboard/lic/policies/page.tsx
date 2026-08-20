@@ -547,7 +547,7 @@ export default function LICPoliciesPage() {
                           onClick={() =>
                             router.push(`/dashboard/lic/policies/${policy.id}`)
                           }
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
                           title="View"
                         >
                           <Eye size={16} />
