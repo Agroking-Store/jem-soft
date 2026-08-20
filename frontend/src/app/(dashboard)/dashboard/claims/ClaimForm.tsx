@@ -12,6 +12,8 @@ import {
   calculateClaimAmount,
   createClaim,
   updateClaim,
+  uploadClaimDocuments,
+  deleteClaimDocument,
   type Claim,
 } from "@/features/claim/claimSlice";
 import { format } from "date-fns";
@@ -25,6 +27,7 @@ import {
   Info,
   Search,
   ChevronDown,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -76,7 +79,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const [isCalculatingClaim, setIsCalculatingClaim] = useState(false);
 
   const isClaimCalculationSupported = (claimType: string) =>
-    ["Death", "Maturity", "Surrender", "Surrendered"].includes(claimType);
+    ["Death", "Maturity", "Surrender"].includes(claimType);
 
   const claimSchema = z
     .object({
@@ -96,11 +99,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       (data) => {
         const sumAssured = selectedPolicy?.premium?.sumAssured;
         if (!sumAssured) return true;
-        if (
-          ["Death", "Maturity", "Surrender", "Surrendered"].includes(
-            data.claimType,
-          )
-        ) {
+        if (["Death", "Maturity", "Surrender"].includes(data.claimType)) {
           return true;
         }
         return data.claimAmount <= sumAssured;
@@ -192,6 +191,68 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       percentage: n.percentage ? Number(n.percentage) : "-",
     }),
   );
+
+  /* ── Document upload state ────────────────────────────────── */
+  interface SelectedDocument {
+    file: File;
+    id?: string; // For existing documents in edit mode
+  }
+
+  const [selectedDocuments, setSelectedDocuments] = useState<
+    SelectedDocument[]
+  >([]);
+  const [documentError, setDocumentError] = useState<string>("");
+
+  const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return "Only PDF, JPG, JPEG and PNG files are allowed.";
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return "File size must not exceed 10 MB.";
+    }
+    return null;
+  };
+
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setDocumentError("");
+
+    const validFiles: SelectedDocument[] = [];
+    for (const file of files) {
+      const error = validateFile(file);
+      if (error) {
+        setDocumentError(error);
+        return;
+      }
+
+      // Check for duplicates
+      const isDuplicate = selectedDocuments.some(
+        (d) => d.file.name === file.name && d.file.size === file.size,
+      );
+      if (!isDuplicate) {
+        validFiles.push({ file });
+      }
+    }
+
+    setSelectedDocuments((prev) => [...prev, ...validFiles]);
+    // Reset input
+    e.target.value = "";
+  };
+
+  const removeDocument = (index: number) => {
+    const docToRemove = selectedDocuments[index];
+
+    // If it's an existing document in edit mode, mark it for deletion
+    if (mode === "edit" && docToRemove.id) {
+      // We'll handle deletion after form submission
+    }
+
+    setSelectedDocuments((prev) => prev.filter((_, i) => i !== index));
+    setDocumentError("");
+  };
 
   /* ── Helper: default bank details from selected policy ─────── */
   // Derive account holder name from CustomerMaster (same as Policy view)
@@ -354,6 +415,24 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     fetchCalculation();
   }, [dispatch, selectedPolicyId, selectedClaimType, claimDateValue]);
 
+  // Clear selected nominee when claim type is not "Death"
+  useEffect(() => {
+    if (selectedClaimType !== "Death") {
+      setSelectedNominee(null);
+    }
+  }, [selectedClaimType]);
+
+  // Load existing documents in edit mode
+  useEffect(() => {
+    if (mode === "edit" && initialClaim?.documents) {
+      const existingDocs = initialClaim.documents.map((doc) => ({
+        file: new File([], doc.originalName, { type: doc.fileType || "" }),
+        id: doc.id,
+      }));
+      setSelectedDocuments(existingDocs);
+    }
+  }, [mode, initialClaim]);
+
   const policyRegister = register("policyId");
 
   const onValid = (data: ClaimFormData) => {
@@ -405,18 +484,72 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }
 
     try {
+      let claimId: string;
+
       if (mode === "create") {
-        await dispatch(createClaim(payload)).unwrap();
+        const result = await dispatch(createClaim(payload)).unwrap();
+        claimId = result.id;
         toast.success("Claim created successfully");
-        reset();
-        router.push("/dashboard/claims");
       } else if (initialClaim) {
         await dispatch(
           updateClaim({ id: initialClaim.id, data: payload }),
         ).unwrap();
+        claimId = initialClaim.id;
         toast.success("Claim updated successfully");
-        router.push("/dashboard/claims");
+      } else {
+        throw new Error("No claim data available");
       }
+
+      // Handle document operations
+      if (mode === "edit" && initialClaim?.documents) {
+        // Find documents that were removed
+        const currentDocIds = selectedDocuments
+          .filter((doc) => doc.id)
+          .map((doc) => doc.id);
+        const docsToDelete = initialClaim.documents.filter(
+          (doc) => !currentDocIds.includes(doc.id),
+        );
+
+        // Delete removed documents
+        for (const doc of docsToDelete) {
+          try {
+            await dispatch(
+              deleteClaimDocument({
+                claimId,
+                documentId: doc.id,
+              }),
+            ).unwrap();
+          } catch (delError: any) {
+            console.error(`Failed to delete document ${doc.id}:`, delError);
+          }
+        }
+      }
+
+      // Upload new documents
+      const filesToUpload = selectedDocuments
+        .filter((doc) => !doc.id) // Only upload new files (not existing ones in edit mode)
+        .map((doc) => doc.file);
+
+      if (filesToUpload.length > 0) {
+        try {
+          await dispatch(
+            uploadClaimDocuments({
+              claimId,
+              files: filesToUpload,
+            }),
+          ).unwrap();
+          toast.success(
+            `${filesToUpload.length} document(s) uploaded successfully`,
+          );
+        } catch (docError: any) {
+          toast.error(
+            `Claim saved but documents failed to upload: ${docError}`,
+          );
+        }
+      }
+
+      reset();
+      router.push("/dashboard/claims");
     } catch (error: any) {
       toast.error(error || `Failed to ${mode} claim`);
     } finally {
@@ -544,16 +677,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   </label>
                   <select {...register("claimType")} className={selectClass}>
                     <option value="">Select</option>
-                    <option value="Active">Active</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Fully Paid Up">Fully Paid Up</option>
-                    <option value="Lapsed">Lapsed</option>
-                    <option value="Maturity Claimed">Maturity Claimed</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Surrendered">Surrendered</option>
-                    <option value="Surrender">Surrender</option>
-                    <option value="Death">Death</option>
                     <option value="Maturity">Maturity</option>
+                    <option value="Death">Death</option>
+                    <option value="Surrender">Surrender</option>
                     <option value="Rider">Rider</option>
                     <option value="Other">Other</option>
                   </select>
@@ -842,165 +968,301 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             </CustomerSectionCard>
           </div>
 
-          {/* Right Column - Nominee Details */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <CustomerSectionCard title="Nominee Details" icon={User}>
-                {/* Nominee Dropdown */}
-                <div className="relative">
-                  <label className={labelClass}>Nominee</label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectedPolicy && nomineeList.length > 0) {
-                        setNomineeOpen((o) => !o);
-                      }
-                    }}
-                    disabled={!selectedPolicy || nomineeList.length === 0}
-                    className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
+          {/* Right Column - Nominee Details (shown only for Death claims) */}
+          {selectedClaimType === "Death" && (
+            <div className="lg:col-span-1">
+              <div className="sticky top-6">
+                <CustomerSectionCard title="Nominee Details" icon={User}>
+                  {/* Nominee Dropdown */}
+                  <div className="relative">
+                    <label className={labelClass}>Nominee</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedPolicy && nomineeList.length > 0) {
+                          setNomineeOpen((o) => !o);
+                        }
+                      }}
+                      disabled={!selectedPolicy || nomineeList.length === 0}
+                      className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
                       ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"}
                       ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}
                     `}
-                  >
-                    <span
-                      className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
                     >
-                      {selectedNominee
-                        ? selectedNominee.nomineeName
-                        : nomineeList.length === 0
-                          ? "No nominees available"
-                          : "Select Nominee"}
-                    </span>
-                    <ChevronDown
-                      size={15}
-                      className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
+                      <span
+                        className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
+                      >
+                        {selectedNominee
+                          ? selectedNominee.nomineeName
+                          : nomineeList.length === 0
+                            ? "No nominees available"
+                            : "Select Nominee"}
+                      </span>
+                      <ChevronDown
+                        size={15}
+                        className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
 
-                  {/* Dropdown Panel */}
-                  {nomineeOpen && nomineeList.length > 0 && (
-                    <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
-                      <div className="max-h-60 overflow-y-auto py-1">
-                        {nomineeList.map((nominee) => (
-                          <button
-                            key={nominee.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedNominee(nominee);
-                              setNomineeOpen(false);
-                            }}
-                            className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
-                              selectedNominee?.id === nominee.id
-                                ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
-                                : "text-slate-700"
-                            }`}
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate">
-                                {nominee.nomineeName}
+                    {/* Dropdown Panel */}
+                    {nomineeOpen && nomineeList.length > 0 && (
+                      <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+                        <div className="max-h-60 overflow-y-auto py-1">
+                          {nomineeList.map((nominee) => (
+                            <button
+                              key={nominee.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedNominee(nominee);
+                                setNomineeOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
+                                selectedNominee?.id === nominee.id
+                                  ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
+                                  : "text-slate-700"
+                              }`}
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate">
+                                  {nominee.nomineeName}
+                                </span>
+                                <span className="block truncate text-xs text-slate-400">
+                                  {nominee.relationship}
+                                </span>
                               </span>
-                              <span className="block truncate text-xs text-slate-400">
-                                {nominee.relationship}
-                              </span>
-                            </span>
-                          </button>
-                        ))}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Helper Text */}
+                  <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
+                    <Info size={12} className="mt-0.5 shrink-0" />
+                    <span>
+                      Nominee details are automatically fetched from the
+                      selected policy.
+                    </span>
+                  </p>
+
+                  {/* Auto-filled Nominee Details (read-only) */}
+                  {selectedNominee && (
+                    <div className="mt-5 space-y-4">
+                      <div className="border-t border-slate-100 pt-4">
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <label className={labelClass}>Nominee Name</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.nomineeName}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Relationship</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.relationship}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Date of Birth</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.dateOfBirth}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Phone Number</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.phone}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Share %</label>
+                            <input
+                              type="text"
+                              value={
+                                selectedNominee.percentage !== undefined
+                                  ? String(selectedNominee.percentage)
+                                  : "-"
+                              }
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Email Address</label>
+                            <input
+                              type="text"
+                              value={selectedNominee.email}
+                              disabled
+                              className={disabledInputClass}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Helper Text */}
-                <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
-                  <Info size={12} className="mt-0.5 shrink-0" />
-                  <span>
-                    Nominee details are automatically fetched from the selected
-                    policy.
-                  </span>
-                </p>
-
-                {/* Auto-filled Nominee Details (read-only) */}
-                {selectedNominee && (
-                  <div className="mt-5 space-y-4">
-                    <div className="border-t border-slate-100 pt-4">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <label className={labelClass}>Nominee Name</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.nomineeName}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Relationship</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.relationship}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Date of Birth</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.dateOfBirth}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Phone Number</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.phone}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Share %</label>
-                          <input
-                            type="text"
-                            value={
-                              selectedNominee.percentage !== undefined
-                                ? String(selectedNominee.percentage)
-                                : "-"
-                            }
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>Email Address</label>
-                          <input
-                            type="text"
-                            value={selectedNominee.email}
-                            disabled
-                            className={disabledInputClass}
-                          />
-                        </div>
+                  {/* No policy selected state */}
+                  {!selectedPolicy && (
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
+                        <p className="text-xs text-slate-400">
+                          Select a policy to view nominee details.
+                        </p>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* No policy selected state */}
-                {!selectedPolicy && (
-                  <div className="mt-5 border-t border-slate-100 pt-4">
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
-                      <p className="text-xs text-slate-400">
-                        Select a policy to view nominee details.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CustomerSectionCard>
+                  )}
+                </CustomerSectionCard>
+              </div>
             </div>
-          </div>
+          )}
         </div>
+
+        {/* Claim Documents Section */}
+        <CustomerSectionCard title="Claim Documents" icon={FileText}>
+          <div>
+            <label className={labelClass}>Upload Documents</label>
+            <div className="mt-3">
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-colors">
+                <div className="text-center">
+                  <FileText size={32} className="mx-auto text-slate-400 mb-2" />
+                  <span className="text-sm font-medium text-slate-700">
+                    Choose Files or drag and drop
+                  </span>
+                  <p className="text-xs text-slate-500 mt-1">
+                    PDF, JPG, JPEG, PNG (Max 10 MB)
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleDocumentSelect}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {documentError && (
+              <p className="mt-2 text-xs text-rose-600 flex items-start gap-1.5">
+                <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                {documentError}
+              </p>
+            )}
+
+            {/* Existing Documents List (Edit mode) */}
+            {mode === "edit" && selectedDocuments.some((doc) => doc.id) && (
+              <div className="mt-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-3">
+                  Existing Documents
+                </p>
+                <div className="space-y-2">
+                  {selectedDocuments
+                    .filter((doc) => doc.id)
+                    .map((doc, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between px-3 py-2.5 bg-blue-50 rounded-lg border border-blue-200"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileText
+                            size={16}
+                            className="text-blue-400 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate">
+                              {doc.file.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              Already uploaded
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeDocument(selectedDocuments.indexOf(doc))
+                          }
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer flex-shrink-0"
+                          title="Remove"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* New/Selected Documents List */}
+            {selectedDocuments.some((doc) => !doc.id) && (
+              <div
+                className={
+                  mode === "edit" && selectedDocuments.some((doc) => doc.id)
+                    ? "mt-5"
+                    : "mt-5"
+                }
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-3">
+                  {mode === "edit" ? "New Documents" : "Selected Documents"}
+                </p>
+                <div className="space-y-2">
+                  {selectedDocuments
+                    .filter((doc) => !doc.id)
+                    .map((doc, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-200"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileText
+                            size={16}
+                            className="text-slate-400 flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate">
+                              {doc.file.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {(doc.file.size / 1024).toFixed(2)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeDocument(selectedDocuments.indexOf(doc))
+                          }
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer flex-shrink-0"
+                          title="Remove"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {selectedDocuments.length === 0 && !documentError && (
+              <p className="mt-4 text-xs text-slate-400 text-center">
+                No documents selected yet
+              </p>
+            )}
+          </div>
+        </CustomerSectionCard>
 
         {/* Buttons */}
         <div className="flex items-center justify-end gap-3">

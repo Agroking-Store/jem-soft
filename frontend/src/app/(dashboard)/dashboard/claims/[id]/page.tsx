@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchClaimById } from "@/features/claim/claimSlice";
-import { useRouter, useParams,useSearchParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 
 import Link from "next/link";
 import {
@@ -17,6 +17,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Download,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -116,9 +117,7 @@ export default function ViewClaimPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
                   Claim Number
                 </p>
-                <p className="font-semibold text-slate-900">
-                  {index}
-                </p>
+                <p className="font-semibold text-slate-900">{index}</p>
               </div>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
@@ -409,6 +408,66 @@ export default function ViewClaimPage() {
                   </p>
                 </div>
               </div>
+            </CustomerSectionCard>
+
+            {/* ── Claim Documents Card ────────────────────── */}
+            <CustomerSectionCard title="Claim Documents" icon={FileText}>
+              {selectedClaim?.documents &&
+              selectedClaim.documents.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedClaim.documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-lg border border-slate-200 group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <FileText
+                          size={18}
+                          className="text-slate-400 flex-shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {doc.originalName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {(doc.fileSize ? doc.fileSize / 1024 : 0).toFixed(
+                              2,
+                            )}{" "}
+                            KB •{" "}
+                            {doc.createdAt
+                              ? new Date(doc.createdAt).toLocaleDateString()
+                              : "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a
+                          href={doc.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          View
+                        </a>
+                        <a
+                          href={doc.fileUrl}
+                          download
+                          className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <FileText size={32} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-sm text-slate-500">
+                    No documents uploaded for this claim yet
+                  </p>
+                </div>
+              )}
             </CustomerSectionCard>
           </div>
         </div>
