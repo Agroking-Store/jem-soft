@@ -34,6 +34,7 @@ import LoanInterestDueForm, { LoanInterestDueFormData } from "@/features/lic/rep
 import LoanInterestDueReportView from "@/features/lic/reports/LoanInterestDueReportView";
 import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/features/lic/reports/LoanInterestOutstandingForm";
 import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
+import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
   ArrowRight,
@@ -67,7 +68,8 @@ type ViewState =
   | "loan-interest-due-form"
   | "loan-interest-due-report"
   | "loan-interest-outstanding-form"
-  | "loan-interest-outstanding-report";
+  | "loan-interest-outstanding-report"
+  | "revival-premium-calculator";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -152,6 +154,8 @@ export default function LICReportsPage() {
       setCurrentView("loan-interest-due-form");
     } else if (card.id === "loan-interest-outstanding") {
       setCurrentView("loan-interest-outstanding-form");
+    } else if (card.id === "revival-premium-calculator") {
+      setCurrentView("revival-premium-calculator");
     } else {
       setPreviewModalCard(card);
     }
@@ -642,6 +646,15 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("loan-interest-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 26: Revival Premium Calculator */}
+      {currentView === "revival-premium-calculator" && (
+        <RevivalPremiumCalculator
+          onBack={() => setCurrentView("cards")}
+          policies={policies || []}
+          customers={customers || []}
         />
       )}
 
