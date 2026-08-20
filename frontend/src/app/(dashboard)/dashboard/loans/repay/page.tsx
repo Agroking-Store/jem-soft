@@ -4,14 +4,10 @@ import { useState, useEffect, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
-import { fetchPolicies } from "@/features/policy/policySlice";
-import { fetchLoanStatuses } from "@/features/loans/loanStatusMasterSlice";
-import { createLoan, fetchLoans, updateLoan, type Loan } from "@/features/loans/loanSlice";
-import { Input } from "@/shared/components/ui/Input";
+import { fetchLoans, updateLoan, type Loan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
 import { Save, Loader2 ,FileText} from "lucide-react";
-import DatePicker from "../lic/policies/new/DatePicker";
-import { format } from "date-fns";
+
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
@@ -19,7 +15,7 @@ import {
 
 interface FormState {
    repaymentDate: string;
-   repayAmount : Number;
+   repayAmount : number;
    totalLoanRepaidAmount: Number;
    totalLoanInterestPaid: Number;
    repaymentRemarks: string;
@@ -59,8 +55,8 @@ export default function RepayForm()
 
   const calculateInterest = () => {
     if (!selectedLoan)
-      return
-    const interestAmount = (((selectedLoan?.loanAmount - selectedLoan?.totalLoanRepaidAmount) || 1) * (selectedLoan?.interestRate || 1))/200
+      return 0;
+    const interestAmount = (((selectedLoan.loanAmount - selectedLoan.totalLoanRepaidAmount!)) * (selectedLoan.interestRate!))/200
 
     return interestAmount;
   }
@@ -82,10 +78,16 @@ export default function RepayForm()
     newErrors.repayAmount = "Loan Repay Amount is required";
   }
 
-  if(Number(form.repayAmount) > ((selectedLoan?.loanAmount - selectedLoan.totalLoanRepaidAmount) - (Number(form.repayAmount) - calculateInterest())))
+  if(Number(form.repayAmount) > ((selectedLoan?.loanAmount! - selectedLoan?.totalLoanRepaidAmount!)))
   {
     newErrors.repayAmount = "Repay Amount cannot be greater than Loan Balance";
   }
+
+   if(Number(form.repayAmount) < 0 || Number(form.repayAmount) == 0)
+  {
+    newErrors.repayAmount = "Repay Amount cannot be less than or equal to 0";
+  }
+  
 
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
@@ -168,7 +170,7 @@ const handleSubmit = async (e: FormEvent) => {
                 const loan = loans.find(
                        (l) => l.policy?.policyNumber === e.target.value,
                      );
-                     setSelectedLoan(loan);calculateInterest()}}
+                     setSelectedLoan(loan!);calculateInterest()}}
               //  if (!form.totalLoanGranted) {
               //     handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
               //       );
@@ -284,13 +286,13 @@ const handleSubmit = async (e: FormEvent) => {
                    <span className="ml-0.5 text-rose-500">*</span>
                 </label>
                      <input
-                     className={inputClass}
-                      type="number"
+                     className={`${inputClass} bg-slate-50 cursor-not-allowed`}
+                      type="text"
                       min="0"
                       placeholder="e.g. 50000"
-                       value={calculateInterest()}
-                       onChange={(e) => handleChange("totalLoanInterestPaid", e.target.value)}
-                       disabled
+                      value={calculateInterest()}
+                      onChange={(e) => handleChange("totalLoanInterestPaid", e.target.value)}
+                       
                     /> 
                      {/* {errors.loanDate && (
                 <p className="mt-1 text-xs text-rose-600">
@@ -304,11 +306,11 @@ const handleSubmit = async (e: FormEvent) => {
                    <span className="ml-0.5 text-rose-500">*</span>
                 </label>
                     <input
-                    className={inputClass}
+                    className={`${inputClass} bg-slate-50 cursor-not-allowed`}
                       type="number"
                       min="0"
                       placeholder="e.g. 50000"
-                      value={(selectedLoan?.loanAmount - selectedLoan.totalLoanRepaidAmount) - (Number(form.repayAmount) - calculateInterest())}
+                      value={(selectedLoan?.loanAmount - selectedLoan.totalLoanRepaidAmount!) - (Number(form.repayAmount) - calculateInterest())}
                       //onChange={(e) => handleChange("totalLoanAmount", e.target.value)}
                       disabled
                     /> 
@@ -344,14 +346,14 @@ const handleSubmit = async (e: FormEvent) => {
                   <button
                     type="button"
                     onClick={() => router.push("/dashboard/loans")}
-                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+                      className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 cursor-pointer"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

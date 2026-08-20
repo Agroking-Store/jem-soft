@@ -84,7 +84,9 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
     form.interestRate &&
     (isNaN(Number(form.interestRate)) ||
       Number(form.interestRate) < 0 ||
-      Number(form.interestRate) > 100)
+      Number(form.interestRate) > 100 ||
+      Number(form.interestRate) == 0
+    )
   ) {
     newErrors.interestRate = "Interest rate must be between 0 and 100";
   }
@@ -93,6 +95,11 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
     newErrors.loanDate = "Loan date is required";
   } else if (new Date(form.loanDate) > new Date()) {
     newErrors.loanDate = "Loan date cannot be in the future";
+  }
+
+  if(Number(form.loanAmount) > totalLoanGrantableValue)
+  {
+    newErrors.loanAmount = `Loan Amount can be maximum - ${totalLoanGrantableValue}`
   }
 
   setErrors(newErrors);
@@ -115,11 +122,10 @@ const getTotalLoanForPolicy = (policyId: string) => {
   const policy : Policy = policies.find((p) => p.id === policyId);
   if (!policy) return 0;
 
-  const premium = Number(policy?.premium.basicYearlyPremium ?? 0);
+  const premium = Number(policy.premium!.basicYearlyPremium ?? 0);
   if (!premium) return 0;
 
   const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
-  // const previousLoanDetails = filteredLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
   totalLoans =  filteredLoans.reduce((sum, loan) => {
     return sum + (Number(loan.loanAmount) || 0);
@@ -149,12 +155,11 @@ const getTotalLoanForPolicy = (policyId: string) => {
 
 };
 
-const totalLoanGrantedValue =  getTotalLoanForPolicy(form.policyId).toString();
+const totalLoanGrantableValue =  getTotalLoanForPolicy(form.policyId);
  
 
 const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : null;
 
-  //const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId).toString()) : form.prevLoanTaken;
 
   /* ── Shared class strings ──────────────────────────────────── */
   const inputClass =
@@ -271,12 +276,12 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
                 const policy = policies.find(
                       (p) => p.id === e.target.value,
                     );
-                    setSelectedPolicy(policy)
+                    setSelectedPolicy(policy!)
               //  if (!form.totalLoanGranted) {
               //     handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
               //       );
               //      }
-              checkPolicyLoanEligibility(policy)
+              checkPolicyLoanEligibility(policy!)
           
               }}
               className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.policyId
@@ -410,7 +415,7 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
                   type="text"
                   placeholder="e.g. 50000"
                   value={form.loanAmount}
-                  max={totalLoanGrantedValue}
+                  max={totalLoanGrantableValue}
                   onChange={(e) => handleChange("loanAmount", e.target.value)}
                 />
                  {errors.loanAmount && (
@@ -505,14 +510,14 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
           <button
             type="button"
             onClick={() => router.push("/dashboard/loans")}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
