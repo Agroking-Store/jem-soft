@@ -162,6 +162,8 @@ export default function RevivalPremiumCalculator({
   customers,
 }: RevivalPremiumCalculatorProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Policy search/dropdown
   const [policySearch, setPolicySearch] = useState("");
@@ -276,21 +278,35 @@ export default function RevivalPremiumCalculator({
   };
 
   const handleDownloadPDF = async () => {
-    if (!printRef.current) return;
-    const toastId = toast.loading("Generating PDF...");
+    if (!reportRef.current) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Generating PDF report...");
     try {
-      const canvas = await html2canvas(printRef.current, {
-        scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff",
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false,
       });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const imgWidth = 210;
+      const pageHeight = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
       pdf.save(`Revival_Quote_${selectedPolicy?.policyNumber || "Policy"}_${dateOfCalc}.pdf`);
-      toast.success("PDF downloaded!", { id: toastId });
+      toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (e: any) {
-      toast.error(e?.message || "Failed", { id: toastId });
+      console.error(e);
+      toast.error(e?.message || "Failed to generate PDF.", { id: toastId });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -318,9 +334,13 @@ export default function RevivalPremiumCalculator({
               <RotateCcw size={20} />
             </button>
             {calculated && (
-              <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl hover:brightness-105 transition">
+              <button
+                onClick={handleDownloadPDF}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl hover:brightness-105 transition disabled:opacity-50"
+              >
                 <Download size={16} />
-                Download PDF
+                {isExporting ? "Exporting..." : "Download PDF"}
               </button>
             )}
           </div>
@@ -626,6 +646,164 @@ export default function RevivalPremiumCalculator({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden formatted report — used only for PDF export, styled like the other LIC reports */}
+      <div className="fixed top-0 -left-[10000px] -z-10">
+        <div ref={reportRef} className="bg-white p-8 border border-slate-300 text-slate-900 font-sans w-[850px] space-y-4">
+          {/* Letterhead */}
+          <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
+            <div className="space-y-0.5">
+              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
+              <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
+              <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
+              <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
+              <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
+            </div>
+            <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
+              <span className="text-[10px] font-serif font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
+            </div>
+          </div>
+
+          {/* Title bar */}
+          <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
+            <h2 className="text-base font-serif font-bold text-[#E8C77A] uppercase tracking-wider">Revival Premium Quotation</h2>
+            <span className="text-xs font-bold text-slate-200">As on {fmtDate(dateOfCalc) || fmtDate(new Date())}</span>
+          </div>
+
+          {/* Policy Details */}
+          <div>
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+              Policy Details
+            </h3>
+            <table className="w-full text-[11px] border-collapse">
+              <tbody>
+                <tr>
+                  <td className="py-1 pr-2 font-semibold text-slate-600 w-[18%]">Policy No.</td>
+                  <td className="py-1 pr-6 font-mono font-bold w-[32%]">{selectedPolicy?.policyNumber || policySearch || "-"}</td>
+                  <td className="py-1 pr-2 font-semibold text-slate-600 w-[18%]">Name</td>
+                  <td className="py-1 font-bold">{name || "-"}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Date of Birth</td>
+                  <td className="py-1 pr-6 font-mono">{fmtDate(dob) || "-"}</td>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Comm. Date</td>
+                  <td className="py-1 font-mono">{fmtDate(commDate) || "-"}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Plan</td>
+                  <td className="py-1 pr-6">{plan || "-"}</td>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Mode</td>
+                  <td className="py-1">{mode || "-"}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Term / PPT</td>
+                  <td className="py-1 pr-6 font-mono">{term || "-"} / {ppt || "-"}</td>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">FUP Date</td>
+                  <td className="py-1 font-mono">{fmtDate(fupDate) || "-"}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Sum Assured</td>
+                  <td className="py-1 pr-6 font-mono">₹ {Number(sumAssured || 0).toLocaleString("en-IN")}</td>
+                  <td className="py-1 pr-2 font-semibold text-slate-600">Premium</td>
+                  <td className="py-1 font-mono">₹ {Number(premium || 0).toLocaleString("en-IN")}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Calculation Summary */}
+          {calcResults && (
+            <div>
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+                Revival Calculation
+              </h3>
+              <table className="w-full text-[11px] border-collapse">
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">No. of Premiums Pending</td>
+                    <td className="py-1.5 text-right font-mono">{calcResults.premiumsPending}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Premium Amount Pending</td>
+                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.premiumAmountPending).toLocaleString("en-IN")}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Rate of Interest</td>
+                    <td className="py-1.5 text-right font-mono">{calcResults.rateOfInterest.toFixed(2)} %</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Revival Factor</td>
+                    <td className="py-1.5 text-right font-mono">{calcResults.revivalFactor.toFixed(4)}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Interest Payable</td>
+                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.interestPayable).toLocaleString("en-IN")}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">GST on Interest</td>
+                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.gstOnInterest).toLocaleString("en-IN")}</td>
+                  </tr>
+                  <tr className="bg-slate-100 border-y-2 border-slate-700">
+                    <td className="py-2 font-bold text-[#0B1220]">Amount Payable for Revival</td>
+                    <td className="py-2 text-right font-mono font-bold text-[#0B1220]">₹ {Number(calcResults.totalPayable).toLocaleString("en-IN")}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Validity of Quotation</td>
+                    <td className="py-1.5 text-right">{fmtDate(calcResults.validityDate)}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Loan Available</td>
+                    <td className="py-1.5 text-right font-mono">
+                      {calcResults.loanAvailable > 0 ? `₹ ${Number(calcResults.loanAvailable).toLocaleString("en-IN")}` : "Not Eligible"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 font-semibold text-slate-600">Survival Benefit Due</td>
+                    <td className="py-1.5 text-right font-mono">
+                      {calcResults.sbDue > 0 ? `₹ ${Number(calcResults.sbDue).toLocaleString("en-IN")}` : "0"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="mt-3 pt-3 border-t border-slate-200">
+                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                  Documents Required for Revival
+                </p>
+                <p className="text-[11px] text-slate-700 whitespace-pre-line leading-relaxed">
+                  {calcResults.documentsRequired}
+                </p>
+              </div>
+
+              {calcResults.premiumsPending > 5 && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-[10px] text-amber-700 font-medium">
+                    This policy has lapsed for more than 5 premiums. Medical examination may be required for revival.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {remarks && (
+            <div className="pt-1">
+              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Remarks</p>
+              <p className="text-[11px] text-slate-700">{remarks}</p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
+            <p>
+              This is a system-generated indicative quotation for policy revival, calculated at {REVIVAL_INTEREST_RATE * 100}% p.a. interest plus {GST_RATE * 100}% GST. Actual amount payable may vary — please confirm with your LIC branch office before making payment.
+            </p>
+            <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+              <span>Generated via Revival Premium Calculator</span>
+              <span>Report Date: {fmtDate(dateOfCalc)}</span>
             </div>
           </div>
         </div>
