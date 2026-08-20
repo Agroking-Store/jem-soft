@@ -13,9 +13,11 @@ export default function NotificationBell() {
   const {
     notifications,
     unreadCount,
+    showNotificationCount,
     fetchNotifications,
     readNotification,
     deleteNotification,
+    hideNotificationCount,
   } = useNotificationStore();
 
   const [open, setOpen] = useState(false);
@@ -23,6 +25,7 @@ export default function NotificationBell() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
 
   // Mark notification as read
   const handleNotificationClick = async (id: string) => {
@@ -50,15 +53,20 @@ export default function NotificationBell() {
     }
   };
 
+  const handleBellClick = () => {
+  hideNotificationCount();
+};
+
   return (
-    <div className="relative">
+    <div className="relative" onMouseEnter={() => setOpen(true)}
+         onMouseLeave={() => setOpen(false)}>
       <button
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => { router.push("/dashboard/notifications"); setOpen(false); handleBellClick();}}
         className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
       >
         <Bell size={22} className="text-slate-600" />
 
-        {unreadCount > 0 && (
+        {showNotificationCount && unreadCount > 0 && (
           <span
             className="
               absolute
@@ -82,14 +90,14 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
+      <div className={`display : ${open ? "block" : "hidden"}`}>
         <NotificationDropdown
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
           onDeleteNotification={handleDeleteNotification}
           onClose={() => setOpen(false)}
         />
-      )}
+      </div>
     </div>
   );
 }
