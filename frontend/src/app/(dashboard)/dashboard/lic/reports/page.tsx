@@ -36,6 +36,8 @@ import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/
 import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
 import PremiumCalendarForm, { PremiumCalendarFormData } from "@/features/lic/reports/PremiumCalenderForm";
 import PremiumCalendarReportView from "@/features/lic/reports/PremiumCalenderReportView";
+import LastPremiumStatementForm, { LastPremiumStatementFormData } from "@/features/lic/reports/LastPremiumStatementForm";
+import LastPremiumStatementReportView from "@/features/lic/reports/LastPremiumStatementReportView";
 import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
@@ -73,6 +75,8 @@ type ViewState =
   | "loan-interest-outstanding-report"
   | "premium-calendar-form"
   | "premium-calendar-report"
+  | "last-premium-statement-form"
+  | "last-premium-statement-report"
   | "revival-premium-calculator";
 
 export default function LICReportsPage() {
@@ -106,6 +110,8 @@ export default function LICReportsPage() {
     useState<LoanInterestOutstandingFormData | null>(null);
   const [selectedPremiumCalendarData, setSelectedPremiumCalendarData] =
     useState<PremiumCalendarFormData | null>(null);
+  const [selectedLastPremiumStatementData, setSelectedLastPremiumStatementData] =
+    useState<LastPremiumStatementFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -162,6 +168,8 @@ export default function LICReportsPage() {
       setCurrentView("loan-interest-outstanding-form");
     } else if (card.id === "premium-calender") {
       setCurrentView("premium-calendar-form");
+    } else if (card.id === "last-premium-statement") {
+      setCurrentView("last-premium-statement-form");
     } else if (card.id === "revival-premium-calculator") {
       setCurrentView("revival-premium-calculator");
     } else {
@@ -232,6 +240,11 @@ export default function LICReportsPage() {
   const handleGeneratePremiumCalendarReport = (formData: PremiumCalendarFormData) => {
     setSelectedPremiumCalendarData(formData);
     setCurrentView("premium-calendar-report");
+  };
+
+  const handleGenerateLastPremiumStatementReport = (formData: LastPremiumStatementFormData) => {
+    setSelectedLastPremiumStatementData(formData);
+    setCurrentView("last-premium-statement-report");
   };
 
   return (
@@ -362,7 +375,8 @@ export default function LICReportsPage() {
                       card.id === "loan-interest-due" ||
                       card.id === "loan-interest-outstanding" ||
                       card.id === "revival-premium-calculator" ||
-                      card.id === "premium-calender"
+                      card.id === "premium-calender" ||
+                      card.id === "last-premium-statement"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -687,6 +701,30 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("premium-calendar-form")}
+        />
+      )}
+
+      {/* VIEW 28: Last Premium Statement Form */}
+      {currentView === "last-premium-statement-form" && (
+        <LastPremiumStatementForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLastPremiumStatementReport}
+          initialData={selectedLastPremiumStatementData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 29: Last Premium Statement Report View */}
+      {currentView === "last-premium-statement-report" && selectedLastPremiumStatementData && (
+        <LastPremiumStatementReportView
+          formData={selectedLastPremiumStatementData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("last-premium-statement-form")}
         />
       )}
 
