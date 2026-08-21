@@ -64,7 +64,8 @@ const getDefaultDateRange = () => {
   };
 };
 
-// Every option starts unchecked / unselected — no pre-selected filter of any kind.
+// Mode to Include and Calculation Options come pre-checked by default (matches
+// the reference screenshot); every other filter starts empty/unselected.
 const getDefaultFormData = (): LastPremiumStatementFormData => {
   const dates = getDefaultDateRange();
   return {
@@ -73,12 +74,12 @@ const getDefaultFormData = (): LastPremiumStatementFormData => {
     toDate: dates.toDate,
     reportDate: dates.reportDate,
     modeToInclude: {
-      nonMonthly: false,
-      monthly: false,
+      nonMonthly: true,
+      monthly: true,
     },
     calculationOptions: {
-      loyaltyAddition: false,
-      fab: false,
+      loyaltyAddition: true,
+      fab: true,
     },
     sortingOption: "groupsWise",
     selectedGroups: [],
@@ -230,56 +231,56 @@ export default function LastPremiumStatementForm({
           </div>
         </div>
 
-        {/* Section 2: Mode to Include */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Mode to Include</h2>
-          <div className="flex items-center gap-8">
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.modeToInclude.nonMonthly}
-                onChange={(e) => setFormData((prev) => ({ ...prev, modeToInclude: { ...prev.modeToInclude, nonMonthly: e.target.checked } }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>Non-Monthly</span>
-            </label>
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.modeToInclude.monthly}
-                onChange={(e) => setFormData((prev) => ({ ...prev, modeToInclude: { ...prev.modeToInclude, monthly: e.target.checked } }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>Monthly</span>
-            </label>
+        {/* Section 2 & 3: Mode to Include + Calculation Options (side by side) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Mode to Include</h2>
+            <div className="flex items-center gap-8">
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.modeToInclude.nonMonthly}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, modeToInclude: { ...prev.modeToInclude, nonMonthly: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                />
+                <span>Non-Monthly</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.modeToInclude.monthly}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, modeToInclude: { ...prev.modeToInclude, monthly: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                />
+                <span>Monthly</span>
+              </label>
+            </div>
           </div>
-          <p className="text-[11px] text-slate-400 pt-3">Leave both unchecked to include every payment mode.</p>
-        </div>
 
-        {/* Section 3: Calculation Options */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Calculation Options</h2>
-          <div className="flex items-center gap-8">
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.calculationOptions.loyaltyAddition}
-                onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, loyaltyAddition: e.target.checked } }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>Loyalty Addition</span>
-            </label>
-            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
-              <input
-                type="checkbox"
-                checked={formData.calculationOptions.fab}
-                onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, fab: e.target.checked } }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
-              />
-              <span>FAB</span>
-            </label>
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+            <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Calculation Options</h2>
+            <div className="flex items-center gap-8">
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.calculationOptions.loyaltyAddition}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, loyaltyAddition: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                />
+                <span>Loyalty Addition</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#B8873A] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.calculationOptions.fab}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, fab: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                />
+                <span>FAB</span>
+              </label>
+            </div>
           </div>
         </div>
 
