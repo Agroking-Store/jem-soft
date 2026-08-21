@@ -40,6 +40,7 @@ interface PremiumCalendarFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PremiumCalendarFormData) => void;
   initialData?: PremiumCalendarFormData | null;
+  agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
     id: string;
@@ -83,6 +84,7 @@ export default function PremiumCalendarForm({
   onBack,
   onGenerateReport,
   initialData,
+  agencies,
   policyStatuses,
   customers,
 }: PremiumCalendarFormProps) {
@@ -533,10 +535,10 @@ export default function PremiumCalendarForm({
       <FilterOptionsModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
-        agencies={[]}
+        agencies={agencies}
         policyStatuses={policyStatuses}
         selectedFilters={formData.appliedFilters}
-        defaultCategory="Policy Status"
+        defaultCategory="Agencies"
         enableDefaultStatusSelection={false}
         onApplyFilters={(filters) =>
           setFormData((prev) => ({ ...prev, appliedFilters: filters }))

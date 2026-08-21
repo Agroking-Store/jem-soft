@@ -2,7 +2,7 @@
 
 import { useRef, useState, useMemo } from "react";
 import { ArrowLeft, Download, FilterX } from "lucide-react";
-import { PremiumCalendarFormData } from "./PremiumCalendarForm";
+import { PremiumCalendarFormData } from "./PremiumCalenderForm";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";

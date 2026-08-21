@@ -357,6 +357,11 @@ export default function LICReportsPage() {
                       card.id === "survival-benefit" ||
                       card.id === "cash-flow-chart" ||
                       card.id === "comprehensive-insurance-chart" ||
+                      card.id === "premium-paid-details" ||
+                      card.id === "annuity-statement" ||
+                      card.id === "loan-interest-due" ||
+                      card.id === "loan-interest-outstanding" ||
+                      card.id === "revival-premium-calculator" ||
                       card.id === "premium-calender"
                         ? "Open Form & Report"
                         : "View Details"}
@@ -669,6 +674,7 @@ export default function LICReportsPage() {
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGeneratePremiumCalendarReport}
           initialData={selectedPremiumCalendarData}
+          agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
         />
