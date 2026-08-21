@@ -13,6 +13,8 @@ interface NotificationState {
 
   unreadCount: number;
 
+  showNotificationCount : boolean;
+
   fetchNotifications: () => Promise<void>;
 
   readNotification: (id: string) => Promise<void>;
@@ -22,6 +24,8 @@ interface NotificationState {
   deleteNotification: (id: string) => Promise<void>;
 
   deleteReadNotifications: () => Promise<void>;
+
+  hideNotificationCount : () => Promise<void>;
 }
 
 export const useNotificationStore =
@@ -29,6 +33,8 @@ export const useNotificationStore =
     notifications: [],
 
     unreadCount: 0,
+
+   showNotificationCount : true,
 
     fetchNotifications: async () => {
       const response = await getNotifications();
@@ -41,6 +47,7 @@ export const useNotificationStore =
         unreadCount: notifications.filter(
           (n: any) => !n.isRead
         ).length,
+        
       });
     },
 
@@ -60,6 +67,8 @@ export const useNotificationStore =
         unreadCount: state.notifications.filter(
           (n) => n.id !== id && !n.isRead
         ).length,
+
+        
       }));
     },
 
@@ -101,6 +110,14 @@ export const useNotificationStore =
         unreadCount: state.notifications.filter(
           (n) => !n.isRead
         ).length,
+
       }));
+    },
+
+    hideNotificationCount : async () => {
+      set({
+       showNotificationCount : false,
+    });
+      
     },
   }));
