@@ -10,6 +10,7 @@ import {
   Users,
   Landmark,
   Calculator,
+  RotateCw,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -93,6 +94,29 @@ export const Sidebar = () => {
               >
                 <FileText size={20} />
                 LIC
+              </Link>
+            );
+          })()}
+
+        {isMounted &&
+          (isAdmin || isAdvisor || isViewer) &&
+          (() => {
+            const policy360Path = "/dashboard/policy-360";
+            const isPolicy360Active = pathname.startsWith(policy360Path);
+
+            return (
+              <Link
+                href={policy360Path}
+                className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                ${
+                  isPolicy360Active
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+              >
+                <RotateCw size={20} />
+                Policy 360
               </Link>
             );
           })()}
