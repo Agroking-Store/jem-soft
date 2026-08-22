@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   RotateCcw,
-  FileDown,
+  FileText,
   ChevronLeft,
-  Calendar,
   ChevronDown,
   ArrowRight,
 } from "lucide-react";
@@ -180,22 +179,18 @@ export default function PolicyStatusReportForm({
 
     const clientFullName = selectedOption.clientName;
 
-    // DOB
     const dobStr = cm?.dob
       ? new Date(cm.dob).toISOString().split("T")[0]
       : "";
 
-    // Comm Date
     const commDateStr = pol.commencementDate
       ? new Date(pol.commencementDate).toISOString().split("T")[0]
       : "";
 
-    // Next due / FUP Date
     const fupDateStr = pol.nextPremiumDueDate
       ? new Date(pol.nextPremiumDueDate).toISOString().split("T")[0]
       : "";
 
-    // Address
     const resAddr = (cm as any)?.addresses?.find((a: any) => a.addressType === "Residence") || (cm as any)?.addresses?.[0];
     const addressStr = resAddr
       ? [resAddr.addressLine1, resAddr.addressLine2, resAddr.city, resAddr.state, resAddr.pin]
@@ -205,7 +200,6 @@ export default function PolicyStatusReportForm({
           .filter(Boolean)
           .join(", ");
 
-    // Numerical values
     const sumAssured = Number(pol.premium?.sumAssured) || 0;
     const premium =
       Number(pol.premium?.installmentPremium) ||
@@ -214,7 +208,6 @@ export default function PolicyStatusReportForm({
     const term = pol.policyTerm || 0;
     const ppt = pol.premiumPayingTerm || term || 0;
 
-    // Mode
     const modeName = pol.premiumMode?.modeName || pol.mode || "Y";
     const modeShort =
       modeName.toLowerCase().startsWith("y")
@@ -229,17 +222,14 @@ export default function PolicyStatusReportForm({
         ? "S"
         : "Y";
 
-    // Branch
     const branchStr = pol.branch?.branchName || pol.branch?.branchCode || "Sbi";
 
-    // Loan details if any
     const loan = (pol as any).loans?.[0];
     const loanTaken = Number(loan?.loanAmount) || 0;
     const loanDateStr = loan?.loanDate
       ? new Date(loan.loanDate).toISOString().split("T")[0]
       : "";
 
-    // Calculation estimates
     const commYear = commDateStr ? new Date(commDateStr).getFullYear() : new Date().getFullYear();
     const currentYear = new Date().getFullYear();
     const yearsElapsed = Math.max(1, currentYear - commYear);
@@ -308,42 +298,42 @@ export default function PolicyStatusReportForm({
 
   return (
     <div className="space-y-6">
-      {/* Top Header matching Screenshot */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="p-2 border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-700 transition"
-            title="Back to Reports"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-[#02569B] tracking-tight">
+      {/* Top Header & Action Bar matching Policy Register */}
+      <div className="relative overflow-hidden bg-[#0B1220] rounded-2xl p-4 sm:p-5 text-white shadow-xl border border-slate-800">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider cursor-pointer"
+            >
+              <ChevronLeft size={16} />
+              <span>Reports</span>
+            </button>
+            <div className="h-6 w-px bg-white/15" />
+            <h1 className="font-serif text-lg sm:text-xl font-bold text-[#E8C77A] tracking-wider uppercase">
               Policy Status Report
             </h1>
           </div>
-        </div>
 
-        {/* Top Right Actions */}
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="p-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs"
-            title="Reset Form"
-          >
-            <RotateCcw size={19} />
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="p-2 rounded-lg bg-[#02569B] text-white hover:bg-[#014175] transition shadow-xs"
-            title="Generate & View PDF Report"
-          >
-            <FileDown size={19} />
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
+              title="Reset Form"
+            >
+              <RotateCcw size={19} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onGenerateReport(formData)}
+              className="p-2 text-[#E8C77A] hover:bg-white/10 rounded-xl transition cursor-pointer"
+              title="Generate Report"
+            >
+              <FileText size={19} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -353,24 +343,28 @@ export default function PolicyStatusReportForm({
           {/* LEFT SIDE: Policy Details & Calculation Options */}
           <div className="lg:col-span-7 space-y-6">
             {/* Policy Details Card */}
-            <div className="rounded-2xl border border-blue-100 bg-white shadow-xs overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/50 to-white px-6 py-3 border-b border-blue-100">
-                <h2 className="text-sm font-bold text-[#02569B] tracking-wide">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
                   Policy Details
                 </h2>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="space-y-4 pt-2">
                 {/* Policy No Searchable Dropdown */}
-                <div>
-                  <div className="relative border border-slate-300 rounded-lg px-3.5 pt-2 pb-1.5 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 bg-white shadow-xs">
-                    <span className="absolute -top-2.5 left-3 bg-white px-1 text-[10px] font-semibold text-slate-500">
-                      Policy No. (with Client Name)
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Policy No. (with Client Name)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      Policy No.
                     </span>
                     <select
                       value={formData.policyId}
                       onChange={(e) => handleSelectPolicy(e.target.value)}
-                      className="w-full text-xs text-slate-800 font-semibold bg-transparent outline-none cursor-pointer appearance-none pr-8"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-semibold bg-white outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 cursor-pointer appearance-none pr-10"
                     >
                       <option value="">-- Select Policy No. with Name --</option>
                       {policyOptions.map((opt) => (
@@ -381,134 +375,116 @@ export default function PolicyStatusReportForm({
                     </select>
                     <ChevronDown
                       size={16}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
                     />
                   </div>
                 </div>
 
                 {/* Name, DOB, Comm Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                  <div className="sm:col-span-6">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Name</span>
-                      <input
-                        type="text"
-                        value={formData.clientName}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, clientName: e.target.value }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        placeholder="Client Name"
-                      />
-                    </div>
+                  <div className="sm:col-span-6 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Name</span>
+                    <input
+                      type="text"
+                      value={formData.clientName}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, clientName: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                      placeholder="Client Name"
+                    />
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block">Date of Birth</span>
-                        <input
-                          type="date"
-                          value={formData.dob}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, dob: e.target.value }))
-                          }
-                          className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        />
-                      </div>
-                    </div>
+                  <div className="sm:col-span-3 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Date of Birth</span>
+                    <input
+                      type="date"
+                      value={formData.dob}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, dob: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    />
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block">Comm. Date</span>
-                        <input
-                          type="date"
-                          value={formData.commencementDate}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              commencementDate: e.target.value,
-                            }))
-                          }
-                          className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        />
-                      </div>
-                    </div>
+                  <div className="sm:col-span-3 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Comm. Date</span>
+                    <input
+                      type="date"
+                      value={formData.commencementDate}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          commencementDate: e.target.value,
+                        }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    />
                   </div>
                 </div>
 
                 {/* Plan, Mode, Term, PPT */}
                 <div className="grid grid-cols-2 sm:grid-cols-12 gap-3">
-                  <div className="sm:col-span-5">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Plan</span>
-                      <input
-                        type="text"
-                        value={formData.plan}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, plan: e.target.value }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        placeholder="Plan"
-                      />
-                    </div>
+                  <div className="sm:col-span-5 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Plan</span>
+                    <input
+                      type="text"
+                      value={formData.plan}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, plan: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                      placeholder="Plan"
+                    />
                   </div>
 
-                  <div className="sm:col-span-3">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Mode</span>
-                      <select
-                        value={formData.mode}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, mode: e.target.value }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                      >
-                        <option value="Y">Yearly (Y)</option>
-                        <option value="H">Half-Yearly (H)</option>
-                        <option value="Q">Quarterly (Q)</option>
-                        <option value="M">Monthly (M)</option>
-                        <option value="S">Single (S)</option>
-                        <option value="NACH">NACH</option>
-                      </select>
-                    </div>
+                  <div className="sm:col-span-3 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Mode</span>
+                    <select
+                      value={formData.mode}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, mode: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A] cursor-pointer"
+                    >
+                      <option value="Y">Yearly (Y)</option>
+                      <option value="H">Half-Yearly (H)</option>
+                      <option value="Q">Quarterly (Q)</option>
+                      <option value="M">Monthly (M)</option>
+                      <option value="S">Single (S)</option>
+                      <option value="NACH">NACH</option>
+                    </select>
                   </div>
 
-                  <div className="sm:col-span-2">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Term</span>
-                      <input
-                        type="number"
-                        value={formData.term}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, term: Number(e.target.value) }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none font-mono"
-                      />
-                    </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Term</span>
+                    <input
+                      type="number"
+                      value={formData.term}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, term: Number(e.target.value) }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    />
                   </div>
 
-                  <div className="sm:col-span-2">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">PPT</span>
-                      <input
-                        type="number"
-                        value={formData.ppt}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, ppt: Number(e.target.value) }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none font-mono"
-                      />
-                    </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">PPT</span>
+                    <input
+                      type="number"
+                      value={formData.ppt}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, ppt: Number(e.target.value) }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    />
                   </div>
                 </div>
 
                 {/* Sum, Premium, DAB */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="relative border border-slate-300 rounded-lg px-3.5 pt-2 pb-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="absolute -top-2.5 left-3 bg-white px-1 text-[10px] font-semibold text-slate-500">
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
                       Sum
                     </span>
                     <input
@@ -517,12 +493,12 @@ export default function PolicyStatusReportForm({
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, sumAssured: Number(e.target.value) }))
                       }
-                      className="w-full text-xs text-slate-800 font-semibold bg-transparent outline-none font-mono"
+                      className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3.5 pt-2 pb-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="absolute -top-2.5 left-3 bg-white px-1 text-[10px] font-semibold text-slate-500">
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
                       Premium
                     </span>
                     <input
@@ -531,12 +507,12 @@ export default function PolicyStatusReportForm({
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, premium: Number(e.target.value) }))
                       }
-                      className="w-full text-xs text-slate-800 font-semibold bg-transparent outline-none font-mono"
+                      className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3.5 pt-2 pb-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="absolute -top-2.5 left-3 bg-white px-1 text-[10px] font-semibold text-slate-500">
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
                       DAB
                     </span>
                     <input
@@ -545,15 +521,15 @@ export default function PolicyStatusReportForm({
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, dab: Number(e.target.value) }))
                       }
-                      className="w-full text-xs text-slate-800 font-semibold bg-transparent outline-none font-mono"
+                      className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
                 </div>
 
                 {/* Deposit Amount, Branch, FUP Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="relative border border-slate-300 rounded-lg px-3.5 pt-2 pb-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="absolute -top-2.5 left-3 bg-white px-1 text-[10px] font-semibold text-slate-500">
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
                       Deposit Amount
                     </span>
                     <input
@@ -565,40 +541,40 @@ export default function PolicyStatusReportForm({
                           depositAmount: Number(e.target.value),
                         }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none font-mono"
+                      className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="text-[10px] text-slate-400 block">Branch</span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Branch</span>
                     <input
                       type="text"
                       value={formData.branch}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, branch: e.target.value }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
                       placeholder="Branch"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="text-[10px] text-slate-400 block">FUP Date</span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">FUP Date</span>
                     <input
                       type="date"
                       value={formData.fupDate}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, fupDate: e.target.value }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
                 </div>
 
                 {/* Loan Taken, Loan Date, FULI Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="text-[10px] text-slate-400 block">Loan Taken</span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Loan Taken</span>
                     <input
                       type="number"
                       value={formData.loanTaken}
@@ -608,94 +584,91 @@ export default function PolicyStatusReportForm({
                           loanTaken: Number(e.target.value),
                         }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none font-mono"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="text-[10px] text-slate-400 block">Loan Date</span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Loan Date</span>
                     <input
                       type="date"
                       value={formData.loanDate}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, loanDate: e.target.value }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
 
-                  <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                    <span className="text-[10px] text-slate-400 block">FULI Date</span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">FULI Date</span>
                     <input
                       type="date"
                       value={formData.fuliDate}
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, fuliDate: e.target.value }))
                       }
-                      className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
                     />
                   </div>
                 </div>
 
                 {/* Address */}
-                <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                  <span className="text-[10px] text-slate-400 block">Address</span>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Address</span>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, address: e.target.value }))
                     }
-                    className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
                     placeholder="Residential Address"
                   />
                 </div>
 
                 {/* Payment Type & Remarks */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                  <div className="sm:col-span-4">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Payment Type</span>
-                      <input
-                        type="text"
-                        value={formData.paymentType}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, paymentType: e.target.value }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        placeholder="Ordinary / NACH"
-                      />
-                    </div>
+                  <div className="sm:col-span-4 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Payment Type</span>
+                    <input
+                      type="text"
+                      value={formData.paymentType}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, paymentType: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                      placeholder="Ordinary / NACH"
+                    />
                   </div>
 
-                  <div className="sm:col-span-8">
-                    <div className="relative border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-blue-500 bg-white shadow-xs">
-                      <span className="text-[10px] text-slate-400 block">Remarks</span>
-                      <input
-                        type="text"
-                        value={formData.remarks}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, remarks: e.target.value }))
-                        }
-                        className="w-full text-xs text-slate-800 font-medium bg-transparent outline-none"
-                        placeholder="Remarks"
-                      />
-                    </div>
+                  <div className="sm:col-span-8 space-y-1">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Remarks</span>
+                    <input
+                      type="text"
+                      value={formData.remarks}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, remarks: e.target.value }))
+                      }
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                      placeholder="Remarks"
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Calculation Options */}
-            <div className="rounded-2xl border border-blue-100 bg-white shadow-xs overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/50 to-white px-6 py-3 border-b border-blue-100">
-                <h2 className="text-sm font-bold text-[#02569B] tracking-wide">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
                   Calculation Options
                 </h2>
               </div>
 
-              <div className="p-6 flex flex-wrap gap-8">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
+              <div className="flex flex-wrap gap-8 pt-2">
+                <label className="flex items-center gap-3 cursor-pointer select-none bg-slate-50 hover:bg-[#B8873A]/5 p-3 rounded-xl border border-slate-200 transition">
                   <input
                     type="checkbox"
                     checked={formData.includeLoyaltyAddition}
@@ -705,14 +678,14 @@ export default function PolicyStatusReportForm({
                         includeLoyaltyAddition: e.target.checked,
                       }))
                     }
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
                   />
-                  <span className="text-xs text-slate-700 font-medium">
+                  <span className="text-xs text-slate-800 font-semibold">
                     Include Loyalty Addition
                   </span>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer select-none">
+                <label className="flex items-center gap-3 cursor-pointer select-none bg-slate-50 hover:bg-[#B8873A]/5 p-3 rounded-xl border border-slate-200 transition">
                   <input
                     type="checkbox"
                     checked={formData.includeFab}
@@ -722,9 +695,9 @@ export default function PolicyStatusReportForm({
                         includeFab: e.target.checked,
                       }))
                     }
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
                   />
-                  <span className="text-xs text-slate-700 font-medium">
+                  <span className="text-xs text-slate-800 font-semibold">
                     Include FAB
                   </span>
                 </label>
@@ -734,272 +707,260 @@ export default function PolicyStatusReportForm({
 
           {/* RIGHT SIDE: Calculation Box */}
           <div className="lg:col-span-5">
-            <div className="rounded-2xl border border-blue-100 bg-white shadow-xs overflow-hidden h-full flex flex-col">
-              <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/50 to-white px-6 py-3 border-b border-blue-100">
-                <h2 className="text-sm font-bold text-[#02569B] tracking-wide">
-                  Calculation
-                </h2>
-              </div>
-
-              <div className="p-6 space-y-2.5 flex-1 text-xs">
-                {/* Total Premiums Paid */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700 font-medium">Total Premiums Paid :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.totalPremiumsPaid}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          totalPremiumsPaid: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
-                  </div>
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-full flex flex-col justify-between">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
+                    Calculation
+                  </h2>
                 </div>
 
-                {/* Policy Status */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700 font-medium">Policy Status :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="text"
-                      value={formData.policyStatus}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, policyStatus: e.target.value }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                <div className="space-y-2.5 text-xs pt-2">
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700 font-semibold">Total Premiums Paid :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.totalPremiumsPaid}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            totalPremiumsPaid: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Vested Bonus (for S.V.) */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Vested Bonus (for S.V.) :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.vestedBonusSV}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          vestedBonusSV: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700 font-semibold">Policy Status :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="text"
+                        value={formData.policyStatus}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, policyStatus: e.target.value }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Paid Up Value */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Paid Up Value :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.paidUpValueSV}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          paidUpValueSV: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Vested Bonus (for S.V.) :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.vestedBonusSV}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            vestedBonusSV: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Total */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-900 font-bold">Total :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.totalSV}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, totalSV: Number(e.target.value) }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono font-bold bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Paid Up Value :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.paidUpValueSV}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paidUpValueSV: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Vested Bonus (for Loan) */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Vested Bonus (for Loan) :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.vestedBonusLoan}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          vestedBonusLoan: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-900 font-bold">Total :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.totalSV}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, totalSV: Number(e.target.value) }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono font-bold bg-[#B8873A]/10 text-slate-900 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Paid Up Value */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Paid Up Value :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.paidUpValueLoan}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          paidUpValueLoan: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Vested Bonus (for Loan) :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.vestedBonusLoan}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            vestedBonusLoan: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Total */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-900 font-bold">Total :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.totalLoan}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          totalLoan: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono font-bold bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Paid Up Value :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.paidUpValueLoan}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            paidUpValueLoan: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* S.V. Factor */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">S.V. Factor :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="text"
-                      value={formData.svFactor}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, svFactor: e.target.value }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-900 font-bold">Total :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.totalLoan}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            totalLoan: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono font-bold bg-[#B8873A]/10 text-slate-900 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Special Sur. Value */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Special Sur. Value :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.specialSurrenderValue}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          specialSurrenderValue: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">S.V. Factor :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="text"
+                        value={formData.svFactor}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, svFactor: e.target.value }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Gaur. Surr. Value */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Gaur. Surr. Value :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.guaranteedSurrenderValue}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          guaranteedSurrenderValue: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Special Sur. Value :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.specialSurrenderValue}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            specialSurrenderValue: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Late Fee Interest */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Late Fee Interest :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="text"
-                      value={formData.lateFeeInterest}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          lateFeeInterest: e.target.value,
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Gaur. Surr. Value :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.guaranteedSurrenderValue}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            guaranteedSurrenderValue: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Discounted Value */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Discounted Value :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.discountedValue}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          discountedValue: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Late Fee Interest :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="text"
+                        value={formData.lateFeeInterest}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            lateFeeInterest: e.target.value,
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Risk Cover */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Risk Cover :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.riskCover}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          riskCover: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Discounted Value :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.discountedValue}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            discountedValue: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Loan Available */}
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <span className="col-span-6 text-slate-700">Loan Available :</span>
-                  <div className="col-span-6">
-                    <input
-                      type="number"
-                      value={formData.loanAvailable}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          loanAvailable: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-blue-500 outline-none"
-                    />
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700">Risk Cover :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.riskCover}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            riskCover: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 items-center gap-2">
+                    <span className="col-span-6 text-slate-700 font-semibold">Loan Available :</span>
+                    <div className="col-span-6">
+                      <input
+                        type="number"
+                        value={formData.loanAvailable}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            loanAvailable: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-right font-mono font-bold text-[#B8873A] bg-slate-50 focus:bg-white focus:border-[#B8873A] outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1011,10 +972,10 @@ export default function PolicyStatusReportForm({
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="px-6 py-2.5 bg-gradient-to-r from-[#02569B] to-[#014175] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
+            className="px-8 py-3 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition flex items-center gap-2 cursor-pointer"
           >
             <span>Generate Policy Status Report</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </button>
         </div>
       </form>

@@ -43,6 +43,8 @@ import CustomerDataSheetForm, { CustomerDataSheetFormData } from "@/features/lic
 import CustomerDataSheetReportView from "@/features/lic/reports/CustomerDataSheetReportView";
 import PolicyStatusReportForm, { PolicyStatusFormData } from "@/features/lic/reports/PolicyStatusReportForm";
 import PolicyStatusReportView from "@/features/lic/reports/PolicyStatusReportView";
+import LoanSurrenderQuotationForm, { LoanSurrenderQuotationFormData } from "@/features/lic/reports/LoanSurrenderQuotationForm";
+import LoanSurrenderQuotationReportView from "@/features/lic/reports/LoanSurrenderQuotationReportView";
 import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
@@ -86,6 +88,8 @@ type ViewState =
   | "customer-data-sheet-report"
   | "policy-status-report-form"
   | "policy-status-report-view"
+  | "loan-surrender-quotation-form"
+  | "loan-surrender-quotation-report"
   | "revival-premium-calculator";
 
 export default function LICReportsPage() {
@@ -125,6 +129,8 @@ export default function LICReportsPage() {
     useState<CustomerDataSheetFormData | null>(null);
   const [selectedPolicyStatusData, setSelectedPolicyStatusData] =
     useState<PolicyStatusFormData | null>(null);
+  const [selectedLoanSurrenderQuotationData, setSelectedLoanSurrenderQuotationData] =
+    useState<LoanSurrenderQuotationFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
@@ -189,6 +195,8 @@ export default function LICReportsPage() {
       setCurrentView("customer-data-sheet-form");
     } else if (card.id === "policy-status-report") {
       setCurrentView("policy-status-report-form");
+    } else if (card.id === "loan-surrender-value-quotation") {
+      setCurrentView("loan-surrender-quotation-form");
     } else if (card.id === "revival-premium-calculator") {
       setCurrentView("revival-premium-calculator");
     } else {
@@ -209,6 +217,11 @@ export default function LICReportsPage() {
   const handleGeneratePolicyStatusReport = (formData: PolicyStatusFormData) => {
     setSelectedPolicyStatusData(formData);
     setCurrentView("policy-status-report-view");
+  };
+
+  const handleGenerateLoanSurrenderQuotationReport = (formData: LoanSurrenderQuotationFormData) => {
+    setSelectedLoanSurrenderQuotationData(formData);
+    setCurrentView("loan-surrender-quotation-report");
   };
 
   const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
@@ -407,7 +420,8 @@ export default function LICReportsPage() {
                       card.id === "premium-calender" ||
                       card.id === "last-premium-statement" ||
                       card.id === "customer-data-sheet" ||
-                      card.id === "policy-status-report"
+                      card.id === "policy-status-report" ||
+                      card.id === "loan-surrender-value-quotation"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -809,6 +823,26 @@ export default function LICReportsPage() {
         <PolicyStatusReportView
           formData={selectedPolicyStatusData}
           onBackToForm={() => setCurrentView("policy-status-report-form")}
+        />
+      )}
+
+      {/* VIEW 34: Loan / Surrender Value Quotation Form */}
+      {currentView === "loan-surrender-quotation-form" && (
+        <LoanSurrenderQuotationForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanSurrenderQuotationReport}
+          initialData={selectedLoanSurrenderQuotationData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 35: Loan / Surrender Value Quotation Report View */}
+      {currentView === "loan-surrender-quotation-report" && selectedLoanSurrenderQuotationData && (
+        <LoanSurrenderQuotationReportView
+          formData={selectedLoanSurrenderQuotationData}
+          onBackToForm={() => setCurrentView("loan-surrender-quotation-form")}
         />
       )}
 

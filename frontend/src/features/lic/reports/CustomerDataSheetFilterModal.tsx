@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Search, ChevronDown, Trash2 } from "lucide-react";
+import { X, Search, ChevronDown, Trash2, CheckCircle2 } from "lucide-react";
 import type { Customer, CustomerMaster } from "@/features/customers/types";
 
 export interface SelectedFilterItem {
@@ -45,12 +45,12 @@ export default function CustomerDataSheetFilterModal({
 
   // Build dynamic memberwise list from DB CustomerMaster & Customer
   const groupMemberwiseList = useMemo(() => {
-    // If customersMaster exists, map all individual members
     if (customersMaster && customersMaster.length > 0) {
       return customersMaster.map((cm) => {
         const group = customers.find((c) => c.id === cm.groupId) || cm.group;
         const groupCode = group?.groupCode || "000000";
-        const groupHeadName = (group as any)?.name || group?.groupName || `${cm.firstName} ${cm.lastName}`;
+        const groupHeadName =
+          (group as any)?.name || group?.groupName || `${cm.firstName} ${cm.lastName}`;
         const memberFullName = [cm.salutation, cm.firstName, cm.middleName, cm.lastName]
           .filter(Boolean)
           .join(" ")
@@ -68,7 +68,6 @@ export default function CustomerDataSheetFilterModal({
       });
     }
 
-    // Fallback to customer groups
     return customers.map((c) => ({
       id: c.id,
       memberId: c.id,
@@ -109,13 +108,48 @@ export default function CustomerDataSheetFilterModal({
   // Build dynamic policy status list
   const policyStatusesList = useMemo(() => {
     const list = [
-      { id: "status-inforce", memberId: "status-inforce", groupId: "", code: "INF", name: "Inforce", groupHeadName: "Inforce", type: "Policy Status" },
-      { id: "status-paidup", memberId: "status-paidup", groupId: "", code: "PUP", name: "Fully paid-up", groupHeadName: "Paid Up", type: "Policy Status" },
-      { id: "status-lapsed", memberId: "status-lapsed", groupId: "", code: "LAP", name: "Lapsed", groupHeadName: "Lapsed", type: "Policy Status" },
-      { id: "status-red-paidup", memberId: "status-red-paidup", groupId: "", code: "RPU", name: "Reduced Paid-up", groupHeadName: "Reduced Paid Up", type: "Policy Status" },
+      {
+        id: "status-inforce",
+        memberId: "status-inforce",
+        groupId: "",
+        code: "INF",
+        name: "Inforce",
+        groupHeadName: "Inforce",
+        type: "Policy Status",
+      },
+      {
+        id: "status-paidup",
+        memberId: "status-paidup",
+        groupId: "",
+        code: "PUP",
+        name: "Fully paid-up",
+        groupHeadName: "Paid Up",
+        type: "Policy Status",
+      },
+      {
+        id: "status-lapsed",
+        memberId: "status-lapsed",
+        groupId: "",
+        code: "LAP",
+        name: "Lapsed",
+        groupHeadName: "Lapsed",
+        type: "Policy Status",
+      },
+      {
+        id: "status-red-paidup",
+        memberId: "status-red-paidup",
+        groupId: "",
+        code: "RPU",
+        name: "Reduced Paid-up",
+        groupHeadName: "Reduced Paid Up",
+        type: "Policy Status",
+      },
     ];
     policyStatuses.forEach((ps) => {
-      if (ps.statusName && !list.some((l) => l.name.toLowerCase() === ps.statusName.toLowerCase())) {
+      if (
+        ps.statusName &&
+        !list.some((l) => l.name.toLowerCase() === ps.statusName.toLowerCase())
+      ) {
         list.push({
           id: ps.id,
           memberId: ps.id,
@@ -166,12 +200,9 @@ export default function CustomerDataSheetFilterModal({
     return filteredList.slice(start, start + pageSize);
   }, [filteredList, currentPage, pageSize]);
 
-  // Check if all visible items are selected
   const isAllPageSelected =
     paginatedList.length > 0 &&
-    paginatedList.every((item) =>
-      selectedItems.some((s) => s.id === item.id)
-    );
+    paginatedList.every((item) => selectedItems.some((s) => s.id === item.id));
 
   const toggleSelectAll = () => {
     if (isAllPageSelected) {
@@ -230,19 +261,22 @@ export default function CustomerDataSheetFilterModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Accent Gold Bar */}
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-b border-slate-100 bg-[#0B1220] text-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
           <div className="flex items-center gap-2">
-            <h2 className="font-serif text-base font-bold tracking-wide text-[#E8C77A]">
+            <h2 className="font-serif text-base font-bold tracking-wider text-[#E8C77A] uppercase">
               Filter Options
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition"
             title="Close"
           >
             <X size={18} />
@@ -250,9 +284,9 @@ export default function CustomerDataSheetFilterModal({
         </div>
 
         {/* Filter Controls Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50/80">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="font-medium text-xs text-slate-700 whitespace-nowrap">
+            <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
               Filter Options :
             </span>
             <div className="relative">
@@ -262,7 +296,7 @@ export default function CustomerDataSheetFilterModal({
                   setFilterCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="appearance-none bg-white border border-slate-300 rounded-lg px-3 py-1.5 pr-8 text-xs font-semibold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 shadow-xs"
+                className="appearance-none bg-white border border-slate-300 rounded-xl px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 shadow-xs cursor-pointer"
               >
                 <option value="Group Memberwise">Group Memberwise</option>
                 <option value="Groups Wise">Groups Wise</option>
@@ -285,7 +319,7 @@ export default function CustomerDataSheetFilterModal({
                 setSearchText(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#B8873A] focus:ring-1 focus:ring-[#B8873A] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 shadow-xs"
             />
             <Search size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
@@ -298,28 +332,28 @@ export default function CustomerDataSheetFilterModal({
             <div className="overflow-y-auto flex-1 border border-slate-200 rounded-xl shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-semibold sticky top-0 z-10">
+                  <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 font-serif text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10">
                     <th className="py-2.5 px-3 w-10 text-center">
                       <input
                         type="checkbox"
                         checked={isAllPageSelected}
                         onChange={toggleSelectAll}
-                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
                       />
                     </th>
-                    <th className="py-2.5 px-3 w-28 font-medium">
+                    <th className="py-2.5 px-3 w-28">
                       {filterCategory === "Group Memberwise" || filterCategory === "Groups Wise"
                         ? "Group Code"
                         : "Code"}
                     </th>
-                    <th className="py-2.5 px-3 font-medium">
+                    <th className="py-2.5 px-3">
                       {filterCategory === "Group Memberwise"
                         ? "Group"
                         : filterCategory === "Groups Wise"
                         ? "Group Name"
                         : "Name"}
                     </th>
-                    <th className="py-2.5 px-3 font-medium">
+                    <th className="py-2.5 px-3">
                       {filterCategory === "Group Memberwise"
                         ? "Group Head Name"
                         : filterCategory === "Groups Wise"
@@ -335,8 +369,8 @@ export default function CustomerDataSheetFilterModal({
                       <tr
                         key={item.id}
                         onClick={() => toggleItem(item)}
-                        className={`hover:bg-blue-50/40 cursor-pointer transition ${
-                          isChecked ? "bg-blue-50/60 font-medium" : ""
+                        className={`hover:bg-[#B8873A]/5 cursor-pointer transition ${
+                          isChecked ? "bg-[#B8873A]/10 font-semibold" : ""
                         }`}
                       >
                         <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -344,13 +378,13 @@ export default function CustomerDataSheetFilterModal({
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleItem(item)}
-                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
                           />
                         </td>
                         <td className="py-2 px-3 text-slate-700 font-mono text-[11px]">
                           {item.code || "-"}
                         </td>
-                        <td className="py-2 px-3 text-slate-900">{item.name}</td>
+                        <td className="py-2 px-3 text-slate-900 font-medium">{item.name}</td>
                         <td className="py-2 px-3 text-slate-600 text-[11px]">
                           {item.groupHeadName || "-"}
                         </td>
@@ -371,7 +405,7 @@ export default function CustomerDataSheetFilterModal({
 
             {/* Pagination Controls */}
             <div className="flex items-center justify-between pt-3 text-xs text-slate-600 border-t border-slate-100 mt-2">
-              <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-md font-semibold text-[11px]">
+              <span className="bg-[#B8873A]/10 text-[#B8873A] px-3 py-1 rounded-md font-bold text-[11px]">
                 {filteredList.length > 0
                   ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                       currentPage * pageSize,
@@ -397,7 +431,7 @@ export default function CustomerDataSheetFilterModal({
                 >
                   Prev
                 </button>
-                <span className="px-3 py-1 bg-blue-600 text-white rounded-md font-bold text-[11px]">
+                <span className="px-3 py-1 bg-[#0B1220] text-white rounded-md font-bold text-[11px]">
                   {currentPage}
                 </span>
                 <button
@@ -423,13 +457,13 @@ export default function CustomerDataSheetFilterModal({
           {/* Right Selected Items Panel */}
           <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60 overflow-hidden">
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white h-full flex flex-col shadow-xs">
-              <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
+              <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider flex items-center justify-between">
                 <span>Selected Filter ({selectedItems.length})</span>
                 {selectedItems.length > 0 && (
                   <button
                     type="button"
                     onClick={clearAllSelected}
-                    className="text-red-500 hover:text-red-700 text-[10px] lowercase font-sans font-normal hover:underline"
+                    className="text-slate-400 hover:text-red-400 text-[10px] lowercase font-sans font-normal hover:underline cursor-pointer"
                   >
                     clear all
                   </button>
@@ -449,7 +483,7 @@ export default function CustomerDataSheetFilterModal({
                       className="py-2 flex items-center justify-between text-xs group"
                     >
                       <div className="space-y-0.5 max-w-[80%]">
-                        <div className="font-medium text-slate-900 truncate">
+                        <div className="font-semibold text-slate-900 truncate">
                           {item.name}
                         </div>
                         <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
@@ -460,7 +494,7 @@ export default function CustomerDataSheetFilterModal({
                       <button
                         type="button"
                         onClick={() => removeItem(item.id)}
-                        className="text-slate-400 hover:text-red-600 p-1 transition"
+                        className="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
                         title="Remove"
                       >
                         <Trash2 size={14} />
@@ -478,7 +512,7 @@ export default function CustomerDataSheetFilterModal({
           <button
             type="button"
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md hover:brightness-110 transition cursor-pointer"
+            className="px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-105 transition cursor-pointer"
           >
             Apply Filter
           </button>
