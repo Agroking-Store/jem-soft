@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, Clock3, Search } from "lucide-react";
+import { ArrowRight, Clock3, Search , FileClock } from "lucide-react";
 
 const cards = [
+  {
+    title: "Premium Due",
+    subtitle: "Premium due for next 30 days",
+    href: "/dashboard/policy-360/premiumDue",
+    icon: FileClock,
+    iconClass: "bg-rose-50 text-rose-600",
+  },
   {
     title: "Lapsed Policies",
     subtitle: "Premium unpaid for last 90 days",
