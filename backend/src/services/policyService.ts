@@ -245,6 +245,15 @@ export const getAllPolicies = async (): Promise<any[]> => {
       CustomerMaster: {
         include: {
           bankDetails: true,
+          addresses: true,
+          contactInfo: true,
+          miscInfo: true,
+          familyHistories: {
+            include: { records: true },
+          },
+          medicalHistories: {
+            include: { records: true },
+          },
         },
       },
       customer: true,
@@ -253,8 +262,25 @@ export const getAllPolicies = async (): Promise<any[]> => {
       status: true,
       premiumMode: true,
       premium: true,
+      branch: true,
+      advisor: {
+        include: {
+          agency: true,
+        },
+      },
+      loans: {
+        include: {
+          loanStatus: true,
+        },
+      },
       nominees: true,
+      policyAttributes: {
+        include: {
+          attribute: true,
+        },
+      },
     },
+    orderBy: { commencementDate: "desc" },
   });
 };
 

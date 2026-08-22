@@ -243,6 +243,44 @@ export interface CustomerMaster {
   bankDetails?: CustomerBankDetail[];
   miscInfo?: CustomerMiscInfo | null;
   preferences?: CustomerServicePreferences | null;
+  familyHistories?: Array<{
+    id: string;
+    date: string;
+    records?: Array<{
+      id: string;
+      relation: string;
+      age: number;
+      stateOfHealth: string;
+      isDead: boolean;
+      ageAtDeath?: number | null;
+      causeOfDeath?: string | null;
+    }>;
+  }>;
+  medicalHistories?: Array<{
+    id: string;
+    date: string;
+    records?: Array<{
+      id: string;
+      medicalHistoryDate?: string;
+      age?: number | null;
+      gender?: string | null;
+      bloodGroup?: string;
+      bloodPressure?: string | null;
+      pulse?: string | null;
+      height?: number | null;
+      weight?: number | null;
+      chest?: number | null;
+      abdomen?: number | null;
+      identificationMark?: string | null;
+      spectaclesDetails?: string | null;
+      dentalDetails?: string | null;
+      majorIllness?: string | null;
+      operationAccident?: string | null;
+      specialReport?: string | null;
+      doctorName?: string | null;
+      medicalExaminationDate?: string | null;
+    }>;
+  }>;
   createdAt: string;
   updatedAt: string;
 }

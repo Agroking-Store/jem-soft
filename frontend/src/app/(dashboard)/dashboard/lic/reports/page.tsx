@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
+import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
@@ -38,6 +39,10 @@ import PremiumCalendarForm, { PremiumCalendarFormData } from "@/features/lic/rep
 import PremiumCalendarReportView from "@/features/lic/reports/PremiumCalenderReportView";
 import LastPremiumStatementForm, { LastPremiumStatementFormData } from "@/features/lic/reports/LastPremiumStatementForm";
 import LastPremiumStatementReportView from "@/features/lic/reports/LastPremiumStatementReportView";
+import CustomerDataSheetForm, { CustomerDataSheetFormData } from "@/features/lic/reports/CustomerDataSheetForm";
+import CustomerDataSheetReportView from "@/features/lic/reports/CustomerDataSheetReportView";
+import PolicyStatusReportForm, { PolicyStatusFormData } from "@/features/lic/reports/PolicyStatusReportForm";
+import PolicyStatusReportView from "@/features/lic/reports/PolicyStatusReportView";
 import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
@@ -77,6 +82,10 @@ type ViewState =
   | "premium-calendar-report"
   | "last-premium-statement-form"
   | "last-premium-statement-report"
+  | "customer-data-sheet-form"
+  | "customer-data-sheet-report"
+  | "policy-status-report-form"
+  | "policy-status-report-view"
   | "revival-premium-calculator";
 
 export default function LICReportsPage() {
@@ -112,11 +121,16 @@ export default function LICReportsPage() {
     useState<PremiumCalendarFormData | null>(null);
   const [selectedLastPremiumStatementData, setSelectedLastPremiumStatementData] =
     useState<LastPremiumStatementFormData | null>(null);
+  const [selectedCustomerDataSheetData, setSelectedCustomerDataSheetData] =
+    useState<CustomerDataSheetFormData | null>(null);
+  const [selectedPolicyStatusData, setSelectedPolicyStatusData] =
+    useState<PolicyStatusFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
   const { customers } = useSelector((state: RootState) => state.customers);
+  const { customers: customersMaster } = useSelector((state: RootState) => state.customerMaster);
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
   const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
@@ -124,6 +138,7 @@ export default function LICReportsPage() {
   useEffect(() => {
     dispatch(fetchPolicies());
     dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
     dispatch(fetchAgencies());
     dispatch(fetchPolicyStatuses());
     dispatch(fetchLicBranches());
@@ -170,6 +185,10 @@ export default function LICReportsPage() {
       setCurrentView("premium-calendar-form");
     } else if (card.id === "last-premium-statement") {
       setCurrentView("last-premium-statement-form");
+    } else if (card.id === "customer-data-sheet") {
+      setCurrentView("customer-data-sheet-form");
+    } else if (card.id === "policy-status-report") {
+      setCurrentView("policy-status-report-form");
     } else if (card.id === "revival-premium-calculator") {
       setCurrentView("revival-premium-calculator");
     } else {
@@ -180,6 +199,16 @@ export default function LICReportsPage() {
   const handleGeneratePolicyRegisterReport = (formData: PolicyRegisterFormData) => {
     setSelectedPolicyRegisterData(formData);
     setCurrentView("policy-register-report");
+  };
+
+  const handleGenerateCustomerDataSheetReport = (formData: CustomerDataSheetFormData) => {
+    setSelectedCustomerDataSheetData(formData);
+    setCurrentView("customer-data-sheet-report");
+  };
+
+  const handleGeneratePolicyStatusReport = (formData: PolicyStatusFormData) => {
+    setSelectedPolicyStatusData(formData);
+    setCurrentView("policy-status-report-view");
   };
 
   const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
@@ -376,7 +405,9 @@ export default function LICReportsPage() {
                       card.id === "loan-interest-outstanding" ||
                       card.id === "revival-premium-calculator" ||
                       card.id === "premium-calender" ||
-                      card.id === "last-premium-statement"
+                      card.id === "last-premium-statement" ||
+                      card.id === "customer-data-sheet" ||
+                      card.id === "policy-status-report"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -734,6 +765,50 @@ export default function LICReportsPage() {
           onBack={() => setCurrentView("cards")}
           policies={policies || []}
           customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 30: Customer Data Sheet Form */}
+      {currentView === "customer-data-sheet-form" && (
+        <CustomerDataSheetForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateCustomerDataSheetReport}
+          initialData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+        />
+      )}
+
+      {/* VIEW 31: Customer Data Sheet Report View */}
+      {currentView === "customer-data-sheet-report" && selectedCustomerDataSheetData && (
+        <CustomerDataSheetReportView
+          formData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("customer-data-sheet-form")}
+        />
+      )}
+
+      {/* VIEW 32: Policy Status Report Form */}
+      {currentView === "policy-status-report-form" && (
+        <PolicyStatusReportForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyStatusReport}
+          initialData={selectedPolicyStatusData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 33: Policy Status Report View */}
+      {currentView === "policy-status-report-view" && selectedPolicyStatusData && (
+        <PolicyStatusReportView
+          formData={selectedPolicyStatusData}
+          onBackToForm={() => setCurrentView("policy-status-report-form")}
         />
       )}
 
