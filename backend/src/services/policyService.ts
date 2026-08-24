@@ -28,6 +28,9 @@ interface PolicyData {
   groupId: string;
   lifeAssuredId: string;
   age: number;
+
+  spouseAge?: number | null;
+  option?: number | null;
   
   productId: string;
   policyNumber: string;
@@ -57,6 +60,16 @@ interface PolicyData {
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
+  console.log("========== CREATE POLICY ==========");
+  console.log("Product ID:", data.productId);
+  console.log("Age:", data.age);
+  console.log("Secondary Age:", data.spouseAge);
+  console.log("Option:", data.option);
+  console.log("Term:", data.term);
+  console.log("PPT:", data.ppt);
+  console.log("Sum Assured:", data.sumAssured);
+  console.log("Mode:", data.mode);
+  console.log("===================================");
   // Validate policy number format
   if (!/^\d{9}$/.test(data.policyNumber)) {
     throw new AppError("Policy number must be exactly 9 digits.", 400);
@@ -160,6 +173,16 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     const premium = await calculatePremium({
       productId: data.productId,
       age: age!,
+      secondaryAge:
+    data.spouseAge !== undefined &&
+    data.spouseAge !== null
+      ? Number(data.spouseAge)
+      : null,
+  option:
+    data.option !== undefined &&
+    data.option !== null
+      ? Number(data.option)
+      : null,
       policyTerm: policyTerm!,
       premiumPayingTerm: premiumPayingTerm,
       sumAssured: sumAssured!, // Ensure sumAssured is not null
@@ -532,11 +555,19 @@ export const updatePolicy = async (
     const premium = await calculatePremium({
   productId: data.productId,
   age: data.age,
+  secondaryAge:
+    data.spouseAge != null
+      ? Number(data.spouseAge)
+      : null,
+  option:
+    data.option != null
+      ? Number(data.option)
+      : null,
   policyTerm: data.term!,
   premiumPayingTerm: data.ppt,
-  sumAssured: data.sumAssured!, // Ensure sumAssured is not null
-  premiumMode: data.mode, // Pass the premium mode
-    });
+  sumAssured: data.sumAssured!,
+  premiumMode: data.mode,
+});
     await tx.policyPremiumCalculation.update({
       where: {
         policyId: id,

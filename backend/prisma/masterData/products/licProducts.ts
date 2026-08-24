@@ -246,7 +246,7 @@ export const licProducts = [
   {
     productName: "LIC Nivesh Plus",
     productCode: "512L317V02",
-    planNumber: "849",
+    planNumber: "749",
     providerCode: "LIC",
     productType: "ULIP",
   },
@@ -302,7 +302,7 @@ export const licProducts = [
     productType: "Withdrawn",
   },
   {
-    productName: "lIC's New Jeevan Shanti",
+    productName: "LIC's New Jeevan Shanti",
     productCode: "512N338V07",
     planNumber: "758",
     providerCode: "LIC",
