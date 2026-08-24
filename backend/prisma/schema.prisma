@@ -617,31 +617,24 @@ model PremiumPayment {
   updatedAt DateTime @updatedAt
 }
 
+
 model PolicyLoan {
-  id String @id @default(uuid())
-
-  policyId String
-  loanAmount Decimal
+  id           String   @id @default(uuid())
+  policyId     String
+  loanAmount   Decimal
   interestRate Decimal
-  loanDate DateTime
-  remarks String?
-
-  // New fields from LoanForm
-  repaymentDate        DateTime?
-  repayAmount          Decimal?
-  totalLoanRepaidAmount     Float?
-  totalLoanInterestPaid     Decimal?
-  repaymentRemarks     String?
-
+  loanDate     DateTime
+  remarks      String?
   loanStatusId String
 
-  loanStatus LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
+  loanStatus   LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
+  policy       Policy           @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  repayments   LoanRepayment[]
 
-  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
+
 
 model PolicyDocument {
   id String @id @default(uuid())
@@ -741,6 +734,23 @@ model PolicyPremiumCalculation {
   updatedAt DateTime @updatedAt
 }
 
+model LoanRepayment {
+  id                 String     @id @default(uuid())
+  loanId             String
+  repaymentDate      DateTime
+  repaymentAmount    Decimal
+  principalComponent Decimal
+  interestComponent  Decimal
+  paymentMode        String
+  referenceNumber    String?
+  remarks            String?
+
+  loan               PolicyLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime   @default(now())
+}
+
+
 model PaymentStatusMaster {
   id String @id @default(uuid())
 
@@ -751,13 +761,12 @@ model PaymentStatusMaster {
 }
 
 model LoanStatusMaster {
-  id String @id @default(uuid())
-
+  id         String       @id @default(uuid())
   statusName String
-  statusCode String @unique
-
-  loans PolicyLoan[]
+  statusCode String       @unique
+  loans      PolicyLoan[]
 }
+
 
 model ProductAttributeOption {
   id String @id @default(uuid())

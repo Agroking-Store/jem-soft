@@ -2,45 +2,66 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios, { isAxiosError } from "axios";
 import type { RootState } from "@/store/store";
 
+/* ── Types ─────────────────────────────────────────────── */
+
+export interface LoanRepaymentRecord {
+  id: string;
+  loanId: string;
+  repaymentDate: string;
+  repaymentAmount: number;
+  principalComponent: number;
+  interestComponent: number;
+  paymentMode: string;
+  referenceNumber: string | null;
+  remarks: string | null;
+  createdAt: string;
+}
+
+export interface LoanSummary {
+  totalRepaid: number;
+  totalPrincipalRepaid: number;
+  totalInterestPaid: number;
+  outstandingPrincipal: number;
+  accruedInterest: number;
+  totalDue: number;
+}
+
 export interface Loan {
   id: string;
   policyId: string;
   loanAmount: number;
-  interestRate?: number | null;
+  interestRate: number;
   loanDate: string;
+  remarks: string | null;
   loanStatusId: string;
   createdAt: string;
   updatedAt: string;
-  policy?: {
+  policy: {
     policyNumber: string;
-    CustomerMaster?: {
+    commencementDate?: string;
+    CustomerMaster: {
       firstName: string;
       lastName: string;
     } | null;
+    premium?: {
+      sumAssured: number;
+    } | null;
   } | null;
-  loanStatus?: {
+  loanStatus: {
     statusName: string;
     statusCode: string;
   } | null;
-  remarks?: string;
-  repaymentDate?: string | null;
-  repayAmount?:number | null,
-  totalLoanRepaidAmount?: number | null;
-  totalLoanInterestPaid?: number | null;
-  repaymentRemarks?: string | null;
+  repayments?: LoanRepaymentRecord[];
+  summary?: LoanSummary;
 }
 
 export interface LoanInput {
   policyId: string;
-  loanNumber?: string;
   loanAmount: number;
-  interestRate?: number;
+  interestRate: number;
   loanDate: string;
   loanStatusId: string;
-  loanTenure?: number;
   remarks?: string;
-  totalLoanRepaidAmount?: number;
-  totalLoanInterestPaid?: number;
 }
 
 interface LoanState {
@@ -57,21 +78,19 @@ const initialState: LoanState = {
   error: null,
 };
 
+/* ── API ──────────────────────────────────────────────── */
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-const api = axios.create({
-  baseURL: API_URL,
-});
+const api = axios.create({ baseURL: API_URL });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+/* ── Thunks ───────────────────────────────────────────── */
 
 export const fetchLoans = createAsyncThunk<
   Loan[],
@@ -79,15 +98,14 @@ export const fetchLoans = createAsyncThunk<
   { rejectValue: string }
 >("loans/fetchAll", async (_, { rejectWithValue }) => {
   try {
-    const response = await api.get("/loans");
-    return response.data.data;
+    const res = await api.get("/loans");
+    return res.data.data;
   } catch (err) {
-    if (isAxiosError(err)) {
+    if (isAxiosError(err))
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to fetch loans",
       );
-    }
-    return rejectWithValue("Unexpected error while fetching loans.");
+    return rejectWithValue("Unexpected error.");
   }
 });
 
@@ -97,15 +115,14 @@ export const fetchLoanById = createAsyncThunk<
   { rejectValue: string }
 >("loans/fetchById", async (id, { rejectWithValue }) => {
   try {
-    const response = await api.get(`/loans/${id}`);
-    return response.data.data;
+    const res = await api.get(`/loans/${id}`);
+    return res.data.data;
   } catch (err) {
-    if (isAxiosError(err)) {
+    if (isAxiosError(err))
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to fetch loan",
       );
-    }
-    return rejectWithValue("Unexpected error while fetching loan.");
+    return rejectWithValue("Unexpected error.");
   }
 });
 
@@ -113,17 +130,16 @@ export const createLoan = createAsyncThunk<
   Loan,
   LoanInput,
   { rejectValue: string }
->("loans/create", async (loanData, { rejectWithValue }) => {
+>("loans/create", async (data, { rejectWithValue }) => {
   try {
-    const response = await api.post("/loans", loanData);
-    return response.data.data;
+    const res = await api.post("/loans", data);
+    return res.data.data;
   } catch (err) {
-    if (isAxiosError(err)) {
+    if (isAxiosError(err))
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to create loan",
       );
-    }
-    return rejectWithValue("Unexpected error while creating loan.");
+    return rejectWithValue("Unexpected error.");
   }
 });
 
@@ -133,38 +149,36 @@ export const updateLoan = createAsyncThunk<
   { rejectValue: string }
 >("loans/update", async ({ id, data }, { rejectWithValue }) => {
   try {
-    const response = await api.put(`/loans/${id}`, data);
-    return response.data.data;
+    const res = await api.put(`/loans/${id}`, data);
+    return res.data.data;
   } catch (err) {
-    if (isAxiosError(err)) {
+    if (isAxiosError(err))
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to update loan",
       );
-    }
-    return rejectWithValue("Unexpected error while updating loan.");
+    return rejectWithValue("Unexpected error.");
   }
 });
 
 export const deleteLoan = createAsyncThunk<
-  { id: string; loanNumber: string },
+  { id: string; policyNumber: string },
   string,
   { state: RootState; rejectValue: string }
 >("loans/delete", async (id, { getState, rejectWithValue }) => {
   try {
-    const loanToDelete = (getState() as RootState).loans.loans.find(
-      (l) => l.id === id,
-    );
+    const loan = (getState() as RootState).loans.loans.find((l) => l.id === id);
     await api.delete(`/loans/${id}`);
-    return { id, loanNumber: loanToDelete?.policy?.policyNumber ?? "Unknown" };
+    return { id, policyNumber: loan?.policy?.policyNumber ?? "Unknown" };
   } catch (err) {
-    if (isAxiosError(err)) {
+    if (isAxiosError(err))
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to delete loan",
       );
-    }
-    return rejectWithValue("Unexpected error while deleting loan.");
+    return rejectWithValue("Unexpected error.");
   }
 });
+
+/* ── Slice ────────────────────────────────────────────── */
 
 const loanSlice = createSlice({
   name: "loans",
@@ -176,80 +190,69 @@ const loanSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all
-      .addCase(fetchLoans.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+      .addCase(fetchLoans.pending, (s) => {
+        s.isLoading = true;
+        s.error = null;
       })
-      .addCase(fetchLoans.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.loans = action.payload;
+      .addCase(fetchLoans.fulfilled, (s, a) => {
+        s.isLoading = false;
+        s.loans = a.payload;
       })
-      .addCase(fetchLoans.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to fetch loans";
-      })
-
-      // Fetch one
-      .addCase(fetchLoanById.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchLoanById.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.selectedLoan = action.payload;
-      })
-      .addCase(fetchLoanById.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to fetch loan";
+      .addCase(fetchLoans.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Error";
       })
 
-      // Create
-      .addCase(createLoan.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+      .addCase(fetchLoanById.pending, (s) => {
+        s.isLoading = true;
+        s.error = null;
       })
-      .addCase(createLoan.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.loans.push(action.payload);
+      .addCase(fetchLoanById.fulfilled, (s, a) => {
+        s.isLoading = false;
+        s.selectedLoan = a.payload;
       })
-      .addCase(createLoan.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to create loan";
-      })
-
-      // Update
-      .addCase(updateLoan.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateLoan.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const index = state.loans.findIndex(
-          (loan) => loan.id === action.payload.id,
-        );
-        if (index !== -1) {
-          state.loans[index] = action.payload;
-        }
-        state.selectedLoan = action.payload;
-      })
-      .addCase(updateLoan.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to update loan";
+      .addCase(fetchLoanById.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Error";
       })
 
-      // Delete
-      .addCase(deleteLoan.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.loans = state.loans.filter((l) => l.id !== action.payload.id);
+      .addCase(createLoan.pending, (s) => {
+        s.isLoading = true;
+        s.error = null;
       })
-      .addCase(deleteLoan.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to delete loan";
+      .addCase(createLoan.fulfilled, (s, a) => {
+        s.isLoading = false;
+        s.loans.unshift(a.payload);
+      })
+      .addCase(createLoan.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Error";
+      })
+
+      .addCase(updateLoan.pending, (s) => {
+        s.isLoading = true;
+        s.error = null;
+      })
+      .addCase(updateLoan.fulfilled, (s, a) => {
+        s.isLoading = false;
+        const idx = s.loans.findIndex((l) => l.id === a.payload.id);
+        if (idx !== -1) s.loans[idx] = a.payload;
+        s.selectedLoan = a.payload;
+      })
+      .addCase(updateLoan.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Error";
+      })
+
+      .addCase(deleteLoan.fulfilled, (s, a) => {
+        s.loans = s.loans.filter((l) => l.id !== a.payload.id);
+      })
+      .addCase(deleteLoan.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Error";
       });
   },
 });
 
 export const { clearSelectedLoan } = loanSlice.actions;
-export const selectSelectedLoan = (state: RootState) => state.loans.selectedLoan;
 export default loanSlice.reducer;
