@@ -273,7 +273,7 @@ export default function SearchPoliciesPage() {
                     </td>
                     <td className="px-4 py-4">
                       <Link
-                        href={`/dashboard/lic/policies/${policy.id}`}
+                        href={`/dashboard/policy-360/search/${policy.id}`}
                         className="font-semibold text-blue-600 hover:text-blue-800"
                       >
                         View
