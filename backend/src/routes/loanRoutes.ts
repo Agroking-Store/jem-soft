@@ -22,7 +22,6 @@ router
   .put(protect, updateLoan)
   .delete(protect, deleteLoan);
 
-// ── Nested repayment routes ──
 router
   .route("/:loanId/repayments")
   .get(protect, getRepayments)
