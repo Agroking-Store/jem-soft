@@ -1,11 +1,43 @@
 export const policyStatuses = [
-  { statusName: 'Active', statusCode: 'ACTIVE', description: 'The policy is currently active.' },
-  { statusName: 'Pending', statusCode: 'PENDING', description: 'The policy is pending approval or first payment.' },
-  { statusName: 'Lapsed', statusCode: 'LAPSED', description: 'The policy has lapsed due to non-payment.' },
-  { statusName: 'In-force', statusCode: 'IN-FORCE', description: 'The policy is in force and valid.' },
-  { statusName: 'Reduced Paid-Up', statusCode: 'REDUCED PAID-UP', description: 'The policy has been converted to a reduced paid-up status.' },
-  { statusName: 'Completed', statusCode: 'COMPLETED', description: 'The policy term has completed.' },
-  { statusName: 'Surrendered', statusCode: 'SURRENDERED', description: 'The policy was surrendered before maturity' },
-  { statusName: 'Fully Paid Up', statusCode: 'FULLY PAID UP', description: 'The policy is Fully Paid-Up.' },
-  { statusName: 'Maturity Claimed', statusCode: 'MATURITY CLAIMED', description: 'The policy has reached maturity and the claim has been processed.' },
+  {
+    statusName: "Active",
+    statusCode: "ACTIVE",
+    description: "The policy is currently active.",
+  },
+  {
+    statusName: "Pending",
+    statusCode: "PENDING",
+    description: "The policy is pending approval or first payment.",
+  },
+  {
+    statusName: "Lapsed",
+    statusCode: "LAPSED",
+    description: "The policy has lapsed due to non-payment.",
+  },
+  {
+    statusName: "Completed",
+    statusCode: "COMPLETED",
+    description: "The policy term has completed.",
+  },
+  {
+    statusName: "Surrendered",
+    statusCode: "SURRENDERED",
+    description: "The policy was surrendered before maturity",
+  },
+  {
+    statusName: "Fully Paid Up",
+    statusCode: "FULLY PAID UP",
+    description: "The policy is Fully Paid-Up.",
+  },
+  {
+    statusName: "Maturity Claimed",
+    statusCode: "MATURITY CLAIMED",
+    description:
+      "The policy has reached maturity and the claim has been processed.",
+  },
+  {
+    statusName: "Claimed",
+    statusCode: "CLAIMED",
+    description: "The policy has a claim and cannot accept new claims.",
+  },
 ];

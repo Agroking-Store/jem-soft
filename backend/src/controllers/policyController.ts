@@ -18,7 +18,14 @@ export const createPolicy = catchAsync(
 
 export const previewPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { productId, age, secondaryAge, option,policyTerm, premiumPayingTerm, sumAssured, premiumMode } = req.body;
+    const {
+      productId,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+      premiumMode,
+    } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
       throw new AppError(
@@ -30,18 +37,6 @@ export const previewPremium = catchAsync(
     const premium = await calculatePremium({
       productId,
       age: Number(age),
-      secondaryAge:
-        secondaryAge !== undefined &&
-        secondaryAge !== null &&
-        secondaryAge !== ""
-          ? Number(secondaryAge)
-          : null,
-      option:
-        option !== undefined &&
-        option !== null &&
-        option !== ""
-          ? Number(option)
-          : null,
       policyTerm: Number(policyTerm),
       premiumPayingTerm: premiumPayingTerm ? Number(premiumPayingTerm) : null,
       sumAssured: Number(sumAssured),

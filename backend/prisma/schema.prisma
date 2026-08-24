@@ -245,12 +245,9 @@ model ProductPremiumRate {
   productId String
 
   entryAge Int
-  secondaryAge Int?
-
   policyTerm Int
   premiumPayingTerm Int?
-  
-  option Int?
+
   tabularRate Decimal @db.Decimal(10,2)
 
   effectiveFrom DateTime?
@@ -261,7 +258,7 @@ model ProductPremiumRate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([productId, entryAge, secondaryAge, policyTerm, premiumPayingTerm, option])
+  @@unique([productId, entryAge, policyTerm, premiumPayingTerm])
 }
 
 // ======================================================
@@ -351,7 +348,6 @@ model RiderPremiumRate {
   riderId String
 
   entryAge Int
-  riderTerm Int
 
   ratePerThousand Decimal @db.Decimal(10,2)
 
@@ -360,7 +356,7 @@ model RiderPremiumRate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([riderId, entryAge, riderTerm])
+  @@unique([riderId, entryAge])
 }
 
 // ======================================================
