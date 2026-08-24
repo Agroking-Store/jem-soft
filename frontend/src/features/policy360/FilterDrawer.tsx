@@ -2,21 +2,25 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export interface LapsedPolicyFilters {
-  policyHolderName: string;
+  customerName: string;
   policyNumber: string;
-  planName: string;
   groupCode: string;
-  premiumAmount: string;
+  planName: string;
+  premium: string;
+  dueDate: string;
   sumAssured: string;
+  status: string;
 }
 
 export const EMPTY_FILTERS: LapsedPolicyFilters = {
-  policyHolderName: "",
+  customerName: "",
   policyNumber: "",
-  planName: "",
   groupCode: "",
-  premiumAmount: "",
+  planName: "",
+  premium: "",
+  dueDate: "",
   sumAssured: "",
+  status: "",
 };
 
 interface FilterDrawerProps {
@@ -26,6 +30,11 @@ interface FilterDrawerProps {
   onChange: (filters: LapsedPolicyFilters) => void;
   onApply: () => void;
   onClear: () => void;
+  statuses?: Array<{
+    id: string;
+    statusName: string;
+    statusCode: string;
+  }>;
 }
 
 export function FilterDrawer({
@@ -35,6 +44,7 @@ export function FilterDrawer({
   onChange,
   onApply,
   onClear,
+  statuses = [],
 }: FilterDrawerProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -90,22 +100,16 @@ export function FilterDrawer({
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           <Field
-            label="Policy Holder Name"
-            placeholder="Enter Policy Holder Name"
-            value={filters.policyHolderName}
-            onChange={(value) => updateField("policyHolderName", value)}
-          />
-          <Field
             label="Policy Number"
             placeholder="Enter Policy Number"
             value={filters.policyNumber}
             onChange={(value) => updateField("policyNumber", value)}
           />
           <Field
-            label="Plan Name"
-            placeholder="Enter Plan Name"
-            value={filters.planName}
-            onChange={(value) => updateField("planName", value)}
+            label="Customer Name"
+            placeholder="Enter Customer Name"
+            value={filters.customerName}
+            onChange={(value) => updateField("customerName", value)}
           />
           <Field
             label="Group Code"
@@ -114,11 +118,24 @@ export function FilterDrawer({
             onChange={(value) => updateField("groupCode", value)}
           />
           <Field
-            label="Premium Amount"
-            placeholder="Enter Premium Amount"
-            value={filters.premiumAmount}
-            onChange={(value) => updateField("premiumAmount", value)}
+            label="Plan"
+            placeholder="Enter Plan"
+            value={filters.planName}
+            onChange={(value) => updateField("planName", value)}
+          />
+          <Field
+            label="Premium"
+            placeholder="Enter Premium"
+            value={filters.premium}
+            onChange={(value) => updateField("premium", value)}
             type="number"
+          />
+          <Field
+            label="Due Date"
+            placeholder=""
+            value={filters.dueDate}
+            onChange={(value) => updateField("dueDate", value)}
+            type="date"
           />
           <Field
             label="Sum Assured"
@@ -126,6 +143,12 @@ export function FilterDrawer({
             value={filters.sumAssured}
             onChange={(value) => updateField("sumAssured", value)}
             type="number"
+          />
+          <SelectField
+            label="Status"
+            value={filters.status}
+            onChange={(value) => updateField("status", value)}
+            statuses={statuses}
           />
         </div>
 
@@ -148,6 +171,36 @@ export function FilterDrawer({
         </footer>
       </aside>
     </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  statuses,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  statuses: Array<{ id: string; statusName: string; statusCode: string }>;
+}) {
+  return (
+    <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      {label}
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+      >
+        <option value="">All Statuses</option>
+        {statuses.map((status) => (
+          <option key={status.id} value={status.statusName}>
+            {status.statusName}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

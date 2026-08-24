@@ -59,12 +59,42 @@ export const previewPremium = catchAsync(
 
 export const getAllPolicies = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const policies = await policyService.getAllPolicies();
+    const {
+      search,
+      holderName,
+      policyNumber,
+      planName,
+      groupCode,
+      premium,
+      dueDate,
+      sumAssured,
+      status,
+      page,
+      limit,
+    } = req.query;
+    const policies = await policyService.getAllPolicies({
+      search: typeof search === "string" ? search : undefined,
+      holderName: typeof holderName === "string" ? holderName : undefined,
+      policyNumber: typeof policyNumber === "string" ? policyNumber : undefined,
+      planName: typeof planName === "string" ? planName : undefined,
+      groupCode: typeof groupCode === "string" ? groupCode : undefined,
+      premium: typeof premium === "string" ? premium : undefined,
+      dueDate: typeof dueDate === "string" ? dueDate : undefined,
+      sumAssured: typeof sumAssured === "string" ? sumAssured : undefined,
+      status: typeof status === "string" ? status : undefined,
+    });
+    const hasPagination = page !== undefined || limit !== undefined;
+    const pageNumber = Math.max(Number(page) || 1, 1);
+    const limitNumber = Math.max(Number(limit) || policies.length || 1, 1);
+    const paginatedPolicies = hasPagination
+      ? policies.slice((pageNumber - 1) * limitNumber, pageNumber * limitNumber)
+      : policies;
+
     res.status(200).json({
       status: "success",
-      results: policies.length,
+      results: paginatedPolicies.length,
       data: {
-        policies,
+        policies: paginatedPolicies,
       },
     });
   },

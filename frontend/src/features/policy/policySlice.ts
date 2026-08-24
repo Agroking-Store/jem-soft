@@ -130,7 +130,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-const getPoliciesApi = () => api.get(`${API_URL}/policies`);
+export interface FetchPoliciesParams {
+  search?: string;
+  holderName?: string;
+  policyNumber?: string;
+  planName?: string;
+  groupCode?: string;
+  premium?: string;
+  dueDate?: string;
+  sumAssured?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+const getPoliciesApi = (params?: FetchPoliciesParams) =>
+  api.get(`${API_URL}/policies`, params ? { params } : undefined);
 const getPoliciesByMemberApi = (memberId: string) =>
   api.get(`${API_URL}/policies/member/${memberId}`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
@@ -139,11 +154,11 @@ const createPolicyApi = (policyData: any) =>
 
 export const fetchPolicies = createAsyncThunk<
   Policy[],
-  void,
+  FetchPoliciesParams | void,
   { rejectValue: string }
->("policies/fetchAll", async (_, { rejectWithValue }) => {
+>("policies/fetchAll", async (params, { rejectWithValue }) => {
   try {
-    const response = await getPoliciesApi();
+    const response = await getPoliciesApi(params);
     return response.data.data.policies;
   } catch (err: any) {
     return rejectWithValue(
