@@ -4,7 +4,9 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export default defineConfig({
-  seed: {
-    run: "tsx prisma/seed.ts",
+  schema: "prisma/schema.prisma",
+
+  migrations: {
+    seed: "tsx prisma/seed.ts",
   },
-} as any);
+});
