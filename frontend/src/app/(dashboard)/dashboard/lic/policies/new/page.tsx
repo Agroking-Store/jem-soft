@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import axios from "axios";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -35,20 +36,14 @@ import {
   Save,
   X,
   User,
-  IndianRupee,
   FileText,
   Plus,
   Trash2,
-  ChevronDown,
   ChevronRight,
   Shield,
   Settings,
   Search,
-  Hash,
-  CreditCard,
   Banknote,
-  Building,
-  Home,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "./DatePicker";
@@ -288,6 +283,9 @@ const LifeAssuredAutoComplete = ({
   members,
   disabled,
   placeholder,
+  label,
+  required,
+  error,
 }: {
   value: string;
   onChange: (id: string) => void;
@@ -300,20 +298,42 @@ const LifeAssuredAutoComplete = ({
   }[];
   disabled?: boolean;
   placeholder?: string;
+  label: string;
+  required?: boolean;
+  error?: string;
 }) => {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<React.CSSProperties>({});
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const selected = members.find((m) => m.id === value);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
+      const target = e.target as Node;
+      const isInside =
+        (triggerRef.current && triggerRef.current.contains(target)) ||
+        (panelRef.current && panelRef.current.contains(target));
+      if (!isInside) {
         setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({
+        position: "fixed",
+        top: r.bottom + 6,
+        left: r.left,
+        width: r.width,
+      });
+    }
+  }, [open]);
 
   const filtered = members
     .filter((m) => {
@@ -323,9 +343,9 @@ const LifeAssuredAutoComplete = ({
     .slice(0, 10);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={triggerRef} className="relative">
       <label className="block text-sm font-medium text-slate-700 mb-1">
-        Life Assured <span className="text-red-500">*</span>
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
@@ -341,7 +361,9 @@ const LifeAssuredAutoComplete = ({
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed"
+          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed ${
+            error ? "border-red-500" : "border-slate-200"
+          }`}
         />
         {selected && (
           <button
@@ -356,25 +378,42 @@ const LifeAssuredAutoComplete = ({
           </button>
         )}
       </div>
-      {open && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
-          {filtered.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => {
-                onChange(m.id);
-                setQuery("");
-                setOpen(false);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
-            >
-              <span className="text-sm font-medium text-slate-800">
-                {getFullName(m)}
-              </span>
-            </button>
-          ))}
-        </div>
+      {open &&
+        createPortal(
+          <div
+            ref={panelRef}
+            style={pos}
+            className="absolute z-[1000] mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
+          >
+            <div className="max-h-60 overflow-y-auto py-1">
+              {filtered.length > 0 ? (
+                filtered.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      onChange(m.id);
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left"
+                  >
+                    <span className="text-sm font-medium text-slate-800">
+                      {getFullName(m)}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <p className="px-3 py-4 text-center text-sm text-slate-400">
+                  No results found
+                </p>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+      {error && (
+        <p className="text-xs text-red-500 mt-1">{error}</p>
       )}
     </div>
   );
@@ -524,6 +563,20 @@ const policySchema = z.object({
   ),
   gender: z.string().optional(),
   pan: z.string().optional(),
+
+  spouseId: z.string().optional(),
+  option: z.string().optional(),
+  spouseDob: z.string().optional(),
+  spouseAge: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive("Age must be positive").optional(),
+  ),
+  proposerId: z.string().optional(),
+  proposerDob: z.string().optional(),
+  proposerAge: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.coerce.number().positive("Age must be positive").optional(),
+  ),
 
   providerType: z.string().optional(),
   productType: z.string().optional(),
@@ -759,6 +812,46 @@ export default function NewLICPolicyPage() {
         );
       }
 
+      const selectedProductPlan = products.find(
+        (product) => product.id === values.productId,
+      )?.planNumber;
+      if (selectedProductPlan === "888" || selectedProductPlan === "889") {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.spouseId), {
+            message: "Spouse is required for this plan.",
+            path: ["spouseId"],
+          })
+          .refine((data) => data.spouseAge != null, {
+            message: "Spouse age is required for this plan.",
+            path: ["spouseAge"],
+          })
+          .refine((data) => Boolean(data.option), {
+            message: "Option is required for this plan.",
+            path: ["option"],
+          });
+      }
+      if (selectedProductPlan === "889") {
+        refinedSchema = refinedSchema.refine((data) => data.ppt != null, {
+          message: "PPT is required for LIC Plan 889.",
+          path: ["ppt"],
+        });
+      }
+      if (selectedProductPlan === "774") {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.proposerId), {
+            message: "Proposer is required for this plan.",
+            path: ["proposerId"],
+          })
+          .refine((data) => data.proposerAge != null, {
+            message: "Proposer age is required for this plan.",
+            path: ["proposerAge"],
+          })
+          .refine((data) => Boolean(data.option), {
+            message: "Option is required for this plan.",
+            path: ["option"],
+          });
+      }
+
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
       const maxSum = getAttributeValue("MAX_SUM_ASSURED");
       if (minSum || maxSum) {
@@ -819,6 +912,7 @@ export default function NewLICPolicyPage() {
     fields: riderFields,
     append: appendRider,
     remove: removeRider,
+    replace: replaceRiders,
   } = useFieldArray({
     control,
     name: "riders",
@@ -835,6 +929,7 @@ export default function NewLICPolicyPage() {
 
   const watchGroupId = watch("groupId");
   const watchLifeAssuredId = watch("lifeAssuredId");
+  const watchSpouseId = watch("spouseId");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
   const watchBranchId = watch("branchId");
@@ -848,6 +943,10 @@ export default function NewLICPolicyPage() {
   const watchTotalRiderPremium = watch("totalRiderPremium");
   const watchRiders = watch("riders");
   const watchAge = watch("age");
+  const watchSpouseAge = watch("spouseAge");
+  const watchProposerId = watch("proposerId");
+  const watchProposerAge = watch("proposerAge");
+  const watchOption = watch("option");
   const watchFupDate = watch("fupDate");
   const watchPolicyNumber = watch("policyNumber");
 
@@ -855,6 +954,9 @@ export default function NewLICPolicyPage() {
   const premiumPreviewKey = [
     watchProductId ?? "",
     watchAge ?? "",
+    watchSpouseAge ?? "",
+    watchProposerAge ?? "",
+    watchOption ?? "",
     watchMode ?? "",
     watchPpt ?? "",
     watchSumAssured ?? "",
@@ -890,6 +992,7 @@ export default function NewLICPolicyPage() {
   useEffect(() => {
     setValue("groupCode", selectedGroup?.groupCode || "");
     setValue("lifeAssuredId", "");
+    setValue("proposerId", "");
   }, [watchGroupId, selectedGroup, setValue]);
 
   useEffect(() => {
@@ -900,9 +1003,7 @@ export default function NewLICPolicyPage() {
     );
     setValue(
       "age",
-      member?.dob
-        ? String(new Date().getFullYear() - new Date(member.dob).getFullYear())
-        : "",
+      member?.dob ? differenceInYears(new Date(), new Date(member.dob)) : undefined,
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -950,6 +1051,42 @@ export default function NewLICPolicyPage() {
       setValue("neftAccountHolderName", "");
     }
   }, [watchLifeAssuredId, masterCustomers, setValue]);
+
+  useEffect(() => {
+    const spouse = masterCustomers.find((m) => m.id === watchSpouseId);
+    if (spouse) {
+      const dob = spouse.dob
+        ? new Date(spouse.dob).toISOString().split("T")[0]
+        : "";
+      const age = spouse.dob
+        ? differenceInYears(new Date(), new Date(spouse.dob))
+        : undefined;
+      setValue("spouseDob", dob);
+      setValue("spouseAge", age);
+    } else {
+      setValue("spouseDob", "");
+      setValue("spouseAge", undefined);
+    }
+  }, [watchSpouseId, masterCustomers, setValue]);
+
+  useEffect(() => {
+    const proposer = masterCustomers.find((m) => m.id === watchProposerId);
+    if (proposer) {
+      setValue(
+        "proposerDob",
+        proposer.dob ? new Date(proposer.dob).toISOString().split("T")[0] : "",
+      );
+      setValue(
+        "proposerAge",
+        proposer.dob
+          ? differenceInYears(new Date(), new Date(proposer.dob))
+          : undefined,
+      );
+    } else {
+      setValue("proposerDob", "");
+      setValue("proposerAge", undefined);
+    }
+  }, [watchProposerId, masterCustomers, setValue]);
 
   useEffect(() => {
     const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
@@ -1176,6 +1313,11 @@ export default function NewLICPolicyPage() {
     const ppt = parseFloat(String(watchPpt)) || 0;
     const mode = watchMode;
     const age = parseFloat(String(watchAge)) || 0;
+    const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+    const secondaryAge = selectedPlan === "774"
+      ? (watchProposerAge ? parseFloat(String(watchProposerAge)) : null)
+      : (watchSpouseAge ? parseFloat(String(watchSpouseAge)) : null);
+    const option = watchOption || null;
     const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
 
     if (!watchProductId || !sum || !term || !ppt || !mode || !age) {
@@ -1194,12 +1336,24 @@ export default function NewLICPolicyPage() {
 });
 
 console.log("watchSumAssured =", watchSumAssured);
+      console.log("PREMIUM PREVIEW PAYLOAD:", {
+        productId: watchProductId,
+        age,
+        secondaryAge,
+        option,
+        policyTerm: term,
+        premiumPayingTerm: ppt,
+        sumAssured: sum,
+        premiumMode: mode,
+      });
       try {
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/premium-preview`,
           {
             productId: watchProductId,
             age,
+            secondaryAge,
+            option,
             policyTerm: term,
             premiumPayingTerm: ppt,
             sumAssured: sum,
@@ -1250,7 +1404,7 @@ console.log("watchSumAssured =", watchSumAssured);
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [premiumPreviewKey, setValue, watchAge, watchMode, watchPpt, watchProductId, watchSumAssured, watchTerm, watchTotalRiderPremium]);
+  }, [premiumPreviewKey, products, setValue, watchAge, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium]);
 
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === watchProductId),
@@ -1267,6 +1421,24 @@ console.log("watchSumAssured =", watchSumAssured);
       });
     }
   }, [watchProductId, watchAge, selectedProduct, setValue]);
+
+  // Auto-populate riders when a product is selected
+  useEffect(() => {
+    if (selectedProduct && Array.isArray(selectedProduct.productRiders)) {
+      const newRiders = selectedProduct.productRiders.map((pr: any) => ({
+        description: pr.rider?.riderName || "",
+        sum: null,
+        term: null,
+        ppt: null,
+        premium: null,
+        mode: "",
+      }));
+      replaceRiders(newRiders);
+    } else {
+      replaceRiders([]);
+    }
+  }, [selectedProduct, replaceRiders]);
+
   // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
     if (!watchProductId || !productAttributeValues || !products.length) {
@@ -1286,16 +1458,16 @@ console.log("watchSumAssured =", watchSumAssured);
       selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
         ?.value;
 
-    const minTerm = getAttributeValue("MIN_POLICY_TERM");
-    const maxTerm = getAttributeValue("MAX_POLICY_TERM");
-    const minPpt = getAttributeValue("MIN_PPT");
-    const maxPpt = getAttributeValue("MAX_PPT");
-    const minSum = getAttributeValue("MIN_SUM_ASSURED");
-    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
-    const minAge = getAttributeValue("MIN_ENTRY_AGE");
-    const maxAge = getAttributeValue("MAX_ENTRY_AGE");
-
     const selectedProduct = products.find((p) => p.id === watchProductId);
+    const isPlan889 = selectedProduct?.planNumber === "889";
+    const minTerm = getAttributeValue("MIN_POLICY_TERM") || (isPlan889 ? "10" : undefined);
+    const maxTerm = getAttributeValue("MAX_POLICY_TERM") || (isPlan889 ? "25" : undefined);
+    const minPpt = getAttributeValue("MIN_PPT") || (isPlan889 ? "5" : undefined);
+    const maxPpt = getAttributeValue("MAX_PPT") || (isPlan889 ? "15" : undefined);
+    const minSum = getAttributeValue("MIN_SUM_ASSURED") || (isPlan889 ? "300000" : undefined);
+    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+    const minAge = getAttributeValue("MIN_ENTRY_AGE") || (isPlan889 ? "18" : undefined);
+    const maxAge = getAttributeValue("MAX_ENTRY_AGE") || (isPlan889 ? "50" : undefined);
 
     // For plan 771, the term is calculated, not pre-filled from attributes.
     if (!["771", "745", "883"].includes(selectedProduct?.planNumber ?? "")) {
@@ -1357,6 +1529,10 @@ console.log("watchSumAssured =", watchSumAssured);
 
       const payload = {
         ...data,
+        spouseAge:
+          selectedProduct?.planNumber === "774"
+            ? normalizeNumber(data.proposerAge)
+            : normalizeNumber(data.spouseAge),
         age: normalizeNumber(data.age),
         term: normalizeNumber(data.term),
         ppt: normalizeNumber(data.ppt),
@@ -1582,6 +1758,8 @@ console.log("watchSumAssured =", watchSumAssured);
                   control={control}
                   render={({ field }) => (
                     <LifeAssuredAutoComplete
+                      label="Life Assured"
+                      required
                       value={field.value}
                       onChange={field.onChange}
                       members={groupMembers}
@@ -1593,14 +1771,10 @@ console.log("watchSumAssured =", watchSumAssured);
                             : "No members in group"
                           : "Select a group first"
                       }
+                      error={errors.lifeAssuredId?.message}
                     />
                   )}
                 />
-                {errors.lifeAssuredId && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.lifeAssuredId.message}
-                  </p>
-                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1809,6 +1983,9 @@ console.log("watchSumAssured =", watchSumAssured);
                     {selectedProduct?.planNumber === "883"
                       ? "Gua.Addn.Period"
                       : "PPT"}
+                    {selectedProduct?.planNumber === "889" && (
+                      <span className="text-red-500"> *</span>
+                    )}
                   </label>
                   <input
                     type="text"
@@ -1823,10 +2000,159 @@ console.log("watchSumAssured =", watchSumAssured);
                       {errors.ppt.message}
                     </p>
                   )}
-                  {attributeHints.ppt && !errors.ppt && (
+              {attributeHints.ppt && !errors.ppt && !errors.term && (
                     <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
                   )}
                 </div>
+                {(selectedProduct?.planNumber === "888" ||
+                  selectedProduct?.planNumber === "889") && (
+                  <>
+                    <div>
+                      <Controller
+                        name="spouseId"
+                        control={control}
+                        render={({ field }) => (
+                          <LifeAssuredAutoComplete
+                            label="Spouse"
+                            required
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            members={groupMembers}
+                            disabled={!watchGroupId || groupMembers.length === 0}
+                            placeholder={
+                              watchGroupId
+                                ? groupMembers.length > 0
+                                  ? "Search spouse..."
+                                  : "No members in group"
+                                : "Select a group first"
+                            }
+                            error={errors.spouseId?.message}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Spouse DOB
+                      </label>
+                      <input
+                        {...register("spouseDob")}
+                        type="date"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Spouse Age
+                      </label>
+                      <input
+                        {...register("spouseAge")}
+                        type="number"
+                        placeholder="Autofilled"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        readOnly
+                      />
+                      {errors.spouseAge && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.spouseAge.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+                {selectedProduct?.planNumber === "774" && (
+                  <>
+                    <div>
+                      <Controller
+                        name="proposerId"
+                        control={control}
+                        render={({ field }) => (
+                          <LifeAssuredAutoComplete
+                            label="Proposer's Name"
+                            required
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            members={groupMembers}
+                            disabled={!watchGroupId || groupMembers.length === 0}
+                            placeholder={
+                              watchGroupId
+                                ? groupMembers.length > 0
+                                  ? "Search proposer..."
+                                  : "No members in group"
+                                : "Select a group first"
+                            }
+                            error={errors.proposerId?.message}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Proposer DOB
+                      </label>
+                      <input
+                        {...register("proposerDob")}
+                        type="date"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Proposer Age
+                      </label>
+                      <input
+                        {...register("proposerAge")}
+                        type="number"
+                        placeholder="Autofilled"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        readOnly
+                      />
+                      {errors.proposerAge && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.proposerAge.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
               </CustomerSectionCard>
             </div>
