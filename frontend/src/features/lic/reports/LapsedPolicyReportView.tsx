@@ -61,9 +61,7 @@ export default function LapsedPolicyReportView({
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Column definitions are the single source of truth for BOTH the header and
-  // the body — this guarantees the two can never fall out of sync (unlike a
-  // manually-counted colSpan, which is what broke the Premium Due table earlier).
+  // Column definitions driven by reportOptions
   const columns: ColumnDef[] = useMemo(() => {
     const cols: ColumnDef[] = [
       { key: "policyNo", label: "Policy No", align: "right", render: (p) => p.policyNo },
@@ -73,6 +71,17 @@ export default function LapsedPolicyReportView({
       { key: "md", label: "Md", align: "center", render: (p) => p.md },
       { key: "brn", label: "Brn", render: (p) => p.brn },
       { key: "lapsedDate", label: "Lapsed Date", render: (p) => p.lapsedDate },
+    ];
+
+    if (formData.reportOptions.dob) {
+      cols.push({ key: "dob", label: "D.O.B", align: "center", render: (p) => p.dob || "—" });
+    }
+
+    if (formData.reportOptions.pan) {
+      cols.push({ key: "pan", label: "PAN No.", align: "center", render: (p) => p.pan || "—" });
+    }
+
+    cols.push(
       {
         key: "sumAssured",
         label: "Sum Assured",
@@ -85,8 +94,8 @@ export default function LapsedPolicyReportView({
         align: "right",
         render: (p) => p.installmentPremium.toFixed(2),
       },
-      { key: "unpaidPremiums", label: "Unpaid Prems", align: "center", render: (p) => p.unpaidPremiums },
-    ];
+      { key: "unpaidPremiums", label: "Unpaid Prems", align: "center", render: (p) => p.unpaidPremiums }
+    );
 
     if (formData.reportOptions.loanSbAvailable) {
       cols.push({
@@ -106,8 +115,7 @@ export default function LapsedPolicyReportView({
       });
     }
 
-    // These 3 financial columns always stay last so the subtotal/group-total
-    // rows below can reliably span "everything except the last 3".
+    // Financial columns stay last for subtotal calculation
     cols.push(
       {
         key: "premiumDueForRevival",
@@ -130,7 +138,7 @@ export default function LapsedPolicyReportView({
     );
 
     return cols;
-  }, [formData.reportOptions.loanSbAvailable, formData.reportOptions.commissionReceivable]);
+  }, [formData.reportOptions]);
 
   const alignClass = (a?: "left" | "right" | "center") =>
     a === "right" ? "text-right" : a === "center" ? "text-center" : "text-left";
@@ -154,7 +162,20 @@ export default function LapsedPolicyReportView({
 
     const validDbPolicies = rawPolicies.filter((p) => {
       const rawStatus = (p.status?.statusName || p.statusName || "").toLowerCase();
-      if (!rawStatus.includes("lapsed")) return false;
+      const rawCode = (p.status?.statusCode || p.statusCode || "").toLowerCase();
+
+      // Check if policy is lapsed or overdue past grace period
+      let isLapsed = rawStatus.includes("laps") || rawCode.includes("laps") || rawStatus.includes("reduced paid");
+      if (!isLapsed && (rawStatus.includes("active") || rawStatus.includes("inforce"))) {
+        const fup = p.fupDate || p.nextPremiumDueDate;
+        if (fup) {
+          const fupDateObj = new Date(fup);
+          const diffDays = (interestCalcDate.getTime() - fupDateObj.getTime()) / (1000 * 3600 * 24);
+          if (diffDays > 30) isLapsed = true;
+        }
+      }
+
+      if (!isLapsed) return false;
 
       const lapsedDateRaw = p.lapsedDate || p.nextPremiumDueDate || p.fupDate;
       if (lapsedSince && lapsedDateRaw) {
@@ -177,142 +198,109 @@ export default function LapsedPolicyReportView({
       return true;
     });
 
-    if (validDbPolicies.length > 0) {
-      const groupMap: { [key: string]: any } = {};
-
-      validDbPolicies.forEach((p) => {
-        const gCode = p.customer?.groupCode || `L${(p.clientId || "01").toString().padStart(3, "0")}`;
-        const gHeadName = p.customer?.groupName || p.customer?.name || "Customer Group";
-
-        if (selectedGroupCodesOrNames.length > 0) {
-          const matches = selectedGroupCodesOrNames.some(
-            (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
-          );
-          if (!matches) return;
-        }
-
-        const memberName = p.CustomerMaster
-          ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName}`.trim()
-          : p.customer?.name || "Policy Holder";
-
-        if (!groupMap[gCode]) {
-          groupMap[gCode] = {
-            groupCode: gCode,
-            groupHeadName: gHeadName,
-            membersMap: {},
-            totalPolicies: 0,
-            totals: { premiumDueForRevival: 0, revivalInterest: 0, totalRevivalAmount: 0 },
-          };
-        }
-
-        const grp = groupMap[gCode];
-        if (!grp.membersMap[memberName]) {
-          grp.membersMap[memberName] = {
-            name: memberName,
-            policies: [],
-            totals: { premiumDueForRevival: 0, revivalInterest: 0, totalRevivalAmount: 0 },
-          };
-        }
-        const mem = grp.membersMap[memberName];
-
-        const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "Y";
-        const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 300000);
-        const installmentPremium = Number(
-          p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || p.premiumAmount || 12500
-        );
-        const lapsedDateRaw = p.lapsedDate || p.nextPremiumDueDate || p.fupDate;
-        const lapsedDate = lapsedDateRaw ? new Date(lapsedDateRaw) : new Date("2023-03-10");
-
-        const revival = computeRevival(lapsedDate, interestCalcDate, installmentPremium, mode);
-
-        const policyRow = {
-          policyNo: p.policyNumber || "812345678",
-          agCd: p.agentCode || "J",
-          comDate: fmtDate(p.commencementDate) || "15/03/15",
-          planTermPpt: `${p.product?.planNumber || "815"}/${p.policyTerm || 20}/${p.premiumPayingTerm || 20}`,
-          md: mode,
-          brn: p.branch?.branchCode || "612",
-          lapsedDate: fmtDate(lapsedDate),
-          sumAssured,
-          installmentPremium,
-          loanSbAvailable: Boolean(p.loanAvailable || p.hasSurrenderValue),
-          commissionReceivable: Number(p.commissionReceivable || installmentPremium * 0.05),
-          ...revival,
-        };
-
-        mem.policies.push(policyRow);
-        mem.totals.premiumDueForRevival += revival.premiumDueForRevival;
-        mem.totals.revivalInterest += revival.revivalInterest;
-        mem.totals.totalRevivalAmount += revival.totalRevivalAmount;
-
-        grp.totalPolicies += 1;
-        grp.totals.premiumDueForRevival += revival.premiumDueForRevival;
-        grp.totals.revivalInterest += revival.revivalInterest;
-        grp.totals.totalRevivalAmount += revival.totalRevivalAmount;
-      });
-
-      const result = Object.values(groupMap).map((grp: any) => ({
-        ...grp,
-        members: Object.values(grp.membersMap),
-      }));
-
-      if (result.length > 0) return result;
+    if (validDbPolicies.length === 0) {
+      return [];
     }
 
-    // Fallback demo group — no sample PDF was provided for this report, so this
-    // keeps the page populated with a believable example until real lapsed-policy
-    // data flows in.
-    const demoLapsedDate = new Date("2023-03-10");
-    const demoInstallment = 12500;
-    const demoRevival = computeRevival(demoLapsedDate, interestCalcDate, demoInstallment, "Y");
+    const groupMap: { [key: string]: any } = {};
 
-    const selectedGroupHead =
-      formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
-        ? formData.selectedGroups[0].groupHeadName
-        : formData.sortingFilterSelection?.selectedItems?.[0]?.name || "Deshmukh Family";
-    const selectedGroupCode =
-      formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
-        ? formData.selectedGroups[0].groupCode
-        : formData.sortingFilterSelection?.selectedItems?.[0]?.code || "L201";
+    validDbPolicies.forEach((p) => {
+      const custMaster = p.CustomerMaster;
+      const custObj = p.customer;
+      const gCode = custObj?.groupCode || `L${(p.clientId || "01").toString().padStart(3, "0")}`;
+      const gHeadName = custObj?.groupName || custObj?.name || "Customer Group";
 
-    const demoPolicy = {
-      policyNo: "812345678",
-      agCd: "J",
-      comDate: "15/03/15",
-      planTermPpt: "815/20/20",
-      md: "Y",
-      brn: "612",
-      lapsedDate: fmtDate(demoLapsedDate),
-      sumAssured: 300000,
-      installmentPremium: demoInstallment,
-      loanSbAvailable: true,
-      commissionReceivable: demoInstallment * 0.05,
-      ...demoRevival,
-    };
+      if (selectedGroupCodesOrNames.length > 0) {
+        const matches = selectedGroupCodesOrNames.some(
+          (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
+        );
+        if (!matches) return;
+      }
 
-    return [
-      {
-        groupCode: selectedGroupCode,
-        groupHeadName: selectedGroupHead,
-        members: [
-          {
-            name: `Mr ${selectedGroupHead.replace(/^Mrs?\s*/i, "")}`,
-            policies: [demoPolicy],
-            totals: {
-              premiumDueForRevival: demoRevival.premiumDueForRevival,
-              revivalInterest: demoRevival.revivalInterest,
-              totalRevivalAmount: demoRevival.totalRevivalAmount,
-            },
-          },
-        ],
-        totalPolicies: 1,
-        totals: {
-          premiumDueForRevival: demoRevival.premiumDueForRevival,
-          revivalInterest: demoRevival.revivalInterest,
-          totalRevivalAmount: demoRevival.totalRevivalAmount,
-        },
-      },
-    ];
+      const memberName = custMaster
+        ? [custMaster.salutation, custMaster.firstName, custMaster.middleName, custMaster.lastName].filter(Boolean).join(" ")
+        : custObj?.name || "Policy Holder";
+
+      const memberMobile = custMaster?.contactInfo?.mobile1 || custObj?.mobile || custObj?.mobile1 || "";
+      const memberEmail = custMaster?.contactInfo?.emailPersonal || custObj?.email || "";
+      const memberPan = custMaster?.panNumber || custObj?.pan || "";
+      const memberDob = fmtDate(custMaster?.dob || custObj?.dob);
+
+      let memberAddress = "";
+      if (custMaster?.addresses && custMaster.addresses.length > 0) {
+        const addr = custMaster.addresses[0];
+        memberAddress = [addr.addressLine1, addr.addressLine2, addr.city, addr.state, addr.pin].filter(Boolean).join(", ");
+      } else if (custObj?.address) {
+        memberAddress = custObj.address;
+      }
+
+      if (!groupMap[gCode]) {
+        groupMap[gCode] = {
+          groupCode: gCode,
+          groupHeadName: gHeadName,
+          membersMap: {},
+          totalPolicies: 0,
+          totals: { premiumDueForRevival: 0, revivalInterest: 0, totalRevivalAmount: 0 },
+        };
+      }
+
+      const grp = groupMap[gCode];
+      if (!grp.membersMap[memberName]) {
+        grp.membersMap[memberName] = {
+          name: memberName,
+          mobile: memberMobile,
+          email: memberEmail,
+          pan: memberPan,
+          dob: memberDob,
+          address: memberAddress,
+          policies: [],
+          totals: { premiumDueForRevival: 0, revivalInterest: 0, totalRevivalAmount: 0 },
+        };
+      }
+      const mem = grp.membersMap[memberName];
+
+      const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "Y";
+      const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
+      const installmentPremium = Number(
+        p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || p.premiumAmount || 0
+      );
+      const lapsedDateRaw = p.lapsedDate || p.nextPremiumDueDate || p.fupDate;
+      const lapsedDate = lapsedDateRaw ? new Date(lapsedDateRaw) : new Date();
+
+      const revival = computeRevival(lapsedDate, interestCalcDate, installmentPremium, mode);
+
+      const policyRow = {
+        policyNo: p.policyNumber || "—",
+        agCd: p.agentCode || "—",
+        comDate: fmtDate(p.commencementDate) || "—",
+        planTermPpt: `${p.product?.planNumber || "—"}/${p.policyTerm || "—"}/${p.premiumPayingTerm || "—"}`,
+        md: mode,
+        brn: p.branch?.branchCode || p.branchNo || "—",
+        lapsedDate: fmtDate(lapsedDate),
+        dob: memberDob,
+        pan: memberPan,
+        sumAssured,
+        installmentPremium,
+        loanSbAvailable: Boolean(p.loanAvailable || p.hasSurrenderValue),
+        commissionReceivable: Number(p.commissionReceivable || installmentPremium * 0.05),
+        ...revival,
+      };
+
+      mem.policies.push(policyRow);
+      mem.totals.premiumDueForRevival += revival.premiumDueForRevival;
+      mem.totals.revivalInterest += revival.revivalInterest;
+      mem.totals.totalRevivalAmount += revival.totalRevivalAmount;
+
+      grp.totalPolicies += 1;
+      grp.totals.premiumDueForRevival += revival.premiumDueForRevival;
+      grp.totals.revivalInterest += revival.revivalInterest;
+      grp.totals.totalRevivalAmount += revival.totalRevivalAmount;
+    });
+
+    return Object.values(groupMap).map((grp: any) => ({
+      ...grp,
+      members: Object.values(grp.membersMap),
+    }));
   }, [rawPolicies, formData]);
 
   const grandTotals = groupData.reduce(
@@ -460,88 +448,107 @@ export default function LapsedPolicyReportView({
           </div>
         </div>
 
-        {/* Lapsed Policies Table — header and body are both driven by `columns`,
-            so they can never drift out of alignment. */}
+        {/* Lapsed Policies Table */}
         <div className="space-y-4 overflow-x-auto">
-          <table className="w-full text-left text-[11px] border-collapse min-w-[900px]">
-            <thead>
-              <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                {columns.map((col) => (
-                  <th key={col.key} className={`py-2 px-1 ${alignClass(col.align)}`}>
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {groupData.map((group) => (
-                <Fragment key={group.groupCode}>
-                  {/* Group Banner */}
-                  <tr className="border-t-2 border-slate-400">
-                    <td
-                      colSpan={columns.length}
-                      className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900"
-                    >
-                      {group.groupCode}: {group.groupHeadName}
-                    </td>
-                  </tr>
-
-                  {group.members.map((member: any) => (
-                    <Fragment key={member.name}>
-                      <tr>
-                        <td colSpan={columns.length} className="px-2 font-bold text-[11px] text-slate-800 py-1">
-                          {member.name}
-                        </td>
-                      </tr>
-
-                      {member.policies.map((p: any) => (
-                        <tr key={p.policyNo} className="hover:bg-slate-50 divide-x divide-slate-100">
-                          {columns.map((col) => (
-                            <td key={col.key} className={`py-1 px-1 ${alignClass(col.align)}`}>
-                              {col.render(p)}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-
-                      {/* Member Subtotal — label spans every column except the last 3 (financial) ones */}
-                      <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                        <td colSpan={columns.length - 3} className="text-right pr-4 py-1">
-                          Total :
-                        </td>
-                        <td className="text-right py-1 font-mono">
-                          {member.totals.premiumDueForRevival.toFixed(2)}
-                        </td>
-                        <td className="text-right py-1 font-mono">
-                          {member.totals.revivalInterest.toFixed(2)}
-                        </td>
-                        <td className="text-right py-1 font-mono text-[#0B1220]">
-                          {member.totals.totalRevivalAmount.toFixed(2)}
-                        </td>
-                      </tr>
-                    </Fragment>
+          {groupData.length === 0 ? (
+            <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
+              <h3 className="font-bold text-slate-800 text-sm">No Lapsed Policies Found</h3>
+              <p className="text-xs text-slate-500">
+                There are no lapsed policies in the database matching your selected criteria.
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-left text-[11px] border-collapse min-w-[900px]">
+              <thead>
+                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
+                  {columns.map((col) => (
+                    <th key={col.key} className={`py-2 px-1 ${alignClass(col.align)}`}>
+                      {col.label}
+                    </th>
                   ))}
+                </tr>
+              </thead>
 
-                  {/* Group Total Row */}
-                  <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                    <td colSpan={columns.length - 3} className="px-3 py-1.5">
-                      Total No. of Policies for this Group : {group.totalPolicies}
-                    </td>
-                    <td className="px-1 py-1.5 text-right font-mono">
-                      {group.totals.premiumDueForRevival.toFixed(2)}
-                    </td>
-                    <td className="px-1 py-1.5 text-right font-mono">
-                      {group.totals.revivalInterest.toFixed(2)}
-                    </td>
-                    <td className="px-1 py-1.5 text-right font-mono text-[#0B1220]">
-                      {group.totals.totalRevivalAmount.toFixed(2)}
-                    </td>
-                  </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+              <tbody>
+                {groupData.map((group) => (
+                  <Fragment key={group.groupCode}>
+                    {/* Group Banner */}
+                    <tr className="border-t-2 border-slate-400">
+                      <td
+                        colSpan={columns.length}
+                        className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900"
+                      >
+                        {group.groupCode}: {group.groupHeadName}
+                      </td>
+                    </tr>
+
+                    {group.members.map((member: any) => (
+                      <Fragment key={member.name}>
+                        <tr>
+                          <td colSpan={columns.length} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
+                            <div className="flex items-center justify-between">
+                              <span>{member.name}</span>
+                            </div>
+                            {(formData.reportOptions.address || formData.reportOptions.mobile || formData.reportOptions.email) && (
+                              <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                                {[
+                                  formData.reportOptions.address && member.address && `Address: ${member.address}`,
+                                  formData.reportOptions.mobile && member.mobile && `Mobile: ${member.mobile}`,
+                                  formData.reportOptions.email && member.email && `Email: ${member.email}`,
+                                ].filter(Boolean).join(" | ")}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+
+                        {member.policies.map((p: any) => (
+                          <tr key={p.policyNo} className="hover:bg-slate-50 divide-x divide-slate-100">
+                            {columns.map((col) => (
+                              <td key={col.key} className={`py-1 px-1 ${alignClass(col.align)}`}>
+                                {col.render(p)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+
+                        {/* Member Subtotal — label spans every column except the last 3 (financial) ones */}
+                        <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
+                          <td colSpan={columns.length - 3} className="text-right pr-4 py-1">
+                            Total :
+                          </td>
+                          <td className="text-right py-1 font-mono">
+                            {member.totals.premiumDueForRevival.toFixed(2)}
+                          </td>
+                          <td className="text-right py-1 font-mono">
+                            {member.totals.revivalInterest.toFixed(2)}
+                          </td>
+                          <td className="text-right py-1 font-mono text-[#0B1220]">
+                            {member.totals.totalRevivalAmount.toFixed(2)}
+                          </td>
+                        </tr>
+                      </Fragment>
+                    ))}
+
+                    {/* Group Total Row */}
+                    <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
+                      <td colSpan={columns.length - 3} className="px-3 py-1.5">
+                        Total No. of Policies for this Group : {group.totalPolicies}
+                      </td>
+                      <td className="px-1 py-1.5 text-right font-mono">
+                        {group.totals.premiumDueForRevival.toFixed(2)}
+                      </td>
+                      <td className="px-1 py-1.5 text-right font-mono">
+                        {group.totals.revivalInterest.toFixed(2)}
+                      </td>
+                      <td className="px-1 py-1.5 text-right font-mono text-[#0B1220]">
+                        {group.totals.totalRevivalAmount.toFixed(2)}
+                      </td>
+                    </tr>
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Summary Box */}

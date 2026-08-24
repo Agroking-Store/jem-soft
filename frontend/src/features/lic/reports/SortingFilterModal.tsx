@@ -140,21 +140,31 @@ export default function SortingFilterModal({
     }
   }, [sortingOption]);
 
-  // 100% Dynamic Data list derived STRICTLY from database props! No hardcoded screenshot mock names!
   const masterDataList: Array<{ id: string; code?: string; name: string; extra?: string }> =
     useMemo(() => {
       if (sortingOption === "groupMemberwise") {
-        // Members Wise: Dynamic from customers in DB
-        return customers.map((c, idx) => ({
-          id: c.id,
-          code: c.groupCode || `0000${(idx + 1).toString().padStart(2, "0")}`,
-          name: c.name,
-          extra: c.groupName || c.name,
-        }));
+        const membersMap: { [memberId: string]: { id: string; code?: string; name: string; extra?: string } } = {};
+        policies.forEach((p) => {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+          if (!memberId || membersMap[memberId]) return;
+
+          const fullName = p.CustomerMaster
+            ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`
+                .replace(/\s+/g, " ")
+                .trim()
+            : p.customer?.name || "Member";
+
+          membersMap[memberId] = {
+            id: memberId,
+            code: p.customer?.groupCode || p.clientId || "",
+            name: fullName || "Member",
+            extra: p.customer?.groupName || p.customer?.name || "",
+          };
+        });
+        return Object.values(membersMap);
       }
 
       if (sortingOption === "areaWise") {
-        // Area Wise: Dynamic areas from DB customers
         const areas = Array.from(
           new Set(
             customers
@@ -214,7 +224,6 @@ export default function SortingFilterModal({
       }
 
       if (sortingOption === "planWise") {
-        // Plan Wise: Dynamic product plans from policies in DB
         const plansMap: { [planNo: string]: string } = {};
         policies.forEach((p) => {
           if (p.product?.planNumber) {
@@ -230,7 +239,6 @@ export default function SortingFilterModal({
       }
 
       if (sortingOption === "policyNoWise") {
-        // Policy Wise: Dynamic policies from DB
         return policies.map((p) => ({
           id: p.id || p.policyNumber,
           code: p.policyNumber || "N/A",
@@ -240,7 +248,6 @@ export default function SortingFilterModal({
       }
 
       if (sortingOption === "dueDate") {
-        // Due-Date Wise: Dynamic distinct due dates from policies in DB
         const dueDates = Array.from(
           new Set(
             policies
@@ -298,7 +305,6 @@ export default function SortingFilterModal({
         }));
       }
 
-      // Default Groups Wise: Dynamic Groups from DB customers
       return customers.map((c, idx) => ({
         id: c.id,
         code: c.groupCode || `0000${(idx + 1).toString().padStart(2, "0")}`,
@@ -361,7 +367,13 @@ export default function SortingFilterModal({
   const handleApply = () => {
     onApplySortingFilter({
       sortingOption,
-      selectedIds: selectedItems.map((s) => s.code || s.id),
+      // NOTE: always use the item's own unique `id` here, never `code`.
+      // For groupMemberwise, every member of the same group shares the same
+      // `code` (the Group Code, e.g. "A001"), so `code || id` used to collapse
+      // Aarav and Priya into the same selection key and one of them got lost.
+      // `id` (the customer's DB id) is unique per member in every sorting mode,
+      // so this keeps each member independently selectable.
+      selectedIds: selectedItems.map((s) => s.id),
       selectedItems,
     });
     onClose();

@@ -14,6 +14,13 @@ interface FilterOptionsModalProps {
   onClose: () => void;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
+  customers?: Array<{
+    id: string;
+    groupCode?: string | null;
+    name: string;
+    groupName?: string | null;
+    resArea?: string | null;
+  }>;
   selectedFilters: SelectedFilterItem[];
   onApplyFilters: (filters: SelectedFilterItem[]) => void;
   /**
@@ -24,6 +31,7 @@ interface FilterOptionsModalProps {
    * Defaults to `true` so Policy Register's existing behaviour is unchanged.
    */
   enableDefaultStatusSelection?: boolean;
+  defaultCategory?: string;
 }
 
 export const SYSTEM_POLICY_STATUSES = [
@@ -42,11 +50,13 @@ export default function FilterOptionsModal({
   onClose,
   agencies = [],
   policyStatuses = [],
+  customers = [],
   selectedFilters: initialSelectedFilters = [],
   onApplyFilters,
   enableDefaultStatusSelection = true,
+  defaultCategory = "Agencies",
 }: FilterOptionsModalProps) {
-  const [filterCategory, setFilterCategory] = useState<string>("Agencies");
+  const [filterCategory, setFilterCategory] = useState<string>(defaultCategory);
   const [searchText, setSearchText] = useState("");
 
   // Initialize selected items state: default 4 Policy Statuses checked ONLY when
@@ -67,6 +77,19 @@ export default function FilterOptionsModal({
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingCategory, setViewingCategory] = useState<string | null>(null);
   const pageSize = 8;
+
+  // Dynamic Groups list from customers
+  const dynamicGroups = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    customers.forEach((c) => {
+      const code = c.groupCode || c.id;
+      const name = c.groupName || c.name || "Group";
+      if (!map.has(code)) {
+        map.set(code, { id: code, name: `${code} - ${name}` });
+      }
+    });
+    return Array.from(map.values());
+  }, [customers]);
 
   // Dynamic Agencies WITHOUT code numbers like AG001, AG002
   const dynamicAgencies = useMemo(() => {
@@ -130,6 +153,9 @@ export default function FilterOptionsModal({
 
   const activeCategoryList = useMemo(() => {
     switch (filterCategory) {
+      case "Groups Wise":
+      case "Groups":
+        return dynamicGroups;
       case "Agencies":
         return dynamicAgencies;
       case "Policy Status":
@@ -143,10 +169,11 @@ export default function FilterOptionsModal({
       case "Group Category":
         return groupCategoryList;
       default:
-        return dynamicAgencies;
+        return dynamicGroups.length > 0 ? dynamicGroups : dynamicAgencies;
     }
   }, [
     filterCategory,
+    dynamicGroups,
     dynamicAgencies,
     dynamicStatuses,
     paymentModesList,
@@ -286,6 +313,7 @@ export default function FilterOptionsModal({
                 }}
                 className="appearance-none bg-white border border-slate-300 rounded-lg px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20"
               >
+                <option value="Groups Wise">Groups Wise</option>
                 <option value="Agencies">Agencies</option>
                 <option value="Payment Modes">Payment Modes</option>
                 <option value="CRM Groups">CRM Groups</option>

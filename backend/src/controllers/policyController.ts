@@ -13,7 +13,7 @@ export const createPolicy = catchAsync(
         policy: newPolicy,
       },
     });
-  }
+  },
 );
 
 export const previewPremium = catchAsync(
@@ -21,7 +21,10 @@ export const previewPremium = catchAsync(
     const { productId, age, secondaryAge, option,policyTerm, premiumPayingTerm, sumAssured, premiumMode } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
-      throw new AppError("Product, age, term, sum assured, and mode are required.", 400);
+      throw new AppError(
+        "Product, age, term, sum assured, and mode are required.",
+        400,
+      );
     }
 
     const premium = await calculatePremium({
@@ -51,7 +54,7 @@ export const previewPremium = catchAsync(
         premium,
       },
     });
-  }
+  },
 );
 
 export const getAllPolicies = catchAsync(
@@ -64,7 +67,7 @@ export const getAllPolicies = catchAsync(
         policies,
       },
     });
-  }
+  },
 );
 
 export const deletePolicy = catchAsync(
@@ -76,25 +79,22 @@ export const deletePolicy = catchAsync(
     res.status(204).json({
       status: "success",
       data: null,
-
-     });
-  }
-);
-
-export const getPolicyById = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const policy = await policyService.getPolicyById(id);
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        policy,
-      },
     });
-  }
+  },
 );
+
+export const getPolicyById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const policy = await policyService.getPolicyById(id);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      policy,
+    },
+  });
+});
 
 export const getPoliciesByMember = catchAsync(
   async (req: Request, res: Response) => {
@@ -107,23 +107,22 @@ export const getPoliciesByMember = catchAsync(
         policies,
       },
     });
-  }
+  },
 );
 
-export const updatePolicy = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
+export const updatePolicy = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-    const updatedPolicy = await policyService.updatePolicy(
-      id,
-      req.body
-    );
+  console.log("updatePolicy controller - req.params.id:", id);
+  console.log("updatePolicy controller - req.body:", req.body);
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        policy: updatedPolicy,
-      },
-    });
-  }
-);
+  const updatedPolicy = await policyService.updatePolicy(id, req.body);
+  const refreshedPolicy = await policyService.getPolicyById(updatedPolicy.id);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      policy: refreshedPolicy,
+    },
+  });
+});

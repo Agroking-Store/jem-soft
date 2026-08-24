@@ -29,6 +29,7 @@ export interface SurvivalBenefitFormData {
 interface SurvivalBenefitFormProps {
   onBack: () => void;
   onGenerateReport: (formData: SurvivalBenefitFormData) => void;
+  initialData?: SurvivalBenefitFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -42,36 +43,62 @@ interface SurvivalBenefitFormProps {
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
-const getDefaultFormData = (): SurvivalBenefitFormData => ({
-  appliedFilters: [],
-  dateFrom: "2026-09-01",
-  dateTo: "2026-09-30",
-  reportDate: "2026-08-03",
-  reportType: "Statement",
-  includeLapsedPolicies: false,
-  includeRecordOnlyPolicies: false,
-  sbAmountFilterEnabled: false,
-  sbAmountAboveOrEqualTo: 0,
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  sortingFilterSelection: null,
-  reportOptions: {
-    printWithAddress: false,
-    printWithTelNo: false,
-    dob: false,
-  },
-});
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+
+const getNextMonthDateRange = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstNextMonth = new Date(year, month + 1, 1);
+  const lastNextMonth = new Date(year, month + 2, 0);
+
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  return {
+    dateFrom: fmt(firstNextMonth),
+    dateTo: fmt(lastNextMonth),
+  };
+};
+
+const getDefaultFormData = (): SurvivalBenefitFormData => {
+  const nextMonthDates = getNextMonthDateRange();
+  return {
+    appliedFilters: [],
+    dateFrom: nextMonthDates.dateFrom,
+    dateTo: nextMonthDates.dateTo,
+    reportDate: getTodayDateStr(),
+    reportType: "Statement",
+    includeLapsedPolicies: false,
+    includeRecordOnlyPolicies: false,
+    sbAmountFilterEnabled: false,
+    sbAmountAboveOrEqualTo: 0,
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    sortingFilterSelection: null,
+    reportOptions: {
+      printWithAddress: false,
+      printWithTelNo: false,
+      dob: false,
+    },
+  };
+};
 
 export default function SurvivalBenefitForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
   branches = [],
 }: SurvivalBenefitFormProps) {
-  const [formData, setFormData] = useState<SurvivalBenefitFormData>(getDefaultFormData());
+  const [formData, setFormData] = useState<SurvivalBenefitFormData>(initialData || getDefaultFormData());
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);

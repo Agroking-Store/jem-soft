@@ -52,6 +52,7 @@ export interface PolicyRegisterFormData {
 interface PolicyRegisterFormProps {
   onBack: () => void;
   onGenerateReport: (formData: PolicyRegisterFormData) => void;
+  initialData?: PolicyRegisterFormData | null;
   agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
   policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
   customers: Array<{
@@ -67,12 +68,15 @@ interface PolicyRegisterFormProps {
 export default function PolicyRegisterForm({
   onBack,
   onGenerateReport,
+  initialData,
   agencies,
   policyStatuses,
   customers,
   policies,
 }: PolicyRegisterFormProps) {
-  const [formData, setFormData] = useState<PolicyRegisterFormData>({
+  const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+
+  const defaultFormData: PolicyRegisterFormData = {
     appliedFilters: [
       { type: "Policy Status", id: "status-inforce", name: "Inforce" },
       { type: "Policy Status", id: "status-paidup", name: "Fully paid-up" },
@@ -80,13 +84,13 @@ export default function PolicyRegisterForm({
       { type: "Policy Status", id: "status-red-paidup", name: "Reduced Paid-up" },
     ],
     fromCommDate: "",
-    toCommDate: "2026-07-29",
+    toCommDate: getTodayDateStr(),
     policyType: "Both",
     paymentTypes: {
       nach: false,
       otherThanNach: true,
     },
-    reportDate: "2026-07-29",
+    reportDate: getTodayDateStr(),
     sortingOption: "groupsWise",
     sortingFilterSelection: null,
     reportOptions: {
@@ -102,6 +106,11 @@ export default function PolicyRegisterForm({
       existingPolicies: false,
       pageBreakOnGroupChange: false,
     },
+  };
+
+  const [formData, setFormData] = useState<PolicyRegisterFormData>(() => {
+    if (initialData) return initialData;
+    return defaultFormData;
   });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -111,10 +120,10 @@ export default function PolicyRegisterForm({
     setFormData({
       appliedFilters: [],
       fromCommDate: "",
-      toCommDate: "2026-07-29",
+      toCommDate: getTodayDateStr(),
       policyType: "Both",
       paymentTypes: { nach: false, otherThanNach: true },
-      reportDate: "2026-07-29",
+      reportDate: getTodayDateStr(),
       sortingOption: "groupsWise",
       sortingFilterSelection: null,
       reportOptions: {

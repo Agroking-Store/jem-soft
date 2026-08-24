@@ -108,7 +108,7 @@ export default function SelectGroupModal({
               Filter Options
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              Sorting Filter : Groups Wise (Dynamic JEM Soft DB Customers)
+              Sorting Filter : Groups Wise
             </p>
           </div>
           <button

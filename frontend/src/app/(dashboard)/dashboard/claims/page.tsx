@@ -5,8 +5,9 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { fetchClaims } from "@/features/claim/claimSlice";
+import { fetchClaims, deleteClaim } from "@/features/claim/claimSlice";
 import { fetchPolicies } from "@/features/policy/policySlice";
+import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import {
   Plus,
@@ -44,6 +45,8 @@ export default function Page() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
 
@@ -108,6 +111,20 @@ export default function Page() {
       fullName.includes(query)
     );
   });
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteClaim(deleteTarget.id)).unwrap();
+      toast.success("Claim deleted successfully");
+    } catch (err: any) {
+      toast.error(err?.message || err || "Failed to delete claim.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -287,7 +304,10 @@ export default function Page() {
                   const StatusIcon = statusBadge.icon;
                   const claimIndex = `CLM - ${index + 1}`;
                   return (
-                    <tr key={claim.id} className="hover:bg-slate-50 transition">
+                    <tr
+                      key={claim.id}
+                      className="group hover:bg-slate-50 transition"
+                    >
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                           {claimIndex}
@@ -328,7 +348,7 @@ export default function Page() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {canEdit && (
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150">
                             <button
                               onClick={() =>
                                 router.push(
@@ -352,6 +372,7 @@ export default function Page() {
                               <Edit size={16} />
                             </button>
                             <button
+                              onClick={() => setDeleteTarget(claim)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                               title="Delete"
                             >
@@ -393,6 +414,46 @@ export default function Page() {
             }
           />
         )
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-50 rounded-xl">
+                <AlertCircle size={22} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Delete Claim
+                </h3>
+                <p className="text-xs text-slate-400">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to delete this claim?
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                disabled={isDeleting}
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

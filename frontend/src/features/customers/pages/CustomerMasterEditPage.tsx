@@ -18,12 +18,14 @@ import {
   fetchFamilyHistoriesByMember,
   updateFamilyHistory,
   createFamilyHistory,
+  clearFamilyRecords,
   type FamilyHistoryRecordItem,
 } from "@/features/customers/familyHistorySlice";
 import {
   fetchMedicalHistoriesByMember,
   updateMedicalHistory,
   createMedicalHistory,
+  clearMedicalRecords,
   type MedicalHistoryRecordItem,
 } from "@/features/customers/medicalHistorySlice";
 import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
@@ -314,9 +316,10 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
+  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
 }
 
-export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerMasterEditPageProps = {}) {
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();
@@ -358,6 +361,10 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
       dispatch(fetchFamilyHistoriesByMember(id));
       dispatch(fetchMedicalHistoriesByMember(id));
     }
+    return () => {
+      dispatch(clearFamilyRecords());
+      dispatch(clearMedicalRecords());
+    };
   }, [dispatch, id]);
 
   useEffect(() => {
@@ -472,7 +479,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
     ...medicalRecord,
     age: calcAgeFromDob(currentCustomer?.dob),
     gender: currentCustomer?.gender || null,
-    medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
+    medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate || new Date()).toISOString(),
   });
 
   const onSubmit = async (data: FormValues) => {
