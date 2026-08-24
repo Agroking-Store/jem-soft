@@ -355,6 +355,16 @@ export const LicProductAttributeValues = [
   },
   {
     productCode: "LIC New Jeevan Sathi Limited Premium",
+    attributeCode: "MIN_PPT",
+    value: "5",
+  },
+  {
+    productCode: "LIC New Jeevan Sathi Limited Premium",
+    attributeCode: "MAX_PPT",
+    value: "15",
+  },
+  {
+    productCode: "LIC New Jeevan Sathi Limited Premium",
     attributeCode: "MAX_ENTRY_AGE",
     value: "50",
   },
