@@ -51,7 +51,7 @@ const INCOME_SLABS = [
 ];
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
-const ACCOUNT_TYPES = ["Saving Bank","Current Account","NRE Account","NRO Account","FCNR Account"];
+const ACCOUNT_TYPES = ["Saving", "Current"];
 
 // ─── Schema ───────────────────────────────────────────────────────
 const bankDetailSchema = z.object({

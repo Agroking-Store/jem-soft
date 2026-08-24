@@ -53,7 +53,7 @@ const RELIGIONS = ["Hindu","Muslim","Christian","Sikh","Buddhist","Jain","Other"
 // const INCOME_SLABS = ["Below 1L","1L-2.5L","2.5L-5L","5L-10L","10L-25L","25L-50L","50L-1Cr","Above 1Cr"];
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
-const ACCOUNT_TYPES = ["Saving Bank","Current Account","NRE Account","NRO Account","FCNR Account"];
+const ACCOUNT_TYPES = ["Saving", "Current"];
 const ADDRESS_TYPES = ["Residence","Office","Other"];
 
 const bankDetailSchema = z.object({
