@@ -22,8 +22,10 @@ import {
 } from "@/features/policy360/FilterDrawer";
 import {
   CustomerPageHero,
+  CustomerTableFrame,
   CustomerToolbar,
 } from "@/features/customers/components/CustomerUi";
+import { Seal } from "@/features/customers/pages/CustomerListPage";
 
 const statusClasses: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-700",
@@ -31,6 +33,22 @@ const statusClasses: Record<string, string> = {
   Matured: "bg-blue-50 text-blue-700",
   Pending: "bg-amber-50 text-amber-700",
   Claimed: "bg-violet-50 text-violet-700",
+};
+
+const fmtCurrency = (value?: number | null) =>
+  value == null || isNaN(Number(value))
+    ? "—"
+    : `₹${Number(value).toLocaleString("en-IN")}`;
+
+const fmtDate = (value?: string | null) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const PAGE_SIZES = [10, 20, 50];
@@ -200,92 +218,136 @@ export default function SearchPoliciesPage() {
       </CustomerToolbar>
 
       {/* Policy Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-fixed divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                {[
-                  "Policy Number",
-                  "Customer Name",
-                  "Group Code",
-                  "Plan",
-                  "Premium",
-                  "Due Date",
-                  "Sum Assured",
-                  "Status",
-                  "Action",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                  >
-                    {heading}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
+          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+            Search Results
+          </h2>
+          <p className="text-sm text-slate-500">
+            Policies matching your search across all customers.
+          </p>
+        </div>
+        <div className="overflow-hidden bg-white p-5">
+          <CustomerTableFrame>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
+            <table className="w-full">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  {[
+                    "Policy Number",
+                    "Customer Name",
+                    "Group Code",
+                    "Plan",
+                    "Premium",
+                    "Due Date",
+                    "Sum Assured",
+                    "Status",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                    Action
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {paginatedPolicies.map((policy) => {
-                const customerName =
-                  [
-                    policy.CustomerMaster?.firstName,
-                    policy.CustomerMaster?.lastName,
-                  ]
-                    .filter(Boolean)
-                    .join(" ") || "—";
-                const status =
-                  policy.status?.statusName || policy.policyStatus || "—";
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {paginatedPolicies.map((policy) => {
+                  const customerName =
+                    [
+                      policy.CustomerMaster?.firstName,
+                      policy.CustomerMaster?.lastName,
+                    ]
+                      .filter(Boolean)
+                      .join(" ") || "—";
+                  const status =
+                    policy.status?.statusName || policy.policyStatus || "—";
+                  const groupCode =
+                    policy.customer?.groupCode ||
+                    policy.customer?.groupName ||
+                    "—";
+                  const plan = policy.product?.planNumber
+                    ? `${policy.product.planNumber} - ${policy.product.productName}`
+                    : policy.product?.productName || "—";
 
                 return (
                   <tr
                     key={policy.id}
-                    className="group/item transition-colors duration-200 hover:bg-slate-50"
+                    className="group transition-colors hover:bg-slate-50"
                   >
-                    <td className="px-4 py-4 font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
-                      {policy.policyNumber}
-                    </td>
-                    <td className="px-4 py-4 text-slate-700">{customerName}</td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {policy.customer?.groupCode ||
-                        policy.customer?.groupName ||
-                        "—"}
-                    </td>
-                    <td className="max-w-xs px-4 py-4 text-slate-600">
-                      {policy.product?.planNumber
-                        ? `${policy.product.planNumber} - ${policy.product.productName}`
-                        : policy.product?.productName || "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-700">
-                      {policy.premium?.installmentPremium ?? "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {policy.nextPremiumDueDate || "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {policy.premium?.sumAssured ?? "—"}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[status] || "bg-slate-50 text-slate-700"}`}
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <Link
+                        href={`/dashboard/policy-360/search/${policy.id}`}
+                        className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                       >
+                        {policy.policyNumber}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3 text-left">
+                        <Seal name={customerName} size={34} />
+                        <span className="text-sm text-slate-600">
+                          {customerName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {groupCode}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {plan}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm font-medium text-slate-900">
+                        {fmtCurrency(policy.premium?.installmentPremium)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {fmtDate(policy.nextPremiumDueDate)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm font-medium text-slate-900">
+                        {fmtCurrency(policy.premium?.sumAssured)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusClasses[status] ||
+                          "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {status}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <Link
-                        href={`/dashboard/policy-360/search/${policy.id}`}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
-                        title="View"
-                      >
-                        <Eye size={16} />
-                      </Link>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                        <Link
+                          href={`/dashboard/policy-360/search/${policy.id}`}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                          title="View"
+                        >
+                          <Eye size={16} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </CustomerTableFrame>
         </div>
 
         {isLoading && (
@@ -303,7 +365,7 @@ export default function SearchPoliciesPage() {
             No policies found matching your search.
           </p>
         )}
-      </div>
+      </section>
 
       {/* Pagination */}
       {policies.length > 0 && (
