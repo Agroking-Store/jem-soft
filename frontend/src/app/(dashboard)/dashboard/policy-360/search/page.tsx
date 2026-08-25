@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Filter,
   RotateCcw,
   Search,
@@ -274,9 +275,10 @@ export default function SearchPoliciesPage() {
                     <td className="px-4 py-4">
                       <Link
                         href={`/dashboard/policy-360/search/${policy.id}`}
-                        className="font-semibold text-blue-600 hover:text-blue-800"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
+                        title="View"
                       >
-                        View
+                        <Eye size={16} />
                       </Link>
                     </td>
                   </tr>
