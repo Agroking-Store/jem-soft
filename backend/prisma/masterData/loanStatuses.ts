@@ -1,5 +1,6 @@
 export const loanStatuses = [
-  { statusName: 'Active', statusCode: 'ACTIVE' },
-  { statusName: 'Paid Off', statusCode: 'PAID_OFF' },
-  { statusName: 'Defaulted', statusCode: 'DEFAULTED' },
+  { statusName: "Active", statusCode: "ACTIVE" },
+  { statusName: "Paid Off", statusCode: "PAID_OFF" },
+  { statusName: "Defaulted", statusCode: "DEFAULTED" },
+  { statusName: "Closed", statusCode: "CLOSED" },
 ];

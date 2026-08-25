@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -15,26 +15,22 @@ import {
   uploadClaimDocuments,
   deleteClaimDocument,
   type Claim,
+  type ClaimCalculation,
 } from "@/features/claim/claimSlice";
-import { format } from "date-fns";
 import {
-  ChevronRight,
   AlertCircle,
   Loader2,
   Save,
   User,
   FileText,
   Info,
-  Search,
   ChevronDown,
   Trash2,
+  Calculator,
 } from "lucide-react";
-import Link from "next/link";
 import toast from "react-hot-toast";
-import DatePicker from "../lic/policies/new/DatePicker";
 import type { Policy } from "@/features/policy/policySlice";
 import { Button } from "@/shared/components/ui/Button";
-import { Input } from "@/shared/components/ui/Input";
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
@@ -45,20 +41,6 @@ interface ClaimFormProps {
   initialClaim?: Claim | null;
 }
 
-type ClaimCalculation = {
-  maxClaimAmount: number | null;
-  calculation: {
-    sumAssured: number;
-    reversionaryBonus: number;
-    finalAdditionalBonus: number;
-    outstandingLoan: number;
-    loanInterest: number;
-  };
-};
-
-/* ────────────────────────────────────────────────────────────────
- * Payment Details types
- * ──────────────────────────────────────────────────────────────── */
 type PaymentType = "NEFT" | "Cheque";
 
 interface ChequeFields {
@@ -69,18 +51,24 @@ interface ChequeFields {
   chequeAmount: string;
 }
 
+const CLAIM_TYPES = [
+  { value: "Death", label: "Death" },
+  { value: "Maturity", label: "Maturity" },
+  { value: "Surrender", label: "Surrender" },
+];
+
 export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const [confirmedCalculation, setConfirmedCalculation] =
-    useState<ClaimCalculation | null>(null);
-  const [isCalculatingClaim, setIsCalculatingClaim] = useState(false);
+  const [calculation, setCalculation] = useState<ClaimCalculation | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  const isClaimCalculationSupported = (claimType: string) =>
-    ["Death", "Maturity", "Surrender"].includes(claimType);
+  const isCalculationSupported = (type: string) =>
+    ["Death", "Maturity", "Surrender"].includes(type);
 
+  /* ── Zod Schema ─────────────────────────────────────── */
   const claimSchema = z
     .object({
       policyId: z.string().min(1, "Policy is required"),
@@ -92,65 +80,45 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       claimDate: z.string().min(1, "Claim date is required"),
       reasonForClaim: z
         .string()
-        .min(10, "Reason for claim must be at least 10 characters")
-        .max(500, "Reason for claim must not exceed 500 characters"),
+        .min(10, "Reason must be at least 10 characters")
+        .max(500, "Reason must not exceed 500 characters"),
     })
     .refine(
-      (data) => {
-        const sumAssured = selectedPolicy?.premium?.sumAssured;
-        if (!sumAssured) return true;
-        if (["Death", "Maturity", "Surrender"].includes(data.claimType)) {
-          return true;
-        }
-        return data.claimAmount <= sumAssured;
+      (d) => {
+        if (!calculation?.maxClaimAmount) return true;
+        return d.claimAmount <= calculation.maxClaimAmount;
       },
       {
-        message: "Claim amount must be less than or equal to sum assured",
+        message: "Claim amount cannot exceed the maximum claimable amount",
         path: ["claimAmount"],
       },
     )
     .refine(
-      (data) => {
-        if (!isClaimCalculationSupported(data.claimType)) return true;
-        if (
-          !confirmedCalculation?.maxClaimAmount &&
-          confirmedCalculation?.maxClaimAmount !== 0
-        )
-          return true;
-        return data.claimAmount <= confirmedCalculation.maxClaimAmount;
-      },
-      {
-        message: "Claim amount cannot exceed the maximum claimable amount.",
-        path: ["claimAmount"],
-      },
-    )
-    .refine(
-      (data) => {
+      (d) => {
         if (!selectedPolicy) return true;
-        const claimDate = new Date(data.claimDate);
-        const policyStartDate = new Date(selectedPolicy.commencementDate);
-
-        return claimDate > policyStartDate;
+        return (
+          new Date(d.claimDate) > new Date(selectedPolicy.commencementDate)
+        );
       },
       {
         message: "Claim date must be after policy start date",
         path: ["claimDate"],
       },
-    );
+    )
+    .refine((d) => new Date(d.claimDate) <= new Date(), {
+      message: "Claim date cannot be in the future",
+      path: ["claimDate"],
+    });
 
   type ClaimFormData = z.infer<typeof claimSchema>;
 
   const { policies } = useSelector((state: RootState) => state.policies);
-
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [validatedData, setValidatedData] = useState<ClaimFormData | null>(
-    null,
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /* ── Payment details state ─────────────────────────────────── */
+  /* ── Payment State ──────────────────────────────────── */
   const [paymentType, setPaymentType] = useState<PaymentType | "">("");
-  const [paymentError, setPaymentError] = useState<string>("");
+  const [paymentError, setPaymentError] = useState("");
   const [chequeFields, setChequeFields] = useState<ChequeFields>({
     chequeNumber: "",
     chequeDate: "",
@@ -159,7 +127,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     chequeAmount: "",
   });
 
-  /* ── Nominee state ─────────────────────────────────────────── */
+  /* ── Nominee State ──────────────────────────────────── */
   interface Nominee {
     id: string;
     nomineeName: string;
@@ -169,22 +137,16 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     email: string;
     percentage?: number | string;
   }
-
   const [nomineeOpen, setNomineeOpen] = useState(true);
   const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
 
-  // Derive nominees from the selected policy (always read from policy data)
   const nomineeList: Nominee[] = (selectedPolicy?.nominees || []).map(
-    (n: any, index: number) => ({
-      id: n.id || String(index),
+    (n: any, i: number) => ({
+      id: n.id || String(i),
       nomineeName: n.nomineeName || "",
       relationship: n.relationship || "",
       dateOfBirth: n.dateOfBirth
-        ? new Date(n.dateOfBirth).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
+        ? new Date(n.dateOfBirth).toLocaleDateString("en-IN")
         : "-",
       phone: n.phone || "-",
       email: n.email || "-",
@@ -192,75 +154,55 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }),
   );
 
-  /* ── Document upload state ────────────────────────────────── */
+  /* ── Document State ─────────────────────────────────── */
   interface SelectedDocument {
     file: File;
-    id?: string; // For existing documents in edit mode
+    id?: string;
   }
-
   const [selectedDocuments, setSelectedDocuments] = useState<
     SelectedDocument[]
   >([]);
-  const [documentError, setDocumentError] = useState<string>("");
+  const [documentError, setDocumentError] = useState("");
 
-  const ALLOWED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png"];
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+  const MAX_SIZE = 10 * 1024 * 1024;
 
   const validateFile = (file: File): string | null => {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(file.type))
       return "Only PDF, JPG, JPEG and PNG files are allowed.";
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return "File size must not exceed 10 MB.";
-    }
+    if (file.size > MAX_SIZE) return "File size must not exceed 10 MB.";
     return null;
   };
 
   const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setDocumentError("");
-
     const validFiles: SelectedDocument[] = [];
     for (const file of files) {
-      const error = validateFile(file);
-      if (error) {
-        setDocumentError(error);
+      const err = validateFile(file);
+      if (err) {
+        setDocumentError(err);
         return;
       }
-
-      // Check for duplicates
-      const isDuplicate = selectedDocuments.some(
+      const dup = selectedDocuments.some(
         (d) => d.file.name === file.name && d.file.size === file.size,
       );
-      if (!isDuplicate) {
-        validFiles.push({ file });
-      }
+      if (!dup) validFiles.push({ file });
     }
-
-    setSelectedDocuments((prev) => [...prev, ...validFiles]);
-    // Reset input
+    setSelectedDocuments((p) => [...p, ...validFiles]);
     e.target.value = "";
   };
 
   const removeDocument = (index: number) => {
-    const docToRemove = selectedDocuments[index];
-
-    // If it's an existing document in edit mode, mark it for deletion
-    if (mode === "edit" && docToRemove.id) {
-      // We'll handle deletion after form submission
-    }
-
-    setSelectedDocuments((prev) => prev.filter((_, i) => i !== index));
+    setSelectedDocuments((p) => p.filter((_, i) => i !== index));
     setDocumentError("");
   };
 
-  /* ── Helper: default bank details from selected policy ─────── */
-  // Derive account holder name from CustomerMaster (same as Policy view)
-  const getFullName = (cm: any) => {
-    return [cm?.salutation, cm?.firstName, cm?.middleName, cm?.lastName]
+  /* ── Bank Defaults ──────────────────────────────────── */
+  const getFullName = (cm: any) =>
+    [cm?.salutation, cm?.firstName, cm?.middleName, cm?.lastName]
       .filter(Boolean)
       .join(" ");
-  };
 
   const defaultBank = selectedPolicy?.CustomerMaster?.bankDetails?.[0];
   const bankDefaults = {
@@ -275,12 +217,13 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     accountType: defaultBank?.accountType ?? "",
   };
 
+  /* ── Form ───────────────────────────────────────────── */
   const {
     register,
     handleSubmit,
-    control,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ClaimFormData>({
     resolver: zodResolver(claimSchema) as any,
@@ -293,11 +236,16 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     },
   });
 
+  const selectedPolicyId = watch("policyId");
+  const selectedClaimType = watch("claimType");
+  const claimDateValue = watch("claimDate");
+
+  /* ── Effects ────────────────────────────────────────── */
   useEffect(() => {
     dispatch(fetchPolicies());
   }, [dispatch]);
 
-  // Pre-fill form in edit mode
+  // Load initial claim for edit
   useEffect(() => {
     if (mode === "edit" && initialClaim) {
       reset({
@@ -311,13 +259,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         reasonForClaim: initialClaim.reasonForClaim || "",
       });
 
-      // Set selected policy
       const policy = policies.find((p) => p.id === initialClaim.policyId);
-      if (policy) {
-        setSelectedPolicy(policy);
-      }
+      if (policy) setSelectedPolicy(policy);
 
-      // Set payment type
       if (
         initialClaim.paymentType === "Cheque" ||
         initialClaim.paymentType === "NEFT"
@@ -325,7 +269,6 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         setPaymentType(initialClaim.paymentType);
       }
 
-      // Set cheque fields in edit mode
       if (initialClaim.paymentType === "Cheque") {
         setChequeFields({
           chequeNumber: initialClaim.chequeNumber || "",
@@ -342,12 +285,29 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }
   }, [mode, initialClaim, reset, policies]);
 
+  // Load existing documents
+  useEffect(() => {
+    if (mode === "edit" && initialClaim?.documents) {
+      const docs = initialClaim.documents.map((d) => ({
+        file: new File([], d.originalName, { type: d.fileType || "" }),
+        id: d.id,
+      }));
+      setSelectedDocuments(docs);
+    }
+  }, [mode, initialClaim]);
+
+  // Sync selected policy
+  useEffect(() => {
+    const policy = policies.find((p) => p.id === selectedPolicyId);
+    setSelectedPolicy(policy || null);
+    setSelectedNominee(null);
+  }, [selectedPolicyId, policies]);
+
   // Pre-select nominee in edit mode
   useEffect(() => {
     if (
       mode === "edit" &&
-      initialClaim &&
-      initialClaim.nomineeId &&
+      initialClaim?.nomineeId &&
       selectedPolicy?.nominees
     ) {
       const nom = selectedPolicy.nominees.find(
@@ -359,11 +319,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           nomineeName: nom.nomineeName || "",
           relationship: nom.relationship || "",
           dateOfBirth: nom.dateOfBirth
-            ? new Date(nom.dateOfBirth).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })
+            ? new Date(nom.dateOfBirth).toLocaleDateString("en-IN")
             : "-",
           phone: nom.phone || "-",
           email: nom.email || "-",
@@ -372,30 +328,18 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     }
   }, [mode, initialClaim, selectedPolicy]);
 
-  // Sync selectedPolicy when policyId changes
-  const selectedPolicyId = watch("policyId");
-  const selectedClaimType = watch("claimType");
-  const claimDateValue = watch("claimDate");
-
+  // Fetch calculation when policy/type/date changes
   useEffect(() => {
-    const policy = policies.find((p) => p.id === selectedPolicyId);
-    setSelectedPolicy(policy || null);
-    setSelectedNominee(null); // Reset nominee when policy changes
-  }, [selectedPolicyId, policies]);
-
-  useEffect(() => {
-    const fetchCalculation = async () => {
-      if (!selectedPolicyId || !selectedClaimType) {
-        setConfirmedCalculation(null);
+    const fetchCalc = async () => {
+      if (
+        !selectedPolicyId ||
+        !selectedClaimType ||
+        !isCalculationSupported(selectedClaimType)
+      ) {
+        setCalculation(null);
         return;
       }
-
-      if (!isClaimCalculationSupported(selectedClaimType)) {
-        setConfirmedCalculation(null);
-        return;
-      }
-
-      setIsCalculatingClaim(true);
+      setIsCalculating(true);
       try {
         const result = await dispatch(
           calculateClaimAmount({
@@ -404,57 +348,49 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             claimDate: claimDateValue,
           }),
         ).unwrap();
-        setConfirmedCalculation(result);
-      } catch (error) {
-        setConfirmedCalculation(null);
+        setCalculation(result);
+
+        // Auto-fill claim amount with max claimable (only in create mode)
+        if (mode === "create" && result.maxClaimAmount) {
+          setValue("claimAmount", result.maxClaimAmount);
+        }
+      } catch {
+        setCalculation(null);
       } finally {
-        setIsCalculatingClaim(false);
+        setIsCalculating(false);
       }
     };
+    fetchCalc();
+  }, [
+    dispatch,
+    selectedPolicyId,
+    selectedClaimType,
+    claimDateValue,
+    mode,
+    setValue,
+  ]);
 
-    fetchCalculation();
-  }, [dispatch, selectedPolicyId, selectedClaimType, claimDateValue]);
-
-  // Clear selected nominee when claim type is not "Death"
+  // Clear nominee for non-death claims
   useEffect(() => {
-    if (selectedClaimType !== "Death") {
-      setSelectedNominee(null);
-    }
+    if (selectedClaimType !== "Death") setSelectedNominee(null);
   }, [selectedClaimType]);
 
-  // Load existing documents in edit mode
-  useEffect(() => {
-    if (mode === "edit" && initialClaim?.documents) {
-      const existingDocs = initialClaim.documents.map((doc) => ({
-        file: new File([], doc.originalName, { type: doc.fileType || "" }),
-        id: doc.id,
-      }));
-      setSelectedDocuments(existingDocs);
-    }
-  }, [mode, initialClaim]);
-
-  const policyRegister = register("policyId");
-
-  const onValid = (data: ClaimFormData) => {
-    // Validate payment type
+  /* ── Handlers ───────────────────────────────────────── */
+  const onValid = () => {
     if (!paymentType) {
-      setPaymentError("Please select a payment method (NEFT or Cheque).");
+      setPaymentError("Please select a payment method.");
       return;
     }
     setPaymentError("");
-    setValidatedData(data);
     setConfirmOpen(true);
   };
 
   const onSubmit = async (data: ClaimFormData) => {
     setIsSubmitting(true);
 
-    // Compute claimantName from selected policy's CustomerMaster (create mode)
-    // or use the existing claim's saved name (edit mode)
     const getClaimantName = () => {
-      if (mode === "edit" && initialClaim?.claimantName) {
+      if (mode === "edit" && initialClaim?.claimantName)
         return initialClaim.claimantName;
-      }
       return getFullName(selectedPolicy?.CustomerMaster) || "";
     };
 
@@ -465,14 +401,12 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       paymentType: paymentType || undefined,
     };
 
-    // Add payment-specific fields
     if (paymentType === "NEFT") {
       payload.accountHolderName = bankDefaults.accountHolderName || undefined;
       payload.bankName = bankDefaults.bankName || undefined;
       payload.accountNumber = bankDefaults.accountNumber || undefined;
       payload.ifscCode = bankDefaults.ifscCode || undefined;
       payload.branchName = bankDefaults.branchName || undefined;
-      // accountType is not stored in DB, so we skip it
     } else if (paymentType === "Cheque") {
       payload.chequeNumber = chequeFields.chequeNumber || undefined;
       payload.chequeDate = chequeFields.chequeDate || undefined;
@@ -485,7 +419,6 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
     try {
       let claimId: string;
-
       if (mode === "create") {
         const result = await dispatch(createClaim(payload)).unwrap();
         claimId = result.id;
@@ -497,80 +430,67 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         claimId = initialClaim.id;
         toast.success("Claim updated successfully");
       } else {
-        throw new Error("No claim data available");
+        throw new Error("No claim data");
       }
 
-      // Handle document operations
+      // Document deletions (edit mode)
       if (mode === "edit" && initialClaim?.documents) {
-        // Find documents that were removed
-        const currentDocIds = selectedDocuments
-          .filter((doc) => doc.id)
-          .map((doc) => doc.id);
-        const docsToDelete = initialClaim.documents.filter(
-          (doc) => !currentDocIds.includes(doc.id),
+        const currentIds = selectedDocuments
+          .filter((d) => d.id)
+          .map((d) => d.id);
+        const toDelete = initialClaim.documents.filter(
+          (d) => !currentIds.includes(d.id),
         );
-
-        // Delete removed documents
-        for (const doc of docsToDelete) {
+        for (const doc of toDelete) {
           try {
             await dispatch(
-              deleteClaimDocument({
-                claimId,
-                documentId: doc.id,
-              }),
+              deleteClaimDocument({ claimId, documentId: doc.id }),
             ).unwrap();
-          } catch (delError: any) {
-            console.error(`Failed to delete document ${doc.id}:`, delError);
+          } catch (e) {
+            console.error(e);
           }
         }
       }
 
-      // Upload new documents
-      const filesToUpload = selectedDocuments
-        .filter((doc) => !doc.id) // Only upload new files (not existing ones in edit mode)
-        .map((doc) => doc.file);
-
-      if (filesToUpload.length > 0) {
+      // Upload new files
+      const toUpload = selectedDocuments
+        .filter((d) => !d.id)
+        .map((d) => d.file);
+      if (toUpload.length > 0) {
         try {
           await dispatch(
-            uploadClaimDocuments({
-              claimId,
-              files: filesToUpload,
-            }),
+            uploadClaimDocuments({ claimId, files: toUpload }),
           ).unwrap();
-          toast.success(
-            `${filesToUpload.length} document(s) uploaded successfully`,
-          );
-        } catch (docError: any) {
-          toast.error(
-            `Claim saved but documents failed to upload: ${docError}`,
-          );
+          toast.success(`${toUpload.length} document(s) uploaded`);
+        } catch (e: any) {
+          toast.error(`Documents failed to upload: ${e}`);
         }
       }
 
       reset();
       router.push("/dashboard/claims");
-    } catch (error: any) {
-      toast.error(error || `Failed to ${mode} claim`);
+    } catch (err: any) {
+      toast.error(err || `Failed to ${mode} claim`);
     } finally {
       setIsSubmitting(false);
       setConfirmOpen(false);
     }
   };
 
-  /* ── Shared class strings ──────────────────────────────────── */
+  /* ── Styles ─────────────────────────────────────────── */
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
   const disabledInputClass =
-    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 outline-none cursor-not-allowed";
+    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 cursor-not-allowed";
   const selectClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
   const labelClass =
     "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
 
+  const today = new Date().toISOString().slice(0, 10);
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Breadcrumb */}
       <CustomerBreadcrumbs
         items={[
           { label: "Claims", href: "/dashboard/claims" },
@@ -591,135 +511,123 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Claim Information + Payment Details */}
+          {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-6">
-            {/* ── Claim Information Card ─────────────────────────── */}
+            {/* Claim Information */}
             <CustomerSectionCard title="Claim Information" icon={FileText}>
               {/* Policy Select */}
               <div>
                 <label className={labelClass}>
-                  Policy
-                  <span className="ml-0.5 text-rose-500">*</span>
+                  Policy <span className="text-rose-500">*</span>
                 </label>
                 <select
                   className={selectClass}
                   {...register("policyId")}
-                  onChange={(e) => {
-                    policyRegister.onChange(e);
-                    const policy = policies.find(
-                      (p) => p.id === e.target.value,
-                    );
-                    setSelectedPolicy(policy || null);
-                  }}
+                  disabled={mode === "edit"}
                 >
                   <option value="">Select Policy</option>
-                  {policies.map((policy) => (
-                    <option key={policy.id} value={policy.id}>
-                      {policy.policyNumber} - {policy.product?.productName}
+                  {policies.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.policyNumber} - {p.product?.productName}
                     </option>
                   ))}
                 </select>
                 {errors.policyId?.message && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.policyId?.message}
+                    {errors.policyId.message}
                   </p>
                 )}
               </div>
 
-              {/* Policy Details Table */}
-              <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Customer
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Sum assured
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Policy Status
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                        Policy Start Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    <tr>
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {selectedPolicy?.CustomerMaster?.firstName || "-"}{" "}
-                        {selectedPolicy?.CustomerMaster?.lastName}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {selectedPolicy?.premium?.sumAssured || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {selectedPolicy?.status?.statusName || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {selectedPolicy
-                          ? new Date(
-                              selectedPolicy?.commencementDate,
-                            ).toLocaleDateString()
-                          : "-"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {/* Policy Info Table */}
+              {selectedPolicy && (
+                <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Customer
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Sum Assured
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Status
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Start Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                          {getFullName(selectedPolicy.CustomerMaster) || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                          ₹
+                          {Number(
+                            selectedPolicy.premium?.sumAssured || 0,
+                          ).toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                          {selectedPolicy.status?.statusName || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                          {new Date(
+                            selectedPolicy.commencementDate,
+                          ).toLocaleDateString("en-IN")}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
+              {/* Claim Type + Date */}
               <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className={labelClass}>
-                    Claim Type
-                    <span className="ml-0.5 text-rose-500">*</span>
+                    Claim Type <span className="text-rose-500">*</span>
                   </label>
                   <select {...register("claimType")} className={selectClass}>
-                    <option value="">Select</option>
-                    <option value="Maturity">Maturity</option>
-                    <option value="Death">Death</option>
-                    <option value="Surrender">Surrender</option>
-                    <option value="Rider">Rider</option>
-                    <option value="Other">Other</option>
+                    <option value="">Select Type</option>
+                    {CLAIM_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
                   </select>
                   {errors.claimType?.message && (
                     <p className="mt-1 text-xs text-rose-600">
-                      {errors.claimType?.message}
+                      {errors.claimType.message}
                     </p>
                   )}
                 </div>
 
                 <div>
                   <label className={labelClass}>
-                    Claim Date
-                    <span className="ml-0.5 text-rose-500">*</span>
+                    Claim Date <span className="text-rose-500">*</span>
                   </label>
-                  <Controller
-                    control={control}
-                    name="claimDate"
-                    render={({ field }) => (
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date: any) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                      />
-                    )}
+                  <input
+                    type="date"
+                    {...register("claimDate")}
+                    className={inputClass}
+                    max={today}
                   />
                   {errors.claimDate?.message && (
                     <p className="mt-1 text-xs text-rose-600">
-                      {errors.claimDate?.message}
+                      {errors.claimDate.message}
                     </p>
                   )}
                 </div>
               </div>
 
+              {/* Amount + Reason */}
               <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className={labelClass}>
-                    Claimed Amount
-                    <span className="ml-0.5 text-rose-500">*</span>
+                    Claim Amount (₹) <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -727,267 +635,303 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     min="0"
                     {...register("claimAmount")}
                     className={inputClass}
-                    placeholder="Enter Claim amount"
+                    placeholder="Enter claim amount"
                   />
                   {errors.claimAmount?.message && (
                     <p className="mt-1 text-xs text-rose-600">
-                      {errors.claimAmount?.message}
+                      {errors.claimAmount.message}
                     </p>
                   )}
-                  {selectedPolicy &&
-                    confirmedCalculation?.maxClaimAmount != null && (
-                      <p className="mt-2 rounded-lg border border-emerald-200 bg-[#F0FDF4] px-3 py-2 text-sm text-emerald-700">
-                        ✓ Maximum claimable amount:{" "}
-                        {`₹${confirmedCalculation.maxClaimAmount.toLocaleString("en-IN")}`}
-                      </p>
-                    )}
                 </div>
+
                 <div>
                   <label className={labelClass}>
-                    Reason for Claim
-                    <span className="ml-0.5 text-rose-500">*</span>
+                    Reason for Claim <span className="text-rose-500">*</span>
                   </label>
                   <textarea
                     {...register("reasonForClaim")}
                     rows={3}
-                    placeholder="Enter reason for claim"
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 resize-none"
+                    placeholder="Enter reason (min. 10 characters)"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 resize-none"
                   />
                   {errors.reasonForClaim?.message && (
                     <p className="mt-1 text-xs text-rose-600">
-                      {errors.reasonForClaim?.message}
+                      {errors.reasonForClaim.message}
                     </p>
                   )}
                 </div>
               </div>
+
+              {/* Calculation Breakdown */}
+              {isCalculating && (
+                <div className="mt-5 p-4 rounded-xl border border-blue-200 bg-blue-50 flex items-center gap-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <p className="text-sm text-blue-700">
+                    Calculating claim amount...
+                  </p>
+                </div>
+              )}
+
+              {!isCalculating &&
+                calculation?.maxClaimAmount !== null &&
+                calculation && (
+                  <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calculator className="w-5 h-5 text-emerald-700" />
+                      <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                        Claim Calculation Breakdown
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                      <BreakRow
+                        label="Sum Assured"
+                        value={calculation.breakdown.sumAssured}
+                      />
+                      {calculation.breakdown.reversionaryBonus > 0 && (
+                        <BreakRow
+                          label="+ Reversionary Bonus"
+                          value={calculation.breakdown.reversionaryBonus}
+                        />
+                      )}
+                      {calculation.breakdown.finalAdditionalBonus > 0 && (
+                        <BreakRow
+                          label="+ Final Addl. Bonus"
+                          value={calculation.breakdown.finalAdditionalBonus}
+                        />
+                      )}
+                      {calculation.breakdown.loyaltyAddition > 0 && (
+                        <BreakRow
+                          label="+ Loyalty Addition"
+                          value={calculation.breakdown.loyaltyAddition}
+                        />
+                      )}
+                      {calculation.breakdown.outstandingLoan > 0 && (
+                        <BreakRow
+                          label="− Outstanding Loan"
+                          value={-calculation.breakdown.outstandingLoan}
+                          negative
+                        />
+                      )}
+                      {calculation.breakdown.loanInterest > 0 && (
+                        <BreakRow
+                          label="− Accrued Interest"
+                          value={-calculation.breakdown.loanInterest}
+                          negative
+                        />
+                      )}
+                    </div>
+
+                    {calculation.surrenderInfo && (
+                      <div className="mt-3 pt-3 border-t border-emerald-200 text-xs text-emerald-700 space-y-1">
+                        <p>
+                          Total Premium Paid: ₹
+                          {(
+                            calculation.surrenderInfo.basicPremium *
+                            calculation.surrenderInfo.numberOfPremiumsPaid
+                          ).toLocaleString("en-IN")}{" "}
+                          ({calculation.surrenderInfo.numberOfPremiumsPaid}{" "}
+                          premiums)
+                        </p>
+                        <p>
+                          GSV @ {calculation.surrenderInfo.gsvPercentage}% = ₹
+                          {calculation.surrenderInfo.gsv.toLocaleString(
+                            "en-IN",
+                          )}
+                        </p>
+                        <p>
+                          SSV @ {calculation.surrenderInfo.ssvPercentage}% = ₹
+                          {calculation.surrenderInfo.ssv.toLocaleString(
+                            "en-IN",
+                          )}
+                        </p>
+                        <p>
+                          Surrender Value = MAX(GSV, SSV) = ₹
+                          {calculation.surrenderInfo.surrenderValue.toLocaleString(
+                            "en-IN",
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mt-4 pt-3 border-t-2 border-emerald-300 flex justify-between items-center">
+                      <span className="font-bold text-emerald-900">
+                        Maximum Claimable:
+                      </span>
+                      <span className="font-bold text-emerald-900 text-lg">
+                        ₹{calculation.maxClaimAmount!.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    {calculation.loanDetails && (
+                      <div className="mt-3 pt-3 border-t border-emerald-200 text-xs text-slate-600">
+                        <Info size={12} className="inline mr-1" />
+                        Loan interest calculated for{" "}
+                        {calculation.loanDetails.daysSinceLastPayment} days @{" "}
+                        {calculation.loanDetails.interestRate}% p.a.
+                      </div>
+                    )}
+                  </div>
+                )}
             </CustomerSectionCard>
 
-            {/* ── Payment Details Card ───────────────────────────── */}
-            <CustomerSectionCard title="Payment Details">
-              {/* Payment Type Radio Buttons */}
+            {/* Payment Details */}
+            <CustomerSectionCard title="Payment Details" icon={FileText}>
               <div className="mb-6">
                 <label className={labelClass}>
-                  Payment Type
-                  <span className="ml-0.5 text-rose-500">*</span>
+                  Payment Type <span className="text-rose-500">*</span>
                 </label>
-                <div className="flex items-center gap-[35px] mt-2">
-                  <label className="flex items-center gap-2.5 cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="paymentType"
-                      value="Cheque"
-                      checked={paymentType === "Cheque"}
-                      onChange={() => setPaymentType("Cheque")}
-                      className="peer sr-only"
-                    />
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 transition-all peer-checked:border-[#2563EB] peer-checked:bg-[#2563EB] group-hover:border-slate-400">
-                      <span className="h-2 w-2 rounded-full bg-white scale-0 transition-transform peer-checked:scale-100" />
-                    </span>
-                    <span className="text-sm font-medium text-slate-700 peer-checked:text-slate-900">
-                      Cheque
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2.5 cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="paymentType"
-                      value="NEFT"
-                      checked={paymentType === "NEFT"}
-                      onChange={() => setPaymentType("NEFT")}
-                      className="peer sr-only"
-                    />
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 transition-all peer-checked:border-[#2563EB] peer-checked:bg-[#2563EB] group-hover:border-slate-400">
-                      <span className="h-2 w-2 rounded-full bg-white scale-0 transition-transform peer-checked:scale-100" />
-                    </span>
-                    <span className="text-sm font-medium text-slate-700 peer-checked:text-slate-900">
-                      NEFT
-                    </span>
-                  </label>
+                <div className="flex items-center gap-8 mt-2">
+                  {["Cheque", "NEFT"].map((type) => (
+                    <label
+                      key={type}
+                      className="flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value={type}
+                        checked={paymentType === type}
+                        onChange={() => setPaymentType(type as PaymentType)}
+                        className="peer sr-only"
+                      />
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 peer-checked:border-[#2563EB] peer-checked:bg-[#2563EB]">
+                        <span
+                          className={`h-2 w-2 rounded-full bg-white ${paymentType === type ? "scale-100" : "scale-0"}`}
+                        />
+                      </span>
+                      <span className="text-sm font-medium text-slate-700">
+                        {type}
+                      </span>
+                    </label>
+                  ))}
                 </div>
                 {paymentError && (
                   <p className="mt-2 text-xs text-rose-600">{paymentError}</p>
                 )}
               </div>
 
-              {/* ── NEFT: Read-only fields ──────────────────────── */}
               {paymentType === "NEFT" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className={labelClass}>Account Holder Name</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.accountHolderName}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Bank Name</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.bankName}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Account Number</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.accountNumber}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>IFSC Code</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.ifscCode}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Branch Name</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.branchName}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Account Type</label>
-                    <input
-                      type="text"
-                      value={bankDefaults.accountType}
-                      disabled
-                      className={disabledInputClass}
-                    />
-                  </div>
+                  <ReadOnlyField
+                    label="Account Holder Name"
+                    value={bankDefaults.accountHolderName}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
+                  <ReadOnlyField
+                    label="Bank Name"
+                    value={bankDefaults.bankName}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
+                  <ReadOnlyField
+                    label="Account Number"
+                    value={bankDefaults.accountNumber}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
+                  <ReadOnlyField
+                    label="IFSC Code"
+                    value={bankDefaults.ifscCode}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
+                  <ReadOnlyField
+                    label="Branch Name"
+                    value={bankDefaults.branchName}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
+                  <ReadOnlyField
+                    label="Account Type"
+                    value={bankDefaults.accountType}
+                    className={disabledInputClass}
+                    labelClass={labelClass}
+                  />
                 </div>
               )}
 
-              {/* ── Cheque: Editable fields ─────────────────────── */}
               {paymentType === "Cheque" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <ChequeInput
+                    label="Cheque Number"
+                    value={chequeFields.chequeNumber}
+                    onChange={(v) =>
+                      setChequeFields((p) => ({ ...p, chequeNumber: v }))
+                    }
+                    required
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                  />
                   <div>
                     <label className={labelClass}>
-                      Cheque Number
-                      <span className="ml-0.5 text-rose-500">*</span>
+                      Cheque Date <span className="text-rose-500">*</span>
                     </label>
                     <input
-                      type="text"
-                      value={chequeFields.chequeNumber}
+                      type="date"
+                      value={chequeFields.chequeDate}
                       onChange={(e) =>
-                        setChequeFields((prev) => ({
-                          ...prev,
-                          chequeNumber: e.target.value,
+                        setChequeFields((p) => ({
+                          ...p,
+                          chequeDate: e.target.value,
                         }))
                       }
-                      placeholder="Enter cheque number"
                       className={inputClass}
                     />
                   </div>
-                  <div>
-                    <label className={labelClass}>
-                      Cheque Date
-                      <span className="ml-0.5 text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={chequeFields.chequeDate}
-                        onChange={(e) =>
-                          setChequeFields((prev) => ({
-                            ...prev,
-                            chequeDate: e.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>
-                      Bank Name
-                      <span className="ml-0.5 text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={chequeFields.bankName}
-                      onChange={(e) =>
-                        setChequeFields((prev) => ({
-                          ...prev,
-                          bankName: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter bank name"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>
-                      Branch Name
-                      <span className="ml-0.5 text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={chequeFields.branchName}
-                      onChange={(e) =>
-                        setChequeFields((prev) => ({
-                          ...prev,
-                          branchName: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter branch name"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>
-                      Cheque Amount
-                      <span className="ml-0.5 text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={chequeFields.chequeAmount}
-                      onChange={(e) =>
-                        setChequeFields((prev) => ({
-                          ...prev,
-                          chequeAmount: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter cheque amount"
-                      className={inputClass}
-                    />
-                  </div>
+                  <ChequeInput
+                    label="Bank Name"
+                    value={chequeFields.bankName}
+                    onChange={(v) =>
+                      setChequeFields((p) => ({ ...p, bankName: v }))
+                    }
+                    required
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                  />
+                  <ChequeInput
+                    label="Branch Name"
+                    value={chequeFields.branchName}
+                    onChange={(v) =>
+                      setChequeFields((p) => ({ ...p, branchName: v }))
+                    }
+                    required
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                  />
+                  <ChequeInput
+                    label="Cheque Amount"
+                    value={chequeFields.chequeAmount}
+                    onChange={(v) =>
+                      setChequeFields((p) => ({ ...p, chequeAmount: v }))
+                    }
+                    required
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                    type="number"
+                  />
                 </div>
               )}
             </CustomerSectionCard>
           </div>
 
-          {/* Right Column - Nominee Details (shown only for Death claims) */}
+          {/* RIGHT COLUMN - Nominee (only for Death claims) */}
           {selectedClaimType === "Death" && (
             <div className="lg:col-span-1">
               <div className="sticky top-6">
                 <CustomerSectionCard title="Nominee Details" icon={User}>
-                  {/* Nominee Dropdown */}
                   <div className="relative">
                     <label className={labelClass}>Nominee</label>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (selectedPolicy && nomineeList.length > 0) {
-                          setNomineeOpen((o) => !o);
-                        }
-                      }}
+                      onClick={() =>
+                        selectedPolicy &&
+                        nomineeList.length > 0 &&
+                        setNomineeOpen((o) => !o)
+                      }
                       disabled={!selectedPolicy || nomineeList.length === 0}
-                      className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all
-                      ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"}
-                      ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}
-                    `}
+                      className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"} ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}`}
                     >
                       <span
                         className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
@@ -1004,30 +948,25 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                       />
                     </button>
 
-                    {/* Dropdown Panel */}
                     {nomineeOpen && nomineeList.length > 0 && (
-                      <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
+                      <div className="absolute z-[100] mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                         <div className="max-h-60 overflow-y-auto py-1">
-                          {nomineeList.map((nominee) => (
+                          {nomineeList.map((n) => (
                             <button
-                              key={nominee.id}
+                              key={n.id}
                               type="button"
                               onClick={() => {
-                                setSelectedNominee(nominee);
+                                setSelectedNominee(n);
                                 setNomineeOpen(false);
                               }}
-                              className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-[#B8873A]/8 ${
-                                selectedNominee?.id === nominee.id
-                                  ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]"
-                                  : "text-slate-700"
-                              }`}
+                              className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-[#B8873A]/8 ${selectedNominee?.id === n.id ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"}`}
                             >
                               <span className="min-w-0">
                                 <span className="block truncate">
-                                  {nominee.nomineeName}
+                                  {n.nomineeName}
                                 </span>
                                 <span className="block truncate text-xs text-slate-400">
-                                  {nominee.relationship}
+                                  {n.relationship}
                                 </span>
                               </span>
                             </button>
@@ -1037,84 +976,54 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     )}
                   </div>
 
-                  {/* Helper Text */}
                   <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
                     <Info size={12} className="mt-0.5 shrink-0" />
                     <span>
-                      Nominee details are automatically fetched from the
-                      selected policy.
+                      Nominee details are auto-fetched from the selected policy.
                     </span>
                   </p>
 
-                  {/* Auto-filled Nominee Details (read-only) */}
                   {selectedNominee && (
-                    <div className="mt-5 space-y-4">
-                      <div className="border-t border-slate-100 pt-4">
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <label className={labelClass}>Nominee Name</label>
-                            <input
-                              type="text"
-                              value={selectedNominee.nomineeName}
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Relationship</label>
-                            <input
-                              type="text"
-                              value={selectedNominee.relationship}
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Date of Birth</label>
-                            <input
-                              type="text"
-                              value={selectedNominee.dateOfBirth}
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Phone Number</label>
-                            <input
-                              type="text"
-                              value={selectedNominee.phone}
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Share %</label>
-                            <input
-                              type="text"
-                              value={
-                                selectedNominee.percentage !== undefined
-                                  ? String(selectedNominee.percentage)
-                                  : "-"
-                              }
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Email Address</label>
-                            <input
-                              type="text"
-                              value={selectedNominee.email}
-                              disabled
-                              className={disabledInputClass}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div className="mt-5 space-y-4 border-t border-slate-100 pt-4">
+                      <ReadOnlyField
+                        label="Nominee Name"
+                        value={selectedNominee.nomineeName}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
+                      <ReadOnlyField
+                        label="Relationship"
+                        value={selectedNominee.relationship}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
+                      <ReadOnlyField
+                        label="Date of Birth"
+                        value={selectedNominee.dateOfBirth}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
+                      <ReadOnlyField
+                        label="Phone Number"
+                        value={selectedNominee.phone}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
+                      <ReadOnlyField
+                        label="Share %"
+                        value={String(selectedNominee.percentage)}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
+                      <ReadOnlyField
+                        label="Email Address"
+                        value={selectedNominee.email}
+                        className={disabledInputClass}
+                        labelClass={labelClass}
+                      />
                     </div>
                   )}
 
-                  {/* No policy selected state */}
                   {!selectedPolicy && (
                     <div className="mt-5 border-t border-slate-100 pt-4">
                       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-6 text-center">
@@ -1130,12 +1039,12 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           )}
         </div>
 
-        {/* Claim Documents Section */}
+        {/* Documents */}
         <CustomerSectionCard title="Claim Documents" icon={FileText}>
           <div>
             <label className={labelClass}>Upload Documents</label>
             <div className="mt-3">
-              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-colors">
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-300">
                 <div className="text-center">
                   <FileText size={32} className="mx-auto text-slate-400 mb-2" />
                   <span className="text-sm font-medium text-slate-700">
@@ -1157,100 +1066,49 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
             {documentError && (
               <p className="mt-2 text-xs text-rose-600 flex items-start gap-1.5">
-                <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                <AlertCircle size={14} className="mt-0.5" />
                 {documentError}
               </p>
             )}
 
-            {/* Existing Documents List (Edit mode) */}
-            {mode === "edit" && selectedDocuments.some((doc) => doc.id) && (
+            {mode === "edit" && selectedDocuments.some((d) => d.id) && (
               <div className="mt-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                   Existing Documents
                 </p>
                 <div className="space-y-2">
                   {selectedDocuments
-                    .filter((doc) => doc.id)
-                    .map((doc, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between px-3 py-2.5 bg-blue-50 rounded-lg border border-blue-200"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <FileText
-                            size={16}
-                            className="text-blue-400 flex-shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate">
-                              {doc.file.name}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              Already uploaded
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removeDocument(selectedDocuments.indexOf(doc))
-                          }
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer flex-shrink-0"
-                          title="Remove"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                    .filter((d) => d.id)
+                    .map((doc, i) => (
+                      <DocumentRow
+                        key={i}
+                        doc={doc}
+                        onRemove={() =>
+                          removeDocument(selectedDocuments.indexOf(doc))
+                        }
+                        existing
+                      />
                     ))}
                 </div>
               </div>
             )}
 
-            {/* New/Selected Documents List */}
-            {selectedDocuments.some((doc) => !doc.id) && (
-              <div
-                className={
-                  mode === "edit" && selectedDocuments.some((doc) => doc.id)
-                    ? "mt-5"
-                    : "mt-5"
-                }
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-3">
+            {selectedDocuments.some((d) => !d.id) && (
+              <div className="mt-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                   {mode === "edit" ? "New Documents" : "Selected Documents"}
                 </p>
                 <div className="space-y-2">
                   {selectedDocuments
-                    .filter((doc) => !doc.id)
-                    .map((doc, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-200"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <FileText
-                            size={16}
-                            className="text-slate-400 flex-shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate">
-                              {doc.file.name}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {(doc.file.size / 1024).toFixed(2)} KB
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removeDocument(selectedDocuments.indexOf(doc))
-                          }
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer flex-shrink-0"
-                          title="Remove"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                    .filter((d) => !d.id)
+                    .map((doc, i) => (
+                      <DocumentRow
+                        key={i}
+                        doc={doc}
+                        onRemove={() =>
+                          removeDocument(selectedDocuments.indexOf(doc))
+                        }
+                      />
                     ))}
                 </div>
               </div>
@@ -1264,7 +1122,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           </div>
         </CustomerSectionCard>
 
-        {/* Buttons */}
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3">
           <Button
             type="button"
@@ -1273,7 +1131,6 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           >
             Cancel
           </Button>
-
           <Button
             disabled={isSubmitting}
             type="button"
@@ -1295,7 +1152,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       {/* Confirmation Modal */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-50 rounded-xl">
                 <AlertCircle size={22} className="text-red-500" />
@@ -1309,9 +1166,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 </p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+            <p className="text-sm text-slate-600 mb-6">
               {mode === "create"
-                ? "Are you sure you want to raise this claim?"
+                ? "Are you sure you want to raise this claim? The policy status will change to CLAIMED."
                 : "Are you sure you want to update this claim?"}
             </p>
             <div className="flex items-center justify-end gap-3">
@@ -1333,6 +1190,105 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Helper Components ────────────────────────────────── */
+
+function BreakRow({
+  label,
+  value,
+  negative,
+}: {
+  label: string;
+  value: number;
+  negative?: boolean;
+}) {
+  return (
+    <div className="flex justify-between">
+      <span className={negative ? "text-red-600" : "text-slate-600"}>
+        {label}:
+      </span>
+      <span
+        className={`font-semibold ${negative ? "text-red-600" : "text-slate-900"}`}
+      >
+        ₹{Math.abs(value).toLocaleString("en-IN")}
+      </span>
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value, className, labelClass }: any) {
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <input type="text" value={value || "-"} disabled className={className} />
+    </div>
+  );
+}
+
+function ChequeInput({
+  label,
+  value,
+  onChange,
+  required,
+  inputClass,
+  labelClass,
+  type = "text",
+}: any) {
+  return (
+    <div>
+      <label className={labelClass}>
+        {label} {required && <span className="text-rose-500">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+        placeholder={`Enter ${label.toLowerCase()}`}
+      />
+    </div>
+  );
+}
+
+function DocumentRow({
+  doc,
+  onRemove,
+  existing,
+}: {
+  doc: any;
+  onRemove: () => void;
+  existing?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between px-3 py-2.5 rounded-lg border ${existing ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <FileText
+          size={16}
+          className={existing ? "text-blue-400" : "text-slate-400"}
+        />
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-900 truncate">
+            {doc.file.name}
+          </p>
+          <p className="text-xs text-slate-500">
+            {existing
+              ? "Already uploaded"
+              : `${(doc.file.size / 1024).toFixed(2)} KB`}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+      >
+        <Trash2 size={16} />
+      </button>
     </div>
   );
 }

@@ -12,7 +12,6 @@ export interface ClaimData {
   status?: string;
   reasonForClaim?: string;
   nomineeId?: string | null;
-  // Payment fields
   paymentType?: string;
   chequeNumber?: string | null;
   chequeDate?: string | null;
@@ -24,6 +23,200 @@ export interface ClaimData {
   ifscCode?: string | null;
 }
 
+/* ═══════════════════════════════════════════════════════════
+ * HELPERS
+ * ═══════════════════════════════════════════════════════════ */
+
+const toNumber = (value: any): number => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (typeof value === "object" && typeof value.toNumber === "function") {
+    return value.toNumber();
+  }
+  return 0;
+};
+
+const round2 = (v: number): number =>
+  Math.round((v + Number.EPSILON) * 100) / 100;
+
+const findAttributeValue = (
+  policyAttributes: any[] | undefined,
+  codes: string[],
+  names: string[],
+): number => {
+  if (!policyAttributes) return 0;
+  const attr = policyAttributes.find((pa) => {
+    const code = pa.attribute?.attributeCode;
+    const name = pa.attribute?.attributeName;
+    return codes.includes(code) || names.includes(name);
+  });
+  return attr ? toNumber(attr.value) : 0;
+};
+
+/* ═══════════════════════════════════════════════════════════
+ * LOAN OUTSTANDING (uses new LoanRepayment table)
+ * ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Compute outstanding principal + accrued interest for a loan
+ * as of a given date, using the LoanRepayment audit trail.
+ */
+function computeLoanOutstanding(loan: any, asOfDate: Date) {
+  const loanAmount = toNumber(loan.loanAmount);
+  const interestRate = toNumber(loan.interestRate);
+  const repayments = loan.repayments || [];
+
+  const totalPrincipalRepaid = repayments.reduce(
+    (sum: number, r: any) => sum + toNumber(r.principalComponent),
+    0,
+  );
+  const totalInterestPaid = repayments.reduce(
+    (sum: number, r: any) => sum + toNumber(r.interestComponent),
+    0,
+  );
+
+  const outstandingPrincipal = Math.max(0, loanAmount - totalPrincipalRepaid);
+
+  // Find last payment date (or loan date if no payments)
+  const lastPaymentDate =
+    repayments.length > 0
+      ? new Date(
+          repayments.reduce((latest: any, r: any) =>
+            new Date(r.repaymentDate) > new Date(latest.repaymentDate)
+              ? r
+              : latest,
+          ).repaymentDate,
+        )
+      : new Date(loan.loanDate);
+
+  const daysSince = Math.max(
+    0,
+    Math.floor(
+      (asOfDate.getTime() - lastPaymentDate.getTime()) / (1000 * 60 * 60 * 24),
+    ),
+  );
+
+  // Standard simple interest: (P × R × D) / 36500
+  const accruedInterest =
+    outstandingPrincipal > 0 && interestRate > 0
+      ? round2((outstandingPrincipal * interestRate * daysSince) / 36500)
+      : 0;
+
+  return {
+    loanAmount,
+    outstandingPrincipal: round2(outstandingPrincipal),
+    accruedInterest,
+    totalPrincipalRepaid: round2(totalPrincipalRepaid),
+    totalInterestPaid: round2(totalInterestPaid),
+    totalDue: round2(outstandingPrincipal + accruedInterest),
+    interestRate,
+    lastPaymentDate,
+    daysSinceLastPayment: daysSince,
+  };
+}
+
+const isActiveLoan = (loan: any): boolean => {
+  const code = String(loan?.loanStatus?.statusCode ?? "")
+    .trim()
+    .toUpperCase();
+  return code === "ACTIVE";
+};
+
+const getActiveLoan = (loans: any[] = []) => {
+  const active = loans.filter(isActiveLoan);
+  if (active.length === 0) return null;
+  return active.sort(
+    (a, b) => new Date(b.loanDate).getTime() - new Date(a.loanDate).getTime(),
+  )[0];
+};
+
+/* ═══════════════════════════════════════════════════════════
+ * CLAIM AMOUNT CALCULATIONS
+ * ═══════════════════════════════════════════════════════════ */
+
+/**
+ * DEATH CLAIM:
+ * Payable = Sum Assured + Reversionary Bonus + Final Additional Bonus
+ *         − Outstanding Loan − Accrued Interest
+ */
+const calculateDeathClaim = (
+  sumAssured: number,
+  reversionaryBonus: number,
+  finalAdditionalBonus: number,
+  outstandingLoan: number,
+  loanInterest: number,
+): number =>
+  Math.max(
+    0,
+    round2(
+      sumAssured +
+        reversionaryBonus +
+        finalAdditionalBonus -
+        outstandingLoan -
+        loanInterest,
+    ),
+  );
+
+/**
+ * MATURITY CLAIM:
+ * Payable = Sum Assured + Vested Bonuses + Loyalty Addition
+ *         − Outstanding Loan − Accrued Interest
+ */
+const calculateMaturityClaim = (
+  sumAssured: number,
+  bonus: number,
+  loyaltyAddition: number,
+  outstandingLoan: number,
+  loanInterest: number,
+): number =>
+  Math.max(
+    0,
+    round2(
+      sumAssured + bonus + loyaltyAddition - outstandingLoan - loanInterest,
+    ),
+  );
+
+/**
+ * SURRENDER CLAIM:
+ * Surrender Value = MAX(GSV, SSV) + Bonus
+ * Payable = Surrender Value − Outstanding Loan − Accrued Interest
+ *
+ * GSV = Total Premium Paid × GSV %
+ * SSV = Total Premium Paid × SSV %
+ */
+const calculateSurrenderClaim = (
+  basicPremium: number,
+  numberOfPremiumsPaid: number,
+  outstandingLoan: number,
+  loanInterest: number,
+  gsvPercentage: number,
+  ssvPercentage: number,
+  bonus: number,
+): { amount: number; gsv: number; ssv: number; surrenderValue: number } => {
+  const totalPaidPremium = basicPremium * numberOfPremiumsPaid;
+  const gsv = round2(totalPaidPremium * gsvPercentage);
+  const ssv = round2(totalPaidPremium * ssvPercentage);
+  const surrenderValue = Math.max(gsv, ssv);
+
+  return {
+    amount: Math.max(
+      0,
+      round2(surrenderValue + bonus - outstandingLoan - loanInterest),
+    ),
+    gsv,
+    ssv,
+    surrenderValue,
+  };
+};
+
+/* ═══════════════════════════════════════════════════════════
+ * CRUD OPERATIONS
+ * ═══════════════════════════════════════════════════════════ */
+
 export const getAllClaims = async () => {
   return await prisma.claim.findMany({
     include: {
@@ -31,32 +224,21 @@ export const getAllClaims = async () => {
         select: {
           policyNumber: true,
           CustomerMaster: {
-            select: {
-              firstName: true,
-              lastName: true,
-            },
+            select: { firstName: true, lastName: true },
           },
         },
       },
       nominee: {
-        select: {
-          id: true,
-          nomineeName: true,
-          relationship: true,
-        },
+        select: { id: true, nomineeName: true, relationship: true },
       },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
   });
 };
 
 export const getClaimById = async (id: string): Promise<any> => {
   return prisma.claim.findUnique({
-    where: {
-      id,
-    },
+    where: { id },
     include: {
       policy: {
         include: {
@@ -72,16 +254,35 @@ export const getClaimById = async (id: string): Promise<any> => {
   });
 };
 
+export const getClaimByIdWithDocuments = async (id: string) =>
+  prisma.claim.findUnique({
+    where: { id },
+    include: {
+      policy: {
+        include: {
+          product: true,
+          CustomerMaster: true,
+          status: true,
+          premium: true,
+          nominees: true,
+        },
+      },
+      nominee: true,
+      documents: { orderBy: { createdAt: "desc" } },
+    },
+  });
+
 export const createClaim = async (data: ClaimData, userId: string) => {
-  // Validate that nomineeId belongs to the selected policy if provided
+  // Validate nominee belongs to policy
   if (data.nomineeId) {
     const nominee = await prisma.nominee.findUnique({
       where: { id: data.nomineeId },
       select: { policyId: true },
     });
     if (!nominee || nominee.policyId !== data.policyId) {
-      throw new Error(
+      throw new AppError(
         "Selected nominee does not belong to the selected policy.",
+        400,
       );
     }
   }
@@ -92,27 +293,17 @@ export const createClaim = async (data: ClaimData, userId: string) => {
       include: { status: true },
     });
 
-    if (!policy) {
-      throw new AppError("Policy not found.", 404);
-    }
+    if (!policy) throw new AppError("Policy not found.", 404);
 
-    const policyStatusCode = String(policy.status?.statusCode ?? "")
+    const statusCode = String(policy.status?.statusCode ?? "")
       .trim()
       .toUpperCase();
-    const policyStatusName = String(policy.status?.statusName ?? "")
-      .trim()
-      .toUpperCase();
-
-    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
-      throw new AppError(
-        "Cannot create claim. This policy has already been claimed.",
-        400,
-      );
+    if (statusCode === "CLAIMED") {
+      throw new AppError("This policy has already been claimed.", 400);
     }
-
-    if (policyStatusCode !== "ACTIVE" && policyStatusName !== "ACTIVE") {
+    if (statusCode !== "ACTIVE") {
       throw new AppError(
-        "Policy is not active. Claims can only be created for active policies.",
+        "Claims can only be created for active policies.",
         400,
       );
     }
@@ -120,23 +311,15 @@ export const createClaim = async (data: ClaimData, userId: string) => {
     const existingClaim = await tx.claim.findUnique({
       where: { policyId: data.policyId },
     });
-
     if (existingClaim) {
-      throw new AppError(
-        "Cannot create claim. This policy has already been claimed.",
-        400,
-      );
+      throw new AppError("This policy already has a claim.", 400);
     }
 
     const claimedStatus = await tx.policyStatusMaster.findFirst({
-      where: {
-        statusCode: { equals: "CLAIMED", mode: "insensitive" },
-      },
+      where: { statusCode: { equals: "CLAIMED", mode: "insensitive" } },
     });
-
-    if (!claimedStatus) {
+    if (!claimedStatus)
       throw new AppError("Claimed policy status not found.", 500);
-    }
 
     const newClaim = await tx.claim.create({
       data: {
@@ -149,7 +332,6 @@ export const createClaim = async (data: ClaimData, userId: string) => {
         reasonForClaim: data.reasonForClaim,
         nomineeId: data.nomineeId || null,
         createdById: userId,
-        // Payment fields
         paymentType: data.paymentType || null,
         chequeNumber: data.chequeNumber || null,
         chequeDate: data.chequeDate ? new Date(data.chequeDate) : null,
@@ -160,25 +342,12 @@ export const createClaim = async (data: ClaimData, userId: string) => {
         accountNumber: data.accountNumber || null,
         ifscCode: data.ifscCode || null,
       },
-      include: {
-        policy: {
-          include: {
-            product: true,
-            CustomerMaster: true,
-            status: true,
-            premium: true,
-            nominees: true,
-          },
-        },
-        nominee: true,
-      },
     });
 
+    // Update policy status to CLAIMED
     await tx.policy.update({
       where: { id: data.policyId },
-      data: {
-        statusId: claimedStatus.id,
-      },
+      data: { statusId: claimedStatus.id },
     });
 
     return await tx.claim.findUnique({
@@ -204,7 +373,6 @@ export const updateClaimById = async (
   data: Partial<ClaimData>,
   userId: string,
 ) => {
-  // Validate that nomineeId belongs to the selected policy if provided
   if (data.nomineeId) {
     const policyId =
       data.policyId ||
@@ -220,8 +388,9 @@ export const updateClaimById = async (
         select: { policyId: true },
       });
       if (!nominee || nominee.policyId !== policyId) {
-        throw new Error(
+        throw new AppError(
           "Selected nominee does not belong to the selected policy.",
+          400,
         );
       }
     }
@@ -235,7 +404,6 @@ export const updateClaimById = async (
       nomineeId:
         data.nomineeId !== undefined ? data.nomineeId || null : undefined,
       updatedById: userId,
-      // Payment fields
       paymentType:
         data.paymentType !== undefined ? data.paymentType || null : undefined,
       chequeNumber:
@@ -282,236 +450,46 @@ export const deleteClaimById = async (id: string) => {
       where: { id },
       select: { id: true, policyId: true },
     });
-
-    if (!claim) {
-      throw new AppError("Claim not found.", 404);
-    }
+    if (!claim) throw new AppError("Claim not found.", 404);
 
     const policy = await tx.policy.findUnique({
       where: { id: claim.policyId },
       include: { status: true },
     });
+    if (!policy) throw new AppError("Policy not found.", 404);
 
-    if (!policy) {
-      throw new AppError("Policy not found.", 404);
-    }
-
-    // Delete ONLY the claim. Policy, nominees, bank details, customer details,
-    // and loans are not deleted.
     await tx.claim.delete({ where: { id } });
 
-    // Business rule: If the deleted claim was associated with a policy whose
-    // status is CLAIMED, restore the policy status back to ACTIVE.
-    const policyStatusCode = String(policy.status?.statusCode ?? "")
+    // Restore policy to ACTIVE if it was CLAIMED
+    const statusCode = String(policy.status?.statusCode ?? "")
       .trim()
       .toUpperCase();
-    const policyStatusName = String(policy.status?.statusName ?? "")
-      .trim()
-      .toUpperCase();
-
-    if (policyStatusCode === "CLAIMED" || policyStatusName === "CLAIMED") {
+    if (statusCode === "CLAIMED") {
       const activeStatus = await tx.policyStatusMaster.findFirst({
-        where: {
-          statusCode: { equals: "ACTIVE", mode: "insensitive" },
-        },
+        where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
       });
-
-      if (!activeStatus) {
-        throw new AppError("Active policy status not found.", 500);
+      if (activeStatus) {
+        await tx.policy.update({
+          where: { id: claim.policyId },
+          data: { statusId: activeStatus.id },
+        });
       }
-
-      await tx.policy.update({
-        where: { id: claim.policyId },
-        data: { statusId: activeStatus.id },
-      });
     }
 
     return { id: claim.id, policyId: claim.policyId };
   });
 };
 
-const toNumber = (value: any) => {
-  if (value === null || value === undefined) return 0;
-  if (typeof value === "number") return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  if (typeof value === "object" && typeof value.toNumber === "function") {
-    return value.toNumber();
-  }
-  return 0;
-};
-
-const normalizeClaimType = (claimType: string) => {
-  const normalized = claimType?.trim();
-  if (!normalized) return "";
-
-  if (normalized === "Surrendered") return "Surrender";
-  if (normalized === "Maturity Claimed") return "Maturity";
-
-  return normalized;
-};
-
-const findAttributeValue = (
-  policyAttributes: any[] | undefined,
-  attributeCodes: string[],
-  attributeNames: string[],
-) => {
-  if (!policyAttributes) return 0;
-
-  const attr = policyAttributes.find((policyAttribute) => {
-    const code = policyAttribute.attribute?.attributeCode;
-    const name = policyAttribute.attribute?.attributeName;
-    return attributeCodes.includes(code) || attributeNames.includes(name);
-  });
-
-  if (!attr) return 0;
-  return toNumber(attr.value);
-};
-
-const roundToTwoDecimals = (value: number): number =>
-  Math.round((value + Number.EPSILON) * 100) / 100;
-
-const calculateDeathClaim = ({
-  sumAssured,
-  reversionaryBonus,
-  finalAdditionalBonus,
-  outstandingLoan,
-  loanInterest,
-}: {
-  sumAssured: number;
-  reversionaryBonus: number;
-  finalAdditionalBonus: number;
-  outstandingLoan: number;
-  loanInterest: number;
-}) =>
-  Math.max(
-    0,
-    roundToTwoDecimals(
-      sumAssured +
-        reversionaryBonus +
-        finalAdditionalBonus -
-        outstandingLoan -
-        loanInterest,
-    ),
-  );
-
-interface MaturityClaimInput {
-  sumAssured: number;
-  bonus: number;
-  loyaltyAddition: number;
-  outstandingLoan: number;
-  loanInterest: number;
-}
-
-const calculateMaturityClaim = ({
-  sumAssured,
-  bonus,
-  loyaltyAddition,
-  outstandingLoan,
-  loanInterest,
-}: MaturityClaimInput): number =>
-  Math.max(
-    0,
-    roundToTwoDecimals(
-      sumAssured + bonus + loyaltyAddition - outstandingLoan - loanInterest,
-    ),
-  );
-
-const calculateSurrenderClaim = ({
-  basicPremium,
-  numberOfPremiumsPaid,
-  outstandingLoan,
-  loanInterest,
-  gsvPercentage,
-  ssvPercentage,
-  bonus,
-}: {
-  basicPremium: number;
-  numberOfPremiumsPaid: number;
-  outstandingLoan: number;
-  loanInterest: number;
-  gsvPercentage: number;
-  ssvPercentage: number;
-  bonus: number;
-}) => {
-  const paidPremium = basicPremium * numberOfPremiumsPaid;
-  const guaranteedSurrenderValue = paidPremium * gsvPercentage;
-  const specialSurrenderValue = paidPremium * ssvPercentage;
-  const surrenderValue = Math.max(
-    guaranteedSurrenderValue,
-    specialSurrenderValue,
-  );
-
-  return Math.max(
-    0,
-    roundToTwoDecimals(surrenderValue + bonus - outstandingLoan - loanInterest),
-  );
-};
-
-/**
- * Calculate loan interest dynamically from the active loan details.
- * Loan Interest = (Outstanding Loan × Interest Rate × Loan Tenure in Months) /
- * (100 × 12)
- */
-const calculateAutoLoanInterest = (
-  loanAmount: number | null | undefined,
-  interestRate: number | null | undefined,
-  _loanDate: Date | string | null | undefined,
-  _claimDate: Date | string,
-  loanTenureMonths?: number | null | undefined,
-): number => {
-  const principal = Math.max(0, toNumber(loanAmount));
-  const rate = Math.max(0, toNumber(interestRate));
-  const tenureInMonths = Math.max(0, toNumber(loanTenureMonths));
-
-  if (principal === 0 || rate === 0 || tenureInMonths === 0) {
-    return 0;
-  }
-
-  const interest = (principal * rate * tenureInMonths) / (100 * 12);
-  return roundToTwoDecimals(Math.max(0, interest));
-};
-
-const isActiveOrOutstandingLoan = (loan: any) => {
-  const statusCode = String(loan?.loanStatus?.statusCode ?? "")
-    .trim()
-    .toUpperCase();
-  const statusName = String(loan?.loanStatus?.statusName ?? "")
-    .trim()
-    .toUpperCase();
-
-  return (
-    statusCode === "ACTIVE" ||
-    statusCode === "OUTSTANDING" ||
-    statusName === "ACTIVE" ||
-    statusName === "OUTSTANDING"
-  );
-};
-
-const getLatestActiveOutstandingLoan = (loans: any[] = []) => {
-  const applicableLoans = loans.filter((loan) =>
-    isActiveOrOutstandingLoan(loan),
-  );
-
-  if (applicableLoans.length === 0) return null;
-
-  return applicableLoans.sort((a, b) => {
-    const dateA = a?.loanDate ? new Date(a.loanDate).getTime() : 0;
-    const dateB = b?.loanDate ? new Date(b.loanDate).getTime() : 0;
-    return dateB - dateA;
-  })[0];
-};
+/* ═══════════════════════════════════════════════════════════
+ * CLAIM AMOUNT CALCULATION (Main Function)
+ * ═══════════════════════════════════════════════════════════ */
 
 export const calculateClaimAmount = async (
   policyId: string,
   claimType: string,
   claimDate?: string,
 ) => {
-  if (!policyId) {
-    throw new Error("Policy ID is required.");
-  }
+  if (!policyId) throw new AppError("Policy ID is required.", 400);
 
   const policy = await prisma.policy.findUnique({
     where: { id: policyId },
@@ -520,30 +498,29 @@ export const calculateClaimAmount = async (
       loans: {
         include: {
           loanStatus: {
+            select: { statusCode: true, statusName: true },
+          },
+          repayments: {
             select: {
-              statusCode: true,
+              repaymentDate: true,
+              principalComponent: true,
+              interestComponent: true,
             },
+            orderBy: { repaymentDate: "desc" },
           },
         },
       },
-      premiumPayments: {
-        include: {
-          paymentStatus: true,
-        },
-      },
-      policyAttributes: {
-        include: {
-          attribute: true,
-        },
-      },
+      premiumPayments: { include: { paymentStatus: true } },
+      policyAttributes: { include: { attribute: true } },
     },
   });
 
-  if (!policy) {
-    throw new Error("Policy not found.");
-  }
+  if (!policy) throw new AppError("Policy not found.", 404);
 
-  const normalizedClaimType = normalizeClaimType(claimType);
+  const dateForCalc = claimDate ? new Date(claimDate) : new Date();
+  const normalizedType = claimType.trim();
+
+  // ── Policy values ──
   const sumAssured = toNumber(policy.premium?.sumAssured);
   const reversionaryBonus = findAttributeValue(
     policy.policyAttributes,
@@ -562,125 +539,121 @@ export const calculateClaimAmount = async (
   );
   const bonus = reversionaryBonus + finalAdditionalBonus;
 
-  const dateForCalculation = claimDate ? new Date(claimDate) : new Date();
+  // ── Loan deduction ──
+  const activeLoan = getActiveLoan(policy.loans);
+  const loanDetails = activeLoan
+    ? computeLoanOutstanding(activeLoan, dateForCalc)
+    : null;
 
-  const activeLoan = getLatestActiveOutstandingLoan(policy.loans);
-  const outstandingLoan = activeLoan
-    ? Math.max(
-        0,
-        toNumber(activeLoan.loanAmount) - toNumber(activeLoan.loanRepaidAmount),
-      )
-    : 0;
+  const outstandingLoan = loanDetails?.outstandingPrincipal ?? 0;
+  const loanInterest = loanDetails?.accruedInterest ?? 0;
 
-  const loanInterest = activeLoan
-    ? calculateAutoLoanInterest(
-        outstandingLoan,
-        activeLoan.interestRate,
-        activeLoan.loanDate,
-        dateForCalculation,
-        activeLoan.loanTenure,
-      )
-    : 0;
-
-  const maturityOutstandingLoan = outstandingLoan;
-  const maturityLoanInterest = loanInterest;
-
+  // ── Surrender-specific values ──
   const basicPremium =
     toNumber(policy.premium?.basicYearlyPremium) ||
     toNumber(policy.premium?.installmentPremium);
-  const numberOfPremiumsPaid = policy.premiumPayments.filter((payment) => {
-    const statusCode = payment.paymentStatus?.statusCode;
-    return statusCode === "PAID" || statusCode === "Paid";
+  const numberOfPremiumsPaid = policy.premiumPayments.filter((p) => {
+    const code = p.paymentStatus?.statusCode;
+    return code === "PAID" || code === "Paid";
   }).length;
 
   const gsvPercentage =
     findAttributeValue(
       policy.policyAttributes,
       ["GSV_PERCENTAGE", "GSV_PERCENT", "GSV"],
-      [
-        "Guaranteed Surrender Value Percentage",
-        "Guaranteed Surrender Percentage",
-        "GSV %",
-      ],
+      ["Guaranteed Surrender Value Percentage", "GSV %"],
     ) / 100 || 0.3;
 
   const ssvPercentage =
     findAttributeValue(
       policy.policyAttributes,
       ["SSV_PERCENTAGE", "SSV_PERCENT", "SSV"],
-      [
-        "Special Surrender Value Percentage",
-        "Special Surrender Percentage",
-        "SSV %",
-      ],
+      ["Special Surrender Value Percentage", "SSV %"],
     ) / 100 || 0.35;
 
-  const calculation = {
-    sumAssured,
-    reversionaryBonus,
-    finalAdditionalBonus,
-    loyaltyAddition,
-    outstandingLoan,
-    loanInterest,
-  };
-
+  // ── Calculate based on type ──
   let maxClaimAmount: number | null = null;
+  let surrenderInfo: any = null;
 
-  if (normalizedClaimType === "Death") {
-    maxClaimAmount = calculateDeathClaim({
+  if (normalizedType === "Death") {
+    maxClaimAmount = calculateDeathClaim(
       sumAssured,
       reversionaryBonus,
       finalAdditionalBonus,
       outstandingLoan,
       loanInterest,
-    });
-  }
-
-  if (normalizedClaimType === "Maturity") {
-    maxClaimAmount = calculateMaturityClaim({
+    );
+  } else if (normalizedType === "Maturity") {
+    maxClaimAmount = calculateMaturityClaim(
       sumAssured,
       bonus,
       loyaltyAddition,
-      outstandingLoan: maturityOutstandingLoan,
-      loanInterest: maturityLoanInterest,
-    });
-  }
-
-  if (normalizedClaimType === "Surrender") {
-    maxClaimAmount = calculateSurrenderClaim({
+      outstandingLoan,
+      loanInterest,
+    );
+  } else if (normalizedType === "Surrender") {
+    const result = calculateSurrenderClaim(
       basicPremium,
       numberOfPremiumsPaid,
       outstandingLoan,
       loanInterest,
-      gsvPercentage: gsvPercentage || 0.3,
-      ssvPercentage: ssvPercentage || 0.35,
+      gsvPercentage,
+      ssvPercentage,
       bonus,
-    });
+    );
+    maxClaimAmount = result.amount;
+    surrenderInfo = {
+      gsv: result.gsv,
+      ssv: result.ssv,
+      surrenderValue: result.surrenderValue,
+      basicPremium,
+      numberOfPremiumsPaid,
+      gsvPercentage: gsvPercentage * 100,
+      ssvPercentage: ssvPercentage * 100,
+    };
   }
+
+  const grossAmount =
+    maxClaimAmount !== null
+      ? round2(maxClaimAmount + outstandingLoan + loanInterest)
+      : null;
 
   return {
     maxClaimAmount,
-    calculation,
+    breakdown: {
+      sumAssured,
+      reversionaryBonus,
+      finalAdditionalBonus,
+      loyaltyAddition,
+      bonus,
+      outstandingLoan,
+      loanInterest,
+      totalDeduction: round2(outstandingLoan + loanInterest),
+      grossAmount,
+    },
+    loanDetails: loanDetails
+      ? {
+          loanAmount: loanDetails.loanAmount,
+          outstandingPrincipal: loanDetails.outstandingPrincipal,
+          accruedInterest: loanDetails.accruedInterest,
+          totalRepaid: loanDetails.totalPrincipalRepaid,
+          interestRate: loanDetails.interestRate,
+          daysSinceLastPayment: loanDetails.daysSinceLastPayment,
+        }
+      : null,
+    surrenderInfo,
   };
 };
 
-export { calculateDeathClaim, calculateMaturityClaim, calculateSurrenderClaim };
+/* ═══════════════════════════════════════════════════════════
+ * LOAN DETAILS (for display)
+ * ═══════════════════════════════════════════════════════════ */
 
-/**
- * Get loan details and calculate loan interest for a policy
- * Used by frontend to display loan information and auto-calculated interest
- *
- * @param policyId - ID of the policy
- * @param claimDate - Date for which to calculate interest (optional, uses current date if not provided)
- * @returns Object containing loan details and calculated interest
- */
 export const getLoanDetailsWithCalculatedInterest = async (
   policyId: string,
   claimDate?: string,
 ) => {
-  if (!policyId) {
-    throw new Error("Policy ID is required.");
-  }
+  if (!policyId) throw new AppError("Policy ID is required.", 400);
 
   const policy = await prisma.policy.findUnique({
     where: { id: policyId },
@@ -688,65 +661,52 @@ export const getLoanDetailsWithCalculatedInterest = async (
       loans: {
         include: {
           loanStatus: {
+            select: { statusCode: true, statusName: true },
+          },
+          repayments: {
             select: {
-              statusCode: true,
-              statusName: true,
+              repaymentDate: true,
+              principalComponent: true,
+              interestComponent: true,
             },
+            orderBy: { repaymentDate: "desc" },
           },
         },
       },
     },
   });
 
-  if (!policy) {
-    throw new Error("Policy not found.");
-  }
+  if (!policy) throw new AppError("Policy not found.", 404);
 
-  const dateForCalculation = claimDate ? new Date(claimDate) : new Date();
+  const dateForCalc = claimDate ? new Date(claimDate) : new Date();
+  const activeLoan = getActiveLoan(policy.loans);
 
-  if (!policy.loans || policy.loans.length === 0) {
+  if (!activeLoan) {
     return {
       loanAmount: 0,
       interestRate: 0,
       loanDate: null,
-      loanTenure: 0,
       loanStatus: null,
       loanInterest: 0,
       outstandingLoan: 0,
     };
   }
 
-  const loan = getLatestActiveOutstandingLoan(policy.loans) ?? policy.loans[0];
-
-  const loanAmount = toNumber(loan.loanAmount);
-  const loanRepaidAmount = toNumber(loan.loanRepaidAmount);
-  const outstandingLoan = Math.max(0, loanAmount - loanRepaidAmount);
-  const interestRate = toNumber(loan.interestRate);
-  const loanTenure = toNumber(loan.loanTenure);
-
-  const loanInterest = calculateAutoLoanInterest(
-    outstandingLoan,
-    interestRate,
-    loan.loanDate,
-    dateForCalculation,
-    loanTenure,
-  );
+  const details = computeLoanOutstanding(activeLoan, dateForCalc);
 
   return {
-    loanAmount: loanAmount,
-    interestRate,
-    loanDate: loan.loanDate,
-    loanTenure,
-    loanStatus:
-      loan.loanStatus?.statusCode ?? loan.loanStatus?.statusName ?? null,
-    loanInterest,
-    outstandingLoan,
+    loanAmount: details.loanAmount,
+    interestRate: toNumber(activeLoan.interestRate),
+    loanDate: activeLoan.loanDate,
+    loanStatus: activeLoan.loanStatus?.statusCode ?? null,
+    loanInterest: details.accruedInterest,
+    outstandingLoan: details.outstandingPrincipal,
   };
 };
 
-// ======================================================
-// Document Management Functions
-// ======================================================
+/* ═══════════════════════════════════════════════════════════
+ * DOCUMENT MANAGEMENT
+ * ═══════════════════════════════════════════════════════════ */
 
 export interface ClaimDocumentData {
   claimId: string;
@@ -757,75 +717,17 @@ export interface ClaimDocumentData {
   fileSize?: number;
 }
 
-/**
- * Create a claim document record
- */
-export const createClaimDocument = async (documentData: ClaimDocumentData) => {
-  return await prisma.claimDocument.create({
-    data: documentData,
-  });
-};
+export const createClaimDocument = async (data: ClaimDocumentData) =>
+  prisma.claimDocument.create({ data });
 
-/**
- * Get all documents for a claim
- */
-export const getClaimDocuments = async (claimId: string) => {
-  return await prisma.claimDocument.findMany({
-    where: {
-      claimId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+export const getClaimDocuments = async (claimId: string) =>
+  prisma.claimDocument.findMany({
+    where: { claimId },
+    orderBy: { createdAt: "desc" },
   });
-};
 
-/**
- * Get a specific document
- */
-export const getClaimDocumentById = async (documentId: string) => {
-  return await prisma.claimDocument.findUnique({
-    where: {
-      id: documentId,
-    },
-  });
-};
+export const getClaimDocumentById = async (documentId: string) =>
+  prisma.claimDocument.findUnique({ where: { id: documentId } });
 
-/**
- * Delete a claim document
- */
-export const deleteClaimDocument = async (documentId: string) => {
-  return await prisma.claimDocument.delete({
-    where: {
-      id: documentId,
-    },
-  });
-};
-
-/**
- * Update claim with documents relation in query
- */
-export const getClaimByIdWithDocuments = async (id: string) => {
-  return prisma.claim.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      policy: {
-        include: {
-          product: true,
-          CustomerMaster: true,
-          status: true,
-          premium: true,
-          nominees: true,
-        },
-      },
-      nominee: true,
-      documents: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
-  });
-};
+export const deleteClaimDocument = async (documentId: string) =>
+  prisma.claimDocument.delete({ where: { id: documentId } });
