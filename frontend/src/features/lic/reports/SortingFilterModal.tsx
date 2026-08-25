@@ -20,6 +20,7 @@ interface SortingFilterModalProps {
     groupName?: string | null;
     resArea?: string | null;
     resCity?: string | null;
+    resPincode?: string | null;
   }>;
   policies: Array<any>;
   /**
@@ -126,6 +127,13 @@ export default function SortingFilterModal({
         return {
           title: "Sorting Filter : S.B. Datewise",
           col1: "S.B. Date",
+          col2: "",
+          col3: "",
+        };
+      case "pincode":
+        return {
+          title: "Sorting Filter : Pincode Wise",
+          col1: "Pincode",
           col2: "",
           col3: "",
         };
@@ -301,6 +309,22 @@ export default function SortingFilterModal({
           id: `sb-${idx}`,
           code: d,
           name: d,
+          extra: "",
+        }));
+      }
+
+      if (sortingOption === "pincode") {
+        const pincodes = Array.from(
+          new Set(
+            customers
+              .map((c) => c.resPincode)
+              .filter((pin): pin is string => Boolean(pin && pin.trim().length > 0))
+          )
+        );
+        return pincodes.map((pin, idx) => ({
+          id: `pin-${idx}`,
+          code: pin,
+          name: pin,
           extra: "",
         }));
       }

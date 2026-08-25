@@ -111,6 +111,27 @@ const CUSTOMER_MASTER_INCLUDE = {
   bankDetails: true,
   miscInfo: true,
   preferences: true,
+  familyHistories: {
+    include: {
+      records: true,
+    },
+  },
+  medicalHistories: {
+    include: {
+      records: true,
+    },
+  },
+  policies: {
+    include: {
+      product: true,
+      status: true,
+      premiumMode: true,
+      premium: true,
+      nominees: true,
+      branch: true,
+      advisor: true,
+    },
+  },
 } as const;
 
 export const getCustomersMaster = async () => {
