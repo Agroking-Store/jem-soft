@@ -9,7 +9,6 @@ import {
   Search,
   Edit,
   Trash2,
-  KeyRound,
   Shield,
   ShieldCheck,
   Eye,
@@ -22,7 +21,6 @@ import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchAllUsers, deleteUser } from "@/features/user/userSlice";
 import type { ManagedUser, UserRole } from "@/features/user/types";
-import ResetPasswordModal from "@/features/user/components/ResetPasswordModal";
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -139,7 +137,6 @@ export default function UserListPage() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [resetTarget, setResetTarget] = useState<ManagedUser | null>(null);
 
   useEffect(() => {
     dispatch(fetchAllUsers());
@@ -337,8 +334,8 @@ export default function UserListPage() {
                   {filtered.map((user, index) => (
                     <tr
                       key={user.id}
-                      onDoubleClick={() =>
-                        router.push(`/dashboard/users/${user.id}/edit`)
+                      onClick={() =>
+                        router.push(`/dashboard/users/${user.id}`)
                       }
                       className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
                         index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
@@ -385,14 +382,17 @@ export default function UserListPage() {
                       </td>
 
                       <td className="px-4 py-4 text-right align-middle">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => setResetTarget(user)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
-                            title="Reset Password"
+                        <div
+                          className="flex items-center justify-end gap-1.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Link
+                            href={`/dashboard/users/${user.id}`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                            title="View"
                           >
-                            <KeyRound size={14} />
-                          </button>
+                            <Eye size={14} />
+                          </Link>
 
                           <Link
                             href={`/dashboard/users/${user.id}/edit`}
@@ -429,14 +429,6 @@ export default function UserListPage() {
           </>
         )}
       </div>
-
-      {/* Reset Password Modal */}
-      {resetTarget && (
-        <ResetPasswordModal
-          user={resetTarget}
-          onClose={() => setResetTarget(null)}
-        />
-      )}
 
       {/* Delete Modal */}
       {deleteTarget && (

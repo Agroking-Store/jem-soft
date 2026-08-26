@@ -10,41 +10,50 @@ import {
 
 interface NotificationState {
   notifications: any[];
-
   unreadCount: number;
+  isLoading: boolean;
+  error: string | null;
 
   fetchNotifications: () => Promise<void>;
-
   readNotification: (id: string) => Promise<void>;
-
   markAllNotificationsRead: () => Promise<void>;
-
   deleteNotification: (id: string) => Promise<void>;
-
   deleteReadNotifications: () => Promise<void>;
 }
 
-export const useNotificationStore =
-  create<NotificationState>((set) => ({
-    notifications: [],
+export const useNotificationStore = create<NotificationState>((set) => ({
+  notifications: [],
+  unreadCount: 0,
+  isLoading: false,
+  error: null,
 
-    unreadCount: 0,
-
-    fetchNotifications: async () => {
+  fetchNotifications: async () => {
+    set({ isLoading: true, error: null });
+    try {
       const response = await getNotifications();
-
-      const notifications = response.data;
+      const rawNotifications = response?.data ?? response;
+      const notifications = Array.isArray(rawNotifications)
+        ? rawNotifications
+        : [];
 
       set({
         notifications,
-
-        unreadCount: notifications.filter(
-          (n: any) => !n.isRead
-        ).length,
+        unreadCount: notifications.filter((n: any) => !n?.isRead).length,
+        isLoading: false,
       });
-    },
+    } catch (error: any) {
+      console.error("Failed to fetch notifications:", error);
+      set({
+        notifications: [],
+        unreadCount: 0,
+        isLoading: false,
+        error: error?.message || "Failed to fetch notifications",
+      });
+    }
+  },
 
-    readNotification: async (id: string) => {
+  readNotification: async (id: string) => {
+    try {
       await markNotificationRead(id);
 
       set((state) => ({
@@ -61,9 +70,13 @@ export const useNotificationStore =
           (n) => n.id !== id && !n.isRead
         ).length,
       }));
-    },
+    } catch (error) {
+      console.error("Failed to mark notification read:", error);
+    }
+  },
 
-    markAllNotificationsRead: async () => {
+  markAllNotificationsRead: async () => {
+    try {
       await markAllNotificationsReadApi();
 
       set((state) => ({
@@ -74,9 +87,13 @@ export const useNotificationStore =
 
         unreadCount: 0,
       }));
-    },
+    } catch (error) {
+      console.error("Failed to mark all notifications read:", error);
+    }
+  },
 
-    deleteNotification: async (id: string) => {
+  deleteNotification: async (id: string) => {
+    try {
       await deleteNotificationApi(id);
 
       set((state) => ({
@@ -88,9 +105,13 @@ export const useNotificationStore =
           (n) => n.id !== id && !n.isRead
         ).length,
       }));
-    },
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  },
 
-    deleteReadNotifications: async () => {
+  deleteReadNotifications: async () => {
+    try {
       await deleteReadNotificationsApi();
 
       set((state) => ({
@@ -102,5 +123,8 @@ export const useNotificationStore =
           (n) => !n.isRead
         ).length,
       }));
-    },
-  }));
+    } catch (error) {
+      console.error("Failed to delete read notifications:", error);
+    }
+  },
+}));
