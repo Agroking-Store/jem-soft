@@ -262,8 +262,212 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   });
 };
 
-export const getAllPolicies = async (): Promise<any[]> => {
+interface PolicySearchFilters {
+  search?: string;
+  holderName?: string;
+  policyNumber?: string;
+  planName?: string;
+  groupCode?: string;
+  premium?: string;
+  dueDate?: string;
+  sumAssured?: string;
+  status?: string;
+}
+
+export const getAllPolicies = async (
+  filters: PolicySearchFilters = {},
+): Promise<any[]> => {
+  const normalizedSearch = filters.search?.trim();
+  const normalizedHolderName = filters.holderName?.trim();
+  const normalizedPolicyNumber = filters.policyNumber?.trim();
+  const normalizedPlanName = filters.planName?.trim();
+  const normalizedGroupCode = filters.groupCode?.trim();
+  const premium = filters.premium?.trim();
+  const dueDate = filters.dueDate?.trim();
+  const sumAssured = filters.sumAssured?.trim();
+  const status = filters.status?.trim();
+  const numericPremium = premium ? Number(premium) : undefined;
+  const numericSumAssured = sumAssured ? Number(sumAssured) : undefined;
+  const dueDateStart = dueDate
+    ? new Date(`${dueDate}T00:00:00.000`)
+    : undefined;
+  const dueDateEnd = dueDateStart
+    ? new Date(dueDateStart.getTime() + 24 * 60 * 60 * 1000)
+    : undefined;
+  const customerNameConditions = (value: string) =>
+    value
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((term) => ({
+        OR: [
+          {
+            firstName: {
+              contains: term,
+              mode: "insensitive" as const,
+            },
+          },
+          {
+            middleName: {
+              contains: term,
+              mode: "insensitive" as const,
+            },
+          },
+          {
+            lastName: {
+              contains: term,
+              mode: "insensitive" as const,
+            },
+          },
+        ],
+      }));
+
+  const where = {
+    AND: [
+      normalizedSearch
+        ? {
+            OR: [
+              {
+                policyNumber: {
+                  contains: normalizedSearch,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                CustomerMaster: {
+                  AND: customerNameConditions(normalizedSearch),
+                },
+              },
+              {
+                customer: {
+                  OR: [
+                    {
+                      groupName: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      groupCode: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                product: {
+                  OR: [
+                    {
+                      planNumber: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      productName: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                status: {
+                  OR: [
+                    {
+                      statusName: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      statusCode: {
+                        contains: normalizedSearch,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }
+        : undefined,
+      normalizedHolderName
+        ? {
+            CustomerMaster: {
+              AND: customerNameConditions(normalizedHolderName),
+            },
+          }
+        : undefined,
+      normalizedPolicyNumber
+        ? {
+            policyNumber: {
+              contains: normalizedPolicyNumber,
+              mode: "insensitive" as const,
+            },
+          }
+        : undefined,
+      normalizedPlanName
+        ? {
+            product: {
+              OR: [
+                {
+                  productName: {
+                    contains: normalizedPlanName,
+                    mode: "insensitive" as const,
+                  },
+                },
+                {
+                  planNumber: {
+                    contains: normalizedPlanName,
+                    mode: "insensitive" as const,
+                  },
+                },
+              ],
+            },
+          }
+        : undefined,
+      normalizedGroupCode
+        ? {
+            customer: {
+              groupCode: {
+                contains: normalizedGroupCode,
+                mode: "insensitive" as const,
+              },
+            },
+          }
+        : undefined,
+      numericPremium !== undefined && Number.isFinite(numericPremium)
+        ? { premium: { installmentPremium: numericPremium } }
+        : undefined,
+      numericSumAssured !== undefined && Number.isFinite(numericSumAssured)
+        ? { premium: { sumAssured: numericSumAssured } }
+        : undefined,
+      dueDateStart && dueDateEnd && !Number.isNaN(dueDateStart.getTime())
+        ? {
+            nextPremiumDueDate: {
+              gte: dueDateStart,
+              lt: dueDateEnd,
+            },
+          }
+        : undefined,
+      status
+        ? {
+            status: {
+              statusName: {
+                equals: status,
+                mode: "insensitive" as const,
+              },
+            },
+          }
+        : undefined,
+    ].filter(Boolean),
+  };
+
   return prisma.policy.findMany({
+    where,
     include: {
       CustomerMaster: {
         include: {

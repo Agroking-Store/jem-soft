@@ -300,7 +300,7 @@ export default function LICPoliciesPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <CustomerPageHero
         title="Policies"
@@ -388,67 +388,67 @@ export default function LICPoliciesPage() {
               <tr>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Policy No.
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[150px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Life Assured
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[380px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[240px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Plan
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[130px] whitespace-nowrap px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] whitespace-nowrap px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Sum Assured
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[100px] px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Premium
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[90px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[80px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Mode
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[80px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="w-[60px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Term
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[80px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="w-[60px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   PPT
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="w-[90px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   FUP Date
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="w-[90px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 w-[120px] px-4 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  className="sticky top-0 z-10 w-[110px] px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                 >
                   Actions
                 </th>

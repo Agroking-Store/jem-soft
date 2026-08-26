@@ -9,6 +9,10 @@ import {
   FilterDrawer,
   type LapsedPolicyFilters,
 } from "@/features/policy360/FilterDrawer";
+import {
+  CustomerPageHero,
+  CustomerToolbar,
+} from "@/features/customers/components/CustomerUi";
 
 export default function LapsedPoliciesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,21 +101,23 @@ export default function LapsedPoliciesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Link
-        href="/dashboard/policy-360"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
-      >
-        <ArrowLeft size={17} /> Policy 360
-      </Link>
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Lapsed Policies</h1>
-        <p className="mt-2 text-slate-500">
-          Policies with unpaid premium for the last 90 days
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <CustomerPageHero
+        title="Policy 360"
+        subtitle="Monitor policies with overdue premium payments"
+      />
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+        Lapsed Policies
+      </h2>
+
+      <CustomerToolbar>
+        <Link
+          href="/dashboard/policy-360"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          <ArrowLeft size={17} /> Back
+        </Link>
         <div className="relative w-full lg:max-w-md">
           <Search
             size={17}
@@ -121,7 +127,7 @@ export default function LapsedPoliciesPage() {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search lapsed policies..."
-            className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
           />
         </div>
         <div className="flex gap-2">
@@ -139,12 +145,12 @@ export default function LapsedPoliciesPage() {
             <Download size={16} /> Export
           </button>
         </div>
-      </div>
+      </CustomerToolbar>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-[1100px] w-full text-left text-sm">
-            <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+          <table className="min-w-full table-fixed divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
                 {[
                   "Policy No.",
@@ -158,17 +164,20 @@ export default function LapsedPoliciesPage() {
                   "Status",
                   "Action",
                 ].map((heading) => (
-                  <th key={heading} className="px-4 py-3 font-semibold">
+                  <th
+                    key={heading}
+                    className="sticky top-0 z-10 px-4 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+                  >
                     {heading}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {lapsedPolicies.map((policy) => (
                 <tr
                   key={policy.policyNumber}
-                  className="transition hover:bg-slate-50"
+                  className="group/item transition-colors duration-200 hover:bg-slate-50"
                 >
                   <td className="px-4 py-4 font-semibold text-slate-900">
                     {policy.policyNumber}

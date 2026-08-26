@@ -5,22 +5,29 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Filter,
   RotateCcw,
   Search,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import {
-  POLICY_360_RECORDS,
-  type Policy360Status,
-} from "@/features/policy360/mockData";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store/store";
+import { fetchPolicies } from "@/features/policy/policySlice";
+import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import {
   EMPTY_FILTERS,
   FilterDrawer,
   type LapsedPolicyFilters,
 } from "@/features/policy360/FilterDrawer";
+import {
+  CustomerPageHero,
+  CustomerTableFrame,
+  CustomerToolbar,
+} from "@/features/customers/components/CustomerUi";
+import { Seal } from "@/features/customers/pages/CustomerListPage";
 
-const statusClasses: Record<Policy360Status, string> = {
+const statusClasses: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-700",
   Lapsed: "bg-rose-50 text-rose-700",
   Matured: "bg-blue-50 text-blue-700",
@@ -28,9 +35,30 @@ const statusClasses: Record<Policy360Status, string> = {
   Claimed: "bg-violet-50 text-violet-700",
 };
 
+const fmtCurrency = (value?: number | null) =>
+  value == null || isNaN(Number(value))
+    ? "—"
+    : `₹${Number(value).toLocaleString("en-IN")}`;
+
+const fmtDate = (value?: string | null) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const PAGE_SIZES = [10, 20, 50];
 
 export default function SearchPoliciesPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { policies, isLoading, error } = useSelector(
+    (state: RootState) => state.policies,
+  );
+  const { statuses } = useSelector((state: RootState) => state.policyStatuses);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<LapsedPolicyFilters>(EMPTY_FILTERS);
@@ -38,86 +66,72 @@ export default function SearchPoliciesPage() {
     useState<LapsedPolicyFilters>(EMPTY_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredPolicies = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    return POLICY_360_RECORDS.filter((policy) => {
-      // Search bar filter (case-insensitive, partial-match)
-      if (query) {
-        const searchable = [
-          policy.policyNumber,
-          policy.lifeAssured,
-          policy.group,
-          policy.plan,
-          policy.mobileNumber,
-        ]
-          .join(" ")
-          .toLowerCase();
-        if (!searchable.includes(query)) return false;
-      }
+  useEffect(() => {
+    dispatch(fetchPolicyStatuses());
+  }, [dispatch]);
 
-      // Drawer filters (AND logic)
-      const {
-        policyHolderName,
-        policyNumber,
-        planName,
-        groupCode,
-        premiumAmount,
-        sumAssured,
-      } = appliedFilters;
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
 
       if (
-        policyHolderName &&
-        !policy.lifeAssured
-          .toLowerCase()
-          .includes(policyHolderName.toLowerCase())
+        target instanceof HTMLElement &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+          target.isContentEditable ||
+          target.closest("button"))
       ) {
-        return false;
-      }
-      if (
-        policyNumber &&
-        !policy.policyNumber.toLowerCase().includes(policyNumber.toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        planName &&
-        !policy.plan.toLowerCase().includes(planName.toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        groupCode &&
-        !policy.group.toLowerCase().includes(groupCode.toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        premiumAmount &&
-        !policy.premium.toLowerCase().includes(premiumAmount.toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        sumAssured &&
-        !policy.sumAssured.toLowerCase().includes(sumAssured.toLowerCase())
-      ) {
-        return false;
+        return;
       }
 
-      return true;
-    });
-  }, [searchTerm, appliedFilters]);
+      if (
+        event.key.length !== 1 ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.metaKey
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      searchInputRef.current?.focus();
+      setSearchTerm((current) => current + event.key);
+      setCurrentPage(1);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      dispatch(
+        fetchPolicies({
+          search: searchTerm.trim() || undefined,
+          holderName: appliedFilters.customerName || undefined,
+          policyNumber: appliedFilters.policyNumber || undefined,
+          planName: appliedFilters.planName || undefined,
+          groupCode: appliedFilters.groupCode || undefined,
+          premium: appliedFilters.premium || undefined,
+          dueDate: appliedFilters.dueDate || undefined,
+          sumAssured: appliedFilters.sumAssured || undefined,
+          status: appliedFilters.status || undefined,
+          page: currentPage,
+          limit: itemsPerPage,
+        }),
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timeout);
+  }, [appliedFilters, currentPage, dispatch, itemsPerPage, searchTerm]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredPolicies.length / itemsPerPage),
+    policies.length === itemsPerPage ? currentPage + 1 : currentPage,
   );
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedPolicies = filteredPolicies.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
+  const paginatedPolicies = policies;
 
   const handleApplyFilters = () => {
     setAppliedFilters(filters);
@@ -136,6 +150,7 @@ export default function SearchPoliciesPage() {
     setFilters(EMPTY_FILTERS);
     setAppliedFilters(EMPTY_FILTERS);
     setCurrentPage(1);
+    dispatch(fetchPolicies({ page: 1, limit: itemsPerPage }));
   };
 
   const handleItemsPerPageChange = (value: number) => {
@@ -144,21 +159,22 @@ export default function SearchPoliciesPage() {
   };
 
   const startItem =
-    filteredPolicies.length === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(safePage * itemsPerPage, filteredPolicies.length);
+    policies.length === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
+  const endItem = startItem === 0 ? 0 : startItem + policies.length - 1;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Search Policies</h1>
-        <p className="mt-2 text-slate-500">
-          Search policies by policy number, customer name, group code or other
-          details
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <CustomerPageHero
+        title="Policy 360"
+        subtitle="Search and manage policies across all customers"
+      />
+
+      <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+        Search Policies
+      </h2>
 
       {/* Search Area */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <CustomerToolbar>
         <Link
           href="/dashboard/policy-360"
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -171,13 +187,14 @@ export default function SearchPoliciesPage() {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
+            ref={searchInputRef}
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value);
               setCurrentPage(1);
             }}
             placeholder="Search: Policy Number, Customer Name, Group Code..."
-            className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
           />
         </div>
         <div className="flex gap-2">
@@ -198,85 +215,161 @@ export default function SearchPoliciesPage() {
             <Filter size={16} />
           </button>
         </div>
-      </div>
+      </CustomerToolbar>
 
       {/* Policy Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-[1100px] w-full text-left text-sm">
-            <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
-              <tr>
-                {[
-                  "Policy Number",
-                  "Customer Name",
-                  "Group Code",
-                  "Plan",
-                  "Premium",
-                  "Due Date",
-                  "Sum Assured",
-                  "Status",
-                  "Action",
-                ].map((heading) => (
-                  <th key={heading} className="px-4 py-3 font-semibold">
-                    {heading}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
+          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+            Search Results
+          </h2>
+          <p className="text-sm text-slate-500">
+            Policies matching your search across all customers.
+          </p>
+        </div>
+        <div className="overflow-hidden bg-white p-5">
+          <CustomerTableFrame>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
+            <table className="w-full">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  {[
+                    "Policy Number",
+                    "Customer Name",
+                    "Group Code",
+                    "Plan",
+                    "Premium",
+                    "Due Date",
+                    "Sum Assured",
+                    "Status",
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                    Action
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {paginatedPolicies.map((policy) => (
-                <tr
-                  key={policy.policyNumber}
-                  className="transition hover:bg-slate-50"
-                >
-                  <td className="px-4 py-4 font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
-                    {policy.policyNumber}
-                  </td>
-                  <td className="px-4 py-4 text-slate-700">
-                    {policy.lifeAssured}
-                  </td>
-                  <td className="px-4 py-4 text-slate-600">{policy.group}</td>
-                  <td className="max-w-xs px-4 py-4 text-slate-600">
-                    {policy.plan}
-                  </td>
-                  <td className="px-4 py-4 text-slate-700">{policy.premium}</td>
-                  <td className="px-4 py-4 text-slate-600">
-                    {policy.premiumDueDate}
-                  </td>
-                  <td className="px-4 py-4 text-slate-600">
-                    {policy.sumAssured}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[policy.status]}`}
-                    >
-                      {policy.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <button
-                      type="button"
-                      className="font-semibold text-blue-600 hover:text-blue-800"
-                    >
-                      View
-                    </button>
-                  </td>
                 </tr>
-              ))}
+              </thead>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {paginatedPolicies.map((policy) => {
+                  const customerName =
+                    [
+                      policy.CustomerMaster?.firstName,
+                      policy.CustomerMaster?.lastName,
+                    ]
+                      .filter(Boolean)
+                      .join(" ") || "—";
+                  const status =
+                    policy.status?.statusName || policy.policyStatus || "—";
+                  const groupCode =
+                    policy.customer?.groupCode ||
+                    policy.customer?.groupName ||
+                    "—";
+                  const plan = policy.product?.planNumber
+                    ? `${policy.product.planNumber} - ${policy.product.productName}`
+                    : policy.product?.productName || "—";
+
+                return (
+                  <tr
+                    key={policy.id}
+                    className="group transition-colors hover:bg-slate-50"
+                  >
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <Link
+                        href={`/dashboard/policy-360/search/${policy.id}`}
+                        className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                      >
+                        {policy.policyNumber}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3 text-left">
+                        <Seal name={customerName} size={34} />
+                        <span className="text-sm text-slate-600">
+                          {customerName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {groupCode}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {plan}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm font-medium text-slate-900">
+                        {fmtCurrency(policy.premium?.installmentPremium)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm text-slate-600">
+                        {fmtDate(policy.nextPremiumDueDate)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span className="text-sm font-medium text-slate-900">
+                        {fmtCurrency(policy.premium?.sumAssured)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusClasses[status] ||
+                          "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                        <Link
+                          href={`/dashboard/policy-360/search/${policy.id}`}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                          title="View"
+                        >
+                          <Eye size={16} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        </CustomerTableFrame>
         </div>
 
-        {filteredPolicies.length === 0 && (
+        {isLoading && (
+          <p className="px-6 py-10 text-center text-sm text-slate-500">
+            Loading policies...
+          </p>
+        )}
+        {!isLoading && error && (
+          <p className="px-6 py-10 text-center text-sm text-slate-500">
+            {error}
+          </p>
+        )}
+        {!isLoading && !error && policies.length === 0 && (
           <p className="px-6 py-10 text-center text-sm text-slate-500">
             No policies found matching your search.
           </p>
         )}
-      </div>
+      </section>
 
       {/* Pagination */}
-      {filteredPolicies.length > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm md:flex-row">
+      {policies.length > 0 && (
+        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.05)] md:flex-row">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <span>Items per page:</span>
             <select
@@ -296,7 +389,7 @@ export default function SearchPoliciesPage() {
 
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-600">
-              {startItem} – {endItem} of {filteredPolicies.length}
+              {startItem} – {endItem} of {endItem}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -331,6 +424,7 @@ export default function SearchPoliciesPage() {
         onChange={setFilters}
         onApply={handleApplyFilters}
         onClear={handleClearAll}
+        statuses={statuses}
       />
     </div>
   );
