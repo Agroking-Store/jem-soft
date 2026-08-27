@@ -30,6 +30,7 @@ import {
 } from "@/features/customers/medicalHistorySlice";
 import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
 import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
+import BankDetailsRecordsEditor from "@/features/customers/forms/BankDetailsRecordsEditor";
 import {
   ArrowLeft, User, Phone, MapPin, CreditCard, Info, Settings,
   ChevronRight, Plus, Trash2, Star, Search, X, Heart, Activity,
@@ -367,6 +368,56 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
     };
   }, [dispatch, id]);
 
+  const handleToggleGroupAddress = (index: number, checked: boolean) => {
+    setValue(`addresses.${index}.useGroupAddress`, checked, { shouldDirty: true });
+    if (checked) {
+      const gId = selectedGroupId || watch("groupId");
+      const grp = groups.find((g) => g.id === gId);
+      if (!grp) {
+        toast.error("Please select a Customer Group first");
+        setValue(`addresses.${index}.useGroupAddress`, false);
+        return;
+      }
+      const addrType = watch(`addresses.${index}.addressType`);
+      const hasOff = Boolean(grp.offAddressLine1 || grp.offCity || grp.offPin);
+      const hasRes = Boolean(grp.resAddressLine1 || grp.resCity || grp.resPin);
+
+      if (addrType === "Office" && hasOff) {
+        setValue(`addresses.${index}.addressLine1`, grp.offAddressLine1 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine2`, grp.offAddressLine2 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine3`, grp.offAddressLine3 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine4`, grp.offAddressLine4 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.city`, grp.offCity || "", { shouldDirty: true });
+        setValue(`addresses.${index}.pin`, grp.offPin || "", { shouldDirty: true });
+        setValue(`addresses.${index}.state`, grp.offState || "", { shouldDirty: true });
+        setValue(`addresses.${index}.country`, grp.offCountry || "India", { shouldDirty: true });
+        setValue(`addresses.${index}.area`, grp.offArea || "", { shouldDirty: true });
+      } else if (hasRes) {
+        setValue(`addresses.${index}.addressLine1`, grp.resAddressLine1 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine2`, grp.resAddressLine2 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine3`, grp.resAddressLine3 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine4`, grp.resAddressLine4 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.city`, grp.resCity || "", { shouldDirty: true });
+        setValue(`addresses.${index}.pin`, grp.resPin || "", { shouldDirty: true });
+        setValue(`addresses.${index}.state`, grp.resState || "", { shouldDirty: true });
+        setValue(`addresses.${index}.country`, grp.resCountry || "India", { shouldDirty: true });
+        setValue(`addresses.${index}.area`, grp.resArea || "", { shouldDirty: true });
+      } else if (hasOff) {
+        setValue(`addresses.${index}.addressLine1`, grp.offAddressLine1 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine2`, grp.offAddressLine2 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine3`, grp.offAddressLine3 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.addressLine4`, grp.offAddressLine4 || "", { shouldDirty: true });
+        setValue(`addresses.${index}.city`, grp.offCity || "", { shouldDirty: true });
+        setValue(`addresses.${index}.pin`, grp.offPin || "", { shouldDirty: true });
+        setValue(`addresses.${index}.state`, grp.offState || "", { shouldDirty: true });
+        setValue(`addresses.${index}.country`, grp.offCountry || "India", { shouldDirty: true });
+        setValue(`addresses.${index}.area`, grp.offArea || "", { shouldDirty: true });
+      } else {
+        toast("Selected group does not have an address saved.", { icon: "ℹ️" });
+      }
+    }
+  };
+
   useEffect(() => {
     if (isMounted && !authLoading && user) {
       if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
@@ -599,7 +650,21 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Personal Details</h2>
           </div>
           <div className="p-5 space-y-4">
-            <GroupAutoComplete value={selectedGroupId} onChange={(id) => { setSelectedGroupId(id); setValue("groupId", id); }} groups={groups.map((g) => ({ id: g.id, groupCode: g.groupCode, groupName: g.groupName }))} error={errors.groupId?.message} />
+            <GroupAutoComplete
+              value={selectedGroupId}
+              onChange={(id) => {
+                setSelectedGroupId(id);
+                setValue("groupId", id, { shouldValidate: true, shouldDirty: true });
+                const addrs = watch("addresses") || [];
+                addrs.forEach((a, idx) => {
+                  if (a.useGroupAddress) {
+                    setTimeout(() => handleToggleGroupAddress(idx, true), 50);
+                  }
+                });
+              }}
+              groups={groups.map((g) => ({ id: g.id, groupCode: g.groupCode, groupName: g.groupName }))}
+              error={errors.groupId?.message}
+            />
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <FormSelect label="Salutation" {...register("salutation")}><option value="">—</option>{SALUTATIONS.map((s) => <option key={s}>{s}</option>)}</FormSelect>
               <FormInput label="First Name" required placeholder="First name" error={errors.firstName?.message} {...register("firstName")} />
@@ -675,7 +740,15 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                   <div className="flex-1"><FormSelect label="Address Type" {...register(`addresses.${idx}.addressType`)}>{ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect></div>
                   <button type="button" onClick={() => removeAddr(idx)} className="mt-5 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><Trash2 size={14} /></button>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register(`addresses.${idx}.useGroupAddress`)} className="rounded border-slate-300 text-[#B8873A]" /> Use Group Address</label>
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(watch(`addresses.${idx}.useGroupAddress`))}
+                    onChange={(e) => handleToggleGroupAddress(idx, e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                  />
+                  Use Group Address
+                </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <FormInput label="Address Line 1" placeholder="House / Flat No." {...register(`addresses.${idx}.addressLine1`)} />
                   <FormInput label="Address Line 2" placeholder="Street / Colony" {...register(`addresses.${idx}.addressLine2`)} />
@@ -701,30 +774,11 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             <span className="text-[#B8873A]"><CreditCard size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Bank Details</h2>
           </div>
-          <div className="p-5 space-y-4">
-            {bankFields.length > 0 && (
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gradient-to-r from-[#0B1220] to-[#16294D] text-white"><th className="py-2.5 px-3 text-left font-semibold text-xs">Default</th><th className="py-2.5 px-3 text-left font-semibold text-xs">IFSC Code</th><th className="py-2.5 px-3 text-left font-semibold text-xs">Bank Name</th><th className="py-2.5 px-3 text-left font-semibold text-xs">Branch</th><th className="py-2.5 px-3 text-left font-semibold text-xs">City</th><th className="py-2.5 px-3 text-left font-semibold text-xs">A/C Type</th><th className="py-2.5 px-3 text-left font-semibold text-xs">A/C No.</th><th className="py-2.5 px-3 text-left font-semibold text-xs">MICR No.</th><th className="py-2.5 px-3"></th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {bankFields.map((field, idx) => (
-                      <tr key={field.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
-                        <td className="py-2 px-3"><input type="checkbox" {...register(`bankDetails.${idx}.isDefault`)} className="rounded border-slate-300 text-[#B8873A]" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.ifscCode`)} placeholder="SBIN0001234" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankName`)} placeholder="Bank Name" className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.bankBranch`)} placeholder="Branch" className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.city`)} placeholder="City" className="w-24 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><BankAccountTypeCell index={idx} /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.accountNumber`)} placeholder="Account No." className="w-32 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><input {...register(`bankDetails.${idx}.micrNumber`)} placeholder="MICR No." className="w-28 border border-slate-200 rounded px-2 py-1.5 text-xs outline-none focus:border-[#B8873A] bg-white" /></td>
-                        <td className="py-2 px-2"><button type="button" onClick={() => removeBank(idx)} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><Trash2 size={13} /></button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <button type="button" onClick={() => appendBank({ isDefault: bankFields.length === 0, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" })} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#B8873A] bg-[#B8873A]/10 hover:bg-[#E8C77A]/20 border border-slate-200 rounded-lg transition-colors"><Plus size={14} /> Add Bank Account</button>
+          <div className="p-5">
+            <BankDetailsRecordsEditor
+              bankDetails={watch("bankDetails") || []}
+              onChange={(banks) => setValue("bankDetails", banks as any, { shouldDirty: true, shouldValidate: true })}
+            />
           </div>
         </div>
 

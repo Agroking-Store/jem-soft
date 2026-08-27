@@ -270,21 +270,56 @@ export default function CustomerMasterDetailsPage({
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Address</h3>
                   {c.addresses && c.addresses.length > 0 ? (
-                    <div className="space-y-2">
-                      {c.addresses.map((addr, idx) => (
-                        <div key={idx} className="border border-slate-200 rounded-lg px-3 py-2">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{addr.addressType}</span>
-                            {addr.useGroupAddress && <span className="text-[10px] bg-[#B8873A]/10 text-[#B8873A] px-1.5 py-0.5 rounded-full font-medium">Group</span>}
+                    <div className="space-y-2.5">
+                      {c.addresses.map((addr, idx) => {
+                        const lineParts = [
+                          addr.addressLine1,
+                          addr.addressLine2,
+                          addr.addressLine3,
+                          addr.addressLine4,
+                          addr.area,
+                          addr.city,
+                          addr.state,
+                          addr.country,
+                          addr.pin ? `PIN: ${addr.pin}` : "",
+                        ].filter(Boolean);
+
+                        let displayLines = lineParts.join(", ");
+                        if (!displayLines && addr.useGroupAddress && (c.group as any)) {
+                          const grp = c.group as any;
+                          const grpParts = [
+                            grp.resAddressLine1 || grp.offAddressLine1,
+                            grp.resAddressLine2 || grp.offAddressLine2,
+                            grp.resAddressLine3 || grp.offAddressLine3,
+                            grp.resAddressLine4 || grp.offAddressLine4,
+                            grp.resArea || grp.offArea,
+                            grp.resCity || grp.offCity,
+                            grp.resState || grp.offState,
+                            grp.resCountry || grp.offCountry,
+                            (grp.resPin || grp.offPin) ? `PIN: ${grp.resPin || grp.offPin}` : "",
+                          ].filter(Boolean);
+                          displayLines = grpParts.join(", ");
+                        }
+
+                        return (
+                          <div key={idx} className="border border-slate-200 bg-slate-50/50 rounded-xl p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{addr.addressType || "Address"}</span>
+                              {addr.useGroupAddress && (
+                                <span className="text-[10px] bg-[#B8873A]/15 text-[#0B1220] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                  Group Address
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                              {displayLines || "No address details specified."}
+                            </p>
                           </div>
-                          <p className="text-xs text-slate-700 leading-snug">
-                            {[addr.addressLine1, addr.addressLine2, addr.addressLine3, addr.addressLine4, addr.city, addr.state, addr.country, addr.pin].filter(Boolean).join(", ")}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400">No addresses.</p>
+                    <p className="text-sm text-slate-400">No addresses saved.</p>
                   )}
                 </div>
               </div>

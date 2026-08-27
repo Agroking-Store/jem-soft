@@ -218,7 +218,7 @@ export interface SelectOptionGroup {
   isCollapsible?: boolean;
 }
 
-function useOutsideClose(onClose: () => void, refs: React.RefObject<HTMLElement>[]) {
+function useOutsideClose(onClose: () => void, refs: Array<React.RefObject<HTMLElement | null>>) {
   useEffect(() => {
     function handle(e: MouseEvent) {
       const target = e.target as Node;
@@ -247,7 +247,7 @@ function DropdownPanel({
   value?: string;
   onSelect: (value: string) => void;
   style: React.CSSProperties;
-  panelRef: React.RefObject<HTMLDivElement>;
+  panelRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -389,7 +389,7 @@ export function SearchableSelect({
   const [pos, setPos] = useState<React.CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const ref = useOutsideClose(
+  useOutsideClose(
     () => {
       setOpen(false);
       setQuery("");
@@ -411,11 +411,29 @@ export function SearchableSelect({
     }
   }, [open]);
 
+  // Close dropdown when scrolling outside the panel (capturing window & scrollable modal containers)
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = (e: Event) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setOpen(false);
+      setQuery("");
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [open]);
+
   const allOptions = optionsOrGroups.flatMap(item => 'options' in item ? item.options : [item]);
   const selected = allOptions.find((o) => o.value === value);
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       {label && (
         <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
           {label}
@@ -499,7 +517,7 @@ export function FilterSelect({
   const [pos, setPos] = useState<React.CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const ref = useOutsideClose(
+  useOutsideClose(
     () => {
       setOpen(false);
       setQuery("");
@@ -521,11 +539,29 @@ export function FilterSelect({
     }
   }, [open]);
 
+  // Close dropdown when scrolling outside the panel (capturing window & scrollable modal containers)
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = (e: Event) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setOpen(false);
+      setQuery("");
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [open]);
+
   const selected = options.find((o) => o.value === value);
   const active = Boolean(selected);
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative">
       <button
         ref={triggerRef}
         type="button"
