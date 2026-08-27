@@ -152,7 +152,7 @@ function FormInput({ label, error, required, icon, ...props }: React.InputHTMLAt
       <FieldLabel label={label} required={required} />
       <div className="relative">
         {icon && <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>}
-        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"}`} />
+        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"}`} />
       </div>
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
@@ -211,7 +211,7 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
+      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
@@ -221,7 +221,7 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
-        <span className="text-[#B8873A]">{icon}</span>
+        <span className="text-[#1877F2]">{icon}</span>
         <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5 sm:p-6">{children}</div>
@@ -267,14 +267,14 @@ function GroupAutoComplete({
             onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
             onFocus={() => setOpen(true)}
             placeholder="Search group by name or code..."
-            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
             <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>
           )}
         </div>
-        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-[#B8873A]/10 text-[#B8873A] hover:bg-[#E8C77A]/20 transition-colors" title="Add new group">
+        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors" title="Add new group">
           <Plus size={16} />
         </Link>
       </div>
@@ -282,7 +282,7 @@ function GroupAutoComplete({
       {open && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
-            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#B8873A]/10 transition-colors text-left">
+            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left">
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
             </button>
@@ -617,7 +617,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   };
 
   if (!isMounted || authLoading || (customerLoading && !currentCustomer)) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" /></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1877F2]" /></div>;
   }
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
@@ -646,7 +646,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Personal Details */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><User size={16} /></span>
+            <span className="text-[#1877F2]"><User size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Personal Details</h2>
           </div>
           <div className="p-5 space-y-4">
@@ -696,7 +696,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             </div>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]/20" />
+                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Is Group Head</p>
                   <p className="text-xs text-slate-400">Mark as the primary person of the group</p>
@@ -710,16 +710,16 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Contact Information */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><Phone size={16} /></span>
+            <span className="text-[#1877F2]"><Phone size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Contact Information</h2>
           </div>
           <div className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput label="Mobile 1" type="tel" placeholder="9876543210" {...register("mobile1")} />
               <FormInput label="Mobile 2" type="tel" placeholder="9876543211" {...register("mobile2")} />
-              <div><FieldLabel label="Landline 1" /><div className="flex gap-2"><input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /><input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /></div></div>
-              <div><FieldLabel label="Landline 2" /><div className="flex gap-2"><input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /><input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /></div></div>
-              <div><FieldLabel label="Fax" /><div className="flex gap-2"><input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /><input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /></div></div>
+              <div><FieldLabel label="Landline 1" /><div className="flex gap-2"><input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /><input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /></div></div>
+              <div><FieldLabel label="Landline 2" /><div className="flex gap-2"><input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /><input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /></div></div>
+              <div><FieldLabel label="Fax" /><div className="flex gap-2"><input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /><input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /></div></div>
               <FormInput label="Skype ID" placeholder="skype.username" {...register("skypeId")} />
               <FormInput label="E-Mail (Personal)" type="email" placeholder="personal@email.com" error={errors.emailPersonal?.message} {...register("emailPersonal")} />
               <FormInput label="E-Mail (Business)" type="email" placeholder="work@company.com" error={errors.emailBusiness?.message} {...register("emailBusiness")} />
@@ -730,7 +730,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Addresses */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><MapPin size={16} /></span>
+            <span className="text-[#1877F2]"><MapPin size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Addresses</h2>
           </div>
           <div className="p-5 space-y-5">
@@ -745,7 +745,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                     type="checkbox"
                     checked={Boolean(watch(`addresses.${idx}.useGroupAddress`))}
                     onChange={(e) => handleToggleGroupAddress(idx, e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
                   />
                   Use Group Address
                 </label>
@@ -762,7 +762,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                 </div>
               </div>
             ))}
-            <button type="button" onClick={() => appendAddr({ addressType: "Residence", country: "India", useGroupAddress: false, addressLine1: "", addressLine2: "", addressLine3: "", addressLine4: "", city: "", pin: "", state: "", area: "" })} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#B8873A] bg-[#B8873A]/10 hover:bg-[#E8C77A]/20 border border-slate-200 rounded-lg transition-colors">
+            <button type="button" onClick={() => appendAddr({ addressType: "Residence", country: "India", useGroupAddress: false, addressLine1: "", addressLine2: "", addressLine3: "", addressLine4: "", city: "", pin: "", state: "", area: "" })} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1877F2] bg-blue-50 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors">
               <Plus size={14} /> Add Address
             </button>
           </div>
@@ -771,7 +771,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Bank Details */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><CreditCard size={16} /></span>
+            <span className="text-[#1877F2]"><CreditCard size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Bank Details</h2>
           </div>
           <div className="p-5">
@@ -785,7 +785,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Family History */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><Heart size={16} /></span>
+            <span className="text-[#1877F2]"><Heart size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Family History</h2>
           </div>
           <div className="p-5">
@@ -802,7 +802,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Medical History (Initial Examination) */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><Activity size={16} /></span>
+            <span className="text-[#1877F2]"><Activity size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Medical History (Initial Examination)</h2>
           </div>
           <div className="p-5 space-y-3">
@@ -818,7 +818,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Miscellaneous */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><Info size={16} /></span>
+            <span className="text-[#1877F2]"><Info size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Miscellaneous Information</h2>
           </div>
           <div className="p-5">
@@ -852,7 +852,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                     )}
                   />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" /> Is Married</label>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#1877F2]" /> Is Married</label>
               </div>
               <div className="space-y-2">
                 <div>
@@ -868,7 +868,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
                     )}
                   />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" /> Is Deceased</label>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#1877F2]" /> Is Deceased</label>
               </div>
               <FormInput label="Nationality" placeholder="Indian" {...register("nationality")} />
               <FormSelect label="Qualification" {...register("qualification")}>
@@ -894,13 +894,13 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               <FormInput label="Occupation" placeholder="Occupation details" {...register("occupation")} />
               <FormInput label="Employer" placeholder="Employer name" {...register("employer")} />
               <FormInput label="Nature of Duties" placeholder="Nature of duties" {...register("natureOfDuties")} />
-              <div><FieldLabel label="Height / Weight" /><div className="flex gap-2"><input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /><input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" /></div></div>
+              <div><FieldLabel label="Height / Weight" /><div className="flex gap-2"><input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /><input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" /></div></div>
               <div>
                 <FieldLabel label="Income Slab" />
                 <input
                   {...register("incomeSlab")}
                   placeholder="Type income slab (e.g., 5L-10L)"
-                  className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white"
+                  className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white"
                 />
               </div>
               <FormSelect label="Religion" {...register("religion")}><option value="">Select</option>{RELIGIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
@@ -928,14 +928,14 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         {/* Service Preferences */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#B8873A]"><Settings size={16} /></span>
+            <span className="text-[#1877F2]"><Settings size={16} /></span>
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Service Preferences</h2>
           </div>
           <div className="p-5 space-y-4">
             <FormSelect label="Preferred Communication Address" {...register("preferredCommAddress")}><option value="">Select preference</option>{ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect>
             <div className="flex items-center gap-8">
-              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" /><div><p className="text-sm font-semibold text-slate-700">SMS Marketing</p><p className="text-xs text-slate-400">Allow SMS notifications</p></div></label>
-              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" /><div><p className="text-sm font-semibold text-slate-700">Email Marketing</p><p className="text-xs text-slate-400">Allow email notifications</p></div></label>
+              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" /><div><p className="text-sm font-semibold text-slate-700">SMS Marketing</p><p className="text-xs text-slate-400">Allow SMS notifications</p></div></label>
+              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" /><div><p className="text-sm font-semibold text-slate-700">Email Marketing</p><p className="text-xs text-slate-400">Allow email notifications</p></div></label>
             </div>
           </div>
         </div>
@@ -947,7 +947,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           ) : (
             <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
           )}
-          <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
+          <button type="submit" disabled={isSubmitting} className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>
       </FormProvider>

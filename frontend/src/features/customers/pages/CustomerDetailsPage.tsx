@@ -45,12 +45,15 @@ interface CustomerDetailsPageProps {
   modalStackLength?: number;
 }
 
-function InfoRow({ label, value }: { label: string; value?: string | null }) {
+function InfoRow({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: any }) {
   if (!value) return null;
   return (
-    <div className="flex flex-col">
-      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{label}</span>
-      <span className="text-sm text-slate-800 font-medium">{value}</span>
+    <div className="flex flex-col rounded-xl border border-[#F1F3F6] bg-[#F8F9FB] p-3.5 transition-all duration-200 hover:border-blue-100 hover:bg-white hover:shadow-sm">
+      <div className="flex items-center gap-1.5 mb-1">
+        {Icon && <Icon size={12} className="text-[#8E99AF]" />}
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E99AF]">{label}</span>
+      </div>
+      <span className="text-[13px] font-semibold text-[#2D3748] break-words">{value}</span>
     </div>
   );
 }
@@ -67,12 +70,12 @@ function SectionCard({
   headerActions?: React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#0B1220] shrink-0">{icon}</span>
-          <h2 className="font-serif text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
+          <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-blue-50 text-[#1877F2] shrink-0">{icon}</span>
+          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
         </div>
         {headerActions}
       </div>
@@ -116,7 +119,7 @@ const getStatusBadge = (status: string) => {
     Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
     Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
     Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
-    Completed: { color: "bg-[#B8873A]/10 text-[#0B1220]", icon: CheckCircle },
+    Completed: { color: "bg-blue-50 text-blue-700", icon: CheckCircle },
   };
   const StatusIcon = statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
   return {
@@ -188,7 +191,7 @@ export default function CustomerDetailsPage({
   if (isLoading && !currentCustomer) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1877F2]" />
       </div>
     );
   }
@@ -201,7 +204,7 @@ export default function CustomerDetailsPage({
         <button
           type="button"
           onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-          className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors"
+          className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200"
         >
           Back to Customers
         </button>
@@ -236,17 +239,17 @@ export default function CustomerDetailsPage({
           <button
             type="button"
             onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200"
           >
             <ArrowLeft size={16} />
           </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600">Customer Group</button>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-[#1877F2]">Customer Group</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{groupName}</span>
             </nav>
-            <h1 className="font-serif text-xl font-bold text-[#0B1220]">Customer Group Details</h1>
+            <h1 className="text-xl font-bold text-[#0f172a]">Customer Group Details</h1>
           </div>
         </div>
 
@@ -255,14 +258,14 @@ export default function CustomerDetailsPage({
             <button
               type="button"
               onClick={() => (isModal ? onOpenModal?.("group-edit", currentCustomer.id) : router.push(`/dashboard/customers/${currentCustomer.id}/edit`))}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm"
             >
               <Edit size={14} />
               Edit
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm"
             >
               <Trash2 size={14} />
               Delete
@@ -271,53 +274,55 @@ export default function CustomerDetailsPage({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0B1220] text-[#E8C77A] flex items-center justify-center text-2xl font-serif font-semibold shadow-sm ring-2 ring-[#B8873A]/50 ring-offset-2 ring-offset-[#0B1220]">
-              {groupName.charAt(0).toUpperCase()}
-            </div>
-            <div className="text-white">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-bold">{groupName}</h2>
-                {currentCustomer.groupCode && (
-                  <span className="font-mono text-xs bg-white/20 px-2 py-1 rounded">
-                    {currentCustomer.groupCode}
-                  </span>
-                )}
+      <div className="overflow-hidden rounded-2xl border border-blue-100 bg-[#f0f7ff] shadow-sm">
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-200/50">
+                {groupName.charAt(0).toUpperCase()}
               </div>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm opacity-85">
-                {currentCustomer.category && (
-                  <span className="inline-flex items-center gap-1">
-                    <Tag size={13} />
-                    {currentCustomer.category}
+              <div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h2 className="text-2xl font-bold text-[#0f172a]">{groupName}</h2>
+                  {currentCustomer.groupCode && (
+                    <span className="bg-[#1e293b] text-white text-xs font-bold tracking-widest px-3 py-1 rounded-xl shadow-sm border border-slate-700 font-mono">
+                      {currentCustomer.groupCode}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500 font-medium">
+                  {currentCustomer.category && (
+                    <span className="inline-flex items-center gap-1.5 bg-white border border-blue-100 px-2.5 py-0.5 rounded-lg text-xs font-semibold text-blue-700">
+                      <Tag size={12} />
+                      {currentCustomer.category}
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg text-xs font-semibold text-slate-600">
+                    <Users size={12} />
+                    {groupMembers.length} member{groupMembers.length === 1 ? "" : "s"}
                   </span>
-                )}
-                <span className="inline-flex items-center gap-1">
-                  <Users size={13} />
-                  {groupMembers.length} member{groupMembers.length === 1 ? "" : "s"}
-                </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 border-t border-slate-200">
-          <InfoRow label="Portal Email" value={currentCustomer.email} />
-          <InfoRow label="Phone" value={currentCustomer.phone} />
-          <InfoRow label="Preferred Comm. Address" value={currentCustomer.prefCommAddress} />
+        <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/70 border-t border-blue-100">
+          <InfoRow label="Portal Email" value={currentCustomer.email} icon={Mail} />
+          <InfoRow label="Phone" value={currentCustomer.phone} icon={Phone} />
+          <InfoRow label="Preferred Comm. Address" value={currentCustomer.prefCommAddress} icon={MapPin} />
         </div>
       </div>
 
       {/* Sub tabs for Group Details */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex gap-2 border-b border-slate-200 pb-2">
         <button
           type="button"
           onClick={() => setActiveSubTab("overview")}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all ${
             activeSubTab === "overview"
-              ? "border-[#B8873A] text-[#0B1220]"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+              : "text-slate-500 hover:text-[#1877F2] hover:bg-blue-50/50"
           }`}
         >
           Overview
@@ -325,26 +330,26 @@ export default function CustomerDetailsPage({
         <button
           type="button"
           onClick={() => setActiveSubTab("members")}
-          className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${
             activeSubTab === "members"
-              ? "border-[#B8873A] text-[#0B1220]"
-              : "border-transparent text-slate-400 hover:text-slate-600"
+              ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+              : "text-slate-500 hover:text-[#1877F2] hover:bg-blue-50/50"
           }`}
         >
-          Members ({groupMembers.length})
+          Members <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeSubTab === "members" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{groupMembers.length}</span>
         </button>
       </div>
 
       {activeSubTab === "overview" && (
         <div className="space-y-6">
           <SectionCard title="Contact Information" icon={<Phone size={16} />}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <InfoRow label="Mobile Personal" value={currentCustomer.mobilePersonal} />
-              <InfoRow label="E-Mail Personal" value={currentCustomer.emailPersonal} />
-              <InfoRow label="Mobile Business" value={currentCustomer.mobileBusiness} />
-              <InfoRow label="E-Mail Business" value={currentCustomer.emailBusiness} />
-              <InfoRow label="Portal Email" value={currentCustomer.email} />
-              <InfoRow label="Portal Phone" value={currentCustomer.phone} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <InfoRow label="Mobile Personal" value={currentCustomer.mobilePersonal} icon={Phone} />
+              <InfoRow label="E-Mail Personal" value={currentCustomer.emailPersonal} icon={Mail} />
+              <InfoRow label="Mobile Business" value={currentCustomer.mobileBusiness} icon={Phone} />
+              <InfoRow label="E-Mail Business" value={currentCustomer.emailBusiness} icon={Mail} />
+              <InfoRow label="Portal Email" value={currentCustomer.email} icon={Mail} />
+              <InfoRow label="Portal Phone" value={currentCustomer.phone} icon={Phone} />
             </div>
           </SectionCard>
 
@@ -454,9 +459,9 @@ export default function CustomerDetailsPage({
               <button
                 type="button"
                 onClick={() => onOpenModal?.("master-create", currentCustomer.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-200 transition-all cursor-pointer"
               >
-                <Plus size={12} /> Add Member
+                <Plus size={13} /> Add Member
               </button>
             )
           }
@@ -468,10 +473,10 @@ export default function CustomerDetailsPage({
               <p className="text-sm text-slate-500 mb-4">Create an individual customer and select this group.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <div className="overflow-x-auto rounded-xl border border-slate-100">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                     <th className="py-3 px-4 text-left">Name</th>
                     <th className="py-3 px-4 text-left">Relation</th>
                     <th className="py-3 px-4 text-left">Contact</th>
@@ -483,29 +488,29 @@ export default function CustomerDetailsPage({
                   {groupMembers.map((member) => {
                     const fullName = getFullName(member);
                     return (
-                      <tr key={member.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                      <tr key={member.id} className="hover:bg-blue-50/40 transition-colors">
                         <td className="py-3 px-4">
                           <button
                             type="button"
                             onClick={() => onOpenModal?.("master-details", member.id)}
-                            className="font-semibold text-slate-900 hover:text-[#0B1220] transition-colors flex items-center gap-1 group"
+                            className="font-semibold text-slate-900 hover:text-[#1877F2] transition-colors flex items-center gap-1 group"
                           >
                             {fullName}
-                            <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#0B1220]" />
+                            <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#1877F2]" />
                           </button>
                           <span className="text-xs text-slate-400">{member.customerType || "Customer"}</span>
                         </td>
-                        <td className="py-3 px-4 text-slate-600">{member.miscInfo?.relationToGroup || "-"}</td>
+                        <td className="py-3 px-4 text-slate-600 font-medium">{member.miscInfo?.relationToGroup || "-"}</td>
                         <td className="py-3 px-4">
                           <div className="space-y-1">
                             {member.contactInfo?.mobile1 && (
-                              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                              <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
                                 <Phone size={11} />
                                 {member.contactInfo.mobile1}
                               </div>
                             )}
                             {member.contactInfo?.emailPersonal && (
-                              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                                 <Mail size={11} />
                                 {member.contactInfo.emailPersonal}
                               </div>
@@ -517,7 +522,7 @@ export default function CustomerDetailsPage({
                         </td>
                         <td className="py-3 px-4 text-center">
                           {member.isGroupHead ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-xl bg-blue-50 text-blue-700">
                               <Star size={11} />
                               Head
                             </span>
@@ -529,11 +534,11 @@ export default function CustomerDetailsPage({
                         </td>
                         {canEdit && (
                           <td className="py-3 px-4 text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => onOpenModal?.("master-details", member.id)}
-                                className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                className="p-2 text-slate-400 hover:text-[#1877F2] hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded-xl transition-all cursor-pointer"
                                 title="View Member"
                               >
                                 <Eye size={14} />
@@ -541,7 +546,7 @@ export default function CustomerDetailsPage({
                               <button
                                 type="button"
                                 onClick={() => onOpenModal?.("master-edit", member.id)}
-                                className="p-1 text-slate-400 hover:text-[#0B1220] hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                                className="p-2 text-slate-400 hover:text-[#1877F2] hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded-xl transition-all cursor-pointer"
                                 title="Edit Member"
                               >
                                 <Edit size={14} />
@@ -549,7 +554,7 @@ export default function CustomerDetailsPage({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteMember(member.id, fullName)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-xl transition-all cursor-pointer"
                                 title="Delete Member"
                               >
                                 <Trash2 size={14} />

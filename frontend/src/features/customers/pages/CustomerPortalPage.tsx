@@ -17,7 +17,7 @@ export default function CustomerPortalPage() {
   if (!isMounted) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#0B1220]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#1877F2]" />
       </div>
     );
   }
@@ -40,8 +40,8 @@ export default function CustomerPortalPage() {
       <CustomerSectionCard title="Your Profile" icon={User} subtitle="Your account information">
         <div className="grid grid-cols-1 gap-5 p-1 sm:grid-cols-2">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#B8873A]/10">
-              <User size={18} className="text-[#B8873A]" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+              <User size={18} className="text-[#1877F2]" />
             </div>
             <div>
               <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">Full Name</p>

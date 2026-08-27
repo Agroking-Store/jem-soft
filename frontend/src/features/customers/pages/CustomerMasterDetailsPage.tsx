@@ -43,21 +43,21 @@ interface CustomerMasterDetailsPageProps {
 function InfoRow({ label, value }: { label: string; value?: string | number | boolean | null }) {
   if (value === undefined || value === null || value === "") return null;
   return (
-    <div className="flex flex-col">
-      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{label}</span>
-      <span className="text-sm text-slate-800 font-medium">{String(value)}</span>
+    <div className="flex flex-col rounded-xl border border-[#F1F3F6] bg-[#F8F9FB] p-3 transition-all duration-200 hover:border-blue-100 hover:bg-white hover:shadow-sm">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E99AF] mb-1">{label}</span>
+      <span className="text-[13px] font-semibold text-[#2D3748] break-words">{String(value)}</span>
     </div>
   );
 }
 
 function SectionCard({ title, icon, children, headerActions }: { title: string; icon: React.ReactNode; children: React.ReactNode; headerActions?: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-200">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+      <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#0B1220]/5 text-[#B8873A] shrink-0">{icon}</span>
-          <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
+          <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-blue-50 text-[#1877F2] shrink-0">{icon}</span>
+          <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
         </div>
         {headerActions}
       </div>
@@ -77,7 +77,7 @@ function getStatusBadge(status: string) {
     Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
     Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
     Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
-    Completed: { color: "bg-[#B8873A]/10 text-[#0B1220]", icon: CheckCircle },
+    Completed: { color: "bg-blue-50 text-blue-700", icon: CheckCircle },
   };
   const StatusIcon = statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
   return {
@@ -152,7 +152,7 @@ export default function CustomerMasterDetailsPage({
   };
 
   if (!isMounted || (isLoading && !currentCustomer)) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" /></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1877F2]" /></div>;
   }
 
   if (error && !currentCustomer) {
@@ -160,7 +160,7 @@ export default function CustomerMasterDetailsPage({
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex items-center justify-center px-4 py-2 bg-[#0B1220] text-white rounded-lg font-semibold text-sm hover:bg-[#16294D] transition-colors">Back to Customers</button>
+        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200">Back to Customers</button>
       </div>
     );
   }
@@ -177,24 +177,24 @@ export default function CustomerMasterDetailsPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50">
+          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200">
             <ArrowLeft size={16} />
           </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="hover:text-slate-600">Customer Master</button>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="hover:text-[#1877F2]">Customer Master</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{fullName}</span>
             </nav>
-            <h1 className="text-xl font-bold text-slate-900">Customer Details</h1>
+            <h1 className="text-xl font-bold text-[#0f172a]">Customer Details</h1>
           </div>
         </div>
         {canEdit && (
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold text-sm transition-colors">
+            <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm">
               <Edit size={14} /> Edit
             </button>
-            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3.5 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50">
+            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm">
               <Trash2 size={14} /> Delete
             </button>
           </div>
@@ -202,39 +202,39 @@ export default function CustomerMasterDetailsPage({
       </div>
 
       {/* Hero card */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0B1220] text-[#E8C77A] flex items-center justify-center text-2xl font-serif font-semibold shadow-sm ring-2 ring-[#B8873A]/50 ring-offset-2 ring-offset-[#0B1220]">
+      <div className="overflow-hidden rounded-2xl border border-blue-100 bg-[#f0f7ff] shadow-sm">
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-200/50 shrink-0">
               {c.firstName.charAt(0).toUpperCase()}
             </div>
-            <div className="text-white">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 className="text-2xl font-bold text-[#0f172a]">{fullName}</h2>
                 {c.isGroupHead && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-400/30 text-amber-100 border border-amber-300/30">
-                    <Star size={10} /> Group Head
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-100">
+                    <Star size={11} /> Group Head
                   </span>
                 )}
               </div>
               {c.group && (
-                <div className="flex items-center gap-2 mt-1 opacity-80 text-sm">
+                <div className="flex items-center gap-2 mt-1.5 text-sm text-slate-500 font-medium">
                   <Building size={13} />
                   <span>
-                    {c.group.groupCode && <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-xs mr-1">{c.group.groupCode}</span>}
+                    {c.group.groupCode && <span className="font-mono bg-[#1e293b] text-white px-2 py-0.5 rounded-lg text-xs mr-1.5 font-bold tracking-wider">{c.group.groupCode}</span>}
                     {c.group.groupName}
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-3 mt-2 text-xs opacity-70">
-                {c.gender && <span>{c.gender}</span>}
-                {c.dob && <span>• Born {formatDate(c.dob)}</span>}
-                {c.customerType && <span>• {c.customerType}</span>}
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-400 font-medium">
+                {c.gender && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-lg">{c.gender}</span>}
+                {c.dob && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-lg">Born {formatDate(c.dob)}</span>}
+                {c.customerType && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-lg">{c.customerType}</span>}
               </div>
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 border-t border-slate-200">
+        <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/70 border-t border-blue-100">
           <InfoRow label="PAN No." value={c.panNumber} />
           <InfoRow label="Aadhaar No." value={c.aadhaarNumber} />
           <InfoRow label="Salutation Letter" value={c.salutationLetter} />
@@ -302,11 +302,11 @@ export default function CustomerMasterDetailsPage({
                         }
 
                         return (
-                          <div key={idx} className="border border-slate-200 bg-slate-50/50 rounded-xl p-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{addr.addressType || "Address"}</span>
+                          <div key={idx} className="border border-[#F1F3F6] bg-[#F8F9FB] rounded-xl p-3 hover:border-blue-100 hover:bg-white hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{addr.addressType || "Address"}</span>
                               {addr.useGroupAddress && (
-                                <span className="text-[10px] bg-[#B8873A]/15 text-[#0B1220] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-blue-100">
                                   Group Address
                                 </span>
                               )}
@@ -332,10 +332,10 @@ export default function CustomerMasterDetailsPage({
               {memberPolicies.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-4">No policies found for this member.</p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <div className="overflow-x-auto rounded-xl border border-slate-100">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         <th className="py-3 px-4 text-left">Policy Number</th>
                         <th className="py-3 px-4 text-left">Provider / Product</th>
                         <th className="py-3 px-4 text-right">Sum Assured</th>
@@ -349,10 +349,10 @@ export default function CustomerMasterDetailsPage({
                         const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
                         const StatusIcon = statusDetails.icon;
                         return (
-                          <tr key={policy.id} className="hover:bg-[#0B1220]/[0.03] transition-colors">
+                          <tr key={policy.id} className="hover:bg-blue-50/40 transition-colors">
                             <td className="py-3 px-4 font-semibold text-slate-900">
                               {canEdit ? (
-                                <Link href={`/dashboard/lic/policies/edit/${policy.id}`} className="text-[#0B1220] hover:text-[#16294D] hover:underline">
+                                <Link href={`/dashboard/lic/policies/edit/${policy.id}`} className="text-[#1877F2] hover:text-blue-700 hover:underline">
                                   {policy.policyNumber}
                                 </Link>
                               ) : (
@@ -392,21 +392,21 @@ export default function CustomerMasterDetailsPage({
           {/* Bank Details */}
           {c.bankDetails && c.bankDetails.length > 0 && (
             <SectionCard title="Bank Details" icon={<CreditCard size={16} />}>
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <div className="overflow-x-auto rounded-xl border border-slate-100">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-[#0B1220] text-white text-xs font-semibold">
+                    <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       {["Default","IFSC Code","Bank Name","Branch","City","A/C Type","A/C No.","MICR No."].map((h) => (
-                        <th key={h} className="py-2.5 px-3 text-left font-semibold text-xs">{h}</th>
+                        <th key={h} className="py-3 px-3 text-left font-bold text-[11px]">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {c.bankDetails.map((b, idx) => (
-                      <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                      <tr key={idx} className="hover:bg-blue-50/40 transition-colors">
                         <td className="py-2.5 px-3">{b.isDefault ? <CheckCircle size={15} className="text-green-500" /> : <XCircle size={15} className="text-slate-300" />}</td>
                         <td className="py-2.5 px-3 font-mono text-xs">{b.ifscCode || "—"}</td>
-                        <td className="py-2.5 px-3">{b.bankName || "—"}</td>
+                        <td className="py-2.5 px-3 font-medium">{b.bankName || "—"}</td>
                         <td className="py-2.5 px-3">{b.bankBranch || "—"}</td>
                         <td className="py-2.5 px-3">{b.city || "—"}</td>
                         <td className="py-2.5 px-3">{b.accountType || "—"}</td>

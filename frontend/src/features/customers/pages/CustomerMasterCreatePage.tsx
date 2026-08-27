@@ -160,7 +160,7 @@ function FormInput({ label, error, required, icon, className: cls, ...props }: R
       <FieldLabel label={label} required={required} />
       <div className="relative">
         {icon && <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>}
-        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
+        <input {...props} className={`w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${icon ? "pl-9 pr-3" : "px-3"} ${cls || ""}`} />
       </div>
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
@@ -219,7 +219,7 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
   return (
     <div>
       <FieldLabel label={label} required={required} />
-      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
+      <textarea {...props} rows={3} className={`w-full rounded-xl border bg-white py-2.75 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}`} />
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
@@ -228,10 +228,10 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
 function SectionCard({ title, icon, children, accent }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
       <div className={`flex items-center gap-2.5 border-b border-slate-200 px-5 py-3.5 ${accent || "bg-slate-50"}`}>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#B8873A]">{icon}</span>
-        <h2 className="text-sm font-bold text-[#0B1220] uppercase tracking-wider">{title}</h2>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">{icon}</span>
+        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
       </div>
       <div className="p-5 sm:p-6">{children}</div>
     </div>
@@ -277,7 +277,7 @@ function GroupAutoComplete({
             onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
             onFocus={() => setOpen(true)}
             placeholder="Search group by name or code..."
-            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
@@ -289,7 +289,7 @@ function GroupAutoComplete({
         <Link
           href="/dashboard/customers/new"
           target="_blank"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-[#0B1220] hover:bg-slate-100 transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors"
           title="Add new group"
         >
           <Plus size={16} />
@@ -303,7 +303,7 @@ function GroupAutoComplete({
               key={g.id}
               type="button"
               onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#0B1220]/5 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/40 transition-colors text-left"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
@@ -542,7 +542,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   };
 
   if (!isMounted || authLoading) {
-    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B1220]" /></div>;
+    return <div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1877F2]" /></div>;
   }
   if (user?.role !== "ADMIN" && user?.role !== "ADVISOR") return null;
 
@@ -630,14 +630,14 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
 
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]/20" />
+                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Is Group Head</p>
                   <p className="text-xs text-slate-400">Mark as the primary person of the group</p>
                 </div>
               </label>
               {watch("isGroupHead") && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#B8873A]/10 text-[#B8873A]">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-[#1877F2]">
                   <Star size={11} /> Group Head
                 </span>
               )}
@@ -653,22 +653,22 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             <div>
               <FieldLabel label="Landline 1" />
               <div className="flex gap-2">
-                <input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
-                <input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline1Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline1Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <div>
               <FieldLabel label="Landline 2" />
               <div className="flex gap-2">
-                <input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
-                <input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline2Std")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("landline2Number")} placeholder="Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <div>
               <FieldLabel label="Fax" />
               <div className="flex gap-2">
-                <input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
-                <input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("faxStd")} placeholder="STD" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
+                <input {...register("faxNumber")} placeholder="Fax Number" className="flex-1 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 transition-all bg-white" />
               </div>
             </div>
             <FormInput label="Skype ID" placeholder="skype.username" {...register("skypeId")} />
@@ -685,7 +685,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
                 type="checkbox"
                 checked={Boolean(watch("addresses.0.useGroupAddress"))}
                 onChange={(e) => handleToggleGroupAddress(0, e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
               />
               Use Group Address
             </label>
@@ -776,7 +776,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
                 />
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
-                <input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#B8873A]" />
+                <input type="checkbox" {...register("isMarried")} className="rounded border-slate-300 text-[#1877F2]" />
                 Is Married
               </label>
             </div>
@@ -795,7 +795,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
                 />
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer mt-1">
-                <input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#B8873A]" />
+                <input type="checkbox" {...register("isDead")} className="rounded border-slate-300 text-[#1877F2]" />
                 Is Deceased
               </label>
             </div>
@@ -829,8 +829,8 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             <div>
               <FieldLabel label="Height / Weight" />
               <div className="flex gap-2">
-                <input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" />
-                <input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white" />
+                <input {...register("heightFt")} placeholder="Ft" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" />
+                <input {...register("weightKg")} placeholder="Kg" className="w-20 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white" />
               </div>
             </div>
             <div>
@@ -838,7 +838,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               <input
                 {...register("incomeSlab")}
                 placeholder="Type income slab (e.g., 5L-10L)"
-                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] hover:border-slate-300 bg-white"
+                className="w-full border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2] hover:border-slate-300 bg-white"
               />
             </div>
             <FormSelect label="Religion" {...register("religion")}>
@@ -871,14 +871,14 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
           <div className="space-y-4">
             <div className="flex items-center gap-8">
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" />
+                <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">SMS Marketing</p>
                   <p className="text-xs text-slate-400">Allow SMS notifications</p>
                 </div>
               </label>
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#B8873A]" />
+                <input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Email Marketing</p>
                   <p className="text-xs text-slate-400">Allow email notifications</p>
@@ -900,7 +900,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             </Link>
           )}
           <button type="submit" disabled={isSubmitting}
-            className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-all duration-200 hover:bg-[#16294D] disabled:opacity-60">
+            className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
         </div>

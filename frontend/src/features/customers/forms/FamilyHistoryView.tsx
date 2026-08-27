@@ -65,7 +65,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
   if (isLoading && !currentRecord) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#0B1220]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
       </div>
     );
   }
@@ -79,7 +79,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
         <p className="mb-4 text-xs text-slate-500">{error}</p>
         <button
           onClick={onClose}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#16294D]"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-semibold text-white transition-colors hover:brightness-110"
         >
           Back to list
         </button>
@@ -111,12 +111,12 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
                 {currentRecord.group?.groupName || currentRecord.group?.name || "Record"}
               </span>
             </nav>
-            <h1 className="font-serif text-xl font-bold text-slate-900">Family History Details</h1>
+            <h1 className="text-xl font-bold text-slate-900">Family History Details</h1>
           </div>
         </div>
         <button
           onClick={() => onEdit(currentRecord.id)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition-colors hover:brightness-110"
         >
           <Edit2 size={14} />
           Edit Record
@@ -154,7 +154,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
                 </tr>
               ) : (
                 currentRecord.records.map((r, index) => (
-                  <tr key={index} className="transition-colors hover:bg-[#0B1220]/[0.025]">
+                  <tr key={index} className="transition-colors hover:bg-gradient-to-r from-[#5c67ff] to-[#3a47ff]/[0.025]">
                     <td className="px-4 py-3 font-semibold text-slate-800">{r.relation}</td>
                     <td className="px-4 py-3 text-slate-700">{r.age}</td>
                     <td className="px-4 py-3 text-slate-700">{r.isDead ? "—" : calculateCurrentAge(r.age, currentRecord.date)}</td>

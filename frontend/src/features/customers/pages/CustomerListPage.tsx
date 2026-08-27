@@ -94,7 +94,7 @@ export function Seal({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#0B1220] font-semibold text-[#E8C77A] ring-2 ring-[#B8873A]/40 ring-offset-2 ring-offset-white"
+      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] font-bold text-white shadow-sm"
     >
       <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>{getInitials(name)}</span>
     </div>
@@ -119,7 +119,7 @@ function TableHeadCell({
 }) {
   return (
     <th
-      className={`sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 ${
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
         align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
       }`}
     >
@@ -299,12 +299,12 @@ export default function CustomerListPage() {
       : "This will remove the customer group and related portal access.";
 
   const activeContent = (
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
         {activeTab === "group" ? (
           isLoading && customers.length === 0 ? (
             <div className="flex min-h-[18rem] items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#0B1220]" />
+              <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
             </div>
           ) : error && customers.length === 0 ? (
             <CustomerEmptyState
@@ -313,7 +313,7 @@ export default function CustomerListPage() {
               action={
                 <button
                   onClick={() => dispatch(fetchCustomers())}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                 >
                   Try Again
                 </button>
@@ -332,7 +332,7 @@ export default function CustomerListPage() {
                   <button
                     type="button"
                     onClick={() => openModal("group-create")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                   >
                     <Plus size={16} />
                     Add First Group
@@ -348,7 +348,7 @@ export default function CustomerListPage() {
                     Showing <strong className="text-slate-700">{filteredCustomers.length}</strong> of{" "}
                     <strong className="text-slate-700">{customers.length}</strong> groups
                   </span>
-                  {selectedIds.size > 0 && <span className="font-semibold text-[#B8873A]">{selectedIds.size} selected</span>}
+                  {selectedIds.size > 0 && <span className="font-bold text-[#1877F2]">{selectedIds.size} selected</span>}
                 </div>
               }
             >
@@ -360,7 +360,7 @@ export default function CustomerListPage() {
                         type="checkbox"
                         checked={selectedIds.size === filteredCustomers.length && filteredCustomers.length > 0}
                         onChange={toggleSelectAll}
-                        className="rounded border-slate-300 text-[#0B1220] focus:ring-[#B8873A]/20"
+                        className="rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/20"
                       />
                     </TableHeadCell>
                     <TableHeadCell>Group Code</TableHeadCell>
@@ -381,8 +381,8 @@ export default function CustomerListPage() {
                       <tr
                         key={customer.id}
                         onClick={() => openModal("group-details", customer.id)}
-                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
-                          isSelected ? "bg-[#B8873A]/[0.06]" : index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                          isSelected ? "bg-blue-50/60" : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                         }`}
                       >
                         <td className="px-4 py-4 align-top">
@@ -391,25 +391,25 @@ export default function CustomerListPage() {
                             checked={isSelected}
                             onChange={() => toggleSelect(customer.id)}
                             onClick={(e) => e.stopPropagation()}
-                            className="rounded border-slate-300 text-[#0B1220] focus:ring-[#B8873A]/20"
+                            className="rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/20"
                           />
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
+                          <span className="inline-flex rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
                             {customer.groupCode || "-"}
                           </span>
                         </td>
                         <td className="px-4 py-4 align-top">
                           <div className="flex items-start gap-3 text-left">
-                            <Seal name={displayName} size={34} />
+                            <Seal name={displayName} size={36} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#0B1220]">
+                                <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
                                   {displayName}
                                 </span>
                                 <ChevronRight
                                   size={13}
-                                  className="text-[#B8873A] opacity-0 transition-opacity group-hover:opacity-100"
+                                  className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                                 />
                               </div>
                               {customer.email && <div className="mt-0.5 truncate text-xs text-slate-400">{customer.email}</div>}
@@ -424,7 +424,7 @@ export default function CustomerListPage() {
                           )}
                         </td>
                         <td className="px-4 py-4 text-center align-top">
-                          <span className="font-semibold text-[#0B1220]">{memberCount}</span>
+                          <span className="inline-flex items-center justify-center rounded-xl bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{memberCount}</span>
                         </td>
                         {isClient && canEdit && (
                           <td className="px-4 py-4 text-right align-top">
@@ -435,7 +435,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("group-details", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                                 title="View"
                               >
                                 <Eye size={14} />
@@ -446,7 +446,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("group-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                                 title="Edit"
                               >
                                 <Edit size={14} />
@@ -456,7 +456,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:scale-105"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -473,7 +473,7 @@ export default function CustomerListPage() {
           )
         ) : isMasterLoading && masterCustomers.length === 0 ? (
           <div className="flex min-h-[18rem] items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#0B1220]" />
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
           </div>
         ) : masterError && masterCustomers.length === 0 ? (
           <CustomerEmptyState
@@ -482,7 +482,7 @@ export default function CustomerListPage() {
             action={
               <button
                 onClick={() => dispatch(fetchCustomersMaster())}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
               >
                 Try Again
               </button>
@@ -501,7 +501,7 @@ export default function CustomerListPage() {
                 <button
                   type="button"
                   onClick={() => openModal("master-create")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                 >
                   <Plus size={16} />
                   Add First Customer
@@ -543,21 +543,21 @@ export default function CustomerListPage() {
                       <tr
                         key={customer.id}
                         onClick={() => openModal("master-details", customer.id)}
-                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
-                          index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                         }`}
                       >
                         <td className="px-4 py-4 align-top">
                           <div className="flex items-start gap-3 text-left">
-                            <Seal name={fullName || "Customer"} size={34} />
+                            <Seal name={fullName || "Customer"} size={36} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#0B1220]">
+                                <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
                                   {fullName}
                                 </span>
                                 <ChevronRight
                                   size={13}
-                                  className="text-[#B8873A] opacity-0 transition-opacity group-hover:opacity-100"
+                                  className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                                 />
                               </div>
                               <div className="mt-0.5 text-xs text-slate-400">
@@ -574,7 +574,7 @@ export default function CustomerListPage() {
                                 e.stopPropagation();
                                 openModal("group-details", customer.group!.id);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#0B1220] hover:text-white"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-blue-50 hover:text-[#1877F2]"
                             >
                               <Building2 size={11} />
                               {groupLabel}
@@ -608,8 +608,8 @@ export default function CustomerListPage() {
                         <td className="px-4 py-4 align-top text-sm text-slate-700">{customer.customerType || "-"}</td>
                         <td className="px-4 py-4 align-top text-center">
                           {customer.isGroupHead ? (
-                            <Chip dotColor="bg-[#B8873A]">
-                              <Star size={11} className="text-[#B8873A]" />
+                            <Chip dotColor="bg-[#1877F2]">
+                              <Star size={11} className="text-[#1877F2]" />
                               Head
                             </Chip>
                           ) : (
@@ -625,7 +625,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("master-details", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                                 title="View"
                               >
                                 <Eye size={14} />
@@ -636,7 +636,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("master-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                                 title="Edit"
                               >
                                 <Edit size={14} />
@@ -646,7 +646,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "master", label: fullName });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:scale-105"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -766,64 +766,74 @@ export default function CustomerListPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-            <Users size={20} />
-          </span>
-          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">Customers</h1>
-        </div>
-      </div>
-
-      {showListChrome && (
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
-          <CustomerModuleNav />
-          <div className="relative min-w-0 flex-1 sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              type="text"
-              placeholder={
-                activeTab === "group"
-                  ? "Search by group name, code, or category..."
-                  : "Search by name, group, mobile, email, or type..."
-              }
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
-            />
+      {/* Top Banner Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <Users size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Customers
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Manage all customer groups, profiles, and records
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          {activeTab === "group" && canEdit && selectedIds.size > 0 && (
-            <button
-              onClick={() => {
-                if (selectedIds.size === 1) {
-                  const id = [...selectedIds][0];
-                  const group = customers.find((customer) => customer.id === id);
-                  setDeleteTarget({ id, type: "group", label: group?.groupName || group?.name || "this group" });
-                }
-              }}
-              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-100"
-            >
-              <Trash2 size={14} />
-              Delete ({selectedIds.size})
-            </button>
-          )}
-
-          {isClient && canEdit && (activeTab === "group" || activeTab === "master") && (
+        {isClient && canEdit && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => openModal(activeTab === "group" ? "group-create" : "master-create")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus size={16} />
-              {activeTab === "group" ? "New Group" : "New Customer"}
+              {activeTab === "group" ? "Add Customer Group" : "Add Customer"}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {showListChrome && (
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+            <CustomerModuleNav />
+            <div className="relative min-w-0 flex-1 sm:max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                placeholder={
+                  activeTab === "group"
+                    ? "Search by group name, code, or category..."
+                    : "Search by name, group, mobile, email, or type..."
+                }
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            {activeTab === "group" && canEdit && selectedIds.size > 0 && (
+              <button
+                onClick={() => {
+                  if (selectedIds.size === 1) {
+                    const id = [...selectedIds][0];
+                    const group = customers.find((customer) => customer.id === id);
+                    setDeleteTarget({ id, type: "group", label: group?.groupName || group?.name || "this group" });
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-100"
+              >
+                <Trash2 size={14} />
+                Delete ({selectedIds.size})
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {activeContent}
