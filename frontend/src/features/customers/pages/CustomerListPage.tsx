@@ -7,12 +7,12 @@ import {
   AlertTriangle,
   Building2,
   ChevronRight,
-  Edit,
   Eye,
   Mail,
   Phone,
   Plus,
   Search,
+  SquarePen,
   Star,
   Trash2,
   UserCog,
@@ -147,7 +147,6 @@ export default function CustomerListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [modalStack, setModalStack] = useState<CustomerModalEntry[]>([]);
@@ -198,7 +197,6 @@ export default function CustomerListPage() {
 
   useEffect(() => {
     setSearchTerm("");
-    setSelectedIds(new Set());
   }, [activeTab]);
 
   const handleDelete = async () => {
@@ -208,11 +206,6 @@ export default function CustomerListPage() {
       if (deleteTarget.type === "group") {
         await dispatch(deleteCustomer(deleteTarget.id)).unwrap();
         toast.success("Customer group deleted successfully");
-        setSelectedIds((previous) => {
-          const next = new Set(previous);
-          next.delete(deleteTarget.id);
-          return next;
-        });
       } else {
         await dispatch(deleteCustomerMaster(deleteTarget.id)).unwrap();
         toast.success("Customer deleted successfully");
@@ -223,20 +216,6 @@ export default function CustomerListPage() {
       setIsDeleting(false);
       setDeleteTarget(null);
     }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredCustomers.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(filteredCustomers.map((customer) => customer.id)));
   };
 
   const openModal = (type: ModalType, id?: string, extraId?: string) => {
@@ -348,21 +327,12 @@ export default function CustomerListPage() {
                     Showing <strong className="text-slate-700">{filteredCustomers.length}</strong> of{" "}
                     <strong className="text-slate-700">{customers.length}</strong> groups
                   </span>
-                  {selectedIds.size > 0 && <span className="font-bold text-[#1877F2]">{selectedIds.size} selected</span>}
                 </div>
               }
             >
               <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
                 <thead>
                   <tr>
-                    <TableHeadCell>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.size === filteredCustomers.length && filteredCustomers.length > 0}
-                        onChange={toggleSelectAll}
-                        className="rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/20"
-                      />
-                    </TableHeadCell>
                     <TableHeadCell>Group Code</TableHeadCell>
                     <TableHeadCell>Group Name</TableHeadCell>
                     <TableHeadCell>Category</TableHeadCell>
@@ -374,7 +344,6 @@ export default function CustomerListPage() {
                   {filteredCustomers.map((customer, index) => {
                     const dotColor = CATEGORY_DOT[customer.category || ""] ?? "bg-slate-400";
                     const memberCount = groupMemberCounts[customer.id] || 0;
-                    const isSelected = selectedIds.has(customer.id);
                     const displayName = customer.groupName || customer.name;
 
                     return (
@@ -382,18 +351,9 @@ export default function CustomerListPage() {
                         key={customer.id}
                         onClick={() => openModal("group-details", customer.id)}
                         className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                          isSelected ? "bg-blue-50/60" : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                         }`}
                       >
-                        <td className="px-4 py-4 align-top">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelect(customer.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/20"
-                          />
-                        </td>
                         <td className="px-4 py-4 align-top">
                           <span className="inline-flex rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
                             {customer.groupCode || "-"}
@@ -446,17 +406,17 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("group-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
                                 title="Edit"
                               >
-                                <Edit size={14} />
+                                <SquarePen size={14} />
                               </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -636,17 +596,17 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("master-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
                                 title="Edit"
                               >
-                                <Edit size={14} />
+                                <SquarePen size={14} />
                               </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "master", label: fullName });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -777,7 +737,6 @@ export default function CustomerListPage() {
               Customers
             </h1>
             <p className="mt-0.5 text-sm font-medium text-slate-500">
-              Manage all customer groups, profiles, and records
             </p>
           </div>
         </div>
@@ -816,23 +775,6 @@ export default function CustomerListPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            {activeTab === "group" && canEdit && selectedIds.size > 0 && (
-              <button
-                onClick={() => {
-                  if (selectedIds.size === 1) {
-                    const id = [...selectedIds][0];
-                    const group = customers.find((customer) => customer.id === id);
-                    setDeleteTarget({ id, type: "group", label: group?.groupName || group?.name || "this group" });
-                  }
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-100"
-              >
-                <Trash2 size={14} />
-                Delete ({selectedIds.size})
-              </button>
-            )}
-          </div>
         </div>
       )}
 

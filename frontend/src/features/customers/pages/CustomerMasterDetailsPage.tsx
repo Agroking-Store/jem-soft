@@ -22,7 +22,7 @@ import {
 import { fetchPoliciesByMember } from "@/features/policy/policySlice";
 import {
   ArrowLeft, Phone, CreditCard, Info, Settings,
-  Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
+  SquarePen, Trash2, AlertTriangle, ChevronRight, Star, Building,
   CheckCircle, XCircle, Heart, Activity, FileText,
   Clock, AlertCircle, Megaphone, Smartphone, Mail,
 } from "lucide-react";
@@ -192,7 +192,7 @@ export default function CustomerMasterDetailsPage({
         {canEdit && (
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm">
-              <Edit size={14} /> Edit
+              <SquarePen size={14} /> Edit
             </button>
             <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm">
               <Trash2 size={14} /> Delete

@@ -16,7 +16,7 @@ import {
   Mail,
   Phone,
   Calendar,
-  Edit,
+  SquarePen,
   Trash2,
   Clock,
   AlertTriangle,
@@ -260,7 +260,7 @@ export default function CustomerDetailsPage({
               onClick={() => (isModal ? onOpenModal?.("group-edit", currentCustomer.id) : router.push(`/dashboard/customers/${currentCustomer.id}/edit`))}
               className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm"
             >
-              <Edit size={14} />
+              <SquarePen size={14} />
               Edit
             </button>
             <button
@@ -538,7 +538,7 @@ export default function CustomerDetailsPage({
                               <button
                                 type="button"
                                 onClick={() => onOpenModal?.("master-details", member.id)}
-                                className="p-2 text-slate-400 hover:text-[#1877F2] hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded-xl transition-all cursor-pointer"
+                                className="p-2 text-slate-500 hover:text-[#1877F2] hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-xl transition-all cursor-pointer"
                                 title="View Member"
                               >
                                 <Eye size={14} />
@@ -546,15 +546,15 @@ export default function CustomerDetailsPage({
                               <button
                                 type="button"
                                 onClick={() => onOpenModal?.("master-edit", member.id)}
-                                className="p-2 text-slate-400 hover:text-[#1877F2] hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded-xl transition-all cursor-pointer"
+                                className="p-2 text-[#1877F2] hover:bg-blue-50 border border-blue-100 hover:border-blue-300 rounded-xl transition-all cursor-pointer"
                                 title="Edit Member"
                               >
-                                <Edit size={14} />
+                                <SquarePen size={14} />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteMember(member.id, fullName)}
-                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-xl transition-all cursor-pointer"
+                                className="p-2 text-rose-600 hover:bg-rose-50 border border-rose-100 hover:border-rose-300 rounded-xl transition-all cursor-pointer"
                                 title="Delete Member"
                               >
                                 <Trash2 size={14} />
