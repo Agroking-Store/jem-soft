@@ -30,9 +30,18 @@ export const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
-    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
+    ...(isMounted && (isAdmin || isAdvisor || isViewer)
+      ? [{ name: "LIC", href: "/dashboard/lic", icon: FileText }]
+      : []),
+    ...(isMounted && (isAdmin || isAdvisor || isViewer)
+      ? [{ name: "Policy 360", href: "/dashboard/policy-360", icon: RotateCw }]
+      : []),
     { name: "Loans", href: "/dashboard/loans", icon: Landmark },
+    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },
+    ...(isMounted && isAdmin
+      ? [{ name: "User Management", href: "/dashboard/users", icon: Users }]
+      : []),
   ];
 
   return (
@@ -73,71 +82,6 @@ export const Sidebar = () => {
             </Link>
           );
         })}
-
-        {/* LIC Link */}
-        {isMounted &&
-          (isAdmin || isAdvisor || isViewer) &&
-          (() => {
-            const licPath = "/dashboard/lic";
-            const isLicActive = pathname.startsWith(licPath);
-
-            return (
-              <Link
-                href={licPath}
-                className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                ${
-                  isLicActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <FileText size={20} />
-                LIC
-              </Link>
-            );
-          })()}
-
-        {isMounted &&
-          (isAdmin || isAdvisor || isViewer) &&
-          (() => {
-            const policy360Path = "/dashboard/policy-360";
-            const isPolicy360Active = pathname.startsWith(policy360Path);
-
-            return (
-              <Link
-                href={policy360Path}
-                className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                ${
-                  isPolicy360Active
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <RotateCw size={20} />
-                Policy 360
-              </Link>
-            );
-          })()}
-
-        {/* User Management - Admin only */}
-        {isMounted && isAdmin && (
-          <Link
-            href="/dashboard/users"
-            className={`
-              flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-              ${
-                pathname.startsWith("/dashboard/users")
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }
-            `}
-          >
-            <Users size={20} />
-            User Management
-          </Link>
-        )}
       </nav>
     </aside>
   );
