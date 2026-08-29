@@ -11,6 +11,7 @@ import {
   Landmark,
   Calculator,
   RotateCw,
+  Megaphone,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -36,6 +37,8 @@ export const Sidebar = () => {
     ...(isMounted && (isAdmin || isAdvisor || isViewer)
       ? [{ name: "Policy 360", href: "/dashboard/policy-360", icon: RotateCw }]
       : []),
+    { name: "Marketing & Alerts", href: "/dashboard/marketing", icon: Megaphone },
+    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Loans", href: "/dashboard/loans", icon: Landmark },
     { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },

@@ -180,7 +180,7 @@ export default function FamilyHistoryRecordsEditor({
         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex justify-between items-center">
           <span>Add Relative</span>
           {editingIndex !== null && (
-            <span className="text-[10px] bg-[#E8C77A]/20 text-[#0B1220] px-2 py-0.5 rounded font-semibold normal-case">
+            <span className="text-[10px] bg-blue-50 text-slate-800 px-2 py-0.5 rounded font-semibold normal-case">
               Editing Entry #{editingIndex + 1}
             </span>
           )}
@@ -215,7 +215,7 @@ export default function FamilyHistoryRecordsEditor({
                 setAge(e.target.value);
                 setDetailErrors((p) => ({ ...p, age: "" }));
               }}
-              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
                 ${detailErrors.age ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
             />
             <span className="text-[10px] text-slate-400 mt-0.5 block">Current Age</span>
@@ -232,7 +232,7 @@ export default function FamilyHistoryRecordsEditor({
                 setStateOfHealth(e.target.value);
                 setDetailErrors((p) => ({ ...p, stateOfHealth: "" }));
               }}
-              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
                 ${detailErrors.stateOfHealth ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
             />
             {detailErrors.stateOfHealth && (
@@ -249,7 +249,7 @@ export default function FamilyHistoryRecordsEditor({
                 setIsDead(e.target.checked);
                 setDetailErrors((p) => ({ ...p, ageAtDeath: "", causeOfDeath: "" }));
               }}
-              className="w-4 h-4 text-[#B8873A] border-slate-300 rounded focus:ring-[#B8873A] cursor-pointer"
+              className="w-4 h-4 text-[#1877F2] border-slate-300 rounded focus:ring-[#1877F2] cursor-pointer"
             />
             <label htmlFor="fh-isDead" className="text-xs font-semibold text-slate-600 uppercase cursor-pointer select-none">
               Is Dead
@@ -268,7 +268,7 @@ export default function FamilyHistoryRecordsEditor({
                     setAgeAtDeath(e.target.value);
                     setDetailErrors((p) => ({ ...p, ageAtDeath: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
                     ${detailErrors.ageAtDeath ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                 />
                 {detailErrors.ageAtDeath && (
@@ -286,7 +286,7 @@ export default function FamilyHistoryRecordsEditor({
                     setCauseOfDeath(e.target.value);
                     setDetailErrors((p) => ({ ...p, causeOfDeath: "" }));
                   }}
-                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]
+                  className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
                     ${detailErrors.causeOfDeath ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
                 />
                 {detailErrors.causeOfDeath && (
@@ -308,7 +308,7 @@ export default function FamilyHistoryRecordsEditor({
           <button
             onClick={handleAddDetail}
             type="button"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
           >
             <Plus size={15} />
             {editingIndex !== null ? "Update Entry" : "Add Entry"}
@@ -356,7 +356,7 @@ export default function FamilyHistoryRecordsEditor({
                     }}
                     className={`transition-colors cursor-pointer ${
                       isCurrentlyEditing
-                        ? "bg-[#B8873A]/15 hover:bg-[#B8873A]/10 font-semibold"
+                        ? "bg-[#1877F2]/15 hover:bg-[#1877F2]/10 font-semibold"
                         : "hover:bg-slate-50/40"
                     }`}
                     title="Click to edit this entry"
@@ -367,7 +367,7 @@ export default function FamilyHistoryRecordsEditor({
                     <td className="py-2.5 px-4 font-semibold text-slate-800">
                       {r.relation}
                       {isCurrentlyEditing && (
-                        <span className="ml-2 text-[10px] bg-[#E8C77A]/20 text-[#0B1220] px-1.5 py-0.5 rounded font-bold uppercase">
+                        <span className="ml-2 text-[10px] bg-blue-50 text-slate-800 px-1.5 py-0.5 rounded font-bold uppercase">
                           Editing
                         </span>
                       )}
