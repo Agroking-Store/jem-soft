@@ -11,6 +11,7 @@ import {
   Landmark,
   Calculator,
   RotateCw,
+  Megaphone,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -30,6 +31,7 @@ export const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
+    { name: "Marketing & Alerts", href: "/dashboard/marketing", icon: Megaphone },
     { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Loans", href: "/dashboard/loans", icon: Landmark },
     { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },

@@ -48,9 +48,9 @@ function SectionCard({
 }) {
   return (
     <div className="relative mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
       <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
-        <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-[#0B1220]">{title}</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">{title}</h2>
         {headerActions}
       </div>
       <div className="p-5">{children}</div>
@@ -235,7 +235,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
   if (isEditMode && isLoading && !currentRecord) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0B1220]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1877F2]" />
       </div>
     );
   }
@@ -261,7 +261,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
               <ChevronRight size={12} />
               <span className="font-medium text-slate-600">{isEditMode ? "Edit Record" : "New Record"}</span>
             </nav>
-            <h1 className="font-serif text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-slate-900">
               {isEditMode ? "Edit Family History" : "Add Family History"}
             </h1>
           </div>
@@ -371,7 +371,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-[#0B1220] hover:bg-[#16294D] disabled:bg-slate-400 text-white rounded-lg font-semibold text-sm shadow-sm transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 disabled:bg-slate-400 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
           >
             <Save size={15} />
             {isEditMode ? "Save Changes" : "Save Family History"}
