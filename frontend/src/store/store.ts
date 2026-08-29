@@ -19,6 +19,8 @@ import loanStatusMasterReducer from "@/features/loans/loanStatusMasterSlice";
 import claimReducer from "@/features/claim/claimSlice"; // Added claim reducer
 import userManagementReducer from "@/features/user/userSlice";
 import loanRepaymentReducer from "@/features/loans/loanRepaymentSlice";
+import premiumPaymentReducer from "@/features/premiumPayments/premiumPaymentSlice";
+import paymentModeMasterReducer from "@/features/premiumPayments/paymentModeMasterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -42,6 +44,8 @@ export const store = configureStore({
     loanRepayments: loanRepaymentReducer,
     claims: claimReducer,
     userManagement: userManagementReducer,
+    premiumPayments: premiumPaymentReducer,
+    paymentModes : paymentModeMasterReducer,
   },
 });
 

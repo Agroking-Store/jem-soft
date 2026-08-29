@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
 import { calculatePremium } from "./premiumCalculationService.js";
+import { addMonths } from 'date-fns';
 
 interface RiderData {
   description: string;
@@ -114,6 +115,17 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
   });
 
+  //Paid Status By default
+  const paymentStatus = await prisma.paymentStatusMaster.findFirst({ where : {statusCode : {equals : "PAID"}}})
+
+  //Payment Mode By Default
+  const paymentMode = await prisma.paymentModeMaster.findFirst( {where : {modeCode : {equals : "CHQ"}}})
+
+  //Get next premium due date
+  const monthsToAdd = premiumMode?.months;
+  const dueDate =new Date(data.commencementDate);
+  const nextPremiumDueDate =  addMonths(dueDate,monthsToAdd!);
+
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
   }
@@ -146,13 +158,14 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
         statusId: status.id,
         premiumModeId: premiumMode.id,
+        paymentModeId : paymentMode?.id,
 
         commencementDate: new Date(data.commencementDate),
         maturityDate: data.completionDate
           ? new Date(data.completionDate)
           : undefined,
 
-        nextPremiumDueDate: fupDate ? new Date(fupDate) : undefined,
+        nextPremiumDueDate: nextPremiumDueDate,
         policyTerm: policyTerm,
         premiumPayingTerm: premiumPayingTerm,
       },
@@ -257,6 +270,20 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       type: NotificationType.POLICY_CREATED,
       policyId: newPolicy.id,
     });
+
+    await tx.premiumPayment.create({
+      data : {
+        policyId : newPolicy.id,
+        installmentNo : 1,
+        dueDate : newPolicy.createdAt,
+        paidDate : newPolicy.createdAt,
+        premiumAmount: premium.installmentPremium + (totalRiderPremium ?? 0),
+        lateFee : 0,
+        paymentStatusId : paymentStatus!.id, //Paid status
+        paymentMode : paymentMode?.id,
+        paymentDetails : "Initial Payment",
+      }
+    })
 
     return newPolicy;
   });
