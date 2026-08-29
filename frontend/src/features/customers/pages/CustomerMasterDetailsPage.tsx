@@ -24,10 +24,12 @@ import {
   ArrowLeft, Phone, CreditCard, Info, Settings,
   Edit, Trash2, AlertTriangle, ChevronRight, Star, Building,
   CheckCircle, XCircle, Heart, Activity, FileText,
-  Clock, AlertCircle,
+  Clock, AlertCircle, Megaphone, Smartphone, Mail,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { getCommunicationLogsApi } from "@/features/marketing/services/marketingApi";
+import type { CommunicationLog } from "@/features/marketing/types";
 
 interface CustomerMasterDetailsPageProps {
   isModal?: boolean;
@@ -107,6 +109,7 @@ export default function CustomerMasterDetailsPage({
   const familyRecords = useSelector((s: RootState) => s.familyHistory.records);
   const medicalRecords = useSelector((s: RootState) => s.medicalHistory.records);
   const memberPolicies = useSelector((s: RootState) => s.policies.policies);
+  const [customerLogs, setCustomerLogs] = useState<CommunicationLog[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -115,6 +118,12 @@ export default function CustomerMasterDetailsPage({
       dispatch(fetchFamilyHistoriesByMember(id));
       dispatch(fetchMedicalHistoriesByMember(id));
       dispatch(fetchPoliciesByMember(id));
+
+      getCommunicationLogsApi({ customerId: id, limit: 10 })
+        .then((res) => {
+          if (res.success && res.data) setCustomerLogs(res.data.logs);
+        })
+        .catch(() => {});
     }
     // Clear member-scoped history when this modal unmounts so a parent modal
     // (e.g. the group) never shows stale data for a different member.
@@ -426,6 +435,36 @@ export default function CustomerMasterDetailsPage({
               </div>
             </SectionCard>
           )}
+
+          {/* Communication & Notices History */}
+          <SectionCard title={`Communication & Notices History (${customerLogs.length})`} icon={<Megaphone size={16} />}>
+            {customerLogs.length === 0 ? (
+              <p className="text-xs text-slate-400 text-center py-4">No recent SMS or Email notices recorded for this customer.</p>
+            ) : (
+              <div className="space-y-2">
+                {customerLogs.map((log) => (
+                  <div key={log.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${log.channel === "SMS" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
+                          {log.channel}
+                        </span>
+                        <span className="font-semibold text-slate-800">{log.triggerType}</span>
+                        {log.policyNumber && <span className="text-slate-500 font-mono">Policy: {log.policyNumber}</span>}
+                      </div>
+                      <p className="text-slate-600 line-clamp-1">{log.content}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${log.status === "SENT" ? "bg-emerald-50 text-emerald-700" : log.status === "SKIPPED" ? "bg-slate-100 text-slate-600" : "bg-red-50 text-red-700"}`}>
+                        {log.status}
+                      </span>
+                      <p className="text-[10px] font-mono text-slate-400 mt-0.5">{new Date(log.createdAt).toLocaleDateString("en-IN")}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
         </div>
 
       <SectionCard title="Family History" icon={<Heart size={16} />}>

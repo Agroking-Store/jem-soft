@@ -23,6 +23,8 @@ import licBranchRoutes from "./routes/licBranchRoutes.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import productAttributeMasterRoutes from "./routes/productAttributeMasterRoutes.js";
 import productAttributeValueRoutes from "./routes/productAttributeValueRoutes.js";
+import communicationRoutes from "./routes/communicationRoutes.js";
+import marketingRoutes from "./routes/marketingRoutes.js";
 import { config } from "./config/env.js";
 
 const app: Application = express();
@@ -53,6 +55,8 @@ app.use("/api/riders", riderMasterRoutes);
 app.use("/api/advisors", advisorRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/communications", communicationRoutes);
+app.use("/api/marketing", marketingRoutes);
 app.use("/api/policy-statuses", policyStatusMasterRoutes);
 app.use("/api/premium-modes", premiumModeMasterRoutes);
 app.use("/api/users", userRoutes);

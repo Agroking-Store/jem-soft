@@ -26,18 +26,19 @@ import {
   ArrowDown,
   RotateCcw,
   ArrowLeft,
-  X
+  X,
+  BellRing,
 } from "lucide-react";
 import { fetchLoans, deleteLoan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
-import { fetchPolicies, deletePolicy, Policy } from "@/features/policy/policySlice";
+import { fetchPolicies, deletePolicy, Policy, fetchPolicyById } from "@/features/policy/policySlice";
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
 } from "@/features/customers/components/CustomerUi";
 import { EMPTY_FILTERS, LapsedPolicyFilters , FilterDrawer } from "@/features/policy360/FilterDrawer";
-import { fetchPolicyById } from "@/features/policy/policySlice";
 import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { SendReminderModal } from "@/features/marketing/components/SendReminderModal";
 
 export default function PremiumDuePage()
 {
@@ -57,6 +58,8 @@ export default function PremiumDuePage()
 
 
     const [policyModal,setPolicyModal] = useState(true)
+    const [reminderModalOpen, setReminderModalOpen] = useState(false);
+    const [selectedReminderPolicy, setSelectedReminderPolicy] = useState<Policy | null>(null);
 
     const { policies, isLoading } = useSelector(
     (state: RootState) => state.policies,
@@ -449,6 +452,9 @@ export default function PremiumDuePage()
                     <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Due Date
                     </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -457,7 +463,6 @@ export default function PremiumDuePage()
                         return(
                             <tr key={p.id}>
                                 <td onClick={() => {
-                                  console.log("Before :",selectedPolicy);
                                     handlePolicyClick(p.id);
                                 }} 
                                     className="whitespace-nowrap px-4 py-4 text-sm font-semibold text-slate-900 cursor-pointer">
@@ -490,11 +495,27 @@ export default function PremiumDuePage()
                                     ₹ {`${p.premium?.sumAssured.toLocaleString("en-IN")}`}
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-800">
-                                    {p.commencementDate
+                                    {p.nextPremiumDueDate
                                         ? new Date(
-                                            p.commencementDate,
+                                            p.nextPremiumDueDate,
                                         ).toLocaleDateString("en-IN")
+                                        : p.commencementDate
+                                        ? new Date(p.commencementDate).toLocaleDateString("en-IN")
                                         : "N/A"}
+                                </td>
+                                <td className="whitespace-nowrap px-4 py-4 text-center">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedReminderPolicy(p);
+                                        setReminderModalOpen(true);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-all shadow-2xs cursor-pointer"
+                                      title="Send SMS/Email Reminder"
+                                    >
+                                      <BellRing size={13} />
+                                      Remind
+                                    </button>
                                 </td>
                             </tr>
                         )
@@ -506,6 +527,21 @@ export default function PremiumDuePage()
                 {
                     modal &&
                     <PolicyModal/>
+                }
+                {
+                    reminderModalOpen && selectedReminderPolicy && (
+                      <SendReminderModal
+                        isOpen={reminderModalOpen}
+                        onClose={() => {
+                          setReminderModalOpen(false);
+                          setSelectedReminderPolicy(null);
+                        }}
+                        policy={selectedReminderPolicy as any}
+                        onSuccess={() => {
+                          dispatch(fetchPolicies());
+                        }}
+                      />
+                    )
                 }
           </div>
           <FilterDrawer
