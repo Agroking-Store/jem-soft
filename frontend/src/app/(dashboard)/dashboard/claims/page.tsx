@@ -1,116 +1,112 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchClaims, deleteClaim } from "@/features/claim/claimSlice";
-import { fetchPolicies } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import {
   Plus,
   Search,
-  Filter,
   Eye,
   Edit,
   Trash2,
-  ChevronDown,
-  FileText,
-  Clock,
-  CheckCircle,
-  XCircle,
   AlertCircle,
-  List,
-  Grid3x3,
-  BarChart,
-  IndianRupee,
   ShieldCheck,
   ShieldAlert,
   ShieldQuestionMark,
   ShieldUser,
+  IndianRupee,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import {
   CustomerEmptyState,
-  CustomerPageHero,
   CustomerSectionCard,
-  CustomerStatCard,
   CustomerToolbar,
   FilterSelect,
   CustomerTableFrame,
 } from "@/features/customers/components/CustomerUi";
 
+const STATUS_OPTIONS = [
+  { value: "Pending", label: "Pending" },
+  { value: "Approved", label: "Approved" },
+  { value: "Rejected", label: "Rejected" },
+  { value: "In Progress", label: "In Progress" },
+  { value: "Settled", label: "Settled" },
+];
+
+const STATUS_MAP: Record<string, { color: string; icon: any }> = {
+  Approved: { color: "bg-green-100 text-green-700", icon: CheckCircle },
+  Settled: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
+  Rejected: { color: "bg-red-100 text-red-700", icon: XCircle },
+  "In Progress": { color: "bg-blue-100 text-blue-700", icon: Clock },
+  Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
+};
+
 export default function Page() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useAuth();
+
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
-  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const { policies } = useSelector((state: RootState) => state.policies);
-
-  const { claims, isLoading, error } = useSelector(
-    (state: RootState) => state.claims,
-  );
-
+  const { claims, isLoading } = useSelector((state: RootState) => state.claims);
   const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
-
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    setStatusFilter("");
-    setSearchTerm("");
-  }, []);
 
   useEffect(() => {
     dispatch(fetchClaims());
-    dispatch(fetchPolicies());
   }, [dispatch]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, itemsPerPage]);
 
+  /* ── Stats (FIXED — now uses claims, not policies) ── */
   const stats = useMemo(() => {
-    return {
-      total: policies.length,
-      active: policies.filter((p) => p.status?.statusName === "Active").length,
-      pending: policies.filter((p) => p.status?.statusName === "Pending")
-        .length,
-      lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
-      totalClaims: claims.length,
-      pendingClaims: claims.filter((p) => p.status === "Pending").length,
-      settledClaims: claims.filter((p) => p.status === "Approved").length,
-    };
-  }, [policies, claims]);
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { color: string; icon: any }> = {
-      Approved: { color: "bg-green-100 text-green-700", icon: CheckCircle },
-      Rejected: { color: "bg-red-100 text-red-700", icon: XCircle },
-      "In Progress": { color: "bg-blue-100 text-blue-700", icon: Clock },
-      Pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock },
-    };
-    const StatusIcon = statusMap[status]?.icon || AlertCircle;
-    return {
-      className: statusMap[status]?.color || "bg-slate-100 text-slate-700",
-      icon: StatusIcon,
-    };
-  };
-
-  const filteredClaims = claims.filter((claim) => {
-    const query = searchTerm.toLowerCase();
-    const fullName = claim.claimantName || "";
-    const claimType = claim.claimType || "";
-    const policyNumber = claim.policy?.policyNumber || "";
-    const claimAmt = claim.claimAmount.toString() || "";
-    return (
-      policyNumber.includes(query) ||
-      claimAmt.includes(query) ||
-      claimType.includes(query) ||
-      fullName.includes(query)
+    const total = claims.length;
+    const pending = claims.filter((c) => c.status === "Pending").length;
+    const approved = claims.filter(
+      (c) => c.status === "Approved" || c.status === "Settled",
+    ).length;
+    const totalAmount = claims.reduce(
+      (s, c) => s + Number(c.claimAmount || 0),
+      0,
     );
+    return { total, pending, approved, totalAmount };
+  }, [claims]);
+
+  /* ── Filters (FIXED — status filter now works) ── */
+  const filteredClaims = claims.filter((claim) => {
+    const q = searchTerm.toLowerCase();
+    const name = claim.claimantName || "";
+    const policy = claim.policy?.policyNumber || "";
+    const amount = claim.claimAmount?.toString() || "";
+    const type = claim.claimType || "";
+
+    const matchesSearch =
+      policy.includes(q) ||
+      name.includes(q) ||
+      amount.includes(q) ||
+      type.includes(q);
+    const matchesStatus = !statusFilter || claim.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredClaims.length / itemsPerPage);
+  const paginatedClaims = filteredClaims.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -126,95 +122,70 @@ export default function Page() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const s = STATUS_MAP[status] || {
+      color: "bg-slate-100 text-slate-700",
+      icon: AlertCircle,
+    };
+    return s;
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
           <ShieldUser />
         </span>
-        <span>
-          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
-            Claims
-          </h1>
-        </span>
+        <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
+          Claims
+        </h1>
       </div>
 
-      {/* Stats Card */}
+      {/* Stats (FIXED) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div
-          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => router.push("/dashboard/claims")}
-          role="button"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-md text-[#E8C77A] font-bold">
-                Total Claims Raised
-              </p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
-                {isLoading ? (
-                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
-                ) : (
-                  stats.totalClaims
-                )}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldAlert className="w-6 h-6 text-[#E8C77A]" />
-            </div>
-          </div>
-        </div>
-
-        {/* Settled claims */}
-        <div
-          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => router.push("/dashboard/claims")}
-          role="button"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-md text-[#E8C77A] font-bold">
-                Total Claims Settled
-              </p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
-                {isLoading ? (
-                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
-                ) : (
-                  stats.settledClaims
-                )}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-[#E8C77A]" />
+        {[
+          {
+            label: "Total Claims",
+            value: stats.total,
+            icon: <ShieldAlert className="w-6 h-6 text-[#E8C77A]" />,
+          },
+          {
+            label: "Pending Claims",
+            value: stats.pending,
+            icon: <ShieldQuestionMark className="w-6 h-6 text-[#E8C77A]" />,
+          },
+          {
+            label: "Settled / Approved",
+            value: stats.approved,
+            icon: <ShieldCheck className="w-6 h-6 text-[#E8C77A]" />,
+          },
+          {
+            label: "Total Claim Amount",
+            value: `₹${stats.totalAmount.toLocaleString("en-IN")}`,
+            icon: <IndianRupee className="w-6 h-6 text-[#E8C77A]" />,
+          },
+        ].map((card) => (
+          <div
+            key={card.label}
+            className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-md text-[#E8C77A] font-bold">{card.label}</p>
+                <p className="text-2xl font-bold text-[#E8C77A]">
+                  {isLoading ? (
+                    <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded" />
+                  ) : (
+                    card.value
+                  )}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+                {card.icon}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Pending claims */}
-        <div
-          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => router.push("/dashboard/claims")}
-          role="button"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-md text-[#E8C77A] font-bold">
-                Total Pending Claims
-              </p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
-                {isLoading ? (
-                  <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
-                ) : (
-                  stats.pendingClaims
-                )}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldQuestionMark className="w-6 h-6 text-[#E8C77A]" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <CustomerToolbar>
@@ -226,34 +197,28 @@ export default function Page() {
             />
             <input
               type="text"
-              placeholder={"Search by Policy Number, Claim amount..."}
+              placeholder="Search by policy #, claimant, amount..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
             />
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end cursor-pointer">
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           <FilterSelect
-            icon={Filter}
+            icon={ShieldCheck}
             placeholder="All Statuses"
             value={statusFilter}
             onChange={setStatusFilter}
             searchPlaceholder="Search statuses..."
-            options={[
-              { value: "active", label: "Active" },
-              { value: "pending", label: "Pending" },
-              { value: "inactive", label: "Inactive" },
-            ]}
+            options={STATUS_OPTIONS}
           />
-          {isClient && canEdit && (
+          {canEdit && (
             <button
               onClick={() => router.push("/dashboard/claims/new")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#16294D] cursor-pointer"
             >
-              <Plus size={16} />
-              <span>New Claim</span>
+              <Plus size={16} /> New Claim
             </button>
           )}
         </div>
@@ -261,135 +226,175 @@ export default function Page() {
 
       {/* Table */}
       <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
+        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
           <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
             Claims
           </h2>
-          <p className="block mt-1 text-sm text-slate-500">
-            Browse all claim records.
-          </p>
+          <p className="text-sm text-slate-500">Browse all claim records.</p>
         </div>
-        <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] p-5">
-          <CustomerTableFrame>
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Claim
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Policy
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Claimant Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Status
-                  </th>
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+        <CustomerTableFrame>
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Policy #
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Claimant
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Status
+                </th>
+                {canEdit && (
                   <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Actions
                   </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredClaims.map((claim, index) => {
-                  const statusBadge = getStatusBadge(claim.status);
-                  const StatusIcon = statusBadge.icon;
-                  const claimIndex = `CLM - ${index + 1}`;
-                  return (
-                    <tr
-                      key={claim.id}
-                      className="group hover:bg-slate-50 transition"
-                    >
-                      <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
-                          {claimIndex}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {paginatedClaims.map((claim) => {
+                const badge = getStatusBadge(claim.status);
+                const Icon = badge.icon;
+                return (
+                  <tr
+                    key={claim.id}
+                    className="group hover:bg-slate-50 transition"
+                  >
+                    <td className="px-4 py-3 text-sm text-slate-600 font-mono">
+                      {claim.policy?.policyNumber || "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-3 items-center">
+                        <Seal name={claim.claimantName || "—"} size={34} />
                         <span className="text-sm text-slate-600">
-                          {claim.policy?.policyNumber}
+                          {claim.claimantName || "—"}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-3 items-center text-left">
-                          <span className="text-sm text-slate-600">
-                            <Seal name={claim.claimantName || "-"} size={34} />
-                          </span>
-                          <span className="text-sm text-slate-600">
-                            {claim.claimantName || "-"}
-                          </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">
+                      {claim.claimType}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                      ₹{Number(claim.claimAmount).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">
+                      {claim.claimDate
+                        ? new Date(claim.claimDate).toLocaleDateString("en-IN")
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${badge.color}`}
+                      >
+                        <Icon size={13} /> {claim.status}
+                      </span>
+                    </td>
+                    {canEdit && (
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+                          <button
+                            onClick={() =>
+                              router.push(`/dashboard/claims/${claim.id}`)
+                            }
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            title="View"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() =>
+                              router.push(`/dashboard/claims/edit/${claim.id}`)
+                            }
+                            className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(claim)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm text-slate-600">
-                          {claim.claimType}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-slate-900">
-                          ₹{claim.claimAmount.toLocaleString("en-IN")}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}
-                        >
-                          <StatusIcon size={13} />
-                          {claim.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {canEdit && (
-                          <div className="flex items-center justify-end gap-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150">
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/claims/${claim.id}?index=${claimIndex}`,
-                                )
-                              }
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                              title="View"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/claims/edit/${claim.id}`,
-                                )
-                              }
-                              className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
-                              title="Edit"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget(claim)}
-                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CustomerTableFrame>
-        </div>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CustomerTableFrame>
       </section>
-      {/* Empty / Loading */}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-slate-200 bg-white rounded-xl">
+          <p className="text-sm text-slate-500">
+            Showing{" "}
+            {filteredClaims.length === 0
+              ? 0
+              : (currentPage - 1) * itemsPerPage + 1}
+            {" - "}
+            {Math.min(currentPage * itemsPerPage, filteredClaims.length)}
+            {" of "}
+            {filteredClaims.length}
+          </p>
+          <div className="flex items-center gap-2 mt-2 md:mt-0">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            >
+              &lt;
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .slice(
+                Math.max(0, currentPage - 2),
+                Math.min(totalPages, currentPage + 1),
+              )
+              .map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-9 h-9 rounded-lg border text-sm ${currentPage === p ? "bg-blue-600 text-white border-blue-600" : "border-slate-200 hover:bg-slate-50"}`}
+                >
+                  {p}
+                </button>
+              ))}
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            >
+              &gt;
+            </button>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
@@ -401,14 +406,12 @@ export default function Page() {
             title="No claims have been added yet"
             description="Get started by creating a new claim against a policy."
             action={
-              isClient &&
               canEdit && (
                 <button
                   onClick={() => router.push("/dashboard/claims/new")}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white"
                 >
-                  <Plus size={16} />
-                  <span>New Claim</span>
+                  <Plus size={16} /> New Claim
                 </button>
               )
             }
@@ -416,7 +419,7 @@ export default function Page() {
         )
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
@@ -433,21 +436,26 @@ export default function Page() {
                 </p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to delete this claim?
+            <p className="text-sm text-slate-600 mb-6">
+              Delete claim for policy{" "}
+              <strong>{deleteTarget.policy?.policyNumber}</strong>?
+              <br />
+              <span className="text-xs text-amber-600">
+                Policy status will be restored to Active.
+              </span>
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 disabled={isDeleting}
                 onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg"
               >
                 Cancel
               </button>
               <button
                 disabled={isDeleting}
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg flex items-center gap-2"
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>

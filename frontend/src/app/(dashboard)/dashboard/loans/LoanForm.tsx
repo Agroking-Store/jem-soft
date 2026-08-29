@@ -1,25 +1,26 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchLoanStatuses } from "@/features/loans/loanStatusMasterSlice";
-import { createLoan, fetchLoans, updateLoan, type Loan } from "@/features/loans/loanSlice";
+import {
+  createLoan,
+  fetchLoans,
+  updateLoan,
+  type Loan,
+} from "@/features/loans/loanSlice";
 import { type Policy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
-import { Save, Loader2 ,FileText} from "lucide-react";
-import DatePicker from "../lic/policies/new/DatePicker";
-import { format } from "date-fns";
+import { Save, Loader2, FileText, AlertTriangle } from "lucide-react";
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
 } from "@/features/customers/components/CustomerUi";
-import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
-import { Controller, useForm } from "react-hook-form";
-import { get } from "http";
 
+/* ── Props ────────────────────────────────────────────── */
 
 interface LoanFormProps {
   mode: "create" | "edit";
@@ -33,21 +34,43 @@ interface FormState {
   loanDate: string;
   loanStatusId: string;
   remarks: string;
-   totalLoanRepaidAmount: Number;
-   totalLoanInterestPaid: Number;
 }
 
 const emptyForm: FormState = {
   policyId: "",
   loanAmount: "",
-  interestRate: "",
+  interestRate: "9.5",
   loanDate: "",
   loanStatusId: "",
   remarks: "",
-   totalLoanRepaidAmount: 0,
-   totalLoanInterestPaid: 0,
 };
 
+function getMaxLoanAmount(policy: Policy | null): number {
+  if (!policy) return 0;
+
+  const sumAssured = Number(policy.premium?.sumAssured ?? 0);
+  if (!sumAssured) return 0;
+
+  const yearsCompleted =
+    new Date().getFullYear() - new Date(policy.commencementDate).getFullYear();
+
+  let gsvFactor = 0;
+  if (yearsCompleted >= 10) gsvFactor = 0.7;
+  else if (yearsCompleted >= 5) gsvFactor = 0.5;
+  else if (yearsCompleted >= 3) gsvFactor = 0.3;
+
+  const surrenderValue = sumAssured * gsvFactor;
+  return Math.round(surrenderValue * 0.9); // 90% of GSV
+}
+
+function isPolicyEligible(policy: Policy | null): boolean {
+  if (!policy?.commencementDate) return false;
+  const years =
+    new Date().getFullYear() - new Date(policy.commencementDate).getFullYear();
+  return years > 3;
+}
+
+/* ── Component ────────────────────────────────────────── */
 
 export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   const router = useRouter();
@@ -57,119 +80,62 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   const { statuses: loanStatuses } = useSelector(
     (state: RootState) => state.loanStatuses,
   );
+  const { loans } = useSelector((state: RootState) => state.loans);
 
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const { loans, isLoading } = useSelector((state: RootState) => state.loans);
-  const [policyLoanEligiblity , setPolicyLoanEligiblity] = useState(false);
-  let totalLoans = 0;
+
+  const eligible = isPolicyEligible(selectedPolicy);
+  const maxLoan = getMaxLoanAmount(selectedPolicy);
+
+  // Check if policy already has an active loan
+  const hasActiveLoan = useMemo(() => {
+    if (!form.policyId) return false;
+    return loans.some(
+      (l) =>
+        l.policyId === form.policyId &&
+        l.loanStatus?.statusCode === "ACTIVE" &&
+        l.id !== initialLoan?.id, // exclude current loan in edit mode
+    );
+  }, [form.policyId, loans, initialLoan]);
 
   const validate = (): boolean => {
-  const newErrors: Partial<Record<keyof FormState, string>> = {};
+    const e: Partial<Record<keyof FormState, string>> = {};
 
-  if (!form.policyId) newErrors.policyId = "Policy is required";
+    if (!form.policyId) e.policyId = "Policy is required";
+    if (hasActiveLoan) e.policyId = "This policy already has an active loan";
 
-  if (!form.loanAmount) {
-    newErrors.loanAmount = "Loan amount is required";
-  } else if (isNaN(Number(form.loanAmount)) || Number(form.loanAmount) <= 0) {
-    newErrors.loanAmount = "Loan amount must be a positive number";
-  }
+    if (!form.loanAmount) {
+      e.loanAmount = "Loan amount is required";
+    } else if (isNaN(Number(form.loanAmount)) || Number(form.loanAmount) <= 0) {
+      e.loanAmount = "Must be a positive number";
+    } else if (maxLoan > 0 && Number(form.loanAmount) > maxLoan) {
+      e.loanAmount = `Maximum loan allowed is ₹${maxLoan.toLocaleString("en-IN")}`;
+    }
 
-  if(!form.interestRate)
-    newErrors.interestRate = "Interest rate is required"
+    if (!form.interestRate) {
+      e.interestRate = "Interest rate is required";
+    } else if (
+      isNaN(Number(form.interestRate)) ||
+      Number(form.interestRate) <= 0 ||
+      Number(form.interestRate) > 100
+    ) {
+      e.interestRate = "Must be between 0.01 and 100";
+    }
 
-  if (
-    form.interestRate &&
-    (isNaN(Number(form.interestRate)) ||
-      Number(form.interestRate) < 0 ||
-      Number(form.interestRate) > 100 ||
-      Number(form.interestRate) == 0
-    )
-  ) {
-    newErrors.interestRate = "Interest rate must be between 0 and 100";
-  }
+    if (!form.loanDate) {
+      e.loanDate = "Loan date is required";
+    } else if (new Date(form.loanDate) > new Date()) {
+      e.loanDate = "Cannot be in the future";
+    }
 
-  if (!form.loanDate) {
-    newErrors.loanDate = "Loan date is required";
-  } else if (new Date(form.loanDate) > new Date()) {
-    newErrors.loanDate = "Loan date cannot be in the future";
-  }
-
-  if(Number(form.loanAmount) > totalLoanGrantableValue)
-  {
-    newErrors.loanAmount = `Loan Amount can be maximum - ${totalLoanGrantableValue}`
-  }
-
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
-
-  function checkPolicyLoanEligibility(selectedPolicy : Policy)
-  {
-    const loanEligible =(new Date().getFullYear() - new Date(selectedPolicy?.commencementDate)?.getFullYear()) > 3;
-    setPolicyLoanEligiblity(loanEligible);
-  }
-
-  const getPrevLoanDetails= (policyId: string) => {
-    const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
-    const previousLoanDetails = filteredLoans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-    return previousLoanDetails;
-  }
-
-const getTotalLoanForPolicy = (policyId: string) => {
-  const policy : Policy = policies.find((p) => p.id === policyId);
-  if (!policy) return 0;
-
-  const premium = Number(policy.premium!.basicYearlyPremium ?? 0);
-  if (!premium) return 0;
-
-  const filteredLoans = loans.filter((loan) => loan.policyId === policyId);
-
-  totalLoans =  filteredLoans.reduce((sum, loan) => {
-    return sum + (Number(loan.loanAmount) || 0);
-  }, 0);
-
-  const policyDuration = (new Date().getFullYear() - new Date(policy.commencementDate)?.getFullYear());
-  let gsv = 0;
-  if(3 < policyDuration && policyDuration < 5)
-  {
-    //Guaranteed Surrender Value Factor
-     gsv = 0.3
-  }
-  else if(5 < policyDuration && policyDuration < 10)
-  {
-     gsv = 0.5
-  }
-  else if(policyDuration > 10)
-  {
-     gsv = 0.9
-  }
- 
-  const policySurrenderValue = ((premium * policyDuration) - (premium)) * gsv;
-  console.log(premium)
-   console.log(policySurrenderValue)
-  console.log(policySurrenderValue * 0.9)
-  return((policySurrenderValue * 0.9))
-
-};
-
-const totalLoanGrantableValue =  getTotalLoanForPolicy(form.policyId);
- 
-
-const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : null;
-
-
-  /* ── Shared class strings ──────────────────────────────────── */
-  const inputClass =
-    "w-full rounded-xl border border-slate-200 py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
-  const disabledInputClass =
-    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 outline-none cursor-not-allowed";
-  const selectClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
-  const labelClass =
-    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -188,13 +154,12 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
           : "",
         loanStatusId: initialLoan.loanStatusId || "",
         remarks: initialLoan.remarks || "",
-
-      
-      totalLoanRepaidAmount: initialLoan.totalLoanRepaidAmount || 0,
-      totalLoanInterestPaid: initialLoan.totalLoanInterestPaid|| 0,
       });
+
+      const p = policies.find((p) => p.id === initialLoan.policyId);
+      if (p) setSelectedPolicy(p);
     }
-  }, [mode, initialLoan]);
+  }, [mode, initialLoan, policies]);
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -203,7 +168,6 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!validate()) {
       toast.error("Please fix the highlighted fields.");
       return;
@@ -214,14 +178,12 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
     const payload = {
       policyId: form.policyId,
       loanAmount: Number(form.loanAmount),
-      interestRate: form.interestRate
-        ? Number(form.interestRate)
-        : undefined,
+      interestRate: Number(form.interestRate),
       loanDate: form.loanDate,
-      loanStatusId: loanStatuses[0].id,
+      loanStatusId:
+        loanStatuses.find((s) => s.statusCode === "ACTIVE")?.id ||
+        loanStatuses[0].id,
       remarks: form.remarks || undefined,
-      totalLoanRepaidAmount :  0,
-      totalLoanInterestPaid : 0,
     };
 
     try {
@@ -229,7 +191,9 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
         await dispatch(createLoan(payload)).unwrap();
         toast.success("Loan created successfully.");
       } else if (initialLoan) {
-        await dispatch(updateLoan({ id: initialLoan.id, data: payload })).unwrap();
+        await dispatch(
+          updateLoan({ id: initialLoan.id, data: payload }),
+        ).unwrap();
         toast.success("Loan updated successfully.");
       }
       router.push("/dashboard/loans");
@@ -240,15 +204,20 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
     }
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  const labelClass =
+    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-       {/* Breadcrumb */}
-            <CustomerBreadcrumbs
-              items={[
-                { label: "Loans", href: "/dashboard/loans" },
-                { label: mode === "create" ? "New Loan" : "Edit Loan" },
-              ]}
-            />
+      <CustomerBreadcrumbs
+        items={[
+          { label: "Loans", href: "/dashboard/loans" },
+          { label: mode === "create" ? "New Loan" : "Edit Loan" },
+        ]}
+      />
+
       <div>
         <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
           {mode === "create" ? "New Loan" : "Edit Loan"}
@@ -259,38 +228,29 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
             : "Update the loan details below."}
         </p>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="w-full">
-      <CustomerSectionCard title="Loan Information" icon={FileText}>
+        <CustomerSectionCard title="Loan Information" icon={FileText}>
+          {/* Policy Selector */}
           <div className="w-[50%]">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Policy
+            <label className={labelClass}>
+              Policy <span className="text-rose-500">*</span>
             </label>
-            <span className="ml-0.5 text-rose-500">*</span>
             <select
-            
               value={form.policyId}
-              onChange={(e) => { 
-                const nextPolicyId = e.target.value;
+              disabled={mode === "edit"}
+              onChange={(e) => {
                 handleChange("policyId", e.target.value);
-                const policy = policies.find(
-                      (p) => p.id === e.target.value,
-                    );
-                    setSelectedPolicy(policy!)
-              //  if (!form.totalLoanGranted) {
-              //     handleChange("totalLoanGranted",getTotalLoanForPolicy(nextPolicyId).toString(),
-              //       );
-              //      }
-              checkPolicyLoanEligibility(policy!)
-          
+                const p = policies.find((p) => p.id === e.target.value) || null;
+                setSelectedPolicy(p);
               }}
-              className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.policyId
-                ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
-                : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                }`}
+              className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${
+                errors.policyId
+                  ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
+                  : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              } ${mode === "edit" ? "bg-slate-50 cursor-not-allowed" : ""}`}
             >
               <option value="">Select a policy</option>
-
               {policies.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.policyNumber}
@@ -300,220 +260,187 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
                 </option>
               ))}
             </select>
-
             {errors.policyId && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.policyId}
-              </p>
+              <p className="mt-1 text-xs text-rose-600">{errors.policyId}</p>
             )}
           </div>
-          {/* Policy Details Table */}
-           {selectedPolicy && (
-          <CustomerSectionCard className="mt-3" title="Policy Information" icon={FileText}>
-          <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                    Customer
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                    Sum assured
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                    Policy Status
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                    Policy Start Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                <tr>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    {selectedPolicy?.CustomerMaster?.firstName || "-"}{" "}
-                    {selectedPolicy?.CustomerMaster?.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    ₹{Number(selectedPolicy?.premium?.sumAssured)?.toLocaleString("en-IN") || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    {selectedPolicy?.status?.statusName || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    {selectedPolicy
-                      ? new Date(
-                          selectedPolicy?.commencementDate,
-                        ).toLocaleDateString()
-                      : "-"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          </CustomerSectionCard>)}
-          {!policyLoanEligiblity ? (
-            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-              {selectedPolicy ? (
-                "This policy is not eligible for loan creation. Loans are available only for policies older than 3 years."
-              ) : (
-                "Select a policy to determine loan eligibility."
-              )}
+
+          {/* Policy Info Table */}
+          {selectedPolicy && (
+            <CustomerSectionCard
+              className="mt-3"
+              title="Policy Information"
+              icon={FileText}
+            >
+              <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Customer
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Sum Assured
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Policy Status
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Start Date
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                        Max Loan
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy.CustomerMaster?.firstName || "—"}{" "}
+                        {selectedPolicy.CustomerMaster?.lastName}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        ₹
+                        {Number(
+                          selectedPolicy.premium?.sumAssured,
+                        )?.toLocaleString("en-IN") || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {selectedPolicy.status?.statusName || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
+                        {new Date(
+                          selectedPolicy.commencementDate,
+                        ).toLocaleDateString("en-IN")}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-emerald-700">
+                        ₹{maxLoan.toLocaleString("en-IN")}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CustomerSectionCard>
+          )}
+
+          {/* Eligibility Warning */}
+          {!eligible && selectedPolicy && (
+            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+              <p>
+                This policy is <strong>not eligible</strong> for a loan. Loans
+                are available only for policies older than 3 years.
+              </p>
             </div>
-          ) : (
+          )}
+
+          {hasActiveLoan && (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+              <p>
+                This policy <strong>already has an active loan</strong>. Only
+                one active loan per policy is allowed.
+              </p>
+            </div>
+          )}
+
+          {/* Loan Fields */}
+          {eligible && !hasActiveLoan && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-            <div>
-              <label className={labelClass}>
-                Loan Date
-                <span className="ml-0.5 text-rose-500">*</span>
-              </label>
-              <input
-                className={inputClass}
-                type="date"
-                value={form.loanDate}
-                onChange={(e) => handleChange("loanDate", e.target.value)}
-              />
-              {errors.loanDate && (
-                <p className="mt-1 text-xs text-rose-600">
-                  {errors.loanDate}
-                </p>
-              )}
-              {/* <Controller
-                // control={control}
-                name="claimDate"
-                render={({ field }) => (
-                  <DatePicker
-                    value={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any) =>
-                      field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                    }
-                  />
-                )}
-              /> */}
-            </div>
-
-            <div>
+              <div>
                 <label className={labelClass}>
-                  Prev. Loan Taken (₹)
-                </label>
-                <input
-                  value={prevLoanDetails?.loanAmount || 0}
-                  //onChange={(e) => handleChange("prevLoanTaken", e.target.value)}
-                  // error={errors.prevLoanTaken}
-                  className={`${inputClass} bg-slate-50 cursor-not-allowed`}
-                  disabled
-                />
-            </div>
-
-            <div>
-                <label className={labelClass}>
-                  Loan Amount (₹)
-                  <span className="ml-0.5 text-rose-500">*</span>
+                  Loan Date <span className="text-rose-500">*</span>
                 </label>
                 <input
                   className={inputClass}
-                  type="text"
-                  placeholder="e.g. 50000"
+                  type="date"
+                  value={form.loanDate}
+                  onChange={(e) => handleChange("loanDate", e.target.value)}
+                />
+                {errors.loanDate && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.loanDate}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Loan Amount (₹) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  className={inputClass}
+                  type="number"
+                  min="1"
+                  max={maxLoan || undefined}
+                  placeholder={`Max: ₹${maxLoan.toLocaleString("en-IN")}`}
                   value={form.loanAmount}
-                  max={totalLoanGrantableValue}
                   onChange={(e) => handleChange("loanAmount", e.target.value)}
                 />
-                 {errors.loanAmount && (
-                <p className="mt-1 text-xs text-rose-600">
-                  {errors.loanAmount}
-                </p>
-              )}
-            </div>
-           
-            <div>
+                {errors.loanAmount && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.loanAmount}
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label className={labelClass}>
-                  Interest Rate (%)
-                  <span className="ml-0.5 text-rose-500">*</span>
+                  Interest Rate (% p.a.){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  className={inputClass}
-                  type="text"
-                  min="0"
-                  max="100"
-                  placeholder="e.g. 9.5"
-                  value={form.interestRate}
-                  onChange={(e) => handleChange("interestRate", e.target.value)}
-                />
-                 {errors.interestRate && (
-                <p className="mt-1 text-xs text-rose-600">
-                  {errors.interestRate}
+                <div className="relative">
+                  <input
+                    className={inputClass}
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="100"
+                    placeholder="Standard: 9.5"
+                    value={form.interestRate}
+                    onChange={(e) =>
+                      handleChange("interestRate", e.target.value)
+                    }
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                    % p.a.
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Standard LIC rate: 9.5%. Interest calculated half-yearly on
+                  outstanding principal.
                 </p>
-              )}
-            </div>
+                {errors.interestRate && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.interestRate}
+                  </p>
+                )}
+              </div>
 
-             {/* <div>
-                <label className={labelClass}>
-                  Loan Tenure (Months)
-                </label>
-                <input
-                  className={inputClass}
-                  type="text"
-                  min="1"
-                  placeholder="e.g. 12"
-                  value={form.loanTenure}
-                  onChange={(e) => handleChange("loanTenure", e.target.value)}
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Remarks (Optional)</label>
+                <textarea
+                  rows={3}
+                  placeholder="Enter any remarks..."
+                  value={form.remarks}
+                  onChange={(e) => handleChange("remarks", e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
-          </div> */}
-            {/* <div>
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Loan Status
-              </label>
-
-              <select
-                value={form.loanStatusId}
-                defaultValue={loanStatuses[0].id}
-                onChange={(e) => handleChange("loanStatusId", e.target.value)}
-                className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${errors.loanStatusId
-                  ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
-                  : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  }`}
-              >
-                <option value="">Select status</option>
-
-                {loanStatuses.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.statusName}
-                  </option>
-                ))}
-              </select>
-
-              {errors.loanStatusId && (
-                <p className="mt-1 text-xs text-rose-600">
-                  {errors.loanStatusId}
-                </p>
-              )}
-            </div> */}
-            <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Remarks (Optional)
-              </label>
-
-              <textarea
-                rows={3}
-                placeholder="Enter any remarks..."
-                value={form.remarks}
-                onChange={(e) => handleChange("remarks", e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              />
+              </div>
             </div>
-          </div>)}
-      </CustomerSectionCard>
-       {/* Footer */}
-       {policyLoanEligiblity && (
-        <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+          )}
+        </CustomerSectionCard>
 
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard/loans")}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
+        {/* Footer */}
+        {eligible && !hasActiveLoan && (
+          <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/loans")}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={isSubmitting}
@@ -526,7 +453,8 @@ const prevLoanDetails = form.policyId ? (getPrevLoanDetails(form.policyId)) : nu
               )}
               {mode === "create" ? "Create Loan" : "Save Changes"}
             </button>
-        </div>)}
+          </div>
+        )}
       </form>
     </div>
   );

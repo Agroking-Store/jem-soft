@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
+import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
@@ -30,6 +31,21 @@ import PremiumCertificateForm, { PremiumCertificateFormData } from "@/features/l
 import PremiumCertificateReportView from "@/features/lic/reports/PremiumCertificateReportView";
 import AnnuityStatementForm, { AnnuityStatementFormData } from "@/features/lic/reports/AnnuityStatementForm";
 import AnnuityStatementReportView from "@/features/lic/reports/AnnuityStatementReportView";
+import LoanInterestDueForm, { LoanInterestDueFormData } from "@/features/lic/reports/LoanInterestDueForm";
+import LoanInterestDueReportView from "@/features/lic/reports/LoanInterestDueReportView";
+import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/features/lic/reports/LoanInterestOutstandingForm";
+import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
+import PremiumCalendarForm, { PremiumCalendarFormData } from "@/features/lic/reports/PremiumCalenderForm";
+import PremiumCalendarReportView from "@/features/lic/reports/PremiumCalenderReportView";
+import LastPremiumStatementForm, { LastPremiumStatementFormData } from "@/features/lic/reports/LastPremiumStatementForm";
+import LastPremiumStatementReportView from "@/features/lic/reports/LastPremiumStatementReportView";
+import CustomerDataSheetForm, { CustomerDataSheetFormData } from "@/features/lic/reports/CustomerDataSheetForm";
+import CustomerDataSheetReportView from "@/features/lic/reports/CustomerDataSheetReportView";
+import PolicyStatusReportForm, { PolicyStatusFormData } from "@/features/lic/reports/PolicyStatusReportForm";
+import PolicyStatusReportView from "@/features/lic/reports/PolicyStatusReportView";
+import LoanSurrenderQuotationForm, { LoanSurrenderQuotationFormData } from "@/features/lic/reports/LoanSurrenderQuotationForm";
+import LoanSurrenderQuotationReportView from "@/features/lic/reports/LoanSurrenderQuotationReportView";
+import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
   Search,
   ArrowRight,
@@ -59,7 +75,22 @@ type ViewState =
   | "premium-paid-details-form"
   | "premium-paid-details-report"
   | "annuity-statement-form"
-  | "annuity-statement-report";
+  | "annuity-statement-report"
+  | "loan-interest-due-form"
+  | "loan-interest-due-report"
+  | "loan-interest-outstanding-form"
+  | "loan-interest-outstanding-report"
+  | "premium-calendar-form"
+  | "premium-calendar-report"
+  | "last-premium-statement-form"
+  | "last-premium-statement-report"
+  | "customer-data-sheet-form"
+  | "customer-data-sheet-report"
+  | "policy-status-report-form"
+  | "policy-status-report-view"
+  | "loan-surrender-quotation-form"
+  | "loan-surrender-quotation-report"
+  | "revival-premium-calculator";
 
 export default function LICReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -86,11 +117,26 @@ export default function LICReportsPage() {
     useState<PremiumCertificateFormData | null>(null);
   const [selectedAnnuityStatementData, setSelectedAnnuityStatementData] =
     useState<AnnuityStatementFormData | null>(null);
+  const [selectedLoanInterestDueData, setSelectedLoanInterestDueData] =
+    useState<LoanInterestDueFormData | null>(null);
+  const [selectedLoanInterestOutstandingData, setSelectedLoanInterestOutstandingData] =
+    useState<LoanInterestOutstandingFormData | null>(null);
+  const [selectedPremiumCalendarData, setSelectedPremiumCalendarData] =
+    useState<PremiumCalendarFormData | null>(null);
+  const [selectedLastPremiumStatementData, setSelectedLastPremiumStatementData] =
+    useState<LastPremiumStatementFormData | null>(null);
+  const [selectedCustomerDataSheetData, setSelectedCustomerDataSheetData] =
+    useState<CustomerDataSheetFormData | null>(null);
+  const [selectedPolicyStatusData, setSelectedPolicyStatusData] =
+    useState<PolicyStatusFormData | null>(null);
+  const [selectedLoanSurrenderQuotationData, setSelectedLoanSurrenderQuotationData] =
+    useState<LoanSurrenderQuotationFormData | null>(null);
   const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
   const { customers } = useSelector((state: RootState) => state.customers);
+  const { customers: customersMaster } = useSelector((state: RootState) => state.customerMaster);
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
   const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
@@ -98,6 +144,7 @@ export default function LICReportsPage() {
   useEffect(() => {
     dispatch(fetchPolicies());
     dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
     dispatch(fetchAgencies());
     dispatch(fetchPolicyStatuses());
     dispatch(fetchLicBranches());
@@ -136,6 +183,22 @@ export default function LICReportsPage() {
       setCurrentView("premium-paid-details-form");
     } else if (card.id === "annuity-statement") {
       setCurrentView("annuity-statement-form");
+    } else if (card.id === "loan-interest-due") {
+      setCurrentView("loan-interest-due-form");
+    } else if (card.id === "loan-interest-outstanding") {
+      setCurrentView("loan-interest-outstanding-form");
+    } else if (card.id === "premium-calender") {
+      setCurrentView("premium-calendar-form");
+    } else if (card.id === "last-premium-statement") {
+      setCurrentView("last-premium-statement-form");
+    } else if (card.id === "customer-data-sheet") {
+      setCurrentView("customer-data-sheet-form");
+    } else if (card.id === "policy-status-report") {
+      setCurrentView("policy-status-report-form");
+    } else if (card.id === "loan-surrender-value-quotation") {
+      setCurrentView("loan-surrender-quotation-form");
+    } else if (card.id === "revival-premium-calculator") {
+      setCurrentView("revival-premium-calculator");
     } else {
       setPreviewModalCard(card);
     }
@@ -144,6 +207,21 @@ export default function LICReportsPage() {
   const handleGeneratePolicyRegisterReport = (formData: PolicyRegisterFormData) => {
     setSelectedPolicyRegisterData(formData);
     setCurrentView("policy-register-report");
+  };
+
+  const handleGenerateCustomerDataSheetReport = (formData: CustomerDataSheetFormData) => {
+    setSelectedCustomerDataSheetData(formData);
+    setCurrentView("customer-data-sheet-report");
+  };
+
+  const handleGeneratePolicyStatusReport = (formData: PolicyStatusFormData) => {
+    setSelectedPolicyStatusData(formData);
+    setCurrentView("policy-status-report-view");
+  };
+
+  const handleGenerateLoanSurrenderQuotationReport = (formData: LoanSurrenderQuotationFormData) => {
+    setSelectedLoanSurrenderQuotationData(formData);
+    setCurrentView("loan-surrender-quotation-report");
   };
 
   const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
@@ -191,6 +269,26 @@ export default function LICReportsPage() {
     setCurrentView("annuity-statement-report");
   };
 
+  const handleGenerateLoanInterestDueReport = (formData: LoanInterestDueFormData) => {
+    setSelectedLoanInterestDueData(formData);
+    setCurrentView("loan-interest-due-report");
+  };
+
+  const handleGenerateLoanInterestOutstandingReport = (formData: LoanInterestOutstandingFormData) => {
+    setSelectedLoanInterestOutstandingData(formData);
+    setCurrentView("loan-interest-outstanding-report");
+  };
+
+  const handleGeneratePremiumCalendarReport = (formData: PremiumCalendarFormData) => {
+    setSelectedPremiumCalendarData(formData);
+    setCurrentView("premium-calendar-report");
+  };
+
+  const handleGenerateLastPremiumStatementReport = (formData: LastPremiumStatementFormData) => {
+    setSelectedLastPremiumStatementData(formData);
+    setCurrentView("last-premium-statement-report");
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Shared Nav */}
@@ -217,7 +315,7 @@ export default function LICReportsPage() {
 
               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
                 <div className="text-center px-2">
-                  <span className="block text-2xl font-bold text-[#E8C77A]">16</span>
+                  <span className="block text-2xl font-bold text-[#E8C77A]">18</span>
                   <span className="text-slate-300 font-serif text-[10px] uppercase tracking-wider">Reports</span>
                 </div>
               </div>
@@ -313,7 +411,17 @@ export default function LICReportsPage() {
                       card.id === "policy-maturity" ||
                       card.id === "survival-benefit" ||
                       card.id === "cash-flow-chart" ||
-                      card.id === "comprehensive-insurance-chart"
+                      card.id === "comprehensive-insurance-chart" ||
+                      card.id === "premium-paid-details" ||
+                      card.id === "annuity-statement" ||
+                      card.id === "loan-interest-due" ||
+                      card.id === "loan-interest-outstanding" ||
+                      card.id === "revival-premium-calculator" ||
+                      card.id === "premium-calender" ||
+                      card.id === "last-premium-statement" ||
+                      card.id === "customer-data-sheet" ||
+                      card.id === "policy-status-report" ||
+                      card.id === "loan-surrender-value-quotation"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -568,6 +676,173 @@ export default function LICReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("annuity-statement-form")}
+        />
+      )}
+
+      {/* VIEW 22: Loan Interest Due Form */}
+      {currentView === "loan-interest-due-form" && (
+        <LoanInterestDueForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestDueReport}
+          initialData={selectedLoanInterestDueData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 23: Loan Interest Due Report View */}
+      {currentView === "loan-interest-due-report" && selectedLoanInterestDueData && (
+        <LoanInterestDueReportView
+          formData={selectedLoanInterestDueData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("loan-interest-due-form")}
+        />
+      )}
+
+      {/* VIEW 24: Loan Interest Outstanding Form */}
+      {currentView === "loan-interest-outstanding-form" && (
+        <LoanInterestOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestOutstandingReport}
+          initialData={selectedLoanInterestOutstandingData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 25: Loan Interest Outstanding Report View */}
+      {currentView === "loan-interest-outstanding-report" && selectedLoanInterestOutstandingData && (
+        <LoanInterestOutstandingReportView
+          formData={selectedLoanInterestOutstandingData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("loan-interest-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 26: Premium Calendar Form */}
+      {currentView === "premium-calendar-form" && (
+        <PremiumCalendarForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumCalendarReport}
+          initialData={selectedPremiumCalendarData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 27: Premium Calendar Report View */}
+      {currentView === "premium-calendar-report" && selectedPremiumCalendarData && (
+        <PremiumCalendarReportView
+          formData={selectedPremiumCalendarData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-calendar-form")}
+        />
+      )}
+
+      {/* VIEW 28: Last Premium Statement Form */}
+      {currentView === "last-premium-statement-form" && (
+        <LastPremiumStatementForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLastPremiumStatementReport}
+          initialData={selectedLastPremiumStatementData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 29: Last Premium Statement Report View */}
+      {currentView === "last-premium-statement-report" && selectedLastPremiumStatementData && (
+        <LastPremiumStatementReportView
+          formData={selectedLastPremiumStatementData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("last-premium-statement-form")}
+        />
+      )}
+
+      {/* VIEW 28: Revival Premium Calculator */}
+      {currentView === "revival-premium-calculator" && (
+        <RevivalPremiumCalculator
+          onBack={() => setCurrentView("cards")}
+          policies={policies || []}
+          customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 30: Customer Data Sheet Form */}
+      {currentView === "customer-data-sheet-form" && (
+        <CustomerDataSheetForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateCustomerDataSheetReport}
+          initialData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+        />
+      )}
+
+      {/* VIEW 31: Customer Data Sheet Report View */}
+      {currentView === "customer-data-sheet-report" && selectedCustomerDataSheetData && (
+        <CustomerDataSheetReportView
+          formData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("customer-data-sheet-form")}
+        />
+      )}
+
+      {/* VIEW 32: Policy Status Report Form */}
+      {currentView === "policy-status-report-form" && (
+        <PolicyStatusReportForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyStatusReport}
+          initialData={selectedPolicyStatusData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 33: Policy Status Report View */}
+      {currentView === "policy-status-report-view" && selectedPolicyStatusData && (
+        <PolicyStatusReportView
+          formData={selectedPolicyStatusData}
+          onBackToForm={() => setCurrentView("policy-status-report-form")}
+        />
+      )}
+
+      {/* VIEW 34: Loan / Surrender Value Quotation Form */}
+      {currentView === "loan-surrender-quotation-form" && (
+        <LoanSurrenderQuotationForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanSurrenderQuotationReport}
+          initialData={selectedLoanSurrenderQuotationData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 35: Loan / Surrender Value Quotation Report View */}
+      {currentView === "loan-surrender-quotation-report" && selectedLoanSurrenderQuotationData && (
+        <LoanSurrenderQuotationReportView
+          formData={selectedLoanSurrenderQuotationData}
+          onBackToForm={() => setCurrentView("loan-surrender-quotation-form")}
         />
       )}
 

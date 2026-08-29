@@ -14,6 +14,8 @@ import {
   FileCheck,
   Briefcase,
   Layers,
+  ListChecks,
+  Coins,
   LucideIcon
 } from "lucide-react";
 
@@ -144,5 +146,20 @@ export const LIC_REPORT_CARDS: LicReportCard[] = [
     category: "Calculators & Misc",
     description: "Complete single-page master client summary including family profile, bank details, and policies.",
     icon: UserCheck,
+  },
+  {
+    id: "policy-status-report",
+    title: "Policy Status Report",
+    category: "Register",
+    description: "Snapshot of every policy's current status (Inforce, Lapsed, Paid-up, Surrendered) with last status-change date.",
+    icon: ListChecks,
+  },
+  {
+    id: "loan-surrender-value-quotation",
+    title: "Loan-Surrender Value Quotation",
+    category: "Calculators & Misc",
+    description: "Instant quotation of available loan amount and guaranteed/special surrender value for a policy.",
+    icon: Coins,
+    statusBadge: "Tool",
   },
 ];
