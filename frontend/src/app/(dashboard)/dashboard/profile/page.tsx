@@ -11,12 +11,9 @@ export default function UserComponent()
         return <div>Loading...</div>;
     }
 
-    return(
-        <>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
-                Profile details:
-             </h2>
+    return (
+        <div className="w-full">
              <EditProfileForm user={user}/>
-        </>
+        </div>
     )
 }
