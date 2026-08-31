@@ -12,14 +12,16 @@ import { Suspense } from "react";
  * Contains "Policies" and "LIC Reports" tabs.
  */
 
-type ModuleTab = "policies" | "reports";
+type ModuleTab = "policies" | "reports" | "comm-reports";
 
 const TABS: { key: ModuleTab; label: string; icon: typeof FileText; href: string }[] = [
   { key: "policies", label: "Policies", icon: FileText, href: "/dashboard/lic" },
   { key: "reports",  label: "LIC Reports", icon: BarChart3, href: "/dashboard/lic/reports" },
+  { key: "comm-reports", label: "LIC Comm. Reports", icon: FileText, href: "/dashboard/lic/comm-reports" },
 ];
 
 function resolveActiveTab(pathname: string): ModuleTab {
+  if (pathname.includes("/lic/comm-reports")) return "comm-reports";
   if (pathname.includes("/lic/reports")) return "reports";
   return "policies";
 }
