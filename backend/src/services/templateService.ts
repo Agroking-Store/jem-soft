@@ -21,7 +21,7 @@ export interface TemplateVariables {
  */
 export const renderTemplateText = (
   template: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): string => {
   if (!template) return "";
 
@@ -113,7 +113,8 @@ export const seedDefaultTemplates = async (): Promise<void> => {
       name: "Grace Period / Lapse Warning",
       category: TemplateCategory.POLICY_LAPSED,
       channel: CommunicationChannel.ALL,
-      subject: "Important: Policy Grace Period Notice - Policy No. {policy_number}",
+      subject:
+        "Important: Policy Grace Period Notice - Policy No. {policy_number}",
       smsBody:
         "Dear {customer_name}, your policy {policy_number} is in Grace Period. Premium Rs. {premium_amount} was due on {due_date}. Pay immediately to prevent policy lapse. Advisor: {advisor_phone}.",
       emailBody: `
@@ -156,7 +157,8 @@ export const seedDefaultTemplates = async (): Promise<void> => {
       name: "General Insurance Marketing Campaign",
       category: TemplateCategory.MARKETING,
       channel: CommunicationChannel.ALL,
-      subject: "Protect Your Family's Future - Special Plans from {agency_name}",
+      subject:
+        "Protect Your Family's Future - Special Plans from {agency_name}",
       smsBody:
         "Dear {customer_name}, secure your family's dreams with guaranteed savings & comprehensive life insurance. Contact your trusted advisor {advisor_name} at {advisor_phone} for free consultation.",
       emailBody: `
