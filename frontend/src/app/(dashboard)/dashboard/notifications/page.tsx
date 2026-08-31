@@ -5,7 +5,57 @@ import { useNotificationStore } from "@/store/notificationStore";
 import NotificationCard from "@/features/notifications/components/NotificationCard";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import {ShieldAlert ,BookOpenCheck,BookText, Eye, Trash2,BellRing , ArrowLeft} from "lucide-react";
+import {ShieldAlert ,BookOpenCheck,BookText, Eye, Trash2,BellRing , ArrowLeft ,AlertCircle } from "lucide-react";
+
+function ConfirmationModal({
+  title,
+  description,
+  onCancel,
+  onConfirm,
+}: {
+  title : string,
+  description : string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-red-50 rounded-xl">
+            <AlertCircle size={22} className="text-red-500" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              {title}
+            </h3>
+            <p className="text-xs text-slate-400">
+              This action cannot be undone
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+          {description}
+        </p>
+        <div className="flex items-center justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function NotificationsPage() {
 
@@ -41,25 +91,15 @@ export default function NotificationsPage() {
   };
 
   const handleDeleteAllRead = async () => {
-    const confirmed = window.confirm(
-      "Delete all read notifications?"
-    );
-
-    if (!confirmed) return;
-
     await deleteReadNotifications();
     await fetchNotifications();
+    setDeleteConfirmationModalOpen(false);
   };
 
   const handleMarkAllRead = async () => {
-    const confirmed = window.confirm(
-      "Mark all unread notifications as read?"
-    );
-
-    if (!confirmed) return;
-
     await markAllNotificationsRead();
     await fetchNotifications();
+    setMarkConfirmationModalOpen(false);
   };
 
   type ModuleTab = "read" | "unread";
@@ -71,6 +111,8 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
 
 
   const [activeTab,setActivetab] = useState("read")
+  const [markConfirmationModalOpen,setMarkConfirmationModalOpen] = useState(false)
+  const [deleteConfirmationModalOpen,setDeleteConfirmationModalOpen] = useState(false)
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -97,7 +139,7 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
             </button>
           {unreadNotifications.length > 0 && (
             <button
-              onClick={handleMarkAllRead}
+              onClick={() => setMarkConfirmationModalOpen(true)}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]">
               <Eye size={18} />
               Mark All Read
@@ -106,7 +148,7 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
 
           {readNotifications.length > 0 && (
             <button
-              onClick={handleDeleteAllRead}
+              onClick={() => {setDeleteConfirmationModalOpen(true)}}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]">
               <Trash2 size={18} />
               Delete All Read
@@ -203,6 +245,25 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
 
         </div>
       )}
+      {markConfirmationModalOpen &&
+        <ConfirmationModal
+        title = {"Mark all Notifications as Read"}
+        description={"All notifications will be marked as Read"}
+        onCancel={() => setMarkConfirmationModalOpen(false)}
+        onConfirm={handleMarkAllRead}
+        />
+      }
+
+      {deleteConfirmationModalOpen &&
+        <ConfirmationModal
+        title = {"Delete all Read Notifications"}
+        description={"All Read notifications will be deleted"}
+        onCancel={() => setDeleteConfirmationModalOpen(false)}
+        onConfirm={handleDeleteAllRead}
+        />
+      }
+
+
 
     </div>
   );

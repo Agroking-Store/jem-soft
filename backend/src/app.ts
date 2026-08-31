@@ -23,6 +23,8 @@ import licBranchRoutes from "./routes/licBranchRoutes.js";
 import agencyRoutes from "./routes/agencyRoutes.js";
 import productAttributeMasterRoutes from "./routes/productAttributeMasterRoutes.js";
 import productAttributeValueRoutes from "./routes/productAttributeValueRoutes.js";
+import premiumPaymentRoutes from "./routes/premiumPaymentRoutes.js";
+import paymentModeRoutes from "./routes/paymentModeMasterRoutes.js"
 import communicationRoutes from "./routes/communicationRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
 import { config } from "./config/env.js";
@@ -64,6 +66,8 @@ app.use("/api/lic-branches", licBranchRoutes);
 app.use("/api/agencies", agencyRoutes);
 app.use("/api/product-attributes-master", productAttributeMasterRoutes);
 app.use("/api/product-attribute-values", productAttributeValueRoutes);
+app.use("/api/premium-payments", premiumPaymentRoutes);
+app.use("/api/payment-modes",paymentModeRoutes);
 
 app.post("/test", (req, res) => {
   console.log("Headers:", req.headers);

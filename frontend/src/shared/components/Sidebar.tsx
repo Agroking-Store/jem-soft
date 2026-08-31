@@ -11,6 +11,7 @@ import {
   Landmark,
   Calculator,
   RotateCw,
+  WalletCards,
   Megaphone,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -45,6 +46,11 @@ export const Sidebar = () => {
     { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
     { name: "Loans", href: "/dashboard/loans", icon: Landmark },
     { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },
+    {
+      name: "Premium Payments",
+      href: "/dashboard/premium-payments",
+      icon: WalletCards,
+    },
     ...(isMounted && isAdmin
       ? [{ name: "User Management", href: "/dashboard/users", icon: Users }]
       : []),

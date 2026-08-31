@@ -8,6 +8,7 @@ export interface PremiumModeMaster {
   id: string;
   modeName: string;
   modeCode: string;
+  months : number;
 }
 
 interface PremiumModeState {

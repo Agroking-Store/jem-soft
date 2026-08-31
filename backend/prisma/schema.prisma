@@ -116,7 +116,7 @@ model Claim {
   status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
   claimDate     DateTime
   reasonForClaim String?
-  
+
   // Payment fields
   paymentType       String?   // "NEFT" | "Cheque"
   chequeNumber      String?
@@ -134,7 +134,7 @@ model Claim {
 
   // Relations
   policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
-  
+
   createdBy     User     @relation("ClaimCreatedBy", fields: [createdById], references: [id])
   createdById   String
   updatedBy     User?    @relation("ClaimUpdatedBy", fields: [updatedById], references: [id])
@@ -254,7 +254,7 @@ model ProductPremiumRate {
 
   policyTerm Int
   premiumPayingTerm Int?
-  
+
   option Int?
   tabularRate Decimal @db.Decimal(10,2)
 
@@ -440,6 +440,17 @@ model PremiumModeMaster {
   productModeRebates ProductModeRebate[]
   modeRebateRates  ProductModeRebateRate[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentModeMaster {
+  id          String  @id @default(uuid())
+  modeName    String
+  modeCode    String  @unique
+  description String?
+
+  policies Policy[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -484,6 +495,7 @@ model Policy {
 
   statusId      String
   premiumModeId String
+  paymentModeId String
 
   advisorId      String?
   branchId       String?
@@ -513,6 +525,7 @@ model Policy {
   product        ProductMaster      @relation(fields: [productId], references: [id], onDelete: Restrict)
   status         PolicyStatusMaster @relation(fields: [statusId], references: [id])
   premiumMode    PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
+  paymentMode    PaymentModeMaster  @relation(fields: [paymentModeId], references: [id])
 
   advisor Advisor? @relation(fields: [advisorId], references: [id])
   branch LicBranch? @relation(fields: [branchId], references:[id])
@@ -614,7 +627,7 @@ model PremiumPayment {
 
   paymentMode String?
 
-  receiptNumber String?
+  paymentDetails String?
 
   paymentStatusId String
 
