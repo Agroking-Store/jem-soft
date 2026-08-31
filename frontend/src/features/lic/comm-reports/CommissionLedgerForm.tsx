@@ -26,6 +26,7 @@ interface CommissionLedgerFormProps {
   customers: Array<any>;
   policies: Array<any>;
   onBack: () => void;
+  onGenerateReport: (formData: CommissionLedgerFormData) => void;
 }
 
 export default function CommissionLedgerForm({
@@ -34,12 +35,12 @@ export default function CommissionLedgerForm({
   customers,
   policies,
   onBack,
+  onGenerateReport,
 }: CommissionLedgerFormProps) {
-  const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 
   const defaultFormData: CommissionLedgerFormData = {
-    fromDate: "",
-    toDate: getTodayDateStr(),
+    fromDate: "2026-06-01",
+    toDate: "2026-06-30",
     dataFilters: [],
     policyFilterSelection: null,
     includeWithoutRecord: false,
@@ -69,7 +70,7 @@ export default function CommissionLedgerForm({
   };
 
   const handleGenerateReport = () => {
-    alert("Generating Commission Ledger Report...");
+    onGenerateReport(formData);
   };
 
   const getDataFilterLabel = () => {

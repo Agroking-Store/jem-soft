@@ -7,16 +7,19 @@ import { fetchPolicies } from "@/features/policy/policySlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import LicModuleNav from "@/features/lic/LicModuleNav";
-import CommissionLedgerForm from "@/features/lic/comm-reports/CommissionLedgerForm";
+import CommissionLedgerForm, { CommissionLedgerFormData } from "@/features/lic/comm-reports/CommissionLedgerForm";
+import CommissionLedgerReportView from "@/features/lic/comm-reports/CommissionLedgerReportView";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet } from "lucide-react";
 
-type ViewState = "cards" | "commission-ledger-form";
+type ViewState = "cards" | "commission-ledger-form" | "commission-ledger-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [currentView, setCurrentView] = useState<ViewState>("cards");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const [selectedLedgerData, setSelectedLedgerData] = useState<CommissionLedgerFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
@@ -45,6 +48,11 @@ export default function LICCommReportsPage() {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
     }
+  };
+
+  const handleGenerateLedgerReport = (formData: CommissionLedgerFormData) => {
+    setSelectedLedgerData(formData);
+    setCurrentView("commission-ledger-report");
   };
 
   return (
@@ -159,9 +167,21 @@ export default function LICCommReportsPage() {
       {currentView === "commission-ledger-form" && (
         <CommissionLedgerForm
           onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLedgerReport}
+          initialData={selectedLedgerData}
           agencies={agencies || []}
           customers={customers || []}
           policies={policies || []}
+        />
+      )}
+      
+      {/* VIEW 3: Commission Ledger Report Preview */}
+      {currentView === "commission-ledger-report" && selectedLedgerData && (
+        <CommissionLedgerReportView
+          formData={selectedLedgerData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("commission-ledger-form")}
         />
       )}
     </div>

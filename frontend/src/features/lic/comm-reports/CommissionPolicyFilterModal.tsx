@@ -63,31 +63,40 @@ export default function CommissionPolicyFilterModal({
   }, [filterType]);
 
   const masterDataList = useMemo(() => {
-    // Generate dummy data or extract from policies based on filter type
     const data: Array<{ id: string; col1: string; col2: string }> = [];
     
     if (filterType === "Policies") {
       policies.forEach((p, idx) => {
-        const polNo = p.policyNo || `POL-${idx+1}`;
-        const holder = p.CustomerMaster?.name || p.CustomerMasterId || `Holder ${idx+1}`;
-        if (!data.find(d => d.id === p.id)) {
-          data.push({ id: p.id || String(idx), col1: polNo, col2: holder });
+        // Only include if actual policyNo exists
+        if (p.policyNo) {
+          const holder = p.CustomerMaster?.name || p.CustomerMasterId || "Unknown";
+          if (!data.find(d => d.id === p.id)) {
+            data.push({ id: p.id || String(idx), col1: p.policyNo, col2: holder });
+          }
         }
       });
-      // Fallback if no policies
-      if (data.length === 0) {
-        for (let i = 1; i <= 20; i++) {
-          data.push({ id: `p${i}`, col1: `9994467${i}`, col2: `Gupta Jitendra ${i}` });
-        }
-      }
     } else if (filterType === "Agent Bill Wise") {
-      for (let i = 1; i <= 15; i++) {
-        data.push({ id: `a${i}`, col1: `Bill-${2026}${i}`, col2: `Agent ${i}` });
-      }
+      // Typically agent bills would be mapped here, but no specific bill data is given.
+      // Extract unique agents from policies for now.
+      const agentMap = new Map();
+      policies.forEach(p => {
+        if (p.agentCode && !agentMap.has(p.agentCode)) {
+          agentMap.set(p.agentCode, { id: p.agentCode, col1: `Bill for ${p.agentCode}`, col2: `Agent ${p.agentCode}` });
+        }
+      });
+      data.push(...Array.from(agentMap.values()));
     } else if (filterType === "Interest Date Wise") {
-      for (let i = 1; i <= 15; i++) {
-        data.push({ id: `i${i}`, col1: `15/Aug/2026`, col2: `Ref ${i}` });
-      }
+      // Unique interest dates (using commencement as fallback)
+      const dateMap = new Map();
+      policies.forEach(p => {
+        if (p.commencementDate) {
+          const d = new Date(p.commencementDate).toLocaleDateString("en-GB");
+          if (!dateMap.has(d)) {
+            dateMap.set(d, { id: d, col1: d, col2: "Interest Details" });
+          }
+        }
+      });
+      data.push(...Array.from(dateMap.values()));
     }
     
     return data;
