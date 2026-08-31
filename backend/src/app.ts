@@ -25,6 +25,8 @@ import productAttributeMasterRoutes from "./routes/productAttributeMasterRoutes.
 import productAttributeValueRoutes from "./routes/productAttributeValueRoutes.js";
 import premiumPaymentRoutes from "./routes/premiumPaymentRoutes.js";
 import paymentModeRoutes from "./routes/paymentModeMasterRoutes.js"
+import communicationRoutes from "./routes/communicationRoutes.js";
+import marketingRoutes from "./routes/marketingRoutes.js";
 import { config } from "./config/env.js";
 
 const app: Application = express();
@@ -55,6 +57,8 @@ app.use("/api/riders", riderMasterRoutes);
 app.use("/api/advisors", advisorRoutes);
 app.use("/api/policies", policyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/communications", communicationRoutes);
+app.use("/api/marketing", marketingRoutes);
 app.use("/api/policy-statuses", policyStatusMasterRoutes);
 app.use("/api/premium-modes", premiumModeMasterRoutes);
 app.use("/api/users", userRoutes);

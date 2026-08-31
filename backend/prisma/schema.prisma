@@ -11,6 +11,11 @@ enum NotificationType {
   POLICY_CREATED
   POLICY_UPDATED
   POLICY_DELETED
+  PREMIUM_DUE
+  POLICY_LAPSED
+  BIRTHDAY
+  MARKETING
+  GENERAL
 }
 
 model User {
@@ -1046,4 +1051,103 @@ model MedicalHistoryRecord {
   updatedAt       DateTime      @updatedAt
 
   medicalHistory  MedicalHistory @relation(fields: [medicalHistoryId], references: [id], onDelete: Cascade)
+}
+
+// ======================================================
+// Marketing & Dynamic Communication Models
+// ======================================================
+
+enum TemplateCategory {
+  PREMIUM_DUE
+  POLICY_LAPSED
+  BIRTHDAY
+  ANNIVERSARY
+  MARKETING
+  CUSTOM
+}
+
+enum CommunicationChannel {
+  SMS
+  EMAIL
+  IN_APP
+  ALL
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model NotificationTemplate {
+  id          String               @id @default(uuid())
+  code        String               @unique
+  name        String
+  category    TemplateCategory     @default(PREMIUM_DUE)
+  channel     CommunicationChannel @default(ALL)
+  subject     String?
+  smsBody     String?
+  emailBody   String?
+  isActive    Boolean              @default(true)
+  variables   String?              // Comma-separated list of placeholder tokens
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  campaigns   MarketingCampaign[]
+}
+
+model CommunicationLog {
+  id           String               @id @default(uuid())
+  customerId   String?
+  customerName String?
+  policyId     String?
+  policyNumber String?
+  channel      CommunicationChannel
+  recipient    String               // Phone number or Email address
+  subject      String?
+  content      String
+  status       DeliveryStatus       @default(SENT)
+  errorMessage String?
+  triggerType  String               // "AUTOMATED_CRON" | "MANUAL_REMINDER" | "MARKETING_CAMPAIGN"
+  metadata     String?              // JSON extra info
+  createdAt    DateTime             @default(now())
+
+  @@index([customerId])
+  @@index([policyId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model MarketingCampaign {
+  id              String                @id @default(uuid())
+  title           String
+  description     String?
+  channel         CommunicationChannel  @default(ALL)
+  templateId      String?
+  template        NotificationTemplate? @relation(fields: [templateId], references: [id])
+  customSubject   String?
+  customMessage   String?
+  targetCriteria  String?               // JSON string with filters e.g. { providerId, crmGroup, minAge, maxAge }
+  status          String                @default("DRAFT") // "DRAFT" | "SCHEDULED" | "RUNNING" | "COMPLETED" | "CANCELLED"
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  totalRecipients Int                   @default(0)
+  successfulCount Int                   @default(0)
+  failedCount     Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
+
+model ReminderSetting {
+  id                      String    @id @default(uuid())
+  isAutoReminderEnabled   Boolean   @default(true)
+  dueDaysBefore           String    @default("30,15,7,1,0") // Comma-separated days
+  sendSms                 Boolean   @default(true)
+  sendEmail               Boolean   @default(true)
+  sendInApp               Boolean   @default(true)
+  isBirthdayWishesEnabled Boolean   @default(true)
+  cronScheduleTime        String    @default("09:00") // Time of day
+  lastRunAt               DateTime?
+  updatedAt               DateTime  @updatedAt
 }

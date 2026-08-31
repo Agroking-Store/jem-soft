@@ -33,23 +33,23 @@ export default function CustomerPortalLayout({ children }: { children: React.Rea
       {/* Header */}
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-[#0B1220] p-1.5 rounded-lg">
-            <div className="w-6 h-6 bg-white rounded flex items-center justify-center text-[#B8873A] font-bold italic text-xs">
+          <div className="bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] p-1.5 rounded-lg">
+            <div className="w-6 h-6 bg-white rounded flex items-center justify-center text-[#1877F2] font-bold italic text-xs">
               JEM
             </div>
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900 uppercase">
             Jem Soft
           </span>
-          <span className="ml-2 text-xs bg-[#E8C77A]/20 text-[#0B1220] px-2 py-0.5 rounded-full font-medium">
+          <span className="ml-2 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
             Customer Portal
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50">
-            <div className="w-8 h-8 rounded-full bg-[#E8C77A]/20 flex items-center justify-center">
-              <User size={16} className="text-[#B8873A]" />
+            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+              <User size={16} className="text-[#1877F2]" />
             </div>
             {isMounted && (
               <div className="hidden sm:flex flex-col">

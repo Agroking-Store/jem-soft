@@ -66,36 +66,36 @@ export function CustomerModalShell({
         type="button"
         aria-label="Close modal"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-[#0B1220]/55 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-slate-950/50 backdrop-blur-sm"
       />
       <section
         role="dialog"
         aria-modal={isTop}
         aria-label={getCustomerModalTitle(entry)}
-        className={`relative flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.34)] transition-all duration-200 ${
+        className={`relative flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-200 ${
           isTop ? "scale-100 opacity-100" : "scale-[0.985] opacity-80"
         }`}
       >
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-5 py-4">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <header className="flex items-center justify-between gap-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] px-5 py-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#E8C77A]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#93c5fd]">
               Customer Module
             </p>
-            <h2 className="mt-1 truncate font-serif text-lg font-semibold text-white">
+            <h2 className="mt-0.5 truncate text-lg font-bold text-white">
               {getCustomerModalTitle(entry)}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/15"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20"
             title="Close"
           >
             <X size={18} />
           </button>
         </header>
-        <div className="overflow-y-auto bg-slate-50/40 px-4 py-5 sm:px-6">
+        <div className="overflow-y-auto bg-[#f8faff] px-4 py-5 sm:px-6">
           {children}
         </div>
       </section>
