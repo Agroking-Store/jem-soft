@@ -1,5 +1,6 @@
 export const paymentStatuses = [
-  { statusName: 'Paid', statusCode: 'PAID' },
-  { statusName: 'Unpaid', statusCode: 'UNPAID' },
-  { statusName: 'Overdue', statusCode: 'OVERDUE' },
+  { statusName: "Paid", statusCode: "PAID" },
+  { statusName: "Unpaid", statusCode: "UNPAID" },
+  { statusName: "Overdue", statusCode: "OVERDUE" },
+  { statusName: "Claimed", statusCode: "CLAIMED" },
 ];
