@@ -13,6 +13,8 @@ import { createPremiumPayment, fetchPremiumPaymentsByPolicy } from "./premiumPay
 import { addMonths } from 'date-fns';
 import { fetchPremiumModes } from "../policy/premiumModeMasterSlice";
 import Link from "next/link";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format, addYears, differenceInYears } from "date-fns";
 import {
   CustomerSectionCard,
   SearchableSelect,
@@ -32,7 +34,7 @@ const schema = z
     premiumAmount: z.coerce.number().positive("Premium amount must be greater than zero"),
     paidDate: z.string().min(1,"Paid date is required"),
     lateFee: z.coerce.number().min(0, "Late fee cannot be negative").optional(),
-    paymentMode: z.string().optional(),
+    paymentMode: z.string().min(1, "Payment mode is required"),
     paymentStatus: z.string(),
     gstOnPremium : z.coerce.number().optional(),
     gstOnLateFee : z.coerce.number().optional(),
@@ -82,10 +84,12 @@ export default function PremiumPaymentForm() {
       installmentNo: 1,
       paymentStatus: "PAID",
       dueDate: "",
+      paidDate : new Date().toDateString(),
       gstOnLateFee : 0,
       gstOnPremium : 0,
       lateFee : 0,
       premiumAmount :0,
+      paymentMode : "",
     },
   });
 
@@ -103,7 +107,7 @@ export default function PremiumPaymentForm() {
     const p = policies.find((x) => x.id === policyId);
 
     if (p?.nextPremiumDueDate)
-      setValue("dueDate", p.nextPremiumDueDate);
+      setValue("dueDate", p.nextPremiumDueDate.slice(0, 10));
     if (p?.premium?.totalInstallmentPremium)
       setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
 
@@ -312,11 +316,23 @@ export default function PremiumPaymentForm() {
               Payment Date{" "}
               <span className="text-rose-500">*</span>
             </label>
-            <input
+             <Controller
+                control={control}
+                name="paidDate"
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) =>
+                      field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                    }
+                  />
+                )}
+              />
+            {/* <input
               type="date"
               {...register("paidDate")}
               className={`${input} disabled:bg-slate-50`}
-            />
+            /> */}
             {errors.paidDate && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.paidDate.message}
@@ -346,6 +362,7 @@ export default function PremiumPaymentForm() {
               {...register("paymentMode")}
               className={input}
             >
+              <option value="">Select mode</option>
               {
                 paymentModes.map((p) => {
                   return(
