@@ -8,6 +8,8 @@ dist/
 build/
 *.tsbuildinfo
 
+uploads/
+
 # Environment Variables
 .env
 .env.local
