@@ -14,7 +14,7 @@ import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licRepor
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
 import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
-import PremiumDueReportView from "@/features/lic/reports/PremiumDueReportView";
+import PremiumDueReportView from "../../../../../features/lic/reports/Premiumduereportview";
 import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
 import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
 import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
@@ -339,11 +339,10 @@ export default function LICReportsPage() {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition uppercase tracking-wider ${
-                      activeCategory === cat
-                        ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md"
-                        : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition uppercase tracking-wider ${activeCategory === cat
+                      ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md"
+                      : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                      }`}
                   >
                     {cat}
                   </button>
@@ -360,11 +359,10 @@ export default function LICReportsPage() {
                 <div
                   key={card.id}
                   onClick={() => handleCardClick(card)}
-                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${
-                    card.isFeatured
-                      ? "border-[#B8873A]/60 ring-1 ring-[#B8873A]/30"
-                      : "border-slate-200 hover:border-[#B8873A]"
-                  }`}
+                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${card.isFeatured
+                    ? "border-[#B8873A]/60 ring-1 ring-[#B8873A]/30"
+                    : "border-slate-200 hover:border-[#B8873A]"
+                    }`}
                 >
                   {/* Top Brass Gold Accent Bar */}
                   <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
@@ -405,23 +403,23 @@ export default function LICReportsPage() {
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0B1220] group-hover:text-[#B8873A] uppercase tracking-wider">
                     <span>
                       {card.id === "policy-register" ||
-                      card.id === "premium-due" ||
-                      card.id === "premium-outstanding" ||
-                      card.id === "lapsed-policy" ||
-                      card.id === "policy-maturity" ||
-                      card.id === "survival-benefit" ||
-                      card.id === "cash-flow-chart" ||
-                      card.id === "comprehensive-insurance-chart" ||
-                      card.id === "premium-paid-details" ||
-                      card.id === "annuity-statement" ||
-                      card.id === "loan-interest-due" ||
-                      card.id === "loan-interest-outstanding" ||
-                      card.id === "revival-premium-calculator" ||
-                      card.id === "premium-calender" ||
-                      card.id === "last-premium-statement" ||
-                      card.id === "customer-data-sheet" ||
-                      card.id === "policy-status-report" ||
-                      card.id === "loan-surrender-value-quotation"
+                        card.id === "premium-due" ||
+                        card.id === "premium-outstanding" ||
+                        card.id === "lapsed-policy" ||
+                        card.id === "policy-maturity" ||
+                        card.id === "survival-benefit" ||
+                        card.id === "cash-flow-chart" ||
+                        card.id === "comprehensive-insurance-chart" ||
+                        card.id === "premium-paid-details" ||
+                        card.id === "annuity-statement" ||
+                        card.id === "loan-interest-due" ||
+                        card.id === "loan-interest-outstanding" ||
+                        card.id === "revival-premium-calculator" ||
+                        card.id === "premium-calender" ||
+                        card.id === "last-premium-statement" ||
+                        card.id === "customer-data-sheet" ||
+                        card.id === "policy-status-report" ||
+                        card.id === "loan-surrender-value-quotation"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>

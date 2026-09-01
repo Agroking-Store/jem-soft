@@ -361,9 +361,8 @@ const LifeAssuredAutoComplete = ({
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed ${
-            error ? "border-red-500" : "border-slate-200"
-          }`}
+          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm pl-9 disabled:bg-slate-50 disabled:cursor-not-allowed ${error ? "border-red-500" : "border-slate-200"
+            }`}
         />
         {selected && (
           <button
@@ -815,6 +814,12 @@ export default function NewLICPolicyPage() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
+      if (selectedProductPlan === "881") {
+        refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
+          message: "Option is required for this plan.",
+          path: ["option"],
+        });
+      }
       if (selectedProductPlan === "888" || selectedProductPlan === "889") {
         refinedSchema = refinedSchema
           .refine((data) => Boolean(data.spouseId), {
@@ -830,9 +835,9 @@ export default function NewLICPolicyPage() {
             path: ["option"],
           });
       }
-      if (selectedProductPlan === "889") {
+      if (selectedProductPlan === "889" || selectedProductPlan === "881") {
         refinedSchema = refinedSchema.refine((data) => data.ppt != null, {
-          message: "PPT is required for LIC Plan 889.",
+          message: `PPT is required for LIC Plan ${selectedProductPlan}.`,
           path: ["ppt"],
         });
       }
@@ -1327,15 +1332,15 @@ export default function NewLICPolicyPage() {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       console.log("Premium Payload:", {
-  productId: watchProductId,
-  age,
-  policyTerm: term,
-  premiumPayingTerm: ppt,
-  sumAssured: sum,
-  premiumMode: mode,
-});
+        productId: watchProductId,
+        age,
+        policyTerm: term,
+        premiumPayingTerm: ppt,
+        sumAssured: sum,
+        premiumMode: mode,
+      });
 
-console.log("watchSumAssured =", watchSumAssured);
+      console.log("watchSumAssured =", watchSumAssured);
       console.log("PREMIUM PREVIEW PAYLOAD:", {
         productId: watchProductId,
         age,
@@ -1504,7 +1509,7 @@ console.log("watchSumAssured =", watchSumAssured);
   const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
     console.log("Submit clicked. Form data:", data);
     console.log("isSubmitting:", isSubmitting, "canCreate:", canCreate);
-    
+
     if (!canCreate) {
       toast.error("You do not have permission to create a policy.");
       setIsSubmitting(false);
@@ -1567,7 +1572,7 @@ console.log("watchSumAssured =", watchSumAssured);
         typeof err === "string"
           ? err
           : err?.response?.data?.message || err?.message ||
-            "Failed to create policy. Please check the details.";
+          "Failed to create policy. Please check the details.";
       toast.error(msg);
       console.error("Failed to create policy:", err);
     } finally {
@@ -1689,10 +1694,9 @@ console.log("watchSumAssured =", watchSumAssured);
             }
             className={`
               px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition
-              ${
-                activeSection === section.id
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-50"
+              ${activeSection === section.id
+                ? "bg-blue-50 text-blue-700"
+                : "text-slate-600 hover:bg-slate-50"
               }
             `}
           >
@@ -1850,187 +1854,162 @@ console.log("watchSumAssured =", watchSumAssured);
                   <input type="hidden" {...register("providerType")} />
                   <input type="hidden" {...register("productType")} />
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Policy Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    {...register("policyNumber")}
-                    placeholder="Enter policy number"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.policyNumber && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.policyNumber.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Plan <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="productId" // Use Controller for custom components
-                    render={({ field }) => (
-                      <SearchableSelect
-                        placeholder="Search plan..."
-                        searchPlaceholder="Search by name or plan number"
-                        options={productOptions}
-                        value={field.value}
-                        onChange={(val) => {
-                          field.onChange(val);
-                          const selectedProduct = products.find((p) => p.id === val);
-                          if (selectedProduct) {
-                            setValue("providerId", selectedProduct.providerId || "");
-                            setValue("productType", selectedProduct.productType || "");
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register("policyNumber")}
+                      placeholder="Enter policy number"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.policyNumber && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.policyNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Plan <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="productId" // Use Controller for custom components
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search plan..."
+                          searchPlaceholder="Search by name or plan number"
+                          options={productOptions}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            const selectedProduct = products.find((p) => p.id === val);
+                            if (selectedProduct) {
+                              setValue("providerId", selectedProduct.providerId || "");
+                              setValue("productType", selectedProduct.productType || "");
+                            }
+                          }}
+                          error={errors.productId?.message}
+                          disabled={productsLoading}
+                        />
+                      )}
+                    />
+                    {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Commencement Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="commencementDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value ? new Date(field.value) : undefined}
+                          onChange={(date) =>
+                            field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                           }
-                        }}
-                        error={errors.productId?.message}
-                        disabled={productsLoading}
-                      />
+                        />
+                      )}
+                    />
+                    {errors.commencementDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.commencementDate.message}
+                      </p>
                     )}
-                  />
-                  {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Commencement Date <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="commencementDate"
-                    render={({ field }) => (
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                      />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mode <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      {...register("mode")}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    >
+                      <option value="">Select Mode</option>
+                      {modes.map((mode) => (
+                        <option key={mode.id} value={mode.modeName}>
+                          {mode.modeName}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.mode && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.mode.message}
+                      </p>
                     )}
-                  />
-                  {errors.commencementDate && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.commencementDate.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Mode <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register("mode")}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  >
-                    <option value="">Select Mode</option>
-                    {modes.map((mode) => (
-                      <option key={mode.id} value={mode.modeName}>
-                        {mode.modeName}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.mode && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.mode.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Completion Date <span className="text-red-500">*</span>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="completionDate"
-                    render={({ field }) => (
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                      />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="completionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value ? new Date(field.value) : undefined}
+                          onChange={(date) =>
+                            field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                          }
+                        />
+                      )}
+                    />
+                    {errors.completionDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.completionDate.message}
+                      </p>
                     )}
-                  />
-                  {errors.completionDate && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.completionDate.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Term
-                  </label>
-                  <input
-                    type="text"
-                    {...register("term")}
-                    placeholder="Enter term"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.term && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.term.message}
-                    </p>
-                  )}
-                  {attributeHints.term && !errors.term && (
-                    <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    {selectedProduct?.planNumber === "883"
-                      ? "Gua.Addn.Period"
-                      : "PPT"}
-                    {selectedProduct?.planNumber === "889" && (
-                      <span className="text-red-500"> *</span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Term
+                    </label>
+                    <input
+                      type="text"
+                      {...register("term")}
+                      placeholder="Enter term"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.term && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.term.message}
+                      </p>
                     )}
-                  </label>
-                  <input
-                    type="text"
-                    {...register("ppt")}
-                    placeholder={
-                      selectedProduct?.planNumber === "883" ? "Enter Gua.Addn.Period" : "Enter PPT"
-                    }
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                  />
-                  {errors.ppt && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.ppt.message}
-                    </p>
-                  )}
-              {attributeHints.ppt && !errors.ppt && !errors.term && (
-                    <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
-                  )}
-                </div>
-                {(selectedProduct?.planNumber === "888" ||
-                  selectedProduct?.planNumber === "889") && (
-                  <>
-                    <div>
-                      <Controller
-                        name="spouseId"
-                        control={control}
-                        render={({ field }) => (
-                          <LifeAssuredAutoComplete
-                            label="Spouse"
-                            required
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            members={groupMembers}
-                            disabled={!watchGroupId || groupMembers.length === 0}
-                            placeholder={
-                              watchGroupId
-                                ? groupMembers.length > 0
-                                  ? "Search spouse..."
-                                  : "No members in group"
-                                : "Select a group first"
-                            }
-                            error={errors.spouseId?.message}
-                          />
-                        )}
-                      />
-                    </div>
+                    {attributeHints.term && !errors.term && (
+                      <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {selectedProduct?.planNumber === "883"
+                        ? "Gua.Addn.Period"
+                        : "PPT"}
+                      {(selectedProduct?.planNumber === "889" ||
+                        selectedProduct?.planNumber === "881") && (
+                        <span className="text-red-500"> *</span>
+                      )}
+                    </label>
+                    <input
+                      type="text"
+                      {...register("ppt")}
+                      placeholder={
+                        selectedProduct?.planNumber === "883" ? "Enter Gua.Addn.Period" : "Enter PPT"
+                      }
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.ppt && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.ppt.message}
+                      </p>
+                    )}
+                    {attributeHints.ppt && !errors.ppt && !errors.term && (
+                      <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
+                    )}
+                  </div>
+                  {selectedProduct?.planNumber === "881" && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         Option <span className="text-red-500">*</span>
@@ -2042,6 +2021,7 @@ console.log("watchSumAssured =", watchSumAssured);
                         <option value="">Select Option</option>
                         <option value="1">Option 1</option>
                         <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
                       </select>
                       {errors.option && (
                         <p className="text-xs text-red-500 mt-1">
@@ -2049,111 +2029,157 @@ console.log("watchSumAssured =", watchSumAssured);
                         </p>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Spouse DOB
-                      </label>
-                      <input
-                        {...register("spouseDob")}
-                        type="date"
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Spouse Age
-                      </label>
-                      <input
-                        {...register("spouseAge")}
-                        type="number"
-                        placeholder="Autofilled"
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                        readOnly
-                      />
-                      {errors.spouseAge && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {errors.spouseAge.message}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-                {selectedProduct?.planNumber === "774" && (
-                  <>
-                    <div>
-                      <Controller
-                        name="proposerId"
-                        control={control}
-                        render={({ field }) => (
-                          <LifeAssuredAutoComplete
-                            label="Proposer's Name"
-                            required
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            members={groupMembers}
-                            disabled={!watchGroupId || groupMembers.length === 0}
-                            placeholder={
-                              watchGroupId
-                                ? groupMembers.length > 0
-                                  ? "Search proposer..."
-                                  : "No members in group"
-                                : "Select a group first"
-                            }
-                            error={errors.proposerId?.message}
+                  )}
+                  {(selectedProduct?.planNumber === "888" ||
+                    selectedProduct?.planNumber === "889") && (
+                      <>
+                        <div>
+                          <Controller
+                            name="spouseId"
+                            control={control}
+                            render={({ field }) => (
+                              <LifeAssuredAutoComplete
+                                label="Spouse"
+                                required
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                members={groupMembers}
+                                disabled={!watchGroupId || groupMembers.length === 0}
+                                placeholder={
+                                  watchGroupId
+                                    ? groupMembers.length > 0
+                                      ? "Search spouse..."
+                                      : "No members in group"
+                                    : "Select a group first"
+                                }
+                                error={errors.spouseId?.message}
+                              />
+                            )}
                           />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Option <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            {...register("option")}
+                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          >
+                            <option value="">Select Option</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                          </select>
+                          {errors.option && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.option.message}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Spouse DOB
+                          </label>
+                          <input
+                            {...register("spouseDob")}
+                            type="date"
+                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                            readOnly
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Spouse Age
+                          </label>
+                          <input
+                            {...register("spouseAge")}
+                            type="number"
+                            placeholder="Autofilled"
+                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                            readOnly
+                          />
+                          {errors.spouseAge && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.spouseAge.message}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  {selectedProduct?.planNumber === "774" && (
+                    <>
+                      <div>
+                        <Controller
+                          name="proposerId"
+                          control={control}
+                          render={({ field }) => (
+                            <LifeAssuredAutoComplete
+                              label="Proposer's Name"
+                              required
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              members={groupMembers}
+                              disabled={!watchGroupId || groupMembers.length === 0}
+                              placeholder={
+                                watchGroupId
+                                  ? groupMembers.length > 0
+                                    ? "Search proposer..."
+                                    : "No members in group"
+                                  : "Select a group first"
+                              }
+                              error={errors.proposerId?.message}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer DOB
+                        </label>
+                        <input
+                          {...register("proposerDob")}
+                          type="date"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer Age
+                        </label>
+                        <input
+                          {...register("proposerAge")}
+                          type="number"
+                          placeholder="Autofilled"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                          readOnly
+                        />
+                        {errors.proposerAge && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.proposerAge.message}
+                          </p>
                         )}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Proposer DOB
-                      </label>
-                      <input
-                        {...register("proposerDob")}
-                        type="date"
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Proposer Age
-                      </label>
-                      <input
-                        {...register("proposerAge")}
-                        type="number"
-                        placeholder="Autofilled"
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                        readOnly
-                      />
-                      {errors.proposerAge && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {errors.proposerAge.message}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Option <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        {...register("option")}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                      >
-                        <option value="">Select Option</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                      </select>
-                      {errors.option && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {errors.option.message}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Option <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("option")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        >
+                          <option value="">Select Option</option>
+                          <option value="1">Option 1</option>
+                          <option value="2">Option 2</option>
+                        </select>
+                        {errors.option && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.option.message}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </CustomerSectionCard>
             </div>
             {/* Section 4: Riders Details */}

@@ -122,8 +122,27 @@ main()
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);
-  });
- 
+  });*/
+
+// =========================================================
+// PLAN 881 PREMIUM SEED
+//
+// SQLite tables:
+//
+// table_881_a → Option 1
+// table_881_b → Option 2
+// table_881_c → Option 3
+//
+// Columns:
+//
+// T7  → Premium Paying Term 7
+// T8  → Premium Paying Term 8
+// ...
+// T15 → Premium Paying Term 15
+//
+// Policy Term = 25
+// =========================================================
+
 import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
 
@@ -134,21 +153,32 @@ async function main() {
     readonly: true,
   });
 
-  const tableName = "table_881_a";
   const planNumber = "881";
-
-  // Plan 881 configuration
   const POLICY_TERM = 25;
 
-  const premiumRows = sqlite
-    .prepare(`SELECT * FROM ${tableName}`)
-    .all() as any[];
+  // ---------------------------------------------------------
+  // Option table mapping
+  // ---------------------------------------------------------
 
-  console.log(
-    `Processing ${tableName} (${premiumRows.length} rows)`
-  );
+  const optionTables = [
+    {
+      tableName: "table_881_a",
+      option: 1,
+    },
+    {
+      tableName: "table_881_b",
+      option: 2,
+    },
+    {
+      tableName: "table_881_c",
+      option: 3,
+    },
+  ];
 
-  // Find product
+  // ---------------------------------------------------------
+  // Find ProductMaster
+  // ---------------------------------------------------------
+
   const product = await prisma.productMaster.findFirst({
     where: {
       planNumber,
@@ -156,111 +186,247 @@ async function main() {
   });
 
   if (!product) {
-    console.log(`❌ Plan ${planNumber} not found in ProductMaster`);
+    console.log(
+      `❌ Plan ${planNumber} not found in ProductMaster`
+    );
+
     sqlite.close();
     return;
   }
 
-  console.log(
-    `Matched Product: ${product.productName} (${product.planNumber})`
-  );
+  console.log("\n=================================");
+  console.log(`✔ Product     : ${product.productName}`);
+  console.log(`✔ Plan Number : ${product.planNumber}`);
+  console.log(`✔ Policy Term : ${POLICY_TERM}`);
+  console.log(`✔ Options     : 1, 2, 3`);
+  console.log("=================================\n");
 
-  let inserted = 0;
-  let skipped = 0;
+  let totalInserted = 0;
+  let totalSkipped = 0;
 
-  // T7 -> PPT 7
-  // T8 -> PPT 8
-  // ...
-  // T15 -> PPT 15
-  const pptColumns = Object.keys(
-    premiumRows[0] ?? {}
-  ).filter((key) => /^T\d+$/.test(key));
+  // =========================================================
+  // Process Option Tables
+  // =========================================================
 
-  console.log("PPT Columns:", pptColumns);
+  for (const { tableName, option } of optionTables) {
+    console.log("\n---------------------------------");
+    console.log(`Processing ${tableName}`);
+    console.log(`Option: ${option}`);
+    console.log("---------------------------------");
 
-  for (const row of premiumRows) {
-    const entryAge = Number(row.Age);
+    // -------------------------------------------------------
+    // Check whether table exists
+    // -------------------------------------------------------
 
-    if (!entryAge || Number.isNaN(entryAge)) {
-      console.log("⚠️ Invalid age:", row.Age);
+    const tableExists = sqlite
+      .prepare(
+        `
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+          AND name = ?
+        `
+      )
+      .get(tableName);
+
+    if (!tableExists) {
+      console.log(
+        `⚠️ Table ${tableName} not found`
+      );
+
       continue;
     }
 
-    for (const column of pptColumns) {
-      const match = column.match(/^T(\d+)$/);
+    // -------------------------------------------------------
+    // Read SQLite table
+    // -------------------------------------------------------
 
-      if (!match) {
-        continue;
-      }
+    const premiumRows = sqlite
+      .prepare(`SELECT * FROM "${tableName}"`)
+      .all() as any[];
 
-      const premiumPayingTerm = Number(match[1]);
-      const rate = row[column];
+    console.log(
+      `Rows found: ${premiumRows.length}`
+    );
 
-      // Skip empty / zero rates
-      if (
-        rate == null ||
-        rate === "" ||
-        Number(rate) === 0 ||
-        Number.isNaN(Number(rate))
-      ) {
-        continue;
-      }
+    if (premiumRows.length === 0) {
+      console.log(
+        `⚠️ No rows found in ${tableName}`
+      );
 
-      // Check if record already exists
-      const existing = await prisma.productPremiumRate.findFirst({
-        where: {
-          productId: product.id,
-          entryAge,
-          policyTerm: POLICY_TERM,
-          premiumPayingTerm,
-        },
-      });
-
-      if (existing) {
-        skipped++;
-        continue;
-      }
-
-      // Insert premium rate
-      await prisma.productPremiumRate.create({
-        data: {
-          productId: product.id,
-          entryAge,
-          policyTerm: POLICY_TERM,
-          premiumPayingTerm,
-          tabularRate: Number(rate),
-        },
-      });
-
-      inserted++;
+      continue;
     }
+
+    // -------------------------------------------------------
+    // Detect PPT columns
+    //
+    // T7, T8, T9 ... T15
+    // -------------------------------------------------------
+
+    const pptColumns = Object.keys(
+      premiumRows[0] ?? {}
+    ).filter((key) => /^T\d+$/.test(key));
+
+    console.log(
+      `PPT Columns: ${pptColumns.join(", ")}`
+    );
+
+    let inserted = 0;
+    let skipped = 0;
+
+    // =======================================================
+    // Process each entry age
+    // =======================================================
+
+    for (const row of premiumRows) {
+      const entryAge = Number(row.Age);
+
+      if (
+        Number.isNaN(entryAge) ||
+        entryAge <= 0
+      ) {
+        console.log(
+          `⚠️ Invalid age: ${row.Age}`
+        );
+
+        continue;
+      }
+
+      // =====================================================
+      // Process every PPT column
+      // =====================================================
+
+      for (const column of pptColumns) {
+        const match = column.match(/^T(\d+)$/);
+
+        if (!match) {
+          continue;
+        }
+
+        const premiumPayingTerm = Number(
+          match[1]
+        );
+
+        const rawRate = row[column];
+
+        // ---------------------------------------------------
+        // Skip empty / zero / invalid rates
+        // ---------------------------------------------------
+
+        if (
+          rawRate == null ||
+          rawRate === "" ||
+          Number.isNaN(Number(rawRate)) ||
+          Number(rawRate) === 0
+        ) {
+          continue;
+        }
+
+        const rate = Number(rawRate);
+
+        // ---------------------------------------------------
+        // Check duplicate
+        //
+        // Option MUST be part of duplicate check.
+        // ---------------------------------------------------
+
+        const existing =
+          await prisma.productPremiumRate.findFirst({
+            where: {
+              productId: product.id,
+
+              entryAge,
+
+              secondaryAge: null,
+
+              policyTerm: POLICY_TERM,
+
+              premiumPayingTerm,
+
+              option,
+            },
+          });
+
+        if (existing) {
+          skipped++;
+          continue;
+        }
+
+        // ---------------------------------------------------
+        // Insert premium rate
+        // ---------------------------------------------------
+
+        await prisma.productPremiumRate.create({
+          data: {
+            productId: product.id,
+
+            entryAge,
+
+            secondaryAge: null,
+
+            policyTerm: POLICY_TERM,
+
+            premiumPayingTerm,
+
+            option,
+
+            tabularRate: rate,
+          },
+        });
+
+        inserted++;
+      }
+    }
+
+    totalInserted += inserted;
+    totalSkipped += skipped;
+
+    console.log("\n✔ Table completed");
+    console.log(`  Table    : ${tableName}`);
+    console.log(`  Option   : ${option}`);
+    console.log(`  Inserted : ${inserted}`);
+    console.log(`  Skipped  : ${skipped}`);
   }
 
+  // =========================================================
+  // Final Summary
+  // =========================================================
+
   console.log("\n=================================");
-  console.log(`✔ Plan Number : ${product.planNumber}`);
-  console.log(`✔ Product     : ${product.productName}`);
-  console.log(`✔ Policy Term : ${POLICY_TERM}`);
-  console.log(`✔ PPT Range   : 7 - 15`);
-  console.log(`✔ Inserted    : ${inserted}`);
-  console.log(`✔ Skipped     : ${skipped}`);
-  console.log("=================================");
+  console.log(`✔ Plan       : ${product.planNumber}`);
+  console.log(`✔ Product    : ${product.productName}`);
+  console.log(`✔ Options    : 1, 2, 3`);
+  console.log(`✔ Policy Term: ${POLICY_TERM}`);
+  console.log(`✔ PPT Range  : 7 - 15`);
+  console.log(`✔ Inserted   : ${totalInserted}`);
+  console.log(`✔ Skipped    : ${totalSkipped}`);
+  console.log("=================================\n");
 
   sqlite.close();
 }
 
 main()
   .then(async () => {
-    console.log("✅ Premium seeding completed.");
+    console.log(
+      "✅ Plan 881 premium seeding completed."
+    );
+
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error("❌ Seeding failed:", e);
+    console.error(
+      "❌ Plan 881 seeding failed:",
+      e
+    );
+
     await prisma.$disconnect();
+
     process.exit(1);
-  });*/
+  });
+
 
 //774
-import { PrismaClient } from "@prisma/client";
+/*import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
 
 const prisma = new PrismaClient();
@@ -562,7 +728,7 @@ main()
 
     process.exit(1);
   });
-
+*/
 // 888
 /*import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
@@ -704,253 +870,253 @@ main()
     process.exit(1);
   });*/
 
-  /*import { PrismaClient } from "@prisma/client";
+/*import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const sqlite = new Database("./prisma/Creations.db", {
-    readonly: true,
-  });
+const sqlite = new Database("./prisma/Creations.db", {
+  readonly: true,
+});
 
-  const planNumber = "889";
+const planNumber = "889";
 
-  // ---------------------------------------------------------
-  // Find all Plan 889 tables
-  //
-  // Pattern:
-  // table_889_<policyTerm>_<PPT>_<option>
-  //
-  // Example:
-  // table_889_10_5_1
-  // table_889_15_10_2
-  // table_889_25_15_1
-  // ---------------------------------------------------------
+// ---------------------------------------------------------
+// Find all Plan 889 tables
+//
+// Pattern:
+// table_889_<policyTerm>_<PPT>_<option>
+//
+// Example:
+// table_889_10_5_1
+// table_889_15_10_2
+// table_889_25_15_1
+// ---------------------------------------------------------
 
-  const tables = sqlite
-    .prepare(`
-      SELECT name
-      FROM sqlite_master
-      WHERE type = 'table'
-        AND name GLOB 'table_889_*'
-    `)
-    .all() as { name: string }[];
+const tables = sqlite
+  .prepare(`
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'table'
+      AND name GLOB 'table_889_*'
+  `)
+  .all() as { name: string }[];
 
-  console.log(`Found ${tables.length} Plan ${planNumber} tables`);
+console.log(`Found ${tables.length} Plan ${planNumber} tables`);
 
-  // ---------------------------------------------------------
-  // Find ProductMaster
-  // ---------------------------------------------------------
+// ---------------------------------------------------------
+// Find ProductMaster
+// ---------------------------------------------------------
 
-  const product = await prisma.productMaster.findFirst({
-    where: {
-      planNumber,
-    },
-  });
+const product = await prisma.productMaster.findFirst({
+  where: {
+    planNumber,
+  },
+});
 
-  if (!product) {
-    console.log(`❌ Plan ${planNumber} not found in ProductMaster`);
-    sqlite.close();
-    return;
-  }
+if (!product) {
+  console.log(`❌ Plan ${planNumber} not found in ProductMaster`);
+  sqlite.close();
+  return;
+}
 
-  console.log(
-    `Matched Product: ${product.productName} (${product.planNumber})`
+console.log(
+  `Matched Product: ${product.productName} (${product.planNumber})`
+);
+
+let inserted = 0;
+let skipped = 0;
+
+// ---------------------------------------------------------
+// Process every Plan 889 table
+// ---------------------------------------------------------
+
+for (const table of tables) {
+  /*
+    Table format:
+
+    table_889_<policyTerm>_<PPT>_<option>
+
+    Example:
+    table_889_20_10_2
+
+    group 1 = Policy Term = 20
+    group 2 = PPT         = 10
+    group 3 = Option      = 2
+  *
+
+  const match = table.name.match(
+    /^table_889_(\d+)_(\d+)_(\d+)$/
   );
 
-  let inserted = 0;
-  let skipped = 0;
+  if (!match) {
+    console.log(`⚠️ Skipping invalid table: ${table.name}`);
+    continue;
+  }
 
-  // ---------------------------------------------------------
-  // Process every Plan 889 table
-  // ---------------------------------------------------------
+  const policyTerm = Number(match[1]);
+  const premiumPayingTerm = Number(match[2]);
+  const option = Number(match[3]);
 
-  for (const table of tables) {
-    /*
-      Table format:
+  console.log(
+    `\nProcessing ${table.name} → ` +
+    `Term ${policyTerm}, ` +
+    `PPT ${premiumPayingTerm}, ` +
+    `Option ${option}`
+  );
 
-      table_889_<policyTerm>_<PPT>_<option>
+  // -------------------------------------------------------
+  // Read rows
+  // -------------------------------------------------------
 
-      Example:
-      table_889_20_10_2
+  const rows = sqlite
+    .prepare(`SELECT * FROM "${table.name}"`)
+    .all() as any[];
 
-      group 1 = Policy Term = 20
-      group 2 = PPT         = 10
-      group 3 = Option      = 2
-    *
+  if (rows.length === 0) {
+    console.log(`⚠️ No rows found in ${table.name}`);
+    continue;
+  }
 
-    const match = table.name.match(
-      /^table_889_(\d+)_(\d+)_(\d+)$/
-    );
+  // -------------------------------------------------------
+  // T18, T19, ... T60
+  //
+  // These columns represent SECONDARY / SPOUSE AGE
+  // -------------------------------------------------------
 
-    if (!match) {
-      console.log(`⚠️ Skipping invalid table: ${table.name}`);
+  const secondaryAgeColumns = Object.keys(
+    rows[0] ?? {}
+  ).filter((key) => /^T\d+$/.test(key));
+
+  console.log(
+    `Secondary age columns: ${secondaryAgeColumns.join(", ")}`
+  );
+
+  // -------------------------------------------------------
+  // Process each primary age
+  // -------------------------------------------------------
+
+  for (const row of rows) {
+    const entryAge = Number(row.Age);
+
+    if (
+      Number.isNaN(entryAge) ||
+      entryAge < 18 ||
+      entryAge > 60
+    ) {
+      console.log(
+        `⚠️ Invalid primary age: ${row.Age}`
+      );
       continue;
     }
 
-    const policyTerm = Number(match[1]);
-    const premiumPayingTerm = Number(match[2]);
-    const option = Number(match[3]);
+    // -----------------------------------------------------
+    // Process each secondary/spouse age
+    // -----------------------------------------------------
 
-    console.log(
-      `\nProcessing ${table.name} → ` +
-      `Term ${policyTerm}, ` +
-      `PPT ${premiumPayingTerm}, ` +
-      `Option ${option}`
-    );
+    for (const column of secondaryAgeColumns) {
+      const secondaryAge = Number(
+        column.substring(1)
+      );
 
-    // -------------------------------------------------------
-    // Read rows
-    // -------------------------------------------------------
-
-    const rows = sqlite
-      .prepare(`SELECT * FROM "${table.name}"`)
-      .all() as any[];
-
-    if (rows.length === 0) {
-      console.log(`⚠️ No rows found in ${table.name}`);
-      continue;
-    }
-
-    // -------------------------------------------------------
-    // T18, T19, ... T60
-    //
-    // These columns represent SECONDARY / SPOUSE AGE
-    // -------------------------------------------------------
-
-    const secondaryAgeColumns = Object.keys(
-      rows[0] ?? {}
-    ).filter((key) => /^T\d+$/.test(key));
-
-    console.log(
-      `Secondary age columns: ${secondaryAgeColumns.join(", ")}`
-    );
-
-    // -------------------------------------------------------
-    // Process each primary age
-    // -------------------------------------------------------
-
-    for (const row of rows) {
-      const entryAge = Number(row.Age);
+      const rawRate = row[column];
 
       if (
-        Number.isNaN(entryAge) ||
-        entryAge < 18 ||
-        entryAge > 60
+        rawRate == null ||
+        rawRate === "" ||
+        Number.isNaN(Number(rawRate)) ||
+        Number(rawRate) === 0
       ) {
-        console.log(
-          `⚠️ Invalid primary age: ${row.Age}`
-        );
         continue;
       }
 
-      // -----------------------------------------------------
-      // Process each secondary/spouse age
-      // -----------------------------------------------------
+      const rate = Number(rawRate);
 
-      for (const column of secondaryAgeColumns) {
-        const secondaryAge = Number(
-          column.substring(1)
-        );
+      // ---------------------------------------------------
+      // Check duplicate
+      // ---------------------------------------------------
 
-        const rawRate = row[column];
-
-        if (
-          rawRate == null ||
-          rawRate === "" ||
-          Number.isNaN(Number(rawRate)) ||
-          Number(rawRate) === 0
-        ) {
-          continue;
-        }
-
-        const rate = Number(rawRate);
-
-        // ---------------------------------------------------
-        // Check duplicate
-        // ---------------------------------------------------
-
-        const existing =
-          await prisma.productPremiumRate.findFirst({
-            where: {
-              productId: product.id,
-
-              // Primary / Life Assured age
-              entryAge,
-
-              // Secondary / Spouse age
-              secondaryAge,
-
-              // Policy term
-              policyTerm,
-
-              // Plan 889 uses PPT
-              premiumPayingTerm,
-
-              // Option 1 / Option 2
-              option,
-            },
-          });
-
-        if (existing) {
-          skipped++;
-          continue;
-        }
-
-        // ---------------------------------------------------
-        // Insert rate
-        // ---------------------------------------------------
-
-        await prisma.productPremiumRate.create({
-          data: {
+      const existing =
+        await prisma.productPremiumRate.findFirst({
+          where: {
             productId: product.id,
 
+            // Primary / Life Assured age
             entryAge,
 
+            // Secondary / Spouse age
             secondaryAge,
 
+            // Policy term
             policyTerm,
 
+            // Plan 889 uses PPT
             premiumPayingTerm,
 
+            // Option 1 / Option 2
             option,
-
-            tabularRate: rate,
           },
         });
 
-        inserted++;
+      if (existing) {
+        skipped++;
+        continue;
       }
+
+      // ---------------------------------------------------
+      // Insert rate
+      // ---------------------------------------------------
+
+      await prisma.productPremiumRate.create({
+        data: {
+          productId: product.id,
+
+          entryAge,
+
+          secondaryAge,
+
+          policyTerm,
+
+          premiumPayingTerm,
+
+          option,
+
+          tabularRate: rate,
+        },
+      });
+
+      inserted++;
     }
   }
+}
 
-  console.log("\n=================================");
-  console.log(`✔ Plan       : ${product.planNumber}`);
-  console.log(`✔ Product    : ${product.productName}`);
-  console.log(`✔ Tables     : ${tables.length}`);
-  console.log(`✔ Inserted   : ${inserted}`);
-  console.log(`✔ Skipped    : ${skipped}`);
-  console.log("=================================");
+console.log("\n=================================");
+console.log(`✔ Plan       : ${product.planNumber}`);
+console.log(`✔ Product    : ${product.productName}`);
+console.log(`✔ Tables     : ${tables.length}`);
+console.log(`✔ Inserted   : ${inserted}`);
+console.log(`✔ Skipped    : ${skipped}`);
+console.log("=================================");
 
-  sqlite.close();
+sqlite.close();
 }
 
 main()
-  .then(async () => {
-    console.log(
-      "✅ Plan 889 premium seeding completed."
-    );
+.then(async () => {
+  console.log(
+    "✅ Plan 889 premium seeding completed."
+  );
 
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(
-      "❌ Plan 889 seeding failed:",
-      e
-    );
+  await prisma.$disconnect();
+})
+.catch(async (e) => {
+  console.error(
+    "❌ Plan 889 seeding failed:",
+    e
+  );
 
-    await prisma.$disconnect();
-    process.exit(1);
-  });
-  */
+  await prisma.$disconnect();
+  process.exit(1);
+});
+*/

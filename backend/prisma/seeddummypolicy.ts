@@ -284,6 +284,22 @@ async function main() {
   console.log("Premium Mode: YLY");
 
   // =====================================================
+  // 7B. PAYMENT MODE
+  // =====================================================
+
+  const onlinePaymentMode = await prisma.PaymentModeMaster.findUnique({
+    where: {
+      modeCode: "ONL",
+    },
+  });
+
+  if (!onlinePaymentMode) {
+    throw new Error("Payment mode ONL not found");
+  }
+
+  console.log(`Payment Mode: ${onlinePaymentMode.modeName}`);
+
+  // =====================================================
   // 8. CREATE TEST POLICIES
   // =====================================================
 
@@ -366,14 +382,47 @@ async function main() {
 
       const policy = await prisma.policy.create({
         data: {
-          clientId: customer.id,
-          CustomerMasterId: member.id,
+          customer: {
+            connect: {
+              id: customer.id,
+            },
+          },
 
-          providerId: lic.id,
-          productId: product.id,
+          CustomerMaster: {
+            connect: {
+              id: member.id,
+            },
+          },
 
-          statusId: activeStatus.id,
-          premiumModeId: yearlyMode.id,
+          provider: {
+            connect: {
+              id: lic.id,
+            },
+          },
+
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+
+          status: {
+            connect: {
+              id: activeStatus.id,
+            },
+          },
+
+          premiumMode: {
+            connect: {
+              id: yearlyMode.id,
+            },
+          },
+
+          paymentMode: {
+            connect: {
+              id: onlinePaymentMode.id,
+            },
+          },
 
           policyNumber,
           proposalNumber,
