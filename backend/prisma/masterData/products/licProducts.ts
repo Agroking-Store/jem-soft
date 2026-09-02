@@ -1,80 +1,80 @@
 export const licProducts = [
-  { 
-    productName: 'Single Premium Endowment Plan', 
-    productCode: '512N283V03', 
-    planNumber: '717', 
-    providerCode: 'LIC', 
-    productType: 'Endowment' 
+  {
+    productName: 'Single Premium Endowment Plan',
+    productCode: '512N283V03',
+    planNumber: '717',
+    providerCode: 'LIC',
+    productType: 'Endowment'
   },
-  { 
-    productName: "LIC's New Endowment Plan", 
-    productCode: '512N277V03', 
-    planNumber: '714', 
-    providerCode: 'LIC', 
-    productType: 'Endowment' 
+  {
+    productName: "LIC's New Endowment Plan",
+    productCode: '512N277V03',
+    planNumber: '714',
+    providerCode: 'LIC',
+    productType: 'Endowment'
   },
-  { 
-    productName: "LIC's New Jeevan Anand", 
-    productCode: '512N279V03', 
-    planNumber: '715', 
-    providerCode: 'LIC', 
-    productType: 'Savings + Whole Life' 
+  {
+    productName: "LIC's New Jeevan Anand",
+    productCode: '512N279V03',
+    planNumber: '715',
+    providerCode: 'LIC',
+    productType: 'Savings + Whole Life'
   },
-  { 
-    productName: 'LIC Jeevan Lakshya', 
-    productCode: '512N297V03', 
-    planNumber: '733', 
-    providerCode: 'LIC', 
-    productType: 'Child Saving Plan' 
+  {
+    productName: 'LIC Jeevan Lakshya',
+    productCode: '512N297V03',
+    planNumber: '733',
+    providerCode: 'LIC',
+    productType: 'Child Saving Plan'
   },
-  { 
-    productName: 'LIC Jeevan Labh', 
-    productCode: '512N304V03', 
-    planNumber: '736', 
-    providerCode: 'LIC', 
-    productType: 'Endowment Savings Plan' 
+  {
+    productName: 'LIC Jeevan Labh',
+    productCode: '512N304V03',
+    planNumber: '736',
+    providerCode: 'LIC',
+    productType: 'Endowment Savings Plan'
   },
-  { 
-    productName: 'LIC Amritbaal', 
-    productCode: '512N365V02', 
-    planNumber: '774', 
-    providerCode: 'LIC', 
-    productType: 'Child Saving Plan' 
+  {
+    productName: 'LIC Amritbaal',
+    productCode: '512N365V02',
+    planNumber: '774',
+    providerCode: 'LIC',
+    productType: 'Child Saving Plan'
   },
-  { 
-    productName: 'LIC Bima Jyoti', 
-    productCode: '512N339V03', 
-    planNumber: '760', 
-    providerCode: 'LIC', 
-    productType: 'Savings Plan' 
+  {
+    productName: 'LIC Bima Jyoti',
+    productCode: '512N339V03',
+    planNumber: '760',
+    providerCode: 'LIC',
+    productType: 'Savings Plan'
   },
-  { 
-    productName: 'LIC Nav Jeevan Shree', 
-    productCode: '512N387V02', 
-    planNumber: '912', 
-    providerCode: 'LIC', 
-    productType: 'Savings Plan' 
+  {
+    productName: 'LIC Nav Jeevan Shree',
+    productCode: '512N387V02',
+    planNumber: '912',
+    providerCode: 'LIC',
+    productType: 'Savings Plan'
   },
-  { 
-    productName: 'LIC Bima Lakshmi', 
-    productCode: '512N389V01', 
-    planNumber: '881', 
-    providerCode: 'LIC', 
-    productType: 'Women Savings Plan' 
+  {
+    productName: 'LIC Bima Lakshmi',
+    productCode: '512N389V01',
+    planNumber: '881',
+    providerCode: 'LIC',
+    productType: 'Women Savings Plan'
   },
-  { 
-    productName: 'LIC New Jeevan Sathi Single Premium', 
-    productCode: '512N393V01', 
-    planNumber: '888', 
-    providerCode: 'LIC', 
-    productType: 'Joint Life Savings Plan' 
+  {
+    productName: 'LIC New Jeevan Sathi Single Premium',
+    productCode: '512N393V01',
+    planNumber: '888',
+    providerCode: 'LIC',
+    productType: 'Joint Life Savings Plan'
   },
-  { 
-    productName: 'LIC New Jeevan Sathi-Limited Premium', 
-    productCode: '512N394V01', 
-    planNumber: '889', 
-    providerCode: 'LIC', 
-    productType: 'Joint Life Savings Plan' 
+  {
+    productName: 'LIC New Jeevan Sathi-Limited Premium',
+    productCode: '512N394V01',
+    planNumber: '889',
+    providerCode: 'LIC',
+    productType: 'Joint Life Savings Plan'
   },
 
   //Whole Life Plans
@@ -580,42 +580,42 @@ export const licProducts = [
   {
     productName: "LIC's Linked Accidental Death Benefit Rider",
     productCode: "512A211V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Accident Benefit Rider",
     productCode: "512B203V03",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Premium Waiver Benefit Rider",
     productCode: "512B204V03",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's New Critical Illness Benefit Rider",
     productCode: "512A212V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V01",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Premium Waiver Benefit Rider (with Auto Cover)",
     productCode: "Not Available (Old Rider Version)",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
@@ -688,14 +688,14 @@ export const licProducts = [
   {
     productName: "LIC's New One Year Renewable Group Term Assurance Plan-I",
     productCode: "512N275V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Withdrawn",
   },
   {
     productName: "LIC's New One Year Renewal Group Term Assurance Plan-II",
     productCode: "512N276V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Withdrawn",
   },
@@ -865,7 +865,7 @@ export const licProducts = [
   {
     productName: "LIC's New Critical Illness Benefit Rider",
     productCode: "512A212V01",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Withdrawn",
   },
@@ -1092,7 +1092,7 @@ export const licProducts = [
   {
     productName: "LIC's Premium Waiver Benefit Rider",
     productCode: "512B204V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Withdrawn",
   },
@@ -1119,49 +1119,49 @@ export const licProducts = [
   {
     productName: "LICs Accident Benefit Rider",
     productCode: "512B203V03",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LICs Premium Waiver Benefit Rider",
     productCode: "512B204V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LICs Accidental Death and Disability Benefit Rider",
     productCode: "512B209V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's New Term Assurance Rider",
     productCode: "512B210V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Linked Accidental Death Benefit Rider",
     productCode: "512A211V02",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Critical Illness Health Rider",
     productCode: "512B227V01",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },
   {
     productName: "LIC's Female Critical Illness Benefit Rider",
     productCode: "512B226V01",
-    planNumber: "-",
+    planNumber: "",
     providerCode: "LIC",
     productType: "Rider",
   },

@@ -295,6 +295,36 @@ if (product.planNumber === "888") {
     });
   }
 
+  // ========================================================
+  // PLAN 912
+  // ========================================================
+
+  else if (product.planNumber === "912") {
+    if (data.option == null) {
+      throw new AppError(
+        "Option is required for LIC Plan 912",
+        400
+      );
+    }
+
+    if (data.premiumPayingTerm == null) {
+      throw new AppError(
+        "Premium Paying Term is required for LIC Plan 912",
+        400
+      );
+    }
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: data.age,
+        policyTerm: data.policyTerm,
+        premiumPayingTerm: data.premiumPayingTerm,
+        option: data.option,
+      },
+    });
+  }
+
   else {
   // ------------------------------------------
   // EXISTING PLANS

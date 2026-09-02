@@ -35,22 +35,22 @@ export const Sidebar = () => {
     ...(isMounted && (isAdmin || isAdvisor || isViewer)
       ? [{ name: "LIC", href: "/dashboard/lic", icon: FileText }]
       : []),
-    ...(isMounted && (isAdmin || isAdvisor || isViewer)
-      ? [{ name: "Policy 360", href: "/dashboard/policy-360", icon: RotateCw }]
-      : []),
-    {
-      name: "Marketing & Alerts",
-      href: "/dashboard/marketing",
-      icon: Megaphone,
-    },
-    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
-    { name: "Loans", href: "/dashboard/loans", icon: Landmark },
-    { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },
     {
       name: "Premium Payments",
       href: "/dashboard/premium-payments",
       icon: WalletCards,
     },
+    { name: "Claims", href: "/dashboard/claims", icon: ShieldCheck },
+    { name: "Loans", href: "/dashboard/loans", icon: Landmark },
+    {
+      name: "Marketing & Alerts",
+      href: "/dashboard/marketing",
+      icon: Megaphone,
+    },
+    { name: "Pre-Sales Tools", href: "/dashboard/pre-sales", icon: Calculator },
+    ...(isMounted && (isAdmin || isAdvisor || isViewer)
+      ? [{ name: "Policy 360", href: "/dashboard/policy-360", icon: RotateCw }]
+      : []),
     ...(isMounted && isAdmin
       ? [{ name: "User Management", href: "/dashboard/users", icon: Users }]
       : []),

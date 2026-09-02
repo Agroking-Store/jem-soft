@@ -814,7 +814,7 @@ export default function NewLICPolicyPage() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "881") {
+      if (selectedProductPlan === "881" || selectedProductPlan === "912") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: "Option is required for this plan.",
           path: ["option"],
@@ -835,7 +835,7 @@ export default function NewLICPolicyPage() {
             path: ["option"],
           });
       }
-      if (selectedProductPlan === "889" || selectedProductPlan === "881") {
+      if (selectedProductPlan === "889" || selectedProductPlan === "881" || selectedProductPlan === "912") {
         refinedSchema = refinedSchema.refine((data) => data.ppt != null, {
           message: `PPT is required for LIC Plan ${selectedProductPlan}.`,
           path: ["ppt"],
@@ -1634,48 +1634,42 @@ export default function NewLICPolicyPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
+            type="button"
             onClick={() => router.push("/dashboard/lic/policies")}
-            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
           >
-            <ChevronLeft size={20} className="text-slate-600" />
+            <ChevronLeft size={16} />
           </button>
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Link
-                href="/dashboard/lic/policies"
-                className="hover:text-blue-600"
-              >
+            <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
+              <button type="button" onClick={() => router.push("/dashboard/lic/policies")} className="hover:text-slate-600">
                 Policies
-              </Link>
-              <ChevronRight size={16} />
-              <span className="font-medium text-slate-700">
-                New Policy Entry
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 mt-1">
+              </button>
+              <ChevronRight size={12} />
+              <span className="text-slate-600 font-medium">New Policy</span>
+            </nav>
+            <h1 className="text-xl font-bold text-slate-900">
               {selectedPolicyType === "lic"
                 ? "Create a New LIC Policy"
                 : "Create a New Policy"}
             </h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-3 py-2">
           <button
+            type="button"
             onClick={() => router.push("/dashboard/lic/policies")}
-            className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm"
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
           >
             Cancel
           </button>
           <button
             type="button"
-            onClick={handleSubmit(
-              onSubmit,
-              (errors) => {
-                console.log("Validation Errors:", errors);
-              }
-            )}
+            onClick={handleSubmit(onSubmit, (errors) => {
+              console.log("Validation Errors:", errors);
+            })}
             disabled={isSubmitting || !canCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save size={16} />
             {isSubmitting ? "Saving..." : "Save Policy"}
@@ -1988,7 +1982,8 @@ export default function NewLICPolicyPage() {
                         ? "Gua.Addn.Period"
                         : "PPT"}
                       {(selectedProduct?.planNumber === "889" ||
-                        selectedProduct?.planNumber === "881") && (
+                        selectedProduct?.planNumber === "881" ||
+                        selectedProduct?.planNumber === "912") && (
                         <span className="text-red-500"> *</span>
                       )}
                     </label>
@@ -2022,6 +2017,26 @@ export default function NewLICPolicyPage() {
                         <option value="1">Option 1</option>
                         <option value="2">Option 2</option>
                         <option value="3">Option 3</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {selectedProduct?.planNumber === "912" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
                       </select>
                       {errors.option && (
                         <p className="text-xs text-red-500 mt-1">
