@@ -271,19 +271,19 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       policyId: newPolicy.id,
     });
 
-    await tx.premiumPayment.create({
-      data : {
-        policyId : newPolicy.id,
-        installmentNo : 1,
-        dueDate : newPolicy.createdAt,
-        paidDate : newPolicy.createdAt,
-        premiumAmount: premium.installmentPremium + (totalRiderPremium ?? 0),
-        lateFee : 0,
-        paymentStatusId : paymentStatus!.id, //Paid status
-        paymentMode : paymentMode?.id,
-        paymentDetails : "Initial Payment",
-      }
-    })
+    // await tx.premiumPayment.create({
+    //   data : {
+    //     policyId : newPolicy.id,
+    //     installmentNo : 1,
+    //     dueDate : newPolicy.createdAt,
+    //     paidDate : newPolicy.createdAt,
+    //     premiumAmount: premium.installmentPremium + (totalRiderPremium ?? 0),
+    //     lateFee : 0,
+    //     paymentStatusId : paymentStatus!.id, //Paid status
+    //     paymentMode : paymentMode?.id,
+    //     paymentDetails : "Initial Payment",
+    //   }
+    // })
 
     return newPolicy;
   });
