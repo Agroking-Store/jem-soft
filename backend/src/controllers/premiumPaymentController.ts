@@ -48,15 +48,15 @@ export const updatePayment = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ status: "success", data: { payment } });
 });
 
-export const markPaymentAsPaid = catchAsync(
-  async (req: Request, res: Response) => {
-    const payment = await premiumPaymentService.markPaymentAsPaid(
-      req.params.id,
-      req.body,
-    );
-    res.status(200).json({ status: "success", data: { payment } });
-  },
-);
+// export const markPaymentAsPaid = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const payment = await premiumPaymentService.markPaymentAsPaid(
+//       req.params.id,
+//       req.body,
+//     );
+//     res.status(200).json({ status: "success", data: { payment } });
+//   },
+// );
 
 export const deletePayment = catchAsync(async (req: Request, res: Response) => {
   await premiumPaymentService.deletePayment(req.params.id);

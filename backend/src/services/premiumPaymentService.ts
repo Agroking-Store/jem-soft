@@ -63,13 +63,6 @@ const validateAmount = (amount: number, fieldName = "premiumAmount") => {
   }
 };
 
-// const validateDate = (value: string, fieldName: string) => {
-//   const date = new Date(value);
-//   if (Number.isNaN(date.getTime())) {
-//     throw new AppError(`${fieldName} must be a valid date`, 400);
-//   }
-//   return date;
-// };
 
 const validatePaymentStatus = async (paymentStatusId?: string) => {
   if (!paymentStatusId) return undefined;
@@ -130,21 +123,10 @@ export const createPayment = async (data: PremiumPaymentData) => {
   }
 
   validateAmount(data.premiumAmount);
-  //const dueDate = validateDate(data.dueDate, "dueDate");
-  //const paidDate = data.paidDate ? validateDate(data.paidDate, "paidDate") : null;
-
-  // if (paidDate && paidDate < dueDate) {
-  //   throw new AppError("paidDate cannot be before dueDate", 400);
-  // }
-
+  
   const status = await validatePaymentStatus(data.paymentStatusId) ?? await getStatus(data.paidDate ? "PAID" : "UNPAID");
   const formattedDueDate = new Date(data.dueDate);
   const formattedPaidDate = new Date(data.paidDate);
-  // if (status.statusCode === "PAID" && !paidDate) {
-  //   throw new AppError("paidDate is required when payment status is PAID", 400);
-  // }
-
-  
 
   const payment = await prisma.premiumPayment.create({
     data: {
@@ -171,6 +153,9 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
     where: { id },
   });
 
+   const formattedDueDate = new Date(data.dueDate);
+  const formattedPaidDate = new Date(data.paidDate);
+
   if (!existing) throw new AppError("Premium payment not found", 404);
 
   if (data.installmentNo !== undefined && (!Number.isInteger(data.installmentNo) || data.installmentNo < 1)) {
@@ -178,29 +163,21 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
   }
 
   if (data.premiumAmount !== undefined) validateAmount(data.premiumAmount);
-  if (data.lateFee !== undefined && data.lateFee !== null) validateAmount(data.lateFee, "lateFee");
 
-  // if (paidDate && paidDate < dueDate) {
-  //   throw new AppError("paidDate cannot be before dueDate", 400);
-  // }
 
   const status = await validatePaymentStatus(data.paymentStatusId);
-  const finalStatusCode = status?.statusCode ?? (await prisma.paymentStatusMaster.findUnique({ where: { id: existing.paymentStatusId } }))?.statusCode;
-
-  // if (finalStatusCode === "PAID" && !paidDate) {
-  //   throw new AppError("paidDate is required when payment status is PAID", 400);
-  // }
 
   return prisma.premiumPayment.update({
     where: { id },
     data: {
       installmentNo: data.installmentNo,
-      dueDate: data.dueDate,
-      paidDate: data.paidDate,
+      dueDate: formattedDueDate,
+      paidDate: formattedPaidDate,
       premiumAmount: data.premiumAmount,
       lateFee: data.lateFee,
       paymentMode: data.paymentMode,
-      paymentStatusId: status?.id,
+      paymentStatusId: data.paymentStatusId,
+      paymentDetails : data.paymentDetails,
     },
     include: paymentInclude,
   });
@@ -240,10 +217,10 @@ export const deletePayment = async (id: string) => {
   const payment = await prisma.premiumPayment.findUnique({ where: { id } });
   if (!payment) throw new AppError("Premium payment not found", 404);
 
-  const paidStatus = await getStatus("PAID");
-  if (payment.paymentStatusId === paidStatus.id) {
-    throw new AppError("Paid premium payments cannot be deleted", 400);
-  }
+  // const paidStatus = await getStatus("PAID");
+  // if (payment.paymentStatusId === paidStatus.id) {
+  //   throw new AppError("Paid premium payments cannot be deleted", 400);
+  // }
 
   await prisma.premiumPayment.delete({ where: { id } });
 };
