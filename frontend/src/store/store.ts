@@ -21,6 +21,7 @@ import userManagementReducer from "@/features/user/userSlice";
 import loanRepaymentReducer from "@/features/loans/loanRepaymentSlice";
 import premiumPaymentReducer from "@/features/premiumPayments/premiumPaymentSlice";
 import paymentModeMasterReducer from "@/features/premiumPayments/paymentModeMasterSlice";
+import lapsedPolicyReducer from "@/features/policy360/lapsedPolicySlice";
 
 export const store = configureStore({
   reducer: {
@@ -46,6 +47,7 @@ export const store = configureStore({
     userManagement: userManagementReducer,
     premiumPayments: premiumPaymentReducer,
     paymentModes : paymentModeMasterReducer,
+    lapsedPolicies: lapsedPolicyReducer,
   },
 });
 
