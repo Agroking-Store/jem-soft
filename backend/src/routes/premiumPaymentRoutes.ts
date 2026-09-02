@@ -6,7 +6,7 @@ import {
   getPayment,
   createPayment,
   updatePayment,
-  markPaymentAsPaid,
+  // markPaymentAsPaid,
   deletePayment,
 } from "../controllers/premiumPaymentController.js";
 
@@ -20,7 +20,7 @@ router.get("/:id", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getPayment);
 
 router.post("/", restrictTo("ADMIN", "ADVISOR"), createPayment);
 router.put("/:id", restrictTo("ADMIN", "ADVISOR"), updatePayment);
-router.post("/:id/pay", restrictTo("ADMIN", "ADVISOR"), markPaymentAsPaid);
+// router.post("/:id/pay", restrictTo("ADMIN", "ADVISOR"), markPaymentAsPaid);
 router.delete("/:id", restrictTo("ADMIN", "ADVISOR"), deletePayment);
 
 export default router;

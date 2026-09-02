@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -18,16 +18,62 @@ import {
   XCircle,
   AlertCircle,
   BarChart,
+  FileText,
+  ChevronRight,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import {
   CustomerEmptyState,
-  CustomerPageHero,
-  CustomerStatCard,
   CustomerToolbar,
   FilterSelect,
+  CustomerTableFrame,
 } from "@/features/customers/components/CustomerUi";
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function Seal({ name, size = 36 }: { name: string; size?: number }) {
+  return (
+    <div
+      style={{ width: size, height: size, minWidth: size }}
+      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] font-bold text-white shadow-sm"
+    >
+      <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>{getInitials(name)}</span>
+    </div>
+  );
+}
+
+function Chip({ dotColor, children }: { dotColor: string; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
+      <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
+      {children}
+    </span>
+  );
+}
+
+function TableHeadCell({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "center" | "right";
+}) {
+  return (
+    <th
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
+        align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
 
 const getStatusBadge = (status: string) => {
   const statusMap = {
@@ -300,51 +346,35 @@ export default function LICPoliciesPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <CustomerPageHero
-        title="Policies"
-        subtitle="Manage all policies and their details"
-        actions={
-          isClient &&
-          canEdit && (
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      {/* Top Banner Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <FileText size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Policies
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Manage all policies and their details
+            </p>
+          </div>
+        </div>
+
+        {isClient && canEdit && (
+          <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setIsPolicyTypeModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-linear-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus size={16} />
-              <span>New Policy</span>
+              New Policy
             </button>
-          )
-        }
-      />
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <CustomerStatCard
-          label="Total Policies"
-          value={isLoading ? "..." : stats.total}
-          icon={BarChart}
-          tone="accent"
-        />
-        <CustomerStatCard
-          label="Active"
-          value={isLoading ? "..." : stats.active}
-          icon={CheckCircle}
-          tone="success"
-        />
-        <CustomerStatCard
-          label="Pending"
-          value={isLoading ? "..." : stats.pending}
-          icon={Clock}
-          tone="warning"
-        />
-        <CustomerStatCard
-          label="Lapsed"
-          value={isLoading ? "..." : stats.lapsed}
-          icon={XCircle}
-          tone="warning"
-        />
+          </div>
+        )}
       </div>
 
       <PolicyTypeModal
@@ -353,23 +383,19 @@ export default function LICPoliciesPage() {
         onSelect={handleCreatePolicySelection}
       />
 
-      {/* Search and Filter */}
-      <CustomerToolbar>
-        <div className="flex-1 relative">
-          <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-            size={16}
-          />
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search by policy #, group name, or life assured..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
-          />
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+          <div className="relative min-w-0 flex-1 sm:max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search by policy #, group name, or life assured..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+            />
+          </div>
           <FilterSelect
             icon={Filter}
             placeholder="All Statuses"
@@ -378,246 +404,195 @@ export default function LICPoliciesPage() {
             onChange={setFilterStatus}
           />
         </div>
-      </CustomerToolbar>
-
-      {/* Policies Table */}
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-fixed divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Policy No.
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[150px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Life Assured
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[240px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Plan
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[110px] whitespace-nowrap px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Sum Assured
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[100px] px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Premium
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[80px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Mode
-                </th>
-                <th
-                  scope="col"
-                  className="w-[60px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Term
-                </th>
-                <th
-                  scope="col"
-                  className="w-[60px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  PPT
-                </th>
-                <th
-                  scope="col"
-                  className="w-[90px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  FUP Date
-                </th>
-                <th
-                  scope="col"
-                  className="w-[90px] px-3 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 z-10 w-[110px] px-3 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {filteredPolicies.map((policy) => {
-                const statusName = policy.status?.statusName || "Unknown";
-                const statusBadge = getStatusBadge(statusName);
-                const StatusIcon = statusBadge.icon;
-                const lifeAssured = policy.CustomerMaster;
-                const holderName = lifeAssured
-                  ? `${lifeAssured.firstName} ${lifeAssured.lastName}`
-                  : "";
-
-                return (
-                  <tr
-                    key={policy.id}
-                    ref={(el) => {
-                      rowRefs.current[policy.id] =
-                        el as HTMLTableRowElement | null;
-                    }}
-                    className={`group/item transition-colors duration-200 ${activeHighlight === policy.id ? "bg-yellow-50 ring-2 ring-offset-2 ring-yellow-400" : "hover:bg-slate-50"}`}
-                  >
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm font-semibold text-slate-900">
-                      {policy.policyNumber}
-                    </td>
-                    <td className="min-w-[180px] px-4 py-4 align-top text-sm text-slate-800">
-                      <div className="font-semibold text-slate-900">
-                        {holderName || "—"}
-                      </div>
-                      {(policy.customer?.groupName ||
-                        policy.customer?.groupCode) && (
-                        <div className="mt-1 text-xs text-slate-500">
-                          {(() => {
-                            const groupName = policy.customer?.groupName;
-                            const groupCode = policy.customer?.groupCode;
-
-                            if (groupName && groupCode) {
-                              return `${groupName} - ${groupCode}`;
-                            } else if (groupName) {
-                              return groupName;
-                            } else {
-                              return groupCode;
-                            }
-                          })()}
-                        </div>
-                      )}
-                    </td>
-                    <td className="min-w-[380px] whitespace-normal break-words px-4 py-4 align-top text-sm text-slate-800">
-                      <div className="font-semibold text-slate-900 break-words">
-                        {policy.product?.planNumber
-                          ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
-                          : policy.product?.productName || "—"}
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm font-semibold text-slate-900">
-                      {policy.premium?.sumAssured
-                        ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}`
-                        : "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm text-slate-800">
-                      {policy.premium?.installmentPremium
-                        ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}`
-                        : "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
-                      {policy.premiumMode?.modeName || "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
-                      {policy.policyTerm ? `${policy.policyTerm}Y` : "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
-                      {policy.premiumPayingTerm
-                        ? `${policy.premiumPayingTerm}Y`
-                        : "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
-                      {policy.nextPremiumDueDate
-                        ? new Date(
-                            policy.nextPremiumDueDate,
-                          ).toLocaleDateString("en-IN")
-                        : "N/A"}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-sm text-slate-800">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge.className}`}
-                      >
-                        <StatusIcon size={14} />
-                        {statusName}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 align-top text-right text-sm text-slate-800">
-                      <div className="inline-flex items-center justify-end gap-2">
-                        <button
-                          onClick={() =>
-                            router.push(`/dashboard/lic/policies/${policy.id}`)
-                          }
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
-                          title="View"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        {isClient && canEdit && (
-                          <>
-                            <button
-                              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition opacity-0 group-hover/item:opacity-100"
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/lic/policies/edit/${policy.id}`,
-                                )
-                              }
-                              title="Edit"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition opacity-0 group-hover/item:opacity-100"
-                              onClick={() => setDeleteTarget(policy)}
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </div>
 
-      {/* Empty State */}
-      {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-          <p className="mt-4 text-sm text-slate-500">Loading policies...</p>
-        </div>
-      ) : (
-        filteredPolicies.length === 0 &&
-        (searchTerm || filterStatus !== "All" ? (
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        
+        {isLoading ? (
+          <div className="flex min-h-[18rem] items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
+          </div>
+        ) : filteredPolicies.length === 0 ? (
           <CustomerEmptyState
-            title="No Policies Found"
-            description="Try adjusting your search or filter criteria to find what you're looking for."
-          />
-        ) : (
-          <CustomerEmptyState
-            title="No policies have been added yet"
-            description="Get started by creating a new policy record."
+            title={searchTerm || filterStatus !== "All" ? "No Policies Found" : "No policies have been added yet"}
+            description={searchTerm || filterStatus !== "All" ? "Try adjusting your search or filter criteria to find what you're looking for." : "Get started by creating a new policy record."}
             action={
-              isClient &&
-              canEdit && (
+              isClient && canEdit && !searchTerm && filterStatus === "All" ? (
                 <button
+                  type="button"
                   onClick={() => setIsPolicyTypeModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(184,135,58,0.2)] transition-all duration-200 hover:shadow-[0_8px_20px_rgba(184,135,58,0.25)]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                 >
                   <Plus size={16} />
-                  <span>New Policy</span>
+                  New Policy
                 </button>
-              )
+              ) : undefined
             }
           />
-        ))
-      )}
+        ) : (
+          <CustomerTableFrame
+            footer={
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>
+                  Showing <strong className="text-slate-700">{filteredPolicies.length}</strong> of{" "}
+                  <strong className="text-slate-700">{stats.total}</strong> policies
+                </span>
+              </div>
+            }
+          >
+            <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+              <thead>
+                <tr>
+                  <TableHeadCell>Policy No.</TableHeadCell>
+                  <TableHeadCell>Life Assured</TableHeadCell>
+                  <TableHeadCell>Plan</TableHeadCell>
+                  <TableHeadCell align="right">Sum Assured</TableHeadCell>
+                  <TableHeadCell align="right">Premium</TableHeadCell>
+                  <TableHeadCell>Mode</TableHeadCell>
+                  <TableHeadCell>Term / PPT</TableHeadCell>
+                  <TableHeadCell>FUP Date</TableHeadCell>
+                  <TableHeadCell align="center">Status</TableHeadCell>
+                  <TableHeadCell align="right">Actions</TableHeadCell>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPolicies.map((policy, index) => {
+                  const statusName = policy.status?.statusName || "Unknown";
+                  const statusBadge = getStatusBadge(statusName);
+                  const StatusIcon = statusBadge.icon;
+                  const lifeAssured = policy.CustomerMaster;
+                  const holderName = lifeAssured
+                    ? `${lifeAssured.firstName} ${lifeAssured.lastName}`
+                    : "—";
 
-      {/* Delete Confirmation Modal */}
+                  let groupLabel = "—";
+                  if (policy.customer?.groupName && policy.customer?.groupCode) {
+                    groupLabel = `${policy.customer.groupName} - ${policy.customer.groupCode}`;
+                  } else if (policy.customer?.groupName) {
+                    groupLabel = policy.customer.groupName;
+                  } else if (policy.customer?.groupCode) {
+                    groupLabel = policy.customer.groupCode;
+                  }
+
+                  let statusDot = "bg-slate-400";
+                  if (statusName === "Active" || statusName === "Completed") statusDot = "bg-emerald-500";
+                  if (statusName === "Pending") statusDot = "bg-amber-500";
+                  if (statusName === "Lapsed") statusDot = "bg-rose-500";
+
+                  return (
+                    <tr
+                      key={policy.id}
+                      ref={(el) => {
+                        rowRefs.current[policy.id] = el as HTMLTableRowElement | null;
+                      }}
+                      onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
+                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                        activeHighlight === policy.id ? "bg-yellow-50/50" : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                      }`}
+                    >
+                      <td className="px-4 py-4 align-top">
+                        <span className="inline-flex rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
+                          {policy.policyNumber}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 align-top">
+                        <div className="flex items-start gap-3 text-left">
+                          <Seal name={holderName} size={36} />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
+                                {holderName}
+                              </span>
+                              <ChevronRight
+                                size={13}
+                                className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
+                              />
+                            </div>
+                            <div className="mt-0.5 truncate text-xs text-slate-400">{groupLabel}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-top">
+                        <div className="font-semibold text-slate-900">
+                          {policy.product?.planNumber
+                            ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
+                            : policy.product?.productName || "—"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-right align-top font-semibold text-slate-900">
+                        {policy.premium?.sumAssured ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}` : "N/A"}
+                      </td>
+                      <td className="px-4 py-4 text-right align-top text-slate-800">
+                        {policy.premium?.installmentPremium ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "N/A"}
+                      </td>
+                      <td className="px-4 py-4 align-top text-slate-800">
+                        {policy.premiumMode?.modeName || "N/A"}
+                      </td>
+                      <td className="px-4 py-4 align-top text-slate-800">
+                        <div className="flex flex-col text-xs">
+                          <span>T: {policy.policyTerm ? `${policy.policyTerm}Y` : "N/A"}</span>
+                          <span className="text-slate-400">P: {policy.premiumPayingTerm ? `${policy.premiumPayingTerm}Y` : "N/A"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-top text-slate-800">
+                        {policy.nextPremiumDueDate
+                          ? new Date(policy.nextPremiumDueDate).toLocaleDateString("en-IN")
+                          : "N/A"}
+                      </td>
+                      <td className="px-4 py-4 text-center align-top">
+                        <Chip dotColor={statusDot}>{statusName}</Chip>
+                      </td>
+                      <td className="px-4 py-4 text-right align-top">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/lic/policies/${policy.id}`);
+                            }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
+                            title="View"
+                          >
+                            <Eye size={14} />
+                          </button>
+                          {isClient && canEdit && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/dashboard/lic/policies/edit/${policy.id}`);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
+                                title="Edit"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget(policy);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
+                                title="Delete"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CustomerTableFrame>
+        )}
+      </div>
+
       <DeleteConfirmationModal
         target={deleteTarget}
         isDeleting={isDeleting}

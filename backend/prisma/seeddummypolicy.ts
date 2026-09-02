@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
-async function main() {
+export async function seedDummyPolicies(prisma: PrismaClient) {
   console.log("=================================");
   console.log("JEM Soft - LIC Test Policy Seed");
   console.log("=================================\n");
@@ -55,7 +53,7 @@ async function main() {
   console.log(`Category: ${category.categoryName}`);
 
   // =====================================================
-  // 3. LIC PRODUCTS
+  // 3. GET EXISTING LIC PRODUCTS
   // =====================================================
 
   const planNumbers = [
@@ -80,67 +78,36 @@ async function main() {
     "880",
   ];
 
-  const productNames: Record<string, string> = {
-    "714": "LIC Jeevan Anand",
-    "715": "LIC New Endowment Plan",
-    "717": "LIC New Money Back Plan",
-    "733": "LIC Jeevan Lakshya",
-    "736": "LIC Jeevan Labh",
-    "745": "LIC New Jeevan Anand",
-    "771": "LIC New Endowment Plan",
-    "774": "LIC Jeevan Umang",
-    "760": "LIC Bima Jyoti",
-    "912": "LIC Dhan Sanchay",
-    "888": "LIC Jeevan Utsav",
-    "889": "LIC Bima Ratna",
-    "748": "LIC Jeevan Tarun",
-    "720": "LIC New Children's Money Back Plan",
-    "721": "LIC Jeevan Tarun",
-    "881": "LIC Single Premium Endowment Plan",
-    "883": "LIC Jeevan Kiran",
-    "751": "LIC Jeevan Amar",
-    "880": "LIC Tech Term",
-  };
-
   const products = [];
 
   for (const planNumber of planNumbers) {
-    const productCode = `LIC_PLAN_${planNumber}`;
-
-    const product = await prisma.productMaster.upsert({
+    const product = await prisma.productMaster.findFirst({
       where: {
-        providerId_productCode: {
-          providerId: lic.id,
-          productCode,
-        },
-      },
-      update: {
-        productName:
-          productNames[planNumber] ?? `LIC Plan ${planNumber}`,
-        planNumber,
-        isActive: true,
-        productType: "Life Insurance",
-      },
-      create: {
         providerId: lic.id,
-        categoryId: category.id,
-        productName:
-          productNames[planNumber] ?? `LIC Plan ${planNumber}`,
-        productCode,
         planNumber,
-        productType: "Life Insurance",
-        description: `LIC test product - Plan ${planNumber}`,
         isActive: true,
       },
     });
 
+    if (!product) {
+      console.log(
+        `Skipped Plan ${planNumber}: Product not found in database`
+      );
+      continue;
+    }
+
     products.push(product);
 
     console.log(
-      `Product: ${product.productName} | Plan ${planNumber}`
+      `Using existing product: ${product.productName} | Plan ${planNumber}`
     );
   }
 
+  if (products.length === 0) {
+    throw new Error(
+      "No existing LIC products found. Please seed ProductMaster first."
+    );
+  }
   // =====================================================
   // 4. TEST CUSTOMER GROUP
   // =====================================================
@@ -284,6 +251,22 @@ async function main() {
   console.log("Premium Mode: YLY");
 
   // =====================================================
+  // 7B. PAYMENT MODE
+  // =====================================================
+
+  const onlinePaymentMode = await prisma.PaymentModeMaster.findUnique({
+    where: {
+      modeCode: "ONL",
+    },
+  });
+
+  if (!onlinePaymentMode) {
+    throw new Error("Payment mode ONL not found");
+  }
+
+  console.log(`Payment Mode: ${onlinePaymentMode.modeName}`);
+
+  // =====================================================
   // 8. CREATE TEST POLICIES
   // =====================================================
 
@@ -366,14 +349,47 @@ async function main() {
 
       const policy = await prisma.policy.create({
         data: {
-          clientId: customer.id,
-          CustomerMasterId: member.id,
+          customer: {
+            connect: {
+              id: customer.id,
+            },
+          },
 
-          providerId: lic.id,
-          productId: product.id,
+          CustomerMaster: {
+            connect: {
+              id: member.id,
+            },
+          },
 
-          statusId: activeStatus.id,
-          premiumModeId: yearlyMode.id,
+          provider: {
+            connect: {
+              id: lic.id,
+            },
+          },
+
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+
+          status: {
+            connect: {
+              id: activeStatus.id,
+            },
+          },
+
+          premiumMode: {
+            connect: {
+              id: yearlyMode.id,
+            },
+          },
+
+          paymentMode: {
+            connect: {
+              id: onlinePaymentMode.id,
+            },
+          },
 
           policyNumber,
           proposalNumber,
@@ -500,13 +516,4 @@ async function main() {
   console.log("3. Policy Details");
 }
 
-main()
-  .catch((error) => {
-    console.error("\nSeed failed:");
-    console.error(error);
 
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

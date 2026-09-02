@@ -2,9 +2,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Plus, Search, WalletCards } from "lucide-react";
+import { CalendarDays, IceCream, Plus, Search, WalletCards , Eye , Edit, Trash2 } from "lucide-react";
 import type { AppDispatch, RootState } from "@/store/store";
 import {
+  deletePremiumPayment,
   fetchPremiumPayments,
   type PremiumPayment,
 } from "@/features/premiumPayments/premiumPaymentSlice";
@@ -61,11 +62,24 @@ export default function PremiumPaymentsPage() {
     p.paymentStatus?.statusCode === "PAID"
       ? "bg-emerald-100 text-emerald-700"
       : "bg-amber-100 text-amber-700";
+  const handleDeletePayment = async (payment: PremiumPayment) => {
+    const confirmed = window.confirm(
+      `Delete premium payment for ${payment.policy?.policyNumber ?? "this policy"}?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await dispatch(deletePremiumPayment(payment.id)).unwrap();
+      toast.success("Premium payment deleted successfully.");
+    } catch (message) {
+      toast.error(String(message || "Failed to delete premium payment."));
+    }
+  };
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
             <WalletCards size={20} />
           </span>
           <div>
@@ -79,7 +93,7 @@ export default function PremiumPaymentsPage() {
         </div>
         <button
           onClick={() => router.push("/dashboard/premium-payments/new")}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
         >
           <Plus size={18} />
           New Payment
@@ -94,7 +108,7 @@ export default function PremiumPaymentsPage() {
         ].map(([l, v]) => (
           <div
             key={String(l)}
-            className="rounded-xl bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-5"
+            className="rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50 p-5"
           >
             <p className="text-xs font-bold uppercase tracking-wider text-[#E8C77A]">
               {l}
@@ -143,6 +157,7 @@ export default function PremiumPaymentsPage() {
                   "Amount",
                   "Status",
                   "Paid Date",
+                  "Actions"
                 ].map((h) => (
                   <th key={h} className="px-5 py-3">
                     {h}
@@ -203,13 +218,42 @@ export default function PremiumPaymentsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4">{dt(p.paidDate)}</td>
+                    <td>
+                      <button
+                        onClick={() =>
+                          router.push(`/dashboard/premium-payments/${p.id}`)
+                        }
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                        title="View"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          router.push(`/dashboard/premium-payments/edit/${p.id}`)
+                        }
+                        className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePayment(p)}
+                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                        title="Delete"
+                        type="button"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </div>     
     </div>
+    
   );
 }

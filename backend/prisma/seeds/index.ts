@@ -19,6 +19,8 @@ import { seedLIC717ModeRebates } from "../masterData/moderebates/lic717";
 import { seedLIC751SumAssuredRebates } from "../masterData/rebates/lic751";
 import { seedLIC748SumAssuredRebates } from "../masterData/rebates/lic748";
 import { seedPaymentModes } from './paymentModes.seed';
+import { seedDummyPolicies } from '../seeddummypolicy';
+import { seedPremiumRates } from '../seedPremiumRates';
 
 export const runSeeders = async (prisma: PrismaClient) => {
   await seedPolicyStatuses(prisma);
@@ -41,4 +43,6 @@ export const runSeeders = async (prisma: PrismaClient) => {
   await seedLIC751SumAssuredRebates(prisma);
   await seedLIC748SumAssuredRebates(prisma);
   await seedPaymentModes(prisma);
+  await seedDummyPolicies(prisma);
+  await seedPremiumRates(prisma);
 };

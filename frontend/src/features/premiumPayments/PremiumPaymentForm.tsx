@@ -9,10 +9,12 @@ import { FileText, Loader2, Save, User, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
-import { createPremiumPayment, fetchPremiumPaymentsByPolicy } from "./premiumPaymentSlice";
+import { createPremiumPayment, fetchPremiumPaymentsByPolicy , fetchPremiumPaymentById , updatePremiumPayment } from "./premiumPaymentSlice";
 import { addMonths } from 'date-fns';
 import { fetchPremiumModes } from "../policy/premiumModeMasterSlice";
 import Link from "next/link";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format, addYears, differenceInYears } from "date-fns";
 import {
   CustomerSectionCard,
   SearchableSelect,
@@ -32,7 +34,7 @@ const schema = z
     premiumAmount: z.coerce.number().positive("Premium amount must be greater than zero"),
     paidDate: z.string().min(1,"Paid date is required"),
     lateFee: z.coerce.number().min(0, "Late fee cannot be negative").optional(),
-    paymentMode: z.string().optional(),
+    paymentMode: z.string().min(1, "Payment mode is required"),
     paymentStatus: z.string(),
     gstOnPremium : z.coerce.number().optional(),
     gstOnLateFee : z.coerce.number().optional(),
@@ -41,9 +43,7 @@ const schema = z
   })
 
 type FormValues = z.infer<typeof schema>;
-const input ="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
-const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
-export default function PremiumPaymentForm() {
+export default function PremiumPaymentForm({ paymentId, mode = "create" }: { paymentId?: string; mode?: "create" | "edit" | "view" }) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { policies } = useSelector((s: RootState) => s.policies);
@@ -52,6 +52,9 @@ export default function PremiumPaymentForm() {
   const [selectedPolicy,setSelectedPolicy] = useState<Policy | null>(null);
   const {paymentModes} = useSelector((s:RootState) => s.paymentModes);
   const [totalAmount,setTotatAmount] = useState(0);
+
+  const input =`w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 ${mode === "view" ? "bg-slate-50 cursor-not-allowed" : ""}`;
+const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
 
   const policyOptions = useMemo(
     () =>
@@ -82,15 +85,46 @@ export default function PremiumPaymentForm() {
       installmentNo: 1,
       paymentStatus: "PAID",
       dueDate: "",
+      paidDate : new Date().toDateString(),
       gstOnLateFee : 0,
       gstOnPremium : 0,
       lateFee : 0,
       premiumAmount :0,
+      paymentMode : "",
     },
   });
 
   const [policyId , premiumAmount , lateFeeAmount , gstOnPremium , gstOnLateFee] = watch(["policyId" , "premiumAmount" , "lateFee" , "gstOnPremium" , "gstOnLateFee"])
     //status = watch("paymentStatus");
+
+
+    // load existing payment when editing
+  useEffect(() => {
+    if (!paymentId) 
+      return;
+    (async () => {
+      const res = await dispatch(fetchPremiumPaymentById(paymentId as string));
+      const p = res.payload;
+      if (p && typeof p === 'object' && 'policyId' in p) {
+        setValue("policyId",  p.policyId ?? "");
+        setValue("installmentNo", p.installmentNo ?? 1);
+        setValue("dueDate", p.dueDate ? p.dueDate.slice(0,10) : "");
+        setValue("premiumAmount", p.premiumAmount ?? 0);
+        setValue("paidDate", p.paidDate ? p.paidDate.slice(0,10) : "");
+        setValue("lateFee", p.lateFee ?? 0);
+        setValue("gstOnPremium", p.gstOnPremium ?? 0);
+        setValue("gstOnLateFee", p.gstOnLateFee ?? 0);
+        setValue("paymentMode", p.paymentMode ?? "");
+        setValue("paymentDetails", p.paymentDetails ?? "");
+        //setValue("futureDueDate", p.futureDueDate ?? "");
+
+        const selectionPolicy = policies.find((x) => x.id === p.policyId);
+      
+        if(selectionPolicy)
+        setSelectedPolicy(selectionPolicy);
+      }
+    })();
+  }, [paymentId, dispatch, setValue]);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -100,28 +134,33 @@ export default function PremiumPaymentForm() {
   }, [dispatch]);
 
   useEffect(() => {
-    const p = policies.find((x) => x.id === policyId);
+      if(mode === "create")
+      {
+        const p = policies.find((x) => x.id === policyId);
 
-    if (p?.nextPremiumDueDate)
-      setValue("dueDate", p.nextPremiumDueDate);
-    if (p?.premium?.totalInstallmentPremium)
-      setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
+        if(p)
+        setSelectedPolicy(p);
+        if (p?.nextPremiumDueDate)
+          setValue("dueDate", p.nextPremiumDueDate.slice(0, 10));
+        if (p?.premium?.totalInstallmentPremium)
+          setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
 
-    const monthsToAdd = modes.find((x) => x.id === p?.premiumModeId)?.months;
-    const futureDueDate = addMonths(p?.nextPremiumDueDate! , monthsToAdd!);
-    setValue("futureDueDate" , futureDueDate.toDateString());
+        const monthsToAdd = modes.find((x) => x.id === p?.premiumModeId)?.months;
+        const futureDueDate = addMonths(p?.nextPremiumDueDate! , monthsToAdd!);
+        setValue("futureDueDate" , futureDueDate.toDateString());
 
-    if(p)
-      setSelectedPolicy(p);
-    
-    if(policyId)
-      getInstallmentNumber(policyId);
+        if(policyId)
+          getInstallmentNumber(policyId);
+      }
   }, [policyId, policies, setValue]);
 
   const getInstallmentNumber = async (policyId : string) => {
+    if(mode === "create")
+    {
       const policyPayments =await dispatch(fetchPremiumPaymentsByPolicy(policyId));
       const nextInstalmentNumber = policyPayments.payload!.length;
       setValue("installmentNo",(nextInstalmentNumber+1))
+    } 
   }
 
   useEffect(() => {
@@ -132,6 +171,22 @@ export default function PremiumPaymentForm() {
     try {
       const totalLateFee = Number(v.lateFee) + (Number(v.gstOnLateFee) || 0);
       const totalPremiumAmount = Number(v.premiumAmount) + Number(v.gstOnPremium);
+      if(mode === "edit") {
+        await dispatch(updatePremiumPayment({
+          id: paymentId!,
+          policyId: v.policyId,
+          installmentNo: v.installmentNo,
+          dueDate: v.dueDate,
+          premiumAmount: totalPremiumAmount,
+          paidDate: v.paidDate,
+          lateFee: totalLateFee ?? null,
+          paymentMode: v.paymentMode?.trim() || null,
+          paymentDetails : v.paymentDetails?.trim() || null,
+          futureDueDate : v.futureDueDate,}));
+          toast.success("Premium payment updated successfully");
+
+        }
+        else{
       await dispatch(
         createPremiumPayment({
           policyId: v.policyId,
@@ -145,7 +200,9 @@ export default function PremiumPaymentForm() {
           futureDueDate : v.futureDueDate,
         }),
       ).unwrap();
-      toast.success("Premium payment created successfully");
+
+       toast.success("Premium payment created successfully");
+    }
       router.push("/dashboard/premium-payments");
     } catch (e) {
       toast.error(String(e || "Failed to create premium payment"));
@@ -156,36 +213,25 @@ export default function PremiumPaymentForm() {
       <CustomerBreadcrumbs
               items={[
                 { label: "Premium Payment", href: "/dashboard/premium-payments" },
-                { label: "New Premium Payment" },
+                { label: mode === "create" ? "Create Payment" : mode === "edit" ? "Edit Payment" : "View Payment" },
               ]}
             />
       <div>
         <h1 className="font-serif text-2xl font-semibold text-slate-900">
-          Create Premium Payment
+          {mode === "create" ? "Create Payment" : mode === "edit" ? "Edit Payment" : "View Payment"}
         </h1>
-        <p className="mt-2 text-sm text-slate-500">
+        {mode === "create" && <p className="mt-2 text-sm text-slate-500">
           Create an installment against an existing policy.
-        </p>
+        </p>}
       </div>
       <form
         onSubmit={handleSubmit(submit)}
         className="rounded-2xl bg-white"
       >
         <CustomerSectionCard
-                    title="Premium Payment Information"
-                    icon={FileText}
-                  >
-        {/* <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-            <FileText size={20} />
-          </span>
-          <div>
-            <h2 className="font-semibold">Payment Information</h2>
-            <p className="text-xs text-slate-500">
-              Required fields are marked with *
-            </p>
-          </div>
-        </div> */}
+          title="Premium Payment Information"
+          icon={FileText}
+        >
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className={label}>Policy  <span className="text-rose-500">*</span></label>
@@ -198,6 +244,7 @@ export default function PremiumPaymentForm() {
                     searchPlaceholder="Search by policy number or customer name"
                     options={policyOptions}
                     value={field.value}
+                    disabled = {mode === "edit" || mode === "view"}
                     onChange={(val) => {
                       field.onChange(val);
                       const selectedPolicyFromList = policies.find((p) => p.id === val);
@@ -254,6 +301,7 @@ export default function PremiumPaymentForm() {
               type="text"
               {...register("premiumAmount")}
               className={input}
+              disabled = {mode === "view"}
             />
             {errors.premiumAmount && (
               <p className="mt-1 text-xs text-rose-600">
@@ -267,6 +315,7 @@ export default function PremiumPaymentForm() {
               type="text"
               {...register("gstOnPremium")}
               className={input}
+              disabled = {mode === "view"}
             />
             {errors.gstOnPremium && (
               <p className="mt-1 text-xs text-rose-600">
@@ -287,6 +336,7 @@ export default function PremiumPaymentForm() {
               type="text"
               {...register("lateFee")}
               className={input}
+              disabled = {mode === "view"}
             />
             {errors.lateFee && (
               <p className="mt-1 text-xs text-rose-600">
@@ -300,6 +350,7 @@ export default function PremiumPaymentForm() {
               type="text"
               {...register("gstOnLateFee")}
               className={input}
+              disabled = {mode === "view"}
             />
             {errors.lateFee && (
               <p className="mt-1 text-xs text-rose-600">
@@ -312,11 +363,19 @@ export default function PremiumPaymentForm() {
               Payment Date{" "}
               <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="date"
-              {...register("paidDate")}
-              className={`${input} disabled:bg-slate-50`}
-            />
+             <Controller
+                control={control}
+                name="paidDate"
+                disabled = {mode === "view"}
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) =>
+                      field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                    }
+                  />
+                )}
+              />
             {errors.paidDate && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.paidDate.message}
@@ -345,7 +404,9 @@ export default function PremiumPaymentForm() {
             <select
               {...register("paymentMode")}
               className={input}
+              disabled = {mode === "view"}
             >
+              <option value="">Select mode</option>
               {
                 paymentModes.map((p) => {
                   return(
@@ -353,12 +414,6 @@ export default function PremiumPaymentForm() {
                   )
                 })
               }
-              {/* <option value="">Select mode</option>
-              <option value="CASH">Cash</option>
-              <option value="CHEQUE">Cheque</option>
-              <option value="ONLINE">Online</option>
-              <option value="UPI">UPI</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option> */}
             </select>
             {errors.paymentMode && (
               <p className="mt-1 text-xs text-rose-600">
@@ -368,7 +423,7 @@ export default function PremiumPaymentForm() {
           </div>
           <div>
             <label className={label}>Payment Details</label>
-            <input {...register("paymentDetails")} className={input} />
+            <input {...register("paymentDetails")} className={input} disabled = {mode === "view"}/>
           </div>
         </div>
         
@@ -464,6 +519,7 @@ export default function PremiumPaymentForm() {
                 </div>
             </div>
         </CustomerSectionCard>}
+        {mode != "view" &&
         <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 pt-5">
           <button
             type="button"
@@ -475,16 +531,16 @@ export default function PremiumPaymentForm() {
           <button
             disabled={isSubmitting || !selectedPolicy}
             type="submit"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-[60%]"
           >
             {isSubmitting ? (
               <Loader2 className="animate-spin" size={17} />
             ) : (
               <Save size={17} />
             )}
-            Create Payment
+            {mode === "create" ? "Create Payment" : "Update Payment"}
           </button>
-        </div>
+        </div>}
       </form>
     </div>
   );
