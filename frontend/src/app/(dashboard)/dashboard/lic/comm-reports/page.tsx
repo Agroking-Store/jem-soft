@@ -48,6 +48,7 @@ export default function LICCommReportsPage() {
 
   const handleCardClick = (card: CommReportCard) => {
     if (card.id === "commission-ledger") {
+      setSelectedLedgerData(null); // Fresh start for new report!
       setCurrentView("commission-ledger-form");
     } else {
       // Future placeholder for other forms

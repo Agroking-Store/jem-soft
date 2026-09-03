@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, Search, Trash2, Shield, CheckSquare, Square, Check } from "lucide-react";
 import { getCustomerFullName } from "./commReportsUtils";
 
@@ -47,9 +47,18 @@ export default function CommissionPolicyFilterModal({
       premium?: number;
       plan?: string;
     }>
-  >(initialSelection?.selectedItems || []);
+  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
+
+  // Sync selected items with props whenever modal opens or initialSelection changes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedItems(initialSelection?.selectedItems ? [...initialSelection.selectedItems] : []);
+      setSearchText("");
+      setCurrentPage(1);
+    }
+  }, [isOpen, initialSelection]);
 
   // 1. Filter policies by selected agency/agent filter(s)
   const isAgencyMatch = (p: any, filters: string[]) => {
