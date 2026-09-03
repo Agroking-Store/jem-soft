@@ -1,16 +1,28 @@
 "use client";
 
 import { useRef, useState, useMemo } from "react";
-import { ArrowLeft, Download, FilterX } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  Printer,
+  FileSpreadsheet,
+  FilterX,
+  Building2,
+  Calendar,
+  IndianRupee,
+  Shield,
+  User,
+} from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 import { CommissionLedgerFormData } from "./CommissionLedgerForm";
+import { getCustomerFullName } from "./commReportsUtils";
 
 interface CommissionLedgerReportViewProps {
   formData: CommissionLedgerFormData;
   policies: any[];
-  customers: any[];
+  customers?: any[];
   onBackToForm: () => void;
 }
 
@@ -24,91 +36,136 @@ export default function CommissionLedgerReportView({
   const [isExporting, setIsExporting] = useState(false);
 
   // Derive filtered policies based on form data
-  const { filteredData, grandTotalCommission, activeFiltersSummary } = useMemo(() => {
-    // 1. Data Filter (e.g. Agencies)
-    const selectedAgencyFilters = (formData.dataFilters || [])
-      .filter((f) => f.type === "Agencies")
-      .map((f) => f.name.toLowerCase().trim());
+  const { filteredData, grandTotalPremium, grandTotalCommission, activeFiltersSummary } =
+    useMemo(() => {
+      const summaryList: string[] = [];
 
-    // 2. Policy Filter Selection
-    const selectedPolicyItems = formData.policyFilterSelection?.selectedItems || [];
-    const policyFilterType = formData.policyFilterSelection?.filterType;
+      // 1. Date Range
+      if (formData.fromDate && formData.toDate) {
+        summaryList.push(`Period: ${formData.fromDate} to ${formData.toDate}`);
+      } else if (formData.fromDate) {
+        summaryList.push(`From: ${formData.fromDate}`);
+      } else if (formData.toDate) {
+        summaryList.push(`To: ${formData.toDate}`);
+      }
 
-    const activeFiltersSummaryList: string[] = [];
-    if (selectedAgencyFilters.length > 0) {
-      activeFiltersSummaryList.push(`Agency: ${formData.dataFilters.map(f => f.name).join(", ")}`);
-    }
-    if (selectedPolicyItems.length > 0) {
-      activeFiltersSummaryList.push(`${policyFilterType}: ${selectedPolicyItems.length} selected`);
-    }
-    
-    activeFiltersSummaryList.push(`Date: ${formData.fromDate || 'Start'} to ${formData.toDate || 'End'}`);
+      // 2. Agent
+      if (formData.selectedAgentId && formData.selectedAgentId !== "ALL") {
+        summaryList.push(`Agent: ${formData.selectedAgentName}`);
+      } else {
+        summaryList.push(`Agent: All Agents`);
+      }
 
-    // Helpers
-    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
-    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: any, agencyFilters: string[]) => {
-      if (!agencyFilters || agencyFilters.length === 0) return true;
-      const pAgCode = (p.agentCode || "").toLowerCase().trim();
-      return agencyFilters.some((f) => {
-        const fLower = f.toLowerCase().trim();
-        if (!fLower) return true;
-        if (fLower.includes("jayant") || fLower.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(pAgCode);
-        if (fLower.includes("manisha") || fLower.includes("ag003")) return MANISHA_ADVISOR_CODES.includes(pAgCode);
-        if (fLower.includes("other") || fLower.includes("ag001")) return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISHA_ADVISOR_CODES.includes(pAgCode);
-        return pAgCode.includes(fLower) || fLower.includes(pAgCode);
-      });
-    };
+      // 3. Policy Filter
+      const selectedPolicyIds = formData.policyFilterSelection?.selectedIds || [];
+      if (selectedPolicyIds.length > 0) {
+        summaryList.push(`Policies: ${selectedPolicyIds.length} Selected`);
+      }
 
-    // Filter policies
-    let validPolicies = policies.filter((p) => {
-      // Date Check (mocking with commencementDate if no actual commission date)
-      if (formData.fromDate || formData.toDate) {
-        const dStr = p.commencementDate ? new Date(p.commencementDate).toISOString().split("T")[0] : null;
-        if (dStr) {
-          if (formData.fromDate && dStr < formData.fromDate) return false;
-          if (formData.toDate && dStr > formData.toDate) return false;
+      const targetAgent =
+        formData.selectedAgentId && formData.selectedAgentId !== "ALL"
+          ? formData.selectedAgentId.toLowerCase().trim()
+          : null;
+
+      // Filter policies
+      const matchedPolicies = policies.filter((p) => {
+        // Date Check (check commencementDate, issueDate, or createdAt)
+        if (formData.fromDate || formData.toDate) {
+          const rawDate = p.commencementDate || p.issueDate || p.createdAt;
+          if (rawDate) {
+            const dStr = new Date(rawDate).toISOString().split("T")[0];
+            if (formData.fromDate && dStr < formData.fromDate) return false;
+            if (formData.toDate && dStr > formData.toDate) return false;
+          }
         }
-      }
 
-      // Agency Check
-      if (!isAgencyMatch(p, selectedAgencyFilters)) return false;
+        // Agent Check
+        if (targetAgent) {
+          const pAdvisorId = p.advisorId ? String(p.advisorId).toLowerCase().trim() : "";
+          const pAgentCode = p.agentCode ? String(p.agentCode).toLowerCase().trim() : "";
+          const advName = p.advisor?.advisorName ? String(p.advisor.advisorName).toLowerCase().trim() : "";
+          const advCode = p.advisor?.advisorCode ? String(p.advisor.advisorCode).toLowerCase().trim() : "";
+          const agencyId = p.advisor?.agencyId ? String(p.advisor.agencyId).toLowerCase().trim() : "";
 
-      // Policy Selection Check
-      if (policyFilterType === "Policies" && selectedPolicyItems.length > 0) {
-        if (!selectedPolicyItems.some(i => i.id === p.id)) return false;
-      }
-      
-      return true;
-    });
+          const isMatch =
+            pAdvisorId === targetAgent ||
+            pAgentCode === targetAgent ||
+            advCode === targetAgent ||
+            advName === targetAgent ||
+            agencyId === targetAgent ||
+            (advName && advName.includes(targetAgent));
 
-    let totalComm = 0;
-    
-    // Map to view models
-    const reportData = validPolicies.map((p, idx) => {
-      const polNo = p.policyNo || "-";
-      const holder = p.CustomerMaster?.name || "-";
-      const premium = p.premiumAmount || 0; 
-      const comm = Math.round(premium * 0.15); // Mock 15% commission if actual not available
-      totalComm += comm;
-      
+          if (!isMatch) return false;
+        }
+
+        // Policy Filter Selection Check
+        if (selectedPolicyIds.length > 0) {
+          const pId = String(p.id);
+          if (!selectedPolicyIds.includes(pId)) return false;
+        }
+
+        return true;
+      });
+
+      let totalPrem = 0;
+      let totalComm = 0;
+
+      const reportData = matchedPolicies.map((p, idx) => {
+        const polNo = p.policyNumber || p.policyNo || `POL-${idx + 1}`;
+        const holder =
+          getCustomerFullName(p.CustomerMaster) !== "-"
+            ? getCustomerFullName(p.CustomerMaster)
+            : p.customer?.groupName || p.customer?.name || "Customer";
+
+        const agentLabel = p.advisor?.advisorName
+          ? `${p.advisor.advisorName}${p.advisor.advisorCode ? ` (${p.advisor.advisorCode})` : ""}`
+          : p.agentCode
+          ? `Agent: ${p.agentCode}`
+          : "Direct";
+
+        const premium = Number(
+          p.premium?.installmentPremium ||
+            p.premium?.totalInstallmentPremium ||
+            p.premium?.totalYearlyPremium ||
+            p.premiumAmount ||
+            0
+        );
+
+        // Standard LIC commission rate calculation (default 15% for first year / general ledger)
+        const commRate = 15;
+        const commAmount = Math.round(premium * (commRate / 100));
+
+        totalPrem += premium;
+        totalComm += commAmount;
+
+        const dateStr = p.commencementDate
+          ? new Date(p.commencementDate).toLocaleDateString("en-GB")
+          : "-";
+
+        const planStr = p.product?.planNumber
+          ? `Table ${p.product.planNumber}`
+          : p.product?.productName || "-";
+
+        return {
+          id: p.id || `temp-${idx}`,
+          polNo,
+          holder,
+          agentLabel,
+          date: dateStr,
+          plan: planStr,
+          premium,
+          commRate,
+          commission: commAmount,
+        };
+      });
+
       return {
-        id: p.id || `temp-${idx}`,
-        polNo,
-        holder,
-        date: p.commencementDate ? new Date(p.commencementDate).toLocaleDateString("en-GB") : "-",
-        plan: p.planNo || "-",
-        premium,
-        commission: comm,
+        filteredData: reportData,
+        grandTotalPremium: totalPrem,
+        grandTotalCommission: totalComm,
+        activeFiltersSummary: summaryList.join(" | "),
       };
-    });
-
-    return {
-      filteredData: reportData,
-      grandTotalCommission: totalComm,
-      activeFiltersSummary: activeFiltersSummaryList.join(" | "),
-    };
-  }, [formData, policies]);
+    }, [formData, policies]);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
@@ -139,95 +196,208 @@ export default function CommissionLedgerReportView({
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* Top Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <button
+          type="button"
           onClick={onBackToForm}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
         >
-          <ArrowLeft size={16} />
-          Edit Filters
+          <ArrowLeft size={15} />
+          Edit Report Filters
         </button>
-        <button
-          onClick={handleExportPDF}
-          disabled={isExporting}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-[#0B1220] bg-gradient-to-r from-[#B8873A] to-[#D9AE63] hover:brightness-105 rounded-lg shadow-md transition disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          <Download size={16} />
-          {isExporting ? "Exporting..." : "Download PDF"}
-        </button>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+          >
+            <Printer size={15} />
+            Print
+          </button>
+          <button
+            type="button"
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-60"
+          >
+            <Download size={15} />
+            {isExporting ? "Exporting PDF..." : "Download PDF"}
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden overflow-x-auto">
-        <div ref={reportRef} className="min-w-[1000px] p-8 bg-white text-slate-900">
-          <div className="text-center mb-6 space-y-2 border-b border-slate-800 pb-6">
-            <h1 className="text-2xl font-bold font-serif uppercase tracking-widest text-[#0B1220]">
+      {/* Stats Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+            <Shield size={22} />
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Total Policies
+            </span>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">
+              {filteredData.length}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <Building2 size={22} />
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Total Premium
+            </span>
+            <div className="text-xl font-bold text-slate-900 mt-0.5">
+              ₹ {grandTotalPremium.toLocaleString("en-IN")}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <IndianRupee size={22} />
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Total Commission
+            </span>
+            <div className="text-xl font-bold text-emerald-600 mt-0.5">
+              ₹ {grandTotalCommission.toLocaleString("en-IN")}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Printable Report Document Card */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden overflow-x-auto">
+        <div ref={reportRef} className="min-w-[950px] p-8 bg-white text-slate-900">
+          {/* Report Sheet Header */}
+          <div className="text-center pb-6 border-b border-slate-200 space-y-1.5">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#1877F2]">
+              LIC Commission Ledger Statement
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Commission Ledger Report
             </h1>
-            <p className="text-sm font-bold text-slate-600">
-              {activeFiltersSummary || "All Data"}
+            <p className="text-xs font-medium text-slate-500">
+              {activeFiltersSummary}
             </p>
           </div>
 
-          <div className="border border-slate-800 rounded-lg overflow-hidden">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-[#0B1220] text-white">
+          {/* Report Data Table */}
+          <div className="mt-6 rounded-xl border border-slate-200 overflow-hidden">
+            <table className="w-full text-left text-xs text-slate-700 border-collapse">
+              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500">
                 <tr>
-                  <th className="px-4 py-3 font-bold border-r border-white/20 w-16 text-center">Sr.</th>
-                  <th className="px-4 py-3 font-bold border-r border-white/20">Policy No</th>
-                  <th className="px-4 py-3 font-bold border-r border-white/20">Policy Holder</th>
-                  <th className="px-4 py-3 font-bold border-r border-white/20">Date</th>
-                  <th className="px-4 py-3 font-bold border-r border-white/20">Plan</th>
-                  <th className="px-4 py-3 font-bold border-r border-white/20 text-right">Premium (₹)</th>
-                  <th className="px-4 py-3 font-bold text-right">Commission (₹)</th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider text-center w-12 border-r border-slate-200">
+                    Sr.
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider border-r border-slate-200">
+                    Policy No
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider border-r border-slate-200">
+                    Policy Holder
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider border-r border-slate-200">
+                    Agent / Advisor
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider border-r border-slate-200">
+                    Plan
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider border-r border-slate-200 text-center">
+                    Comm. Date
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider text-right border-r border-slate-200">
+                    Premium (₹)
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider text-center border-r border-slate-200 w-16">
+                    Rate
+                  </th>
+                  <th className="px-3 py-3 font-bold uppercase tracking-wider text-right">
+                    Commission (₹)
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-300">
+              <tbody className="divide-y divide-slate-100">
                 {filteredData.length > 0 ? (
                   filteredData.map((row, idx) => (
-                    <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-2 border-r border-slate-300 text-center font-medium">
+                    <tr
+                      key={row.id}
+                      className={`hover:bg-blue-50/30 transition ${
+                        idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                      }`}
+                    >
+                      <td className="px-3 py-3 text-center font-medium text-slate-400 border-r border-slate-100">
                         {idx + 1}
                       </td>
-                      <td className="px-4 py-2 border-r border-slate-300 font-bold text-[#0B1220]">
+                      <td className="px-3 py-3 font-bold font-mono text-slate-900 border-r border-slate-100">
                         {row.polNo}
                       </td>
-                      <td className="px-4 py-2 border-r border-slate-300">
+                      <td className="px-3 py-3 font-semibold text-slate-900 border-r border-slate-100">
                         {row.holder}
                       </td>
-                      <td className="px-4 py-2 border-r border-slate-300 whitespace-nowrap">
-                        {row.date}
+                      <td className="px-3 py-3 text-slate-600 border-r border-slate-100">
+                        {row.agentLabel}
                       </td>
-                      <td className="px-4 py-2 border-r border-slate-300">
+                      <td className="px-3 py-3 text-slate-600 border-r border-slate-100">
                         {row.plan}
                       </td>
-                      <td className="px-4 py-2 border-r border-slate-300 text-right">
-                        {row.premium.toLocaleString("en-IN")}
+                      <td className="px-3 py-3 text-center text-slate-600 border-r border-slate-100 whitespace-nowrap">
+                        {row.date}
                       </td>
-                      <td className="px-4 py-2 font-bold text-[#0B1220] text-right">
-                        {row.commission.toLocaleString("en-IN")}
+                      <td className="px-3 py-3 text-right font-medium text-slate-800 border-r border-slate-100">
+                        {row.premium > 0 ? row.premium.toLocaleString("en-IN") : "-"}
+                      </td>
+                      <td className="px-3 py-3 text-center text-slate-500 border-r border-slate-100">
+                        {row.commRate}%
+                      </td>
+                      <td className="px-3 py-3 text-right font-bold text-slate-900">
+                        ₹ {row.commission.toLocaleString("en-IN")}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-medium bg-slate-50">
+                    <td colSpan={9} className="px-4 py-16 text-center text-slate-400 bg-slate-50/20">
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <FilterX size={32} className="text-slate-400" />
-                        <p>No records found matching the current filters.</p>
+                        <FilterX size={32} className="text-slate-300" />
+                        <p className="font-semibold text-slate-600 text-sm">
+                          No policies match the selected criteria
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Try adjusting the date range or selecting a different agent.
+                        </p>
                       </div>
                     </td>
                   </tr>
                 )}
               </tbody>
+
               {filteredData.length > 0 && (
-                <tfoot className="bg-[#F4F7FB] border-t-2 border-slate-800">
+                <tfoot className="bg-[#f0f7ff] border-t-2 border-slate-300 font-bold">
                   <tr>
-                    <td colSpan={6} className="px-4 py-3 font-bold text-right border-r border-slate-300 uppercase tracking-wider text-[#0B1220]">
-                      Grand Total Commission
+                    <td
+                      colSpan={6}
+                      className="px-4 py-3.5 text-right uppercase tracking-wider text-xs text-slate-700 border-r border-blue-200"
+                    >
+                      Grand Total
                     </td>
-                    <td className="px-4 py-3 font-bold text-right text-lg text-[#0B1220]">
+                    <td className="px-3 py-3.5 text-right text-xs text-slate-900 border-r border-blue-200">
+                      ₹ {grandTotalPremium.toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-3 py-3.5 border-r border-blue-200" />
+                    <td className="px-3 py-3.5 text-right text-sm text-[#1877F2]">
                       ₹ {grandTotalCommission.toLocaleString("en-IN")}
                     </td>
                   </tr>
@@ -235,8 +405,9 @@ export default function CommissionLedgerReportView({
               )}
             </table>
           </div>
-          
-          <div className="mt-8 flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-wider border-t border-slate-200 pt-4">
+
+          {/* Report Footer Note */}
+          <div className="mt-8 flex justify-between items-center text-[11px] font-medium text-slate-400 border-t border-slate-100 pt-4">
             <p>Generated on {new Date().toLocaleString("en-IN")}</p>
             <p>LIC Commission Reports & Analytics Engine</p>
           </div>
