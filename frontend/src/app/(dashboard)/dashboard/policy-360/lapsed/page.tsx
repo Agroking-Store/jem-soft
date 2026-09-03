@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, Filter, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  Filter,
+  Search,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
@@ -20,6 +28,7 @@ import {
   CustomerPageHero,
   CustomerTableFrame,
   CustomerToolbar,
+  CustomerEmptyState,
 } from "@/features/customers/components/CustomerUi";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 
@@ -233,14 +242,14 @@ export default function LapsedPoliciesPage() {
         subtitle="Monitor policies with overdue premium payments"
       />
 
-      <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+      <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
         Lapsed Policies
       </h2>
 
       <CustomerToolbar>
         <Link
           href="/dashboard/policy-360"
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
         >
           <ArrowLeft size={17} /> Back
         </Link>
@@ -256,21 +265,21 @@ export default function LapsedPoliciesPage() {
               setCurrentPage(1);
             }}
             placeholder="Search lapsed policies..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
           />
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
           >
             <Filter size={16} /> Filter
           </button>
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#16294D]"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <Download size={16} /> Export
           </button>
@@ -278,20 +287,20 @@ export default function LapsedPoliciesPage() {
       </CustomerToolbar>
 
       {/* Lapsed Policy Table */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="flex flex-col gap-1 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
             Lapsed Policies
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm font-medium text-slate-500">
             Policies with premium payments overdue by 60 days or more.
           </p>
         </div>
-        <div className="overflow-hidden bg-white p-5">
+        <div className="p-5">
           <CustomerTableFrame>
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
-            <table className="w-full">
-              <thead className="border-b border-slate-200 bg-slate-50">
+            <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+              <thead>
                 <tr>
                   {[
                     "Policy No.",
@@ -306,21 +315,21 @@ export default function LapsedPoliciesPage() {
                   ].map((heading) => (
                     <th
                       key={heading}
-                      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+                      className="border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400"
                     >
                       {heading}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                  <th className="border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="bg-white">
                 {paginatedPolicies.map((policy) => (
                   <tr
                     key={policy.policyId}
-                    className="group transition-colors hover:bg-slate-50"
+                    className="group border-b border-slate-100 transition-colors odd:bg-white even:bg-slate-50/30 hover:bg-blue-50/40"
                   >
                     <td className="whitespace-nowrap px-4 py-3">
                       <Link
@@ -399,22 +408,25 @@ export default function LapsedPoliciesPage() {
           </p>
         )}
         {!isLoading && error && (
-          <p className="px-6 py-10 text-center text-sm text-slate-500">
-            {error}
-          </p>
+          <CustomerEmptyState
+            title="Something went wrong"
+            description={error}
+          />
         )}
         {!isLoading && !error && lapsedPolicies.length === 0 && (
-          <p className="px-6 py-10 text-center text-sm text-slate-500">
-            No lapsed policies found
-          </p>
+          <CustomerEmptyState
+            title="No lapsed policies found"
+            description="There are no lapsed policies in the database right now."
+          />
         )}
         {!isLoading &&
           !error &&
           lapsedPolicies.length > 0 &&
           filteredPolicies.length === 0 && (
-            <p className="px-6 py-10 text-center text-sm text-slate-500">
-              No lapsed policies found matching your search.
-            </p>
+            <CustomerEmptyState
+              title="No matching policies"
+              description="No lapsed policies match your search. Try a different keyword."
+            />
           )}
       </section>
 
@@ -428,7 +440,7 @@ export default function LapsedPoliciesPage() {
               onChange={(event) =>
                 handleItemsPerPageChange(Number(event.target.value))
               }
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#B8873A]"
+              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
             >
               {PAGE_SIZES.map((size) => (
                 <option key={size} value={size}>
