@@ -9,6 +9,7 @@ import {
   Eye,
   Filter,
   Search,
+  ShieldAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -238,8 +239,9 @@ export default function LapsedPoliciesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <CustomerPageHero
-        title="Policy 360"
-        subtitle="Monitor policies with overdue premium payments"
+        title="Lapsed Policies"
+        subtitle="Policies with premium unpaid for 60 days or more"
+        icon={ShieldAlert}
       />
 
       <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">

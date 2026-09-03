@@ -166,8 +166,9 @@ export default function SearchPoliciesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <CustomerPageHero
-        title="Policy 360"
+        title="Search Policies"
         subtitle="Search and manage policies across all customers"
+        icon={Search}
       />
 
       <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
