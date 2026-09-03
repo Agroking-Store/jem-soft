@@ -9,19 +9,16 @@ import {
   ArrowRight,
   ArrowLeft,
   Calendar,
-  UserCheck,
-  Shield,
   Layers,
-  ChevronDown,
 } from "lucide-react";
 import { getDefaultCommissionDateRange } from "./commReportsUtils";
+import FilterOptionsModal, { SelectedFilterItem } from "@/features/lic/reports/FilterOptionsModal";
 import CommissionPolicyFilterModal, { CommissionPolicyFilterSelection } from "./CommissionPolicyFilterModal";
 
 export interface CommissionLedgerFormData {
   fromDate: string;
   toDate: string;
-  selectedAgentId: string; // "ALL" or specific advisorId / agencyId
-  selectedAgentName: string;
+  dataFilters: SelectedFilterItem[];
   policyFilterSelection: CommissionPolicyFilterSelection | null;
   includeWithoutRecord: boolean;
 }
@@ -39,7 +36,6 @@ interface CommissionLedgerFormProps {
 export default function CommissionLedgerForm({
   initialData,
   agencies = [],
-  advisors = [],
   customers = [],
   policies = [],
   onBack,
@@ -50,8 +46,7 @@ export default function CommissionLedgerForm({
   const defaultFormData: CommissionLedgerFormData = {
     fromDate: defaultDates.fromDate,
     toDate: defaultDates.toDate,
-    selectedAgentId: "ALL",
-    selectedAgentName: "All Agents / Agencies",
+    dataFilters: [],
     policyFilterSelection: null,
     includeWithoutRecord: false,
   };
@@ -61,77 +56,26 @@ export default function CommissionLedgerForm({
     return defaultFormData;
   });
 
+  const [isDataFilterModalOpen, setIsDataFilterModalOpen] = useState(false);
   const [isPolicyFilterModalOpen, setIsPolicyFilterModalOpen] = useState(false);
   const [isProcessed, setIsProcessed] = useState(false);
 
-  // Combined agent options (advisors + agencies + unique agent codes in policies)
-  const agentOptions = useMemo(() => {
-    const list: Array<{ id: string; name: string; type: "advisor" | "agency" | "agentCode" }> = [
-      { id: "ALL", name: "All Agents / Agencies", type: "advisor" },
+  // Standard fallback 3 agencies if DB list is empty
+  const standardAgencies = useMemo(() => {
+    if (agencies && agencies.length > 0) return agencies;
+    return [
+      { id: "ag002", agencyName: "Jayant Mahabole", agencyCode: "AG002" },
+      { id: "ag003", agencyName: "Manisha Y Mahabole", agencyCode: "AG003" },
+      { id: "ag001", agencyName: "Other Agencies", agencyCode: "AG001" },
     ];
+  }, [agencies]);
 
-    // 1. Add advisors
-    advisors.forEach((adv) => {
-      const label = `${adv.advisorName || "Advisor"} ${adv.advisorCode ? `(${adv.advisorCode})` : ""}`;
-      list.push({ id: adv.id, name: label, type: "advisor" });
-    });
-
-    // 2. Add agencies
-    agencies.forEach((ag) => {
-      const label = `Agency: ${ag.agencyName || "Agency"} ${ag.agencyCode ? `[${ag.agencyCode}]` : ""}`;
-      if (!list.find((item) => item.id === ag.id)) {
-        list.push({ id: ag.id, name: label, type: "agency" });
-      }
-    });
-
-    // 3. Add any additional agent codes from policies
-    policies.forEach((p) => {
-      if (p.agentCode && !list.find((item) => item.id === p.agentCode)) {
-        list.push({ id: p.agentCode, name: `Agent Code: ${p.agentCode}`, type: "agentCode" });
-      }
-    });
-
-    return list;
-  }, [advisors, agencies, policies]);
-
-  // Selected agent IDs for policy filter modal cascade
-  const selectedAgentIds = useMemo(() => {
-    if (formData.selectedAgentId === "ALL") return [];
-    return [formData.selectedAgentId];
-  }, [formData.selectedAgentId]);
-
-  // Count of policies matching the selected agent
-  const matchingPoliciesCount = useMemo(() => {
-    if (formData.selectedAgentId === "ALL") return policies.length;
-    
-    const target = formData.selectedAgentId.toLowerCase().trim();
-    return policies.filter((p) => {
-      const pAdvisorId = p.advisorId ? String(p.advisorId).toLowerCase().trim() : "";
-      const pAgentCode = p.agentCode ? String(p.agentCode).toLowerCase().trim() : "";
-      const advName = p.advisor?.advisorName ? String(p.advisor.advisorName).toLowerCase().trim() : "";
-      const advCode = p.advisor?.advisorCode ? String(p.advisor.advisorCode).toLowerCase().trim() : "";
-      const agencyId = p.advisor?.agencyId ? String(p.advisor.agencyId).toLowerCase().trim() : "";
-
-      return (
-        pAdvisorId === target ||
-        pAgentCode === target ||
-        advCode === target ||
-        advName === target ||
-        agencyId === target
-      );
-    }).length;
-  }, [policies, formData.selectedAgentId]);
-
-  const handleAgentChange = (newAgentId: string) => {
-    const found = agentOptions.find((a) => a.id === newAgentId);
-    setFormData((prev) => ({
-      ...prev,
-      selectedAgentId: newAgentId,
-      selectedAgentName: found?.name || "All Agents",
-      policyFilterSelection: null, // Reset policy selection when agent changes
-    }));
-    setIsProcessed(false);
-  };
+  // Extract selected agency names for policy modal cascade
+  const selectedAgencyNames = useMemo(() => {
+    return (formData.dataFilters || [])
+      .filter((f) => f.type === "Agencies")
+      .map((f) => f.name);
+  }, [formData.dataFilters]);
 
   const handleReset = () => {
     setFormData(defaultFormData);
@@ -146,12 +90,24 @@ export default function CommissionLedgerForm({
     onGenerateReport(formData);
   };
 
+  const getDataFilterLabel = () => {
+    const selectedAgency = formData.dataFilters?.find((f) => f.type === "Agencies");
+    const selectedCount = formData.dataFilters?.length || 0;
+    if (selectedCount === 1 && selectedAgency) {
+      return selectedAgency.name;
+    }
+    if (selectedCount > 0) {
+      return `${selectedCount} filter(s) applied`;
+    }
+    return "All filters Selected";
+  };
+
   const getPolicyFilterLabel = () => {
     const selectedCount = formData.policyFilterSelection?.selectedItems?.length || 0;
     if (selectedCount > 0) {
       return `${selectedCount} policies selected`;
     }
-    return `All (${matchingPoliciesCount}) policies selected`;
+    return "All filters Selected";
   };
 
   return (
@@ -167,7 +123,7 @@ export default function CommissionLedgerForm({
               Commission Ledger
             </h1>
             <p className="mt-0.5 text-xs sm:text-sm font-medium text-slate-500">
-              Filter by date range, select agent, choose specific policies, and generate report
+              Generate detailed commission ledgers, agent payouts, and statement records.
             </p>
           </div>
         </div>
@@ -195,7 +151,7 @@ export default function CommissionLedgerForm({
 
       {/* Main Form Body */}
       <div className="space-y-6">
-        {/* Step 1: Date Range & Agent Filter */}
+        {/* Section 1: Data Filter Options */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#2563eb] to-transparent" />
           
@@ -206,10 +162,10 @@ export default function CommissionLedgerForm({
               </span>
               <div>
                 <h2 className="text-base font-bold text-slate-900">
-                  Data Filter & Agent Selection
+                  Data Filter Options
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Default date is set to the previous full calendar month. Select an agent to cascade policies.
+                  Default date is set to previous full month. Select Agency from filter modal.
                 </p>
               </div>
             </div>
@@ -255,32 +211,56 @@ export default function CommissionLedgerForm({
               </div>
             </div>
 
-            {/* Agent / Agency Selection Dropdown */}
+            {/* Filter Options (Modal Trigger) */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <UserCheck size={13} className="text-[#1877F2]" />
-                Select Agent / Agency
+                <Filter size={13} className="text-[#1877F2]" />
+                Filter Options (Agencies)
               </label>
-              <div className="relative">
-                <select
-                  value={formData.selectedAgentId}
-                  onChange={(e) => handleAgentChange(e.target.value)}
-                  className="w-full appearance-none border border-slate-200 rounded-xl px-3.5 py-2.5 pr-9 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 transition cursor-pointer"
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
+                    <span className="text-slate-800 font-semibold truncate">
+                      {getDataFilterLabel()}
+                    </span>
+                    {formData.dataFilters && formData.dataFilters.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsDataFilterModalOpen(true)}
+                        className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                      >
+                        View
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsDataFilterModalOpen(true)}
+                  className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200 transition"
+                  title="Open Filter Modal"
                 >
-                  {agentOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                />
+                  <Filter
+                    size={15}
+                    className={formData.dataFilters?.length ? "text-[#1877F2] fill-current" : ""}
+                  />
+                </button>
+
+                {formData.dataFilters && formData.dataFilters.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, dataFilters: [], policyFilterSelection: null }));
+                      setIsProcessed(false);
+                    }}
+                    className="p-2.5 rounded-xl border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 transition"
+                    title="Clear Filter"
+                  >
+                    <FilterX size={15} />
+                  </button>
+                )}
               </div>
-              <p className="text-[11px] text-slate-400">
-                {matchingPoliciesCount} policies found for this selection
-              </p>
             </div>
           </div>
 
@@ -290,10 +270,10 @@ export default function CommissionLedgerForm({
               {isProcessed ? (
                 <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Ready to select policies and generate report
+                  Processed! Select policies in Step 2 to generate report.
                 </span>
               ) : (
-                <span>Click Process to load and filter policies under selected agent</span>
+                <span>Click Process to load policies for selected agency and dates</span>
               )}
             </div>
 
@@ -307,12 +287,12 @@ export default function CommissionLedgerForm({
               }`}
             >
               <Layers size={15} />
-              {isProcessed ? "Re-Process" : "Process Agent & Policies"}
+              {isProcessed ? "Re-Process" : "Process"}
             </button>
           </div>
         </div>
 
-        {/* Step 2: Policy Filter Options (Unlocked after Process) */}
+        {/* Section 2: Policy Filter Options (Unlocked after Process) */}
         {isProcessed && (
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#2563eb] to-transparent" />
@@ -327,7 +307,9 @@ export default function CommissionLedgerForm({
                     Policy Filter Options
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Showing policies belonging to {formData.selectedAgentName}
+                    {selectedAgencyNames.length > 0
+                      ? `Showing policies belonging to Agency: ${selectedAgencyNames.join(", ")}`
+                      : "Showing all policies"}
                   </p>
                 </div>
               </div>
@@ -337,8 +319,8 @@ export default function CommissionLedgerForm({
               {/* Select Policies Trigger */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <Shield size={13} className="text-[#1877F2]" />
-                  Filtered Policies
+                  <Filter size={13} className="text-[#1877F2]" />
+                  Select Policies
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
@@ -347,9 +329,13 @@ export default function CommissionLedgerForm({
                         {getPolicyFilterLabel()}
                       </span>
                       {formData.policyFilterSelection?.selectedItems && formData.policyFilterSelection.selectedItems.length > 0 && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-50 text-[#1877F2] text-[10px] font-bold">
-                          {formData.policyFilterSelection.selectedItems.length}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsPolicyFilterModalOpen(true)}
+                          className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                        >
+                          View
+                        </button>
                       )}
                     </div>
                   </div>
@@ -357,11 +343,13 @@ export default function CommissionLedgerForm({
                   <button
                     type="button"
                     onClick={() => setIsPolicyFilterModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#1877F2] hover:bg-blue-100 text-xs font-semibold transition"
-                    title="Select Policies"
+                    className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200 transition"
+                    title="Select Policies Modal"
                   >
-                    <Filter size={14} />
-                    Choose
+                    <Filter
+                      size={15}
+                      className={formData.policyFilterSelection?.selectedItems?.length ? "text-[#1877F2] fill-current" : ""}
+                    />
                   </button>
 
                   {formData.policyFilterSelection?.selectedItems && formData.policyFilterSelection.selectedItems.length > 0 && (
@@ -369,7 +357,7 @@ export default function CommissionLedgerForm({
                       type="button"
                       onClick={() => setFormData((prev) => ({ ...prev, policyFilterSelection: null }))}
                       className="p-2.5 rounded-xl border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 transition"
-                      title="Clear Selection"
+                      title="Clear Filter"
                     >
                       <FilterX size={15} />
                     </button>
@@ -419,12 +407,32 @@ export default function CommissionLedgerForm({
         </div>
       </div>
 
-      {/* Modal for Policy Filters (with Agent Cascade) */}
+      {/* Modal 1: Filter Options Modal (Agencies) */}
+      <FilterOptionsModal
+        isOpen={isDataFilterModalOpen}
+        onClose={() => setIsDataFilterModalOpen(false)}
+        agencies={standardAgencies}
+        policyStatuses={[]}
+        customers={customers}
+        selectedFilters={formData.dataFilters}
+        onApplyFilters={(filters) => {
+          setFormData((prev) => ({
+            ...prev,
+            dataFilters: filters,
+            policyFilterSelection: null, // Reset policy selection when agency changes
+          }));
+          setIsProcessed(false);
+        }}
+        enableDefaultStatusSelection={false}
+        defaultCategory="Agencies"
+      />
+
+      {/* Modal 2: Policy Filters Modal (with Agency Cascade) */}
       <CommissionPolicyFilterModal
         isOpen={isPolicyFilterModalOpen}
         onClose={() => setIsPolicyFilterModalOpen(false)}
         policies={policies}
-        selectedAgentIds={selectedAgentIds}
+        selectedAgencyFilters={selectedAgencyNames}
         selectedFilters={formData.policyFilterSelection}
         onApplyFilters={(selection) =>
           setFormData((prev) => ({ ...prev, policyFilterSelection: selection }))

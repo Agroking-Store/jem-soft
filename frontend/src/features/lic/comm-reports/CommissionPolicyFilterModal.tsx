@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Search, Trash2, Shield, CheckSquare, Square, Check, User } from "lucide-react";
+import { X, Search, Trash2, Shield, CheckSquare, Square, Check } from "lucide-react";
 import { getCustomerFullName } from "./commReportsUtils";
 
 export interface CommissionPolicyFilterSelection {
@@ -21,16 +21,19 @@ interface CommissionPolicyFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
   policies: Array<any>;
-  selectedAgentIds?: string[];
+  selectedAgencyFilters?: string[];
   selectedFilters: CommissionPolicyFilterSelection | null;
   onApplyFilters: (selection: CommissionPolicyFilterSelection) => void;
 }
+
+const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
 
 export default function CommissionPolicyFilterModal({
   isOpen,
   onClose,
   policies = [],
-  selectedAgentIds = [],
+  selectedAgencyFilters = [],
   selectedFilters: initialSelection,
   onApplyFilters,
 }: CommissionPolicyFilterModalProps) {
@@ -48,40 +51,58 @@ export default function CommissionPolicyFilterModal({
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
-  // 1. Filter policies by selected agent(s) if any
+  // 1. Filter policies by selected agency/agent filter(s)
+  const isAgencyMatch = (p: any, filters: string[]) => {
+    if (!filters || filters.length === 0) return true;
+
+    const pAgCode = (p.agentCode || "").toLowerCase().trim();
+    const pAdvCode = (p.advisor?.advisorCode || "").toLowerCase().trim();
+    const pAdvName = (p.advisor?.advisorName || "").toLowerCase().trim();
+
+    return filters.some((f) => {
+      const fLower = f.toLowerCase().trim();
+      if (!fLower) return true;
+
+      // Jayant Mahabole (AG002)
+      if (fLower.includes("jayant") || fLower.includes("ag002")) {
+        return (
+          JAYANT_ADVISOR_CODES.includes(pAgCode) ||
+          JAYANT_ADVISOR_CODES.includes(pAdvCode) ||
+          pAdvName.includes("jayant")
+        );
+      }
+
+      // Manisha Y Mahabole (AG003)
+      if (fLower.includes("manisha") || fLower.includes("ag003")) {
+        return (
+          MANISHA_ADVISOR_CODES.includes(pAgCode) ||
+          MANISHA_ADVISOR_CODES.includes(pAdvCode) ||
+          pAdvName.includes("manisha")
+        );
+      }
+
+      // Other Agencies (AG001)
+      if (fLower.includes("other") || fLower.includes("ag001")) {
+        return (
+          !JAYANT_ADVISOR_CODES.includes(pAgCode) &&
+          !MANISHA_ADVISOR_CODES.includes(pAgCode) &&
+          !JAYANT_ADVISOR_CODES.includes(pAdvCode) &&
+          !MANISHA_ADVISOR_CODES.includes(pAdvCode)
+        );
+      }
+
+      // Direct fallback
+      return pAgCode.includes(fLower) || pAdvCode.includes(fLower) || pAdvName.includes(fLower);
+    });
+  };
+
   const eligiblePolicies = useMemo(() => {
     if (!policies || policies.length === 0) return [];
-    
-    if (!selectedAgentIds || selectedAgentIds.length === 0) {
+    if (!selectedAgencyFilters || selectedAgencyFilters.length === 0) {
       return policies;
     }
-
-    const lowerAgentIds = selectedAgentIds.map((id) => String(id).toLowerCase().trim());
-
-    return policies.filter((p) => {
-      const pAdvisorId = p.advisorId ? String(p.advisorId).toLowerCase().trim() : "";
-      const pAgentCode = p.agentCode ? String(p.agentCode).toLowerCase().trim() : "";
-      const advName = p.advisor?.advisorName ? String(p.advisor.advisorName).toLowerCase().trim() : "";
-      const advCode = p.advisor?.advisorCode ? String(p.advisor.advisorCode).toLowerCase().trim() : "";
-      const agencyId = p.advisor?.agencyId ? String(p.advisor.agencyId).toLowerCase().trim() : "";
-      const agencyName = p.advisor?.agency?.agencyName ? String(p.advisor.agency.agencyName).toLowerCase().trim() : "";
-      const agencyCode = p.advisor?.agency?.agencyCode ? String(p.advisor.agency.agencyCode).toLowerCase().trim() : "";
-
-      return lowerAgentIds.some((selectedId) => {
-        return (
-          pAdvisorId === selectedId ||
-          pAgentCode === selectedId ||
-          advCode === selectedId ||
-          advName === selectedId ||
-          agencyId === selectedId ||
-          agencyName === selectedId ||
-          agencyCode === selectedId ||
-          (advName && selectedId && advName.includes(selectedId)) ||
-          (agencyName && selectedId && agencyName.includes(selectedId))
-        );
-      });
-    });
-  }, [policies, selectedAgentIds]);
+    return policies.filter((p) => isAgencyMatch(p, selectedAgencyFilters));
+  }, [policies, selectedAgencyFilters]);
 
   // 2. Prepare structured list
   const masterDataList = useMemo(() => {
@@ -96,25 +117,28 @@ export default function CommissionPolicyFilterModal({
 
     eligiblePolicies.forEach((p, idx) => {
       const polNo = p.policyNumber || p.policyNo || `POL-${idx + 1}`;
-      const holder = getCustomerFullName(p.CustomerMaster) !== "-" 
-        ? getCustomerFullName(p.CustomerMaster)
-        : (p.customer?.groupName || p.customer?.name || "Customer");
-      
-      const agentName = p.advisor?.advisorName 
+      const holder =
+        getCustomerFullName(p.CustomerMaster) !== "-"
+          ? getCustomerFullName(p.CustomerMaster)
+          : p.customer?.groupName || p.customer?.name || "Customer";
+
+      const agentName = p.advisor?.advisorName
         ? `${p.advisor.advisorName}${p.advisor.advisorCode ? ` (${p.advisor.advisorCode})` : ""}`
-        : (p.agentCode ? `Agent: ${p.agentCode}` : "Direct");
+        : p.agentCode
+        ? `Agent: ${p.agentCode}`
+        : "Direct";
 
       const premium = Number(
         p.premium?.installmentPremium ||
-        p.premium?.totalInstallmentPremium ||
-        p.premium?.totalYearlyPremium ||
-        p.premiumAmount ||
-        0
+          p.premium?.totalInstallmentPremium ||
+          p.premium?.totalYearlyPremium ||
+          p.premiumAmount ||
+          0
       );
 
       const plan = p.product?.planNumber
         ? `Table ${p.product.planNumber}`
-        : (p.product?.productName || "-");
+        : p.product?.productName || "-";
 
       const id = String(p.id || idx);
 
@@ -239,8 +263,8 @@ export default function CommissionPolicyFilterModal({
                 Select Policies
               </h2>
               <p className="text-xs text-slate-500">
-                {selectedAgentIds.length > 0
-                  ? `Filtered by selected agent/agency (${eligiblePolicies.length} available policies)`
+                {selectedAgencyFilters.length > 0
+                  ? `Filtered by agency (${selectedAgencyFilters.join(", ")}) — ${eligiblePolicies.length} available policies`
                   : `Showing all available policies (${eligiblePolicies.length} total)`}
               </p>
             </div>
@@ -376,8 +400,8 @@ export default function CommissionPolicyFilterModal({
                           <Shield size={28} className="text-slate-300" />
                           <p className="font-medium text-slate-600 mt-1">No policies found</p>
                           <p className="text-xs text-slate-400">
-                            {selectedAgentIds.length > 0
-                              ? "No policies linked to the selected agent."
+                            {selectedAgencyFilters.length > 0
+                              ? "No policies linked to the selected agency."
                               : "No policy records available."}
                           </p>
                         </div>
