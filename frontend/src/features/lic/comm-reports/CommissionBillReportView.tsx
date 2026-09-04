@@ -5,13 +5,16 @@ import {
   ArrowLeft,
   Download,
   Printer,
+  Shield,
+  Building2,
+  IndianRupee,
+  CheckCircle2,
 } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 import {
   CommissionBillFormData,
-  BillType,
   generateCommissionBillItems,
   calculateCommissionBillSummary,
   CommissionBillItem,
@@ -31,7 +34,7 @@ export default function CommissionBillReportView({
 }: CommissionBillReportViewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [activeBillType, setActiveBillType] = useState<BillType>(formData.billType);
+  const activeBillType = formData.billType;
 
   // Determine active agency display name
   const agencyDisplayName = useMemo(() => {
@@ -140,50 +143,22 @@ export default function CommissionBillReportView({
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12 animate-in fade-in duration-300">
-      {/* Top Action Control Bar (Print Hidden) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-xs print:hidden">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBackToForm}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
-          >
-            <ArrowLeft size={14} />
-            Edit Bill Filters
-          </button>
-
-          {/* Bill Type Switcher */}
-          <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5">
-            <button
-              type="button"
-              onClick={() => setActiveBillType("consolidated")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
-                activeBillType === "consolidated"
-                  ? "bg-white text-[#1877F2] shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Consolidated Bill
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveBillType("agent-wise")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
-                activeBillType === "agent-wise"
-                  ? "bg-white text-[#1877F2] shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Agent Wise Bill
-            </button>
-          </div>
-        </div>
+      {/* Top Action Control Bar (Commission Ledger Style, Print Hidden) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
+        <button
+          type="button"
+          onClick={onBackToForm}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+        >
+          <ArrowLeft size={15} />
+          Edit Report Filters
+        </button>
 
         <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
           >
             <Printer size={15} />
             Print
@@ -192,7 +167,7 @@ export default function CommissionBillReportView({
             type="button"
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-600 active:scale-[0.98] transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-60"
           >
             <Download size={15} />
             {isExporting ? "Exporting PDF..." : "Download PDF"}
@@ -200,41 +175,61 @@ export default function CommissionBillReportView({
         </div>
       </div>
 
-      {/* Summary KPI Cards (Print Hidden) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 print:hidden">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            Total Policies
-          </span>
-          <div className="text-xl font-bold text-slate-900 mt-1">
-            {billItems.length}
+      {/* Summary KPI Cards (Commission Ledger Style, Print Hidden) */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 print:hidden">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+            <Shield size={20} />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Total Policies
+            </span>
+            <div className="text-lg font-bold text-slate-900 mt-0.5">
+              {billItems.length}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            Total Premium
-          </span>
-          <div className="text-xl font-bold text-slate-900 mt-1">
-            ₹ {summary.totalPremium.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <Building2 size={20} />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Total Premium
+            </span>
+            <div className="text-lg font-bold text-slate-900 mt-0.5">
+              ₹ {summary.totalPremium.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            Gross Commission
-          </span>
-          <div className="text-xl font-bold text-emerald-600 mt-1">
-            ₹ {summary.totalCommission.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <IndianRupee size={20} />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Gross Commission
+            </span>
+            <div className="text-lg font-bold text-emerald-600 mt-0.5">
+              ₹ {summary.totalCommission.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            Net Payable
-          </span>
-          <div className="text-xl font-bold text-[#1877F2] mt-1">
-            ₹ {summary.netBillAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+            <CheckCircle2 size={20} />
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Net Payable
+            </span>
+            <div className="text-lg font-bold text-[#1877F2] mt-0.5">
+              ₹ {summary.netBillAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
           </div>
         </div>
       </div>
