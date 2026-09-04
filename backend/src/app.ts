@@ -24,6 +24,7 @@ import agencyRoutes from "./routes/agencyRoutes.js";
 import productAttributeMasterRoutes from "./routes/productAttributeMasterRoutes.js";
 import productAttributeValueRoutes from "./routes/productAttributeValueRoutes.js";
 import premiumPaymentRoutes from "./routes/premiumPaymentRoutes.js";
+import policy360Routes from "./routes/policy360Routes.js";
 import paymentModeRoutes from "./routes/paymentModeMasterRoutes.js"
 import communicationRoutes from "./routes/communicationRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
@@ -67,6 +68,7 @@ app.use("/api/agencies", agencyRoutes);
 app.use("/api/product-attributes-master", productAttributeMasterRoutes);
 app.use("/api/product-attribute-values", productAttributeValueRoutes);
 app.use("/api/premium-payments", premiumPaymentRoutes);
+app.use("/api/policy-360", policy360Routes);
 app.use("/api/payment-modes",paymentModeRoutes);
 
 app.post("/test", (req, res) => {

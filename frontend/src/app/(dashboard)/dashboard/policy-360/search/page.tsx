@@ -24,6 +24,7 @@ import {
   CustomerPageHero,
   CustomerTableFrame,
   CustomerToolbar,
+  CustomerEmptyState,
 } from "@/features/customers/components/CustomerUi";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 
@@ -165,11 +166,12 @@ export default function SearchPoliciesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <CustomerPageHero
-        title="Policy 360"
+        title="Search Policies"
         subtitle="Search and manage policies across all customers"
+        icon={Search}
       />
 
-      <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+      <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
         Search Policies
       </h2>
 
@@ -177,7 +179,7 @@ export default function SearchPoliciesPage() {
       <CustomerToolbar>
         <Link
           href="/dashboard/policy-360"
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
         >
           <ArrowLeft size={16} /> Back
         </Link>
@@ -194,14 +196,14 @@ export default function SearchPoliciesPage() {
               setCurrentPage(1);
             }}
             placeholder="Search: Policy Number, Customer Name, Group Code..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
           />
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
             title="Reset"
           >
             <RotateCcw size={16} />
@@ -209,7 +211,7 @@ export default function SearchPoliciesPage() {
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
             title="Filter"
           >
             <Filter size={16} />
@@ -218,19 +220,19 @@ export default function SearchPoliciesPage() {
       </CustomerToolbar>
 
       {/* Policy Table */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="flex flex-col gap-1 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
             Search Results
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm font-medium text-slate-500">
             Policies matching your search across all customers.
           </p>
         </div>
-        <div className="overflow-hidden bg-white p-5">
+        <div className="p-5">
           <CustomerTableFrame>
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent"></div>
-            <table className="w-full">
+            <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
                   {[
@@ -245,17 +247,17 @@ export default function SearchPoliciesPage() {
                   ].map((heading) => (
                     <th
                       key={heading}
-                      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+                      className="border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400"
                     >
                       {heading}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
+                  <th className="border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="bg-white">
                 {paginatedPolicies.map((policy) => {
                   const customerName =
                     [
@@ -274,80 +276,78 @@ export default function SearchPoliciesPage() {
                     ? `${policy.product.planNumber} - ${policy.product.productName}`
                     : policy.product?.productName || "—";
 
-                return (
-                  <tr
-                    key={policy.id}
-                    className="group transition-colors hover:bg-slate-50"
-                  >
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <Link
-                        href={`/dashboard/policy-360/search/${policy.id}`}
-                        className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
-                      >
-                        {policy.policyNumber}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3 text-left">
-                        <Seal name={customerName} size={34} />
-                        <span className="text-sm text-slate-600">
-                          {customerName}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span className="text-sm text-slate-600">
-                        {groupCode}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sm text-slate-600">
-                        {plan}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span className="text-sm font-medium text-slate-900">
-                        {fmtCurrency(policy.premium?.installmentPremium)}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span className="text-sm text-slate-600">
-                        {fmtDate(policy.nextPremiumDueDate)}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span className="text-sm font-medium text-slate-900">
-                        {fmtCurrency(policy.premium?.sumAssured)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          statusClasses[status] ||
-                          "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                  return (
+                    <tr
+                      key={policy.id}
+                      className="group border-b border-slate-100 transition-colors odd:bg-white even:bg-slate-50/30 hover:bg-blue-50/40"
+                    >
+                      <td className="whitespace-nowrap px-4 py-3">
                         <Link
                           href={`/dashboard/policy-360/search/${policy.id}`}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
-                          title="View"
+                          className="text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                         >
-                          <Eye size={16} />
+                          {policy.policyNumber}
                         </Link>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </CustomerTableFrame>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3 text-left">
+                          <Seal name={customerName} size={34} />
+                          <span className="text-sm text-slate-600">
+                            {customerName}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="text-sm text-slate-600">
+                          {groupCode}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-600">{plan}</span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="text-sm font-medium text-slate-900">
+                          {fmtCurrency(policy.premium?.installmentPremium)}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="text-sm text-slate-600">
+                          {fmtDate(policy.nextPremiumDueDate)}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span className="text-sm font-medium text-slate-900">
+                          {fmtCurrency(policy.premium?.sumAssured)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            statusClasses[status] ||
+                            "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          {status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                          <Link
+                            href={`/dashboard/policy-360/search/${policy.id}`}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            title="View"
+                          >
+                            <Eye size={16} />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CustomerTableFrame>
         </div>
 
         {isLoading && (
@@ -356,14 +356,16 @@ export default function SearchPoliciesPage() {
           </p>
         )}
         {!isLoading && error && (
-          <p className="px-6 py-10 text-center text-sm text-slate-500">
-            {error}
-          </p>
+          <CustomerEmptyState
+            title="Something went wrong"
+            description={error}
+          />
         )}
         {!isLoading && !error && policies.length === 0 && (
-          <p className="px-6 py-10 text-center text-sm text-slate-500">
-            No policies found matching your search.
-          </p>
+          <CustomerEmptyState
+            title="No policies found"
+            description="No policies match your search. Try a different keyword or reset the filters."
+          />
         )}
       </section>
 
@@ -377,7 +379,7 @@ export default function SearchPoliciesPage() {
               onChange={(event) =>
                 handleItemsPerPageChange(Number(event.target.value))
               }
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#B8873A]"
+              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
             >
               {PAGE_SIZES.map((size) => (
                 <option key={size} value={size}>

@@ -164,7 +164,7 @@ export function FilterDrawer({
           <button
             type="button"
             onClick={onApply}
-            className="flex-1 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#16294D]"
+            className="flex-1 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             Apply Filters
           </button>
@@ -191,7 +191,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
       >
         <option value="">All Statuses</option>
         {statuses.map((status) => (
@@ -225,7 +225,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
       />
     </label>
   );
