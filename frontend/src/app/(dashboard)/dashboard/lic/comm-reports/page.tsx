@@ -11,10 +11,18 @@ import { fetchAdvisors } from "@/features/advisor/advisorSlice";
 import LicModuleNav from "@/features/lic/LicModuleNav";
 import CommissionLedgerForm, { CommissionLedgerFormData } from "@/features/lic/comm-reports/CommissionLedgerForm";
 import CommissionLedgerReportView from "@/features/lic/comm-reports/CommissionLedgerReportView";
+import CommissionBillForm from "@/features/lic/comm-reports/CommissionBillForm";
+import CommissionBillReportView from "@/features/lic/comm-reports/CommissionBillReportView";
+import { CommissionBillFormData } from "@/features/lic/comm-reports/commissionBillData";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
 
-type ViewState = "cards" | "commission-ledger-form" | "commission-ledger-report";
+type ViewState =
+  | "cards"
+  | "commission-ledger-form"
+  | "commission-ledger-report"
+  | "commission-bill-form"
+  | "commission-bill-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,6 +30,7 @@ export default function LICCommReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   
   const [selectedLedgerData, setSelectedLedgerData] = useState<CommissionLedgerFormData | null>(null);
+  const [selectedBillData, setSelectedBillData] = useState<CommissionBillFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
@@ -50,6 +59,9 @@ export default function LICCommReportsPage() {
     if (card.id === "commission-ledger") {
       setSelectedLedgerData(null); // Fresh start for new report!
       setCurrentView("commission-ledger-form");
+    } else if (card.id === "commission-bill") {
+      setSelectedBillData(null);
+      setCurrentView("commission-bill-form");
     } else {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
@@ -59,6 +71,11 @@ export default function LICCommReportsPage() {
   const handleGenerateLedgerReport = (formData: CommissionLedgerFormData) => {
     setSelectedLedgerData(formData);
     setCurrentView("commission-ledger-report");
+  };
+
+  const handleGenerateBillReport = (formData: CommissionBillFormData) => {
+    setSelectedBillData(formData);
+    setCurrentView("commission-bill-report");
   };
 
   return (
@@ -147,7 +164,9 @@ export default function LICCommReportsPage() {
 
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-700 group-hover:text-[#1877F2] transition">
                     <span>
-                      {card.id === "commission-ledger" ? "Open Form & Report" : "View Details"}
+                      {card.id === "commission-ledger" || card.id === "commission-bill"
+                        ? "Open Form & Report"
+                        : "View Details"}
                     </span>
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition text-[#1877F2]" />
                   </div>
@@ -186,6 +205,28 @@ export default function LICCommReportsPage() {
           policies={policies || []}
           customers={customers || []}
           onBackToForm={() => setCurrentView("commission-ledger-form")}
+        />
+      )}
+
+      {/* VIEW 4: Commission Bill Form */}
+      {currentView === "commission-bill-form" && (
+        <CommissionBillForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateBillReport}
+          initialData={selectedBillData}
+          agencies={agencies || []}
+          policies={policies || []}
+          customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 5: Commission Bill Report Preview */}
+      {currentView === "commission-bill-report" && selectedBillData && (
+        <CommissionBillReportView
+          formData={selectedBillData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("commission-bill-form")}
         />
       )}
     </div>
