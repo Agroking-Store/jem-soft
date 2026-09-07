@@ -24,6 +24,11 @@ export default function PremiumPaymentsPage() {
   );
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<PremiumPayment | null>(null);
+
   useEffect(() => {
     dispatch(fetchPremiumPayments());
   }, [dispatch]);
@@ -62,19 +67,34 @@ export default function PremiumPaymentsPage() {
     p.paymentStatus?.statusCode === "PAID"
       ? "bg-emerald-100 text-emerald-700"
       : "bg-amber-100 text-amber-700";
-  const handleDeletePayment = async (payment: PremiumPayment) => {
-    const confirmed = window.confirm(
-      `Delete premium payment for ${payment.policy?.policyNumber ?? "this policy"}?`,
-    );
-    if (!confirmed) return;
+      
+  const handleDeletePayment = (payment: PremiumPayment) => {
+    setPaymentToDelete(payment);
+    setShowDeleteModal(true);
+  };
 
-    try {
-      await dispatch(deletePremiumPayment(payment.id)).unwrap();
+  const confirmDelete = async () => {
+    if (!paymentToDelete) return;
+   try {
+     await dispatch(deletePremiumPayment(paymentToDelete.id)).unwrap();
       toast.success("Premium payment deleted successfully.");
-    } catch (message) {
+   } catch (message) {
       toast.error(String(message || "Failed to delete premium payment."));
+    } finally {
+      setShowDeleteModal(false);
+      setPaymentToDelete(null);
     }
   };
+
+  const totalPages = Math.max(
+        1,
+        Math.ceil(filtered.length / itemsPerPage),
+      );
+      const safePage = Math.min(currentPage, totalPages);
+      const paginatedPolicies = filtered.slice(
+        (safePage - 1) * itemsPerPage,
+        safePage * itemsPerPage,
+      );
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
@@ -154,9 +174,10 @@ export default function PremiumPaymentsPage() {
                   "Customer",
                   "Installment",
                   "Due Date",
-                  "Amount",
-                  "Status",
                   "Paid Date",
+                  "Amount",
+                  "Late Fee",
+                  "Status",
                   "Actions"
                 ].map((h) => (
                   <th key={h} className="px-5 py-3">
@@ -200,14 +221,17 @@ export default function PremiumPaymentsPage() {
                     </td>
                     <td className="px-5 py-4">#{p.installmentNo ?? "—"}</td>
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays size={14} />
+                      <span className="inline-flex items-center gap-1">                    
                         {dt(p.dueDate)}
                       </span>
                     </td>
+                    <td className="px-5 py-4">{dt(p.paidDate)}</td>
                     <td className="px-5 py-4 font-semibold">
                       {money(p.premiumAmount)}
                     </td>
+                    <td className="px-5 py-4 font-semibold">
+                      {money(p.lateFee)}
+                    </td>                
                     <td className="px-5 py-4">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge(p)}`}
@@ -217,7 +241,6 @@ export default function PremiumPaymentsPage() {
                           "Unknown"}
                       </span>
                     </td>
-                    <td className="px-5 py-4">{dt(p.paidDate)}</td>
                     <td>
                       <button
                         onClick={() =>
@@ -252,7 +275,128 @@ export default function PremiumPaymentsPage() {
             </tbody>
           </table>
         </div>
-      </div>     
+      </div>   
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && paymentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setPaymentToDelete(null);
+            }}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="text-lg font-semibold">Confirm Delete</h3>
+            <p className="mt-3 text-sm text-slate-600">
+              Delete installment #{paymentToDelete.installmentNo } for Policy #{""}
+            <span className="font-medium">
+                {paymentToDelete.policy?.policyNumber ?? "this policy"}
+              </span>
+              ? This action cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setPaymentToDelete(null);
+               }}
+                className="rounded-md border px-4 py-2 text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded-md bg-rose-600 px-4 py-2 text-sm text-white cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+       </div>
+      )}
+      <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3">
+          {/* Left */}
+          <p className="text-sm text-slate-500">
+            Showing{" "}
+            {filtered.length === 0
+              ? 0
+              : (currentPage - 1) * itemsPerPage + 1}
+            {" - "}
+            {Math.min(currentPage * itemsPerPage, filtered.length)}
+            {" of "}
+            {filtered.length} entries
+          </p>
+
+          {/* Right */}
+          <div className="flex items-center gap-3 mt-3 md:mt-0">
+
+            {/* Previous */}
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            >
+              &lt;
+            </button>
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .slice(
+                Math.max(0, currentPage - 2),
+                Math.min(totalPages, currentPage + 1)
+              )
+              .map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-9 h-9 rounded-lg border text-sm ${currentPage === page
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-slate-200 hover:bg-slate-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+            {totalPages > 3 && currentPage < totalPages - 1 && (
+              <>
+                <span className="px-1 text-slate-400">...</span>
+
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50"
+                >
+                  {totalPages}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Next */}
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+          >
+            &gt;
+          </button>
+
+          {/* Rows Per Page */}
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
+          >
+            <option value={5}>5 / page</option>
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
+          </select>
+
+      </div>  
+      </div>
     </div>
     
   );
