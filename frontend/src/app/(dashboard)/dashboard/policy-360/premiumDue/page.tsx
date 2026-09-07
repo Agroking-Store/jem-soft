@@ -39,6 +39,7 @@ import {
 import { EMPTY_FILTERS, LapsedPolicyFilters , FilterDrawer } from "@/features/policy360/FilterDrawer";
 import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { SendReminderModal } from "@/features/marketing/components/SendReminderModal";
+import { format, addYears, differenceInYears , addMonths, add } from "date-fns";
 
 export default function PremiumDuePage()
 {
@@ -51,6 +52,9 @@ export default function PremiumDuePage()
     const dispatch = useDispatch<AppDispatch>();
     const [selectedPolicy,setSelectedPolicy] = useState<Policy>();
     const [policyLoan,setPolicyLoan] = useState({availableLoan : 0 , outstandingLoan : 0});
+
+    const currentDate = new Date();
+    const nextMonth = addMonths(currentDate,1);
 
     const {
         customers: masterCustomers,
@@ -65,9 +69,17 @@ export default function PremiumDuePage()
     (state: RootState) => state.policies,
   );
 
+  const premiumDuePolicies = policies.filter((p) => {
+    const policyNextPremiumDueDate = new Date(p.nextPremiumDueDate!)
+    if(currentDate < policyNextPremiumDueDate && policyNextPremiumDueDate < nextMonth)
+      {
+        return true;
+      } 
+  })
+
     const filteredPolicies = useMemo(() => {
         const query = searchTerm.trim().toLowerCase();
-        return policies.filter((policy) => {
+        return premiumDuePolicies.filter((policy) => {
           // Search bar filter (case-insensitive, partial-match)
           if (query) {
             const searchable = [
@@ -85,18 +97,18 @@ export default function PremiumDuePage()
     
           // Drawer filters (AND logic)
           const {
-            policyHolderName,
+            customerName,
             policyNumber,
             planName,
             groupCode,
-            premiumAmount,
+            premium,
             sumAssured,
           } = appliedFilters;
     
           if (
-            policyHolderName &&
-            !policy.CustomerMaster?.firstName.toLowerCase().includes(policyHolderName.toLowerCase()) &&
-            !policy.CustomerMaster?.lastName.toLowerCase().includes(policyHolderName.toLowerCase())
+            customerName &&
+            !policy.CustomerMaster?.firstName.toLowerCase().includes(customerName.toLowerCase()) &&
+            !policy.CustomerMaster?.lastName.toLowerCase().includes(customerName.toLowerCase())
           ) {
             return false;
           }
@@ -119,8 +131,8 @@ export default function PremiumDuePage()
             return false;
           }
           if (
-            premiumAmount &&
-            !policy.premium?.basicYearlyPremium?.toString().toLowerCase().includes(premiumAmount.toLowerCase())
+            premium &&
+            !policy.premium?.basicYearlyPremium?.toString().toLowerCase().includes(premium.toLowerCase())
           ) {
             return false;
           }

@@ -27,9 +27,9 @@ export interface PremiumPayment {
   premiumAmount: number;
   lateFee?: number | null;
   paymentMode?: string | null;
-  receiptNumber?: string | null;
   paymentStatusId: string;
   paymentStatus?: PremiumPaymentStatus | null;
+  paymentDetails? : string;
   policy?: PremiumPaymentPolicy | null;
   createdAt?: string;
   updatedAt?: string;
@@ -47,12 +47,14 @@ export interface CreatePremiumPaymentInput {
   futureDueDate? : string;
 }
 interface State {
+  selectedPayment : PremiumPayment | null,
   payments: PremiumPayment[];
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
 }
 const initialState: State = {
+  selectedPayment : null,
   payments: [],
   isLoading: false,
   isSubmitting: false,
@@ -69,6 +71,7 @@ api.interceptors.request.use((c) => {
 });
 const err = (e: unknown, f: string) =>
   isAxiosError(e) ? (e.response?.data?.message ?? f) : f;
+
 export const fetchPremiumPayments = createAsyncThunk<
   PremiumPayment[],
   void,
@@ -80,6 +83,19 @@ export const fetchPremiumPayments = createAsyncThunk<
     return rejectWithValue(err(e, "Failed to fetch premium payments"));
   }
 });
+
+export const fetchPremiumPaymentById = createAsyncThunk<
+  PremiumPayment,
+  string,
+  { rejectValue: string }
+>("premiumPayments/fetchPaymentById", async (id, { rejectWithValue }) => {
+  try {
+    return (await api.get(`/premium-payments/${id}`)).data.data.payment;
+  } catch (e) {
+    return rejectWithValue(err(e, "Failed to fetch premium payment"));
+  }
+});
+
 export const fetchPremiumPaymentsByPolicy = createAsyncThunk<
   PremiumPayment[],
   string,
@@ -91,6 +107,8 @@ export const fetchPremiumPaymentsByPolicy = createAsyncThunk<
     return rejectWithValue(err(e, "Failed to fetch policy payments"));
   }
 });
+
+
 export const createPremiumPayment = createAsyncThunk<
   PremiumPayment,
   CreatePremiumPaymentInput,
@@ -102,6 +120,45 @@ export const createPremiumPayment = createAsyncThunk<
     return rejectWithValue(err(e, "Failed to create premium payment"));
   }
 });
+
+export const updatePremiumPayment = createAsyncThunk<
+  PremiumPayment,
+  {
+    id: string;
+    policyId: string;
+    installmentNo: number;
+    dueDate: string;
+    premiumAmount: number;
+    paidDate: string;
+    lateFee?: number | null;
+    paymentMode?: string | null;
+    paymentDetails?: string | null;
+    futureDueDate?: string | null;
+  },
+  { rejectValue: string }
+>("premiumPayments/update", async (payload, { rejectWithValue }) => {
+  try {
+    const { id, ...body } = payload;
+    const response = await api.put(`/premium-payments/${id}`, { ...body });
+    return response.data.data.payment;
+  } catch (e) {
+    return rejectWithValue(err(e, "Failed to update premium payment"));
+  }
+});
+
+export const deletePremiumPayment = createAsyncThunk<
+  { id: string },
+  string,
+  { rejectValue: string }
+>("premiumPayments/delete", async (id, { rejectWithValue }) => {
+  try {
+    await api.delete(`/premium-payments/${id}`);
+    return { id };
+  } catch (e) {
+    return rejectWithValue(err(e, "Failed to delete premium payment"));
+  }
+});
+
 const slice = createSlice({
   name: "premiumPayments",
   initialState,
@@ -122,6 +179,30 @@ const slice = createSlice({
       .addCase(fetchPremiumPayments.rejected, (s, a) => {
         s.isLoading = false;
         s.error = a.payload ?? "Failed to fetch premium payments";
+      })
+      .addCase(fetchPremiumPaymentById.pending, (s) => {
+              s.isLoading = true;
+      })
+      .addCase(fetchPremiumPaymentById.fulfilled, (s, a) => {
+        s.isLoading = false;
+        s.selectedPayment = a.payload;
+      })
+      .addCase(fetchPremiumPaymentById.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Failed";
+      })
+      .addCase(updatePremiumPayment.pending, (s) => {
+              s.isLoading = true;
+      })
+      .addCase(updatePremiumPayment.fulfilled, (s, a) => {
+        s.isLoading = false;
+        const idx = s.payments.findIndex((c) => c.id === a.payload.id);
+        if (idx !== -1) s.payments[idx] = a.payload;
+        s.selectedPayment = a.payload;
+      })
+      .addCase(updatePremiumPayment.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload as string;
       })
       .addCase(fetchPremiumPaymentsByPolicy.pending, (s) => {
         s.isLoading = true;
@@ -146,6 +227,19 @@ const slice = createSlice({
       .addCase(createPremiumPayment.rejected, (s, a) => {
         s.isSubmitting = false;
         s.error = a.payload ?? "Failed to create premium payment";
+      })
+      .addCase(deletePremiumPayment.pending, (s) => {
+        s.isLoading = true;
+        s.error = null;
+      })
+      .addCase(deletePremiumPayment.fulfilled, (s, a) => {
+        s.isLoading = false;
+        s.payments = s.payments.filter((payment) => payment.id !== a.payload.id);
+        if (s.selectedPayment?.id === a.payload.id) s.selectedPayment = null;
+      })
+      .addCase(deletePremiumPayment.rejected, (s, a) => {
+        s.isLoading = false;
+        s.error = a.payload ?? "Failed to delete premium payment";
       });
   },
 });
@@ -153,3 +247,5 @@ export const { clearPremiumPaymentError } = slice.actions;
 export default slice.reducer;
 export const selectPremiumPayments = (s: RootState) =>
   s.premiumPayments.payments;
+export const selectSelectedPayment = (state: RootState) =>
+  state.premiumPayments.selectedPayment;
