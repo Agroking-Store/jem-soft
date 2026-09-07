@@ -22,7 +22,7 @@ import {
 
 interface DeductionSummaryReportViewProps {
   formData: DeductionSummaryFormData;
-  policies?: Array<Record<string, unknown>>;
+  policies?: any[];
   onBackToForm: () => void;
 }
 

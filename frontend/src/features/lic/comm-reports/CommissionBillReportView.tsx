@@ -23,7 +23,7 @@ import {
 
 interface CommissionBillReportViewProps {
   formData: CommissionBillFormData;
-  policies?: Array<Record<string, unknown>>;
+  policies?: any[];
   onBackToForm: () => void;
 }
 
