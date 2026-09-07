@@ -517,6 +517,7 @@ const policySchema = z.object({
   age: z.string().optional(),
   gender: z.string().optional(),
   pan: z.string().optional(),
+  option: z.string().optional(),
 
   providerType: z.string().min(1, "Provider type is required"),
   productType: z.string().optional(),
@@ -755,6 +756,16 @@ export default function EditLICPolicyPage() {
         );
       }
 
+      const selectedProductPlan = products.find(
+        (product) => product.id === values.productId,
+      )?.planNumber;
+      if (selectedProductPlan === "881") {
+        refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
+          message: "Please select an option for LIC Plan 881.",
+          path: ["option"],
+        });
+      }
+
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
       const maxSum = getAttributeValue("MAX_SUM_ASSURED");
       if (minSum || maxSum) {
@@ -907,6 +918,11 @@ export default function EditLICPolicyPage() {
       term: selectedPolicy.policyTerm ?? undefined,
 
       ppt: selectedPolicy.premiumPayingTerm ?? undefined,
+
+      option:
+        selectedPolicy.premium?.option != null
+          ? String(selectedPolicy.premium.option)
+          : "",
 
       mode: selectedPolicy.premiumMode?.modeName ?? "",
 
@@ -1234,6 +1250,11 @@ export default function EditLICPolicyPage() {
       const payload = {
         ...data,
 
+        age: data.age ? Number(data.age) : undefined,
+        policyTerm: data.term ? Number(data.term) : undefined,
+        premiumPayingTerm: data.ppt ? Number(data.ppt) : undefined,
+        option: data.option ? Number(data.option) : undefined,
+
         advisorId: data.advisorId || null,
         branchId: data.branchId || null,
         attributes: {
@@ -1242,9 +1263,6 @@ export default function EditLICPolicyPage() {
           PREMIUM_PAYING_TERM: data.ppt,
           // Add other dynamic attributes here if they are on the form
         },
-
-        policyTerm: data.term,
-        premiumPayingTerm: data.ppt,
       };
 
       console.log("Advisor ID:", payload.advisorId);
@@ -1267,6 +1285,15 @@ export default function EditLICPolicyPage() {
       console.error("Failed to update policy:", err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const onInvalid = (formErrors: any) => {
+    const selectedProduct = products.find(
+      (product) => product.id === watchProductId,
+    );
+    if (selectedProduct?.planNumber === "881" && formErrors.option) {
+      toast.error("Please select an option for LIC Plan 881.");
     }
   };
 
@@ -1389,7 +1416,7 @@ export default function EditLICPolicyPage() {
       {/* Form Content - Grid Layout */}
       <form
         id="policy-form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         noValidate
         className="space-y-6"
       >
@@ -1715,6 +1742,28 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
+                  {products.find((product) => product.id === watchProductId)
+                    ?.planNumber === "881" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CustomerSectionCard>
             </div>
