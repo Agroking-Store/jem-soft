@@ -71,6 +71,8 @@ const policySchema = z.object({
   age: z.string().optional(),
   gender: z.string().optional(),
   pan: z.string().optional(),
+  option: z.string().optional(),
+  smoker: z.boolean().optional(),
 
   providerType: z.string().optional(),
   providerId: z.string().optional(),
@@ -209,60 +211,102 @@ export default function ViewLICPolicyPage() {
   useEffect(() => {
     if (!selectedPolicy) return;
 
+    const insurerPolicyAttributes = selectedPolicy.policyAttributes || [];
+    const getPolicyAttr = (code: string) =>
+      insurerPolicyAttributes.find(
+        (a: any) =>
+          a.attribute?.attributeCode?.toLowerCase() === code.toLowerCase(),
+      )?.value ?? "";
+
+    const normalizeBooleanFromValue = (value: unknown) => {
+      if (value === undefined || value === null || value === "") return false;
+
+      const normalized = String(value).trim().toLowerCase();
+      return ["true", "1", "yes", "y", "smoker"].includes(normalized);
+    };
+
+    const smokerValue = getPolicyAttr("smoker");
+    const isSmoker = normalizeBooleanFromValue(smokerValue);
+
+    const normalizeNumber = (value: unknown) => {
+      if (value === undefined || value === null || value === "")
+        return undefined;
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
+    const optionValue =
+      getPolicyAttr("option") ||
+      getPolicyAttr("OPTION") ||
+      (selectedPolicy.premium?.option != null
+        ? String(selectedPolicy.premium.option)
+        : "") ||
+      "";
+
+    const riderLookup = (selectedPolicy.policyRiders || []).map((r: any) => {
+      const riderTerms = {
+        term: normalizeNumber(
+          r.term ?? r.rider?.term ?? r?.riderTerm ?? r?.rider?.riderTerm,
+        ),
+        ppt: normalizeNumber(
+          r.ppt ?? r.rider?.ppt ?? r?.riderPpt ?? r?.rider?.riderPpt,
+        ),
+      };
+
+      return {
+        description: r.rider?.riderName ?? "",
+        sum: normalizeNumber(r.riderAmount ?? r.sum ?? r.rider?.sum),
+        premium: normalizeNumber(r.riderPremium ?? r.premium),
+        term: riderTerms.term,
+        ppt: riderTerms.ppt,
+        mode: r.mode ?? selectedPolicy.premiumMode?.modeName ?? "",
+      };
+    });
+
+    const riderTotal =
+      (selectedPolicy.policyRiders || []).reduce(
+        (sum: number, rider: any) => sum + (Number(rider.riderPremium) || 0),
+        0,
+      ) || undefined;
+
     reset({
-      groupId: selectedPolicy.clientId,
-      lifeAssuredId: selectedPolicy.CustomerMasterId,
-
-      providerType: selectedPolicy.provider?.type,
-
-      providerId: selectedPolicy.providerId,
-      productId: selectedPolicy.productId,
-
-      policyNumber: selectedPolicy.policyNumber,
-
-      commencementDate: selectedPolicy.commencementDate?.substring(0, 10),
-
+      groupId: selectedPolicy.clientId ?? "",
+      groupCode: selectedPolicy.customer?.groupCode ?? "",
+      lifeAssuredId: selectedPolicy.CustomerMasterId ?? "",
+      providerType:
+        selectedPolicy.provider?.type ?? selectedPolicy.provider?.name ?? "",
+      providerId: selectedPolicy.providerId ?? "",
+      productId: selectedPolicy.productId ?? "",
+      policyNumber: selectedPolicy.policyNumber ?? "",
+      commencementDate: selectedPolicy.commencementDate?.substring(0, 10) ?? "",
       completionDate: selectedPolicy.maturityDate
         ? selectedPolicy.maturityDate.substring(0, 10)
         : "",
-
       advisorId: selectedPolicy.advisorId ?? "",
       agencyId: selectedPolicy.advisor?.agencyId ?? "",
       branchId: selectedPolicy.branchId ?? "",
-
       agentCode: selectedPolicy.agentCode ?? "",
-
       term: selectedPolicy.policyTerm ?? undefined,
-
       ppt: selectedPolicy.premiumPayingTerm ?? undefined,
-
-      mode: selectedPolicy.premiumMode?.modeName ?? "",
-
+      option: optionValue,
+      mode: selectedPolicy.premiumMode?.modeName ?? selectedPolicy.mode ?? "",
       sumAssured: selectedPolicy.premium?.sumAssured ?? undefined,
-
       basicYearlyPremium:
         selectedPolicy.premium?.basicYearlyPremium ?? undefined,
-
       totalYearlyPremium:
         selectedPolicy.premium?.totalYearlyPremium ?? undefined,
-
+      totalRiderPremium: riderTotal,
       installmentPremium:
         selectedPolicy.premium?.installmentPremium ?? undefined,
-
       totalInstallmentPremium:
         selectedPolicy.premium?.totalInstallmentPremium ?? undefined,
-
       gst: selectedPolicy.premium?.gst ?? undefined,
-
       statusId: selectedPolicy.statusId ?? "",
       policyStatus: selectedPolicy.status?.statusName ?? "",
       fupDate: selectedPolicy.nextPremiumDueDate
         ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
         : "",
-      fuliDate:
-        selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "fuliDate",
-        )?.value ?? "",
+      fuliDate: getPolicyAttr("fuliDate") || "",
       premiumAdjusted: selectedPolicy.premium?.extraClass?.toString() ?? "",
       dob: selectedPolicy.CustomerMaster?.dob
         ? new Date(selectedPolicy.CustomerMaster.dob)
@@ -278,11 +322,8 @@ export default function ViewLICPolicyPage() {
         : "",
       gender: selectedPolicy.CustomerMaster?.gender ?? "",
       pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
-      loanTaken: "",
-      annuityDetails:
-        selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "annuityDetails",
-        )?.value ?? "",
+      loanTaken: getPolicyAttr("loanTaken") || "",
+      annuityDetails: getPolicyAttr("annuityDetails") || "",
       otherInformation: selectedPolicy.remarks ?? "",
       bankName:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
@@ -330,21 +371,53 @@ export default function ViewLICPolicyPage() {
         ? getFullName(selectedPolicy.CustomerMaster)
         : "",
       branchName: selectedPolicy.branch?.branchName ?? "",
-      medical: "",
-      salesChannel: "",
-      ageAdmitted: "",
-      taxBeneficiary: "",
+      medical: getPolicyAttr("medical") || "",
+      salesChannel: getPolicyAttr("salesChannel") || "",
+      ageAdmitted: getPolicyAttr("ageAdmitted") || "",
+      taxBeneficiary: getPolicyAttr("taxBeneficiary") || "",
       notes: selectedPolicy.remarks ?? "",
-
-      riders:
-        selectedPolicy.policyRiders?.map((r: any) => ({
-          description: r.rider.riderName,
-          sum: r.riderAmount,
-          premium: r.riderPremium,
-          term: undefined,
-          ppt: undefined,
-          mode: r.mode ?? "",
+      smoker: isSmoker,
+      riders: riderLookup,
+      nominees:
+        selectedPolicy.nominees?.map((nominee: any) => ({
+          id: nominee.id,
+          nomineeName: nominee.nomineeName ?? "",
+          relationship: nominee.relationship ?? "",
+          dateOfBirth: nominee.dateOfBirth
+            ? nominee.dateOfBirth.substring(0, 10)
+            : "",
+          percentage: nominee.percentage ?? null,
+          phone: nominee.phone ?? "",
+          email: nominee.email ?? "",
         })) ?? [],
+      neftBankName:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankName ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
+        "",
+      neftBankBranch:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.bankBranch ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
+        "",
+      neftAccountNumber:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.accountNumber ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
+        "",
+      neftIfscCode:
+        selectedPolicy.CustomerMaster?.bankDetails?.find(
+          (b: any) => b.isDefault,
+        )?.ifscCode ??
+        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
+        "",
+      neftAccountHolderName: selectedPolicy.CustomerMaster
+        ? getFullName(selectedPolicy.CustomerMaster)
+        : "",
+      neftSubmissionDate: getPolicyAttr("neftSubmissionDate") || "",
     });
   }, [selectedPolicy, reset]);
 
@@ -391,6 +464,8 @@ export default function ViewLICPolicyPage() {
     () => modes.find((m) => m.modeName === watch("mode")),
     [watch("mode"), modes],
   );
+
+  const selectedPlanNumber = selectedProduct?.planNumber ?? "";
   const selectedLifeAssured = useMemo(
     () => masterCustomers.find((m) => m.id === watchLifeAssuredId),
     [watchLifeAssuredId, masterCustomers],
@@ -774,6 +849,74 @@ export default function ViewLICPolicyPage() {
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                     />
                   </div>
+
+                  {(selectedProduct?.planNumber === "881" ||
+                    selectedProduct?.planNumber === "912" ||
+                    selectedProduct?.planNumber === "887" ||
+                    selectedProduct?.planNumber === "888" ||
+                    selectedProduct?.planNumber === "889" ||
+                    selectedProduct?.planNumber === "774") && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option
+                        {(selectedProduct?.planNumber === "881" ||
+                          selectedProduct?.planNumber === "912" ||
+                          selectedProduct?.planNumber === "887" ||
+                          selectedProduct?.planNumber === "888" ||
+                          selectedProduct?.planNumber === "889" ||
+                          selectedProduct?.planNumber === "774") && (
+                          <span className="text-red-500"> *</span>
+                        )}
+                      </label>
+                      <select
+                        value={watch("option") ?? ""}
+                        disabled
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                        <option value="4">Option 4</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {selectedProduct?.planNumber === "887" && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Smoker Status
+                      </label>
+                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+                        <span
+                          className={
+                            watch("smoker")
+                              ? "text-slate-500"
+                              : "font-semibold text-slate-700"
+                          }
+                        >
+                          Non-Smoker
+                        </span>
+                        <span
+                          className={`inline-flex h-6 w-11 items-center rounded-full p-1 ${watch("smoker") ? "bg-[#B8873A]" : "bg-slate-300"}`}
+                          aria-label="Smoker status"
+                        >
+                          <span
+                            className={`h-4 w-4 rounded-full bg-white transition ${watch("smoker") ? "translate-x-5" : "translate-x-0"}`}
+                          />
+                        </span>
+                        <span
+                          className={
+                            watch("smoker")
+                              ? "font-semibold text-slate-700"
+                              : "text-slate-500"
+                          }
+                        >
+                          Smoker
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CustomerSectionCard>
             </div>

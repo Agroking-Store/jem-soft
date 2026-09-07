@@ -150,15 +150,37 @@ export async function calculatePremium(data: PremiumInput) {
   const option = parseOptionalInt(data.option, "option");
   const sumAssured = parseRequiredInt(data.sumAssured, "sum assured");
 
-  data.age = age;
-  data.secondaryAge = secondaryAge;
-  data.policyTerm = policyTerm;
-  data.premiumPayingTerm = premiumPayingTerm;
-  data.option = option;
-  data.sumAssured = sumAssured;
+  const normalizedGender =
+    data.gender == null ? null : String(data.gender).trim();
 
-  if (data.gender === "Male" || data.gender === "MALE") data.gender = "M";
-  if (data.gender === "Female" || data.gender === "FEMALE") data.gender = "F";
+  const normalizedSmoker =
+    data.smoker === true || data.smoker === false ? data.smoker : null;
+
+  const normalizedPremiumMode =
+    data.premiumMode == null ? "" : String(data.premiumMode).trim();
+
+  const normalizedData = {
+    ...data,
+    age,
+    secondaryAge,
+    policyTerm,
+    premiumPayingTerm,
+    option,
+    sumAssured,
+    premiumMode: normalizedPremiumMode,
+    gender:
+      normalizedGender === "Male" || normalizedGender === "MALE"
+        ? "M"
+        : normalizedGender === "Female" || normalizedGender === "FEMALE"
+          ? "F"
+          : normalizedGender,
+    smoker: normalizedSmoker,
+  };
+
+  Object.assign(data, normalizedData);
+
+  const activeGender = data.gender;
+  const activeSmoker = data.smoker;
 
   // ==========================================
   // STEP 1 : Get Product
@@ -185,7 +207,7 @@ export async function calculatePremium(data: PremiumInput) {
     product.planNumber !== null &&
     ["771", "745", "883"].includes(product.planNumber);
 
-  if (usesPptLookup && data.premiumPayingTerm == null) {
+  if (usesPptLookup && premiumPayingTerm == null) {
     throw new AppError(
       `PPT / Gua. Addn. Period is required for LIC Plan ${product.planNumber}`,
       400,
@@ -207,14 +229,14 @@ export async function calculatePremium(data: PremiumInput) {
     // PLAN 888 - JEEVAN SATHI
     // ------------------------------------------
 
-    if (data.secondaryAge == null) {
+    if (secondaryAge == null) {
       throw new AppError(
         "Secondary / spouse age is required for LIC Plan 888",
         400,
       );
     }
 
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 888", 400);
     }
 
@@ -232,18 +254,18 @@ export async function calculatePremium(data: PremiumInput) {
   // PLAN 889
   // ========================================================
   else if (product.planNumber === "889") {
-    if (data.secondaryAge == null) {
+    if (secondaryAge == null) {
       throw new AppError(
         "Secondary / spouse age is required for LIC Plan 889",
         400,
       );
     }
 
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 889", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 889",
         400,
@@ -253,21 +275,11 @@ export async function calculatePremium(data: PremiumInput) {
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-
-        // Primary age
         entryAge: age,
-
-        // Spouse age
-        secondaryAge: secondaryAge,
-
-        // Policy term
-        policyTerm: policyTerm,
-
-        // PPT
-        premiumPayingTerm: premiumPayingTerm,
-
-        // Option
-        option: option,
+        secondaryAge,
+        policyTerm,
+        premiumPayingTerm,
+        option,
       },
     });
   }
@@ -276,11 +288,11 @@ export async function calculatePremium(data: PremiumInput) {
   // PLAN 774
   // ========================================================
   else if (product.planNumber === "774") {
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 774", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 774",
         400,
@@ -302,11 +314,11 @@ export async function calculatePremium(data: PremiumInput) {
   // PLAN 881
   // ========================================================
   else if (product.planNumber === "881") {
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 881", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 881",
         400,
@@ -328,11 +340,11 @@ export async function calculatePremium(data: PremiumInput) {
   // PLAN 912
   // ========================================================
   else if (product.planNumber === "912") {
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 912", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 912",
         400,
@@ -349,15 +361,15 @@ export async function calculatePremium(data: PremiumInput) {
       },
     });
   } else if (product.planNumber === "887") {
-    if (data.option == null) {
+    if (option == null) {
       throw new AppError("Option is required for LIC Plan 887", 400);
     }
 
-    if (data.gender == null) {
+    if (activeGender == null) {
       throw new AppError("Gender is required for LIC Plan 887", 400);
     }
 
-    if (data.smoker == null) {
+    if (activeSmoker == null) {
       throw new AppError("Smoker status is required for LIC Plan 887", 400);
     }
 
@@ -370,8 +382,8 @@ export async function calculatePremium(data: PremiumInput) {
         productId: data.productId,
         entryAge: age,
         secondaryAge: null,
-        gender: data.gender,
-        smoker: data.smoker,
+        gender: activeGender,
+        smoker: activeSmoker,
         policyTerm,
         premiumPayingTerm,
         option,
@@ -383,7 +395,7 @@ export async function calculatePremium(data: PremiumInput) {
     // ------------------------------------------
 
     const premiumPayingTermFilter =
-      data.premiumPayingTerm == null ? undefined : data.premiumPayingTerm;
+      premiumPayingTerm == null ? undefined : premiumPayingTerm;
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {

@@ -743,6 +743,8 @@ model PolicyPremiumCalculation {
   riderPremium Decimal? @db.Decimal(18,2)
 
   // Premiums
+  option Int?
+
   basicYearlyPremium Decimal @db.Decimal(18,2)
 
   totalYearlyPremium Decimal @db.Decimal(18,2)

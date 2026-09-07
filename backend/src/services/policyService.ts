@@ -197,7 +197,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
     const premium = await calculatePremium({
       productId: data.productId,
-      age: age!,
+      age: Number(age),
       secondaryAge:
         data.spouseAge !== undefined && data.spouseAge !== null
           ? Number(data.spouseAge)
@@ -206,9 +206,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         data.option !== undefined && data.option !== null
           ? Number(data.option)
           : null,
-      policyTerm: policyTerm!,
-      premiumPayingTerm: premiumPayingTerm,
-      sumAssured: sumAssured!, // Ensure sumAssured is not null
+      policyTerm: Number(policyTerm),
+      premiumPayingTerm:
+        premiumPayingTerm !== undefined && premiumPayingTerm !== null
+          ? Number(premiumPayingTerm)
+          : null,
+      sumAssured: Number(sumAssured),
       premiumMode: data.mode,
       gender: data.gender,
       smoker: data.smoker,
@@ -218,6 +221,10 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       data: {
         policyId: newPolicy.id,
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium, // From service
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
@@ -845,13 +852,16 @@ export const updatePolicy = async (
     // Update Premium Calculation
     const premium = await calculatePremium({
       productId: data.productId,
-      age: data.age,
+      age: Number(data.age),
       secondaryAge: data.spouseAge != null ? Number(data.spouseAge) : null,
       option: data.option != null ? Number(data.option) : null,
-      policyTerm: data.term!,
-      premiumPayingTerm: data.ppt,
-      sumAssured: data.sumAssured!,
+      policyTerm: Number(data.term),
+      premiumPayingTerm:
+        data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null,
+      sumAssured: Number(data.sumAssured),
       premiumMode: data.mode,
+      gender: data.gender,
+      smoker: data.smoker,
     });
     await tx.policyPremiumCalculation.upsert({
       where: {
@@ -859,6 +869,10 @@ export const updatePolicy = async (
       },
       update: {
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium,
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
@@ -870,6 +884,10 @@ export const updatePolicy = async (
       create: {
         policyId: id,
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium,
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
