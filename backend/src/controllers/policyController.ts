@@ -18,7 +18,7 @@ export const createPolicy = catchAsync(
 
 export const previewPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { productId, age, secondaryAge, option,policyTerm, premiumPayingTerm, sumAssured, premiumMode } = req.body;
+    const { productId, age, secondaryAge, option,policyTerm, premiumPayingTerm, sumAssured, premiumMode, gender, smoker } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
       throw new AppError(
@@ -46,12 +46,56 @@ export const previewPremium = catchAsync(
       premiumPayingTerm: premiumPayingTerm ? Number(premiumPayingTerm) : null,
       sumAssured: Number(sumAssured),
       premiumMode,
+      gender,
+      smoker,
     });
 
     res.status(200).json({
       status: "success",
       data: {
         premium,
+      },
+    });
+  },
+);
+
+export const previewRiderPremium = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { riderId, age, riderTerm, sumAssured, premiumMode, productId } = req.body;
+
+    if (!riderId || !age || !riderTerm || !sumAssured || !premiumMode || !productId) {
+      throw new AppError(
+        "Rider ID, age, rider term, sum assured, product ID, and premium mode are required.",
+        400,
+      );
+    }
+
+    const { prisma } = await import("../config/database.js");
+    const { getModeFactor } = await import("../services/premiumCalculationService.js");
+
+    const riderRate = await prisma.riderPremiumRate.findFirst({
+      where: {
+        riderId,
+        entryAge: Number(age),
+        riderTerm: Number(riderTerm),
+      },
+    });
+
+    if (!riderRate) {
+      throw new AppError(
+        `Premium rate not found for Rider ${riderId}, Age ${age}, Term ${riderTerm}`,
+        404,
+      );
+    }
+
+    const tabularPremium = (Number(riderRate.ratePerThousand) * Number(sumAssured)) / 1000;
+    const modeFactor = await getModeFactor(productId, premiumMode);
+    const installmentPremium = Number((tabularPremium * modeFactor).toFixed(2));
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        premium: installmentPremium,
       },
     });
   },
