@@ -10,6 +10,7 @@ import { Suspense } from "react";
  * ------------------
  * A shared navigation bar for the LIC module.
  * Contains "Policies" and "LIC Reports" tabs.
+ * Styled with the JEM Soft blue/white theme (#1877F2 primary).
  */
 
 type ModuleTab = "policies" | "reports";
@@ -32,7 +33,7 @@ function LicModuleNavInner() {
   return (
     <nav
       aria-label="LIC module navigation"
-      className="inline-flex max-w-full bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1"
+      className="inline-flex max-w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-1"
     >
       <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, icon: Icon, href }) => {
@@ -48,8 +49,8 @@ function LicModuleNavInner() {
                 transition-all duration-200 select-none
                 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md shadow-black/30"
-                    : "text-white/55 hover:text-white hover:bg-white/[0.07] active:bg-white/10"
+                    ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                    : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10 active:bg-[#1877F2]/15"
                 }
               `}
             >
@@ -68,7 +69,7 @@ export default function LicModuleNav() {
   return (
     <Suspense
       fallback={
-        <div className="inline-block bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1 h-[48px] w-[280px] max-w-full animate-pulse" />
+        <div className="inline-block bg-white rounded-2xl shadow-sm border border-slate-100 p-1 h-[40px] w-[280px] max-w-full animate-pulse" />
       }
     >
       <LicModuleNavInner />
