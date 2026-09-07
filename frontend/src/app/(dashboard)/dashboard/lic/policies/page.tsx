@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  ReactNode,
+} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -43,12 +50,20 @@ export function Seal({ name, size = 36 }: { name: string; size?: number }) {
       style={{ width: size, height: size, minWidth: size }}
       className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] font-bold text-white shadow-sm"
     >
-      <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>{getInitials(name)}</span>
+      <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>
+        {getInitials(name)}
+      </span>
     </div>
   );
 }
 
-function Chip({ dotColor, children }: { dotColor: string; children: ReactNode }) {
+function Chip({
+  dotColor,
+  children,
+}: {
+  dotColor: string;
+  children: ReactNode;
+}) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
       <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
@@ -67,7 +82,11 @@ function TableHeadCell({
   return (
     <th
       className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
-        align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
+        align === "center"
+          ? "text-center"
+          : align === "right"
+            ? "text-right"
+            : "text-left"
       }`}
     >
       {children}
@@ -386,7 +405,10 @@ export default function LICPoliciesPage() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
           <div className="relative min-w-0 flex-1 sm:max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
             <input
               ref={searchInputRef}
               type="text"
@@ -408,15 +430,23 @@ export default function LICPoliciesPage() {
 
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-        
+
         {isLoading ? (
           <div className="flex min-h-[18rem] items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
           </div>
         ) : filteredPolicies.length === 0 ? (
           <CustomerEmptyState
-            title={searchTerm || filterStatus !== "All" ? "No Policies Found" : "No policies have been added yet"}
-            description={searchTerm || filterStatus !== "All" ? "Try adjusting your search or filter criteria to find what you're looking for." : "Get started by creating a new policy record."}
+            title={
+              searchTerm || filterStatus !== "All"
+                ? "No Policies Found"
+                : "No policies have been added yet"
+            }
+            description={
+              searchTerm || filterStatus !== "All"
+                ? "Try adjusting your search or filter criteria to find what you're looking for."
+                : "Get started by creating a new policy record."
+            }
             action={
               isClient && canEdit && !searchTerm && filterStatus === "All" ? (
                 <button
@@ -435,13 +465,29 @@ export default function LICPoliciesPage() {
             footer={
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>
-                  Showing <strong className="text-slate-700">{filteredPolicies.length}</strong> of{" "}
-                  <strong className="text-slate-700">{stats.total}</strong> policies
+                  Showing{" "}
+                  <strong className="text-slate-700">
+                    {filteredPolicies.length}
+                  </strong>{" "}
+                  of <strong className="text-slate-700">{stats.total}</strong>{" "}
+                  policies
                 </span>
               </div>
             }
           >
-            <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+            <table className="w-full min-w-[1200px] table-fixed border-separate border-spacing-0 text-left text-sm">
+              <colgroup>
+                <col className="w-[9%]" />
+                <col className="w-[16%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
+                <col className="w-[9%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <thead>
                 <tr>
                   <TableHeadCell>Policy No.</TableHeadCell>
@@ -453,7 +499,7 @@ export default function LICPoliciesPage() {
                   <TableHeadCell>Term / PPT</TableHeadCell>
                   <TableHeadCell>FUP Date</TableHeadCell>
                   <TableHeadCell align="center">Status</TableHeadCell>
-                  <TableHeadCell align="right">Actions</TableHeadCell>
+                  <TableHeadCell align="center">Actions</TableHeadCell>
                 </tr>
               </thead>
               <tbody>
@@ -467,7 +513,10 @@ export default function LICPoliciesPage() {
                     : "—";
 
                   let groupLabel = "—";
-                  if (policy.customer?.groupName && policy.customer?.groupCode) {
+                  if (
+                    policy.customer?.groupName &&
+                    policy.customer?.groupCode
+                  ) {
                     groupLabel = `${policy.customer.groupName} - ${policy.customer.groupCode}`;
                   } else if (policy.customer?.groupName) {
                     groupLabel = policy.customer.groupName;
@@ -476,7 +525,8 @@ export default function LICPoliciesPage() {
                   }
 
                   let statusDot = "bg-slate-400";
-                  if (statusName === "Active" || statusName === "Completed") statusDot = "bg-emerald-500";
+                  if (statusName === "Active" || statusName === "Completed")
+                    statusDot = "bg-emerald-500";
                   if (statusName === "Pending") statusDot = "bg-amber-500";
                   if (statusName === "Lapsed") statusDot = "bg-rose-500";
 
@@ -484,24 +534,31 @@ export default function LICPoliciesPage() {
                     <tr
                       key={policy.id}
                       ref={(el) => {
-                        rowRefs.current[policy.id] = el as HTMLTableRowElement | null;
+                        rowRefs.current[policy.id] =
+                          el as HTMLTableRowElement | null;
                       }}
-                      onClick={() => router.push(`/dashboard/lic/policies/${policy.id}`)}
+                      onClick={() =>
+                        router.push(`/dashboard/lic/policies/${policy.id}`)
+                      }
                       className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                        activeHighlight === policy.id ? "bg-yellow-50/50" : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                        activeHighlight === policy.id
+                          ? "bg-yellow-50/50"
+                          : index % 2 === 0
+                            ? "bg-white"
+                            : "bg-slate-50/30"
                       }`}
                     >
-                      <td className="px-4 py-4 align-top">
-                        <span className="inline-flex rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
+                      <td className="h-[72px] px-3 py-3 align-middle">
+                        <span className="inline-flex whitespace-nowrap rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
                           {policy.policyNumber}
                         </span>
                       </td>
-                      <td className="px-4 py-4 align-top">
-                        <div className="flex items-start gap-3 text-left">
+                      <td className="h-[72px] px-3 py-3 align-middle">
+                        <div className="flex items-center gap-3 text-left">
                           <Seal name={holderName} size={36} />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
+                              <span className="truncate font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
                                 {holderName}
                               </span>
                               <ChevronRight
@@ -509,47 +566,69 @@ export default function LICPoliciesPage() {
                                 className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                               />
                             </div>
-                            <div className="mt-0.5 truncate text-xs text-slate-400">{groupLabel}</div>
+                            <div className="mt-0.5 truncate text-xs text-slate-400">
+                              {groupLabel}
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 align-top">
-                        <div className="font-semibold text-slate-900">
+                      <td className="h-[72px] px-3 py-3 align-middle">
+                        <div className="line-clamp-2 font-semibold leading-5 text-slate-900">
                           {policy.product?.planNumber
                             ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
                             : policy.product?.productName || "—"}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-right align-top font-semibold text-slate-900">
-                        {policy.premium?.sumAssured ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}` : "N/A"}
+                      <td className="h-[72px] whitespace-nowrap px-3 py-3 text-right align-middle font-semibold text-slate-900">
+                        <span className="whitespace-nowrap">
+                          {policy.premium?.sumAssured
+                            ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}`
+                            : "N/A"}
+                        </span>
                       </td>
-                      <td className="px-4 py-4 text-right align-top text-slate-800">
-                        {policy.premium?.installmentPremium ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}` : "N/A"}
-                      </td>
-                      <td className="px-4 py-4 align-top text-slate-800">
-                        {policy.premiumMode?.modeName || "N/A"}
-                      </td>
-                      <td className="px-4 py-4 align-top text-slate-800">
-                        <div className="flex flex-col text-xs">
-                          <span>T: {policy.policyTerm ? `${policy.policyTerm}Y` : "N/A"}</span>
-                          <span className="text-slate-400">P: {policy.premiumPayingTerm ? `${policy.premiumPayingTerm}Y` : "N/A"}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-top text-slate-800">
-                        {policy.nextPremiumDueDate
-                          ? new Date(policy.nextPremiumDueDate).toLocaleDateString("en-IN")
+                      <td className="h-[72px] whitespace-nowrap px-3 py-3 text-right align-middle text-slate-800">
+                        {policy.premium?.installmentPremium
+                          ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}`
                           : "N/A"}
                       </td>
-                      <td className="px-4 py-4 text-center align-top">
+                      <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
+                        {policy.premiumMode?.modeName || "N/A"}
+                      </td>
+                      <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
+                        <div className="flex flex-col text-xs">
+                          <span>
+                            T:{" "}
+                            {policy.policyTerm
+                              ? `${policy.policyTerm}Y`
+                              : "N/A"}
+                          </span>
+                          <span className="text-slate-400">
+                            P:{" "}
+                            {policy.premiumPayingTerm
+                              ? `${policy.premiumPayingTerm}Y`
+                              : "N/A"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="h-[72px] whitespace-nowrap px-3 py-3 align-middle text-slate-800">
+                        {policy.nextPremiumDueDate
+                          ? new Date(
+                              policy.nextPremiumDueDate,
+                            ).toLocaleDateString("en-IN")
+                          : "N/A"}
+                      </td>
+                      <td className="h-[72px] px-3 py-3 text-center align-middle">
                         <Chip dotColor={statusDot}>{statusName}</Chip>
                       </td>
-                      <td className="px-4 py-4 text-right align-top">
-                        <div className="flex items-center justify-end gap-1.5">
+                      <td className="h-[72px] px-3 py-3 text-center align-middle">
+                        <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/dashboard/lic/policies/${policy.id}`);
+                              router.push(
+                                `/dashboard/lic/policies/${policy.id}`,
+                              );
                             }}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                             title="View"
@@ -562,7 +641,9 @@ export default function LICPoliciesPage() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  router.push(`/dashboard/lic/policies/edit/${policy.id}`);
+                                  router.push(
+                                    `/dashboard/lic/policies/edit/${policy.id}`,
+                                  );
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
                                 title="Edit"
