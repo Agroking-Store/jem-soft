@@ -58,6 +58,8 @@ interface PolicyData {
   riders?: RiderData[];
   attributes?: { [key: string]: string | number };
   nominees?: NomineeData[];
+  gender?: string;
+  smoker?: boolean;
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
@@ -208,6 +210,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       premiumPayingTerm: premiumPayingTerm,
       sumAssured: sumAssured!, // Ensure sumAssured is not null
       premiumMode: data.mode,
+      gender: data.gender,
+      smoker: data.smoker,
     });
 
     await tx.policyPremiumCalculation.create({

@@ -13,11 +13,14 @@ import { calculateLIC720 } from "./premiumcalculators/lic720Calculator.js";
 import { calculateLIC888 } from "./premiumcalculators/lic888Calculator.js";
 import { calculateLIC889 } from "./premiumcalculators/lic889Calculator.js";
 import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
+import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 
 interface PremiumInput {
   productId: string;
   age: number;
   secondaryAge?: number | null;
+  gender?: string | null;
+  smoker?: boolean | null;
   option?: number | null;
   policyTerm: number; // Actual Policy Term
   premiumPayingTerm?: number | null;
@@ -73,7 +76,7 @@ function parseOptionalInt(
   return parsedValue;
 }
 
-async function getModeFactor(productId: string, premiumMode: string) {
+export async function getModeFactor(productId: string, premiumMode: string) {
   const premiumModeRecord = await prisma.premiumModeMaster.findFirst({
     where: {
       OR: [
@@ -153,6 +156,9 @@ export async function calculatePremium(data: PremiumInput) {
   data.premiumPayingTerm = premiumPayingTerm;
   data.option = option;
   data.sumAssured = sumAssured;
+
+  if (data.gender === "Male" || data.gender === "MALE") data.gender = "M";
+  if (data.gender === "Female" || data.gender === "FEMALE") data.gender = "F";
 
   // ==========================================
   // STEP 1 : Get Product
@@ -342,6 +348,35 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "887") {
+    if (data.option == null) {
+      throw new AppError("Option is required for LIC Plan 887", 400);
+    }
+
+    if (data.gender == null) {
+      throw new AppError("Gender is required for LIC Plan 887", 400);
+    }
+
+    if (data.smoker == null) {
+      throw new AppError("Smoker status is required for LIC Plan 887", 400);
+    }
+
+    if (premiumPayingTerm == null) {
+      throw new AppError("Premium Paying Term is required for LIC Plan 887", 400);
+    }
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        secondaryAge: null,
+        gender: data.gender,
+        smoker: data.smoker,
+        policyTerm,
+        premiumPayingTerm,
+        option,
+      },
+    });
   } else {
     // ------------------------------------------
     // EXISTING PLANS
@@ -376,13 +411,6 @@ export async function calculatePremium(data: PremiumInput) {
       product.planNumber === "888"
         ? `Premium rate not found for Primary Age ${data.age}, Secondary Age ${data.secondaryAge}, Term ${data.policyTerm}, Option ${data.option}`
         : `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
-      404,
-    );
-  }
-
-  if (!premiumRate) {
-    throw new AppError(
-      `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
       404,
     );
   }
@@ -542,6 +570,22 @@ export async function calculatePremium(data: PremiumInput) {
         premiumPayingTerm: premiumPayingTerm!,
         policyTerm,
         option: option!,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "887":
+      premiumResult = await calculateLIC887({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm: premiumPayingTerm!,
+        option: option!,
+        gender: data.gender!,
+        smoker: data.smoker!,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
