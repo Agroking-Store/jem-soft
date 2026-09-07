@@ -1,7 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm , Controller} from "react-hook-form";
-import { z } from "zod";
+import { useForm , Controller, Form} from "react-hook-form";
+import { set, z } from "zod";
 import { useDispatch, useSelector} from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect, useState , useMemo } from "react";
@@ -9,12 +9,11 @@ import { FileText, Loader2, Save, User, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
-import { createPremiumPayment, fetchPremiumPaymentsByPolicy , fetchPremiumPaymentById , updatePremiumPayment } from "./premiumPaymentSlice";
-import { addMonths } from 'date-fns';
+import { createPremiumPayment, fetchPremiumPaymentsByPolicy , fetchPremiumPaymentById , updatePremiumPayment, PremiumPayment } from "./premiumPaymentSlice";
 import { fetchPremiumModes } from "../policy/premiumModeMasterSlice";
 import Link from "next/link";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
-import { format, addYears, differenceInYears } from "date-fns";
+import { format, addYears,differenceInCalendarMonths,isBefore,addMonths , differenceInCalendarDays, toDate, startOfDay } from "date-fns";
 import {
   CustomerSectionCard,
   SearchableSelect,
@@ -36,10 +35,10 @@ const schema = z
     lateFee: z.coerce.number().min(0, "Late fee cannot be negative").optional(),
     paymentMode: z.string().min(1, "Payment mode is required"),
     paymentStatus: z.string(),
-    gstOnPremium : z.coerce.number().optional(),
     gstOnLateFee : z.coerce.number().optional(),
     paymentDetails : z.string().optional(),
     futureDueDate : z.string().optional(),
+    gstRate: z.string().optional(),
   })
 
 type FormValues = z.infer<typeof schema>;
@@ -52,6 +51,7 @@ export default function PremiumPaymentForm({ paymentId, mode = "create" }: { pay
   const [selectedPolicy,setSelectedPolicy] = useState<Policy | null>(null);
   const {paymentModes} = useSelector((s:RootState) => s.paymentModes);
   const [totalAmount,setTotatAmount] = useState(0);
+
 
   const input =`w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 ${mode === "view" ? "bg-slate-50 cursor-not-allowed" : ""}`;
 const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
@@ -87,14 +87,13 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
       dueDate: "",
       paidDate : new Date().toDateString(),
       gstOnLateFee : 0,
-      gstOnPremium : 0,
       lateFee : 0,
       premiumAmount :0,
       paymentMode : "",
     },
   });
 
-  const [policyId , premiumAmount , lateFeeAmount , gstOnPremium , gstOnLateFee] = watch(["policyId" , "premiumAmount" , "lateFee" , "gstOnPremium" , "gstOnLateFee"])
+  const [policyId , premiumAmount , lateFeeAmount ,gstRate, gstOnLateFee] = watch(["policyId" , "premiumAmount" , "lateFee" , "gstRate", "gstOnLateFee"])
     //status = watch("paymentStatus");
 
 
@@ -112,8 +111,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
         setValue("premiumAmount", p.premiumAmount ?? 0);
         setValue("paidDate", p.paidDate ? p.paidDate.slice(0,10) : "");
         setValue("lateFee", p.lateFee ?? 0);
-        setValue("gstOnPremium", p.gstOnPremium ?? 0);
-        setValue("gstOnLateFee", p.gstOnLateFee ?? 0);
+        //setValue("gstOnLateFee", p.gstOnLateFee ?? 0);
         setValue("paymentMode", p.paymentMode ?? "");
         setValue("paymentDetails", p.paymentDetails ?? "");
         //setValue("futureDueDate", p.futureDueDate ?? "");
@@ -133,44 +131,151 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
 
   }, [dispatch]);
 
+   useEffect(() => {
+  
+    setValue("gstOnLateFee",0);
+    
+    setValue("lateFee",0);
+    setValue("paymentDetails","");
+
+  }, [policyId]);
+
   useEffect(() => {
+
+      
       if(mode === "create")
       {
         const p = policies.find((x) => x.id === policyId);
 
         if(p)
-        setSelectedPolicy(p);
+        {
+          setSelectedPolicy(p);
+          getInstallmentNumber(policyId,1);
+        }
+
         if (p?.nextPremiumDueDate)
           setValue("dueDate", p.nextPremiumDueDate.slice(0, 10));
-        if (p?.premium?.totalInstallmentPremium)
-          setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
+
+         if (p?.premium?.totalInstallmentPremium)
+           setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
 
         const monthsToAdd = modes.find((x) => x.id === p?.premiumModeId)?.months;
         const futureDueDate = addMonths(p?.nextPremiumDueDate! , monthsToAdd!);
         setValue("futureDueDate" , futureDueDate.toDateString());
+        
 
-        if(policyId)
-          getInstallmentNumber(policyId);
+        if(p && p.nextPremiumDueDate! < new Date().toISOString())
+        {
+
+          const monthlyPremium = p?.premium?.installmentPremium;
+
+
+          //New Code
+          const firstDueDate = startOfDay(new Date(p.nextPremiumDueDate!));
+
+          const today = startOfDay(new Date());
+
+          const modeMonths = Number(p.premiumMode?.months ?? 1);
+
+          let dueInstallments = 0;
+
+          if (!isBefore(today, firstDueDate)) {
+            const monthsElapsed = differenceInCalendarMonths(today,firstDueDate);
+
+            dueInstallments =
+              Math.floor(monthsElapsed / modeMonths) + 1;
+
+            const calculatedDueDate = addMonths(
+              firstDueDate,
+              (dueInstallments - 1) * modeMonths
+            );
+
+            // If the calculated installment's actual day hasn't arrived,
+            // don't count it.
+            if (isBefore(today, calculatedDueDate)) {
+              dueInstallments--;
+
+            }
+          }
+
+          // const firstDueDate = new Date(p?.nextPremiumDueDate!);
+          // const today = new Date();
+
+          // let dueInstallments = Number(((differenceInCalendarMonths(today, firstDueDate) + 1)/p?.premiumMode?.months).toFixed(0));
+          // //let dueInstallments = ((differenceInCalendarMonths(today, firstDueDate) + 1)/p?.premiumMode?.months);
+
+          // // If today's date is before this month's due date,
+          // // this month's installment isn't due yet.
+          // const currentMonthDueDate = addMonths(firstDueDate,dueInstallments - 1);
+
+          // if (isBefore(today, currentMonthDueDate)) {
+          //   dueInstallments--;
+          // }
+
+           const totalPremiumDue = Number((dueInstallments * monthlyPremium!).toFixed(2));
+
+           setValue("premiumAmount", totalPremiumDue);
+          
+           const overdueDays = Math.max(0,differenceInCalendarDays(today, firstDueDate));
+
+            console.log("Overdue days -",overdueDays)
+            console.log("Due installments -",dueInstallments)
+            console.log("Single premium - ",p?.premium?.installmentPremium)
+
+          //late fee and GST
+          const lateFeeApplicable = Number(((totalPremiumDue * 12 * overdueDays)/36500).toFixed(2));
+          const gstApplicableOnLateFee = Number(((lateFeeApplicable * gstRate)/100).toFixed(2));
+          setValue("lateFee",lateFeeApplicable);
+          setValue("gstOnLateFee",gstApplicableOnLateFee)
+
+          const newFutureDueDate = addMonths(firstDueDate, (dueInstallments*p?.premiumMode?.months));
+          setValue("futureDueDate" , newFutureDueDate.toDateString());
+
+          // console.log("GSt",gstRate)
+          // console.log(gstApplicableOnLateFee)
+          // console.log(firstDueDate)
+           //console.log("Next due ",newFutureDueDate)
+
+          
+          setValue("paymentDetails",`Payment of - ${dueInstallments} due premiums.`)        
+
+          getInstallmentNumber(policyId,dueInstallments);
+        }
+       
       }
-  }, [policyId, policies, setValue]);
+  }, [policyId, policies, setValue ,gstRate]);
 
-  const getInstallmentNumber = async (policyId : string) => {
+  const getInstallmentNumber = async (policyId : string, dueInstallments : number) => {
     if(mode === "create")
     {
-      const policyPayments =await dispatch(fetchPremiumPaymentsByPolicy(policyId));
-      const nextInstalmentNumber = policyPayments.payload!.length;
-      setValue("installmentNo",(nextInstalmentNumber+1))
+       const policyPayments =await dispatch(fetchPremiumPaymentsByPolicy(policyId));
+
+
+        const lastPayment = policyPayments.payload?.reduce((latest, payment) => {
+          const paymentDate = new Date(payment.createdAt);
+          return !latest || paymentDate > new Date(latest.createdAt) ? payment : latest;
+        }, null);
+
+        if(lastPayment)
+        {
+          setValue("installmentNo",(dueInstallments + lastPayment?.installmentNo));
+        }
+        else
+        {
+          setValue("installmentNo",dueInstallments);
+        }
+       
     } 
   }
 
   useEffect(() => {
-    setTotatAmount(Number(premiumAmount)+Number(lateFeeAmount!)+Number(gstOnPremium)+Number(gstOnLateFee))
-  },[premiumAmount,lateFeeAmount,gstOnPremium,gstOnLateFee])
+    setTotatAmount(Number((Number(premiumAmount)+Number(lateFeeAmount!)+Number(gstOnLateFee)).toFixed(2)))
+  },[premiumAmount,lateFeeAmount,gstOnLateFee])
 
   const submit = async (v: FormValues) => {
     try {
       const totalLateFee = Number(v.lateFee) + (Number(v.gstOnLateFee) || 0);
-      const totalPremiumAmount = Number(v.premiumAmount) + Number(v.gstOnPremium);
+      const totalPremiumAmount = Number(v.premiumAmount);
       if(mode === "edit") {
         await dispatch(updatePremiumPayment({
           id: paymentId!,
@@ -200,7 +305,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
           futureDueDate : v.futureDueDate,
         }),
       ).unwrap();
-
+          //console.log(v.futureDueDate)
        toast.success("Premium payment created successfully");
     }
       router.push("/dashboard/premium-payments");
@@ -255,25 +360,15 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   />
                 )}
               />
-            {/* <select {...register("policyId")} className={input}>
-              <option value="">Select policy</option>
-              {policies.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.policyNumber} —{" "}
-                  {p.CustomerMaster
-                    ? `${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName ?? ""}`
-                    : ""}
-                </option>
-              ))}
-            </select> */}
             {errors.policyId && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.policyId.message}
               </p>
             )}
           </div>
+
           <div>
-            <label className={label}>Installment No.  <span className="text-rose-500">*</span></label>
+            <label className={label}>Installment<span className="text-rose-500">*</span></label>
             <input
               type="number"
               {...register("installmentNo")}
@@ -308,21 +403,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                 {errors.premiumAmount.message}
               </p>
             )}
-          </div>
-          <div>
-            <label className={label}>GST on Premium Amount</label>
-            <input
-              type="text"
-              {...register("gstOnPremium")}
-              className={input}
-              disabled = {mode === "view"}
-            />
-            {errors.gstOnPremium && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.gstOnPremium.message}
-              </p>
-            )}
-          </div>
+          </div>       
           {/* <div>
             <label className={label}>Payment Status *</label>
             <select {...register("paymentStatus")} className={input}>
@@ -330,33 +411,55 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
               <option value="PAID">Paid</option>
             </select>
           </div> */}
-          <div>
-            <label className={label}>Late Fee</label>
-            <input
-              type="text"
-              {...register("lateFee")}
-              className={input}
-              disabled = {mode === "view"}
-            />
-            {errors.lateFee && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.lateFee.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className={label}>GST on Late Fee</label>
-            <input
-              type="text"
-              {...register("gstOnLateFee")}
-              className={input}
-              disabled = {mode === "view"}
-            />
-            {errors.lateFee && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.lateFee.message}
-              </p>
-            )}
+          <div className="flex col-span-1 gap-5">   
+            {mode === "create" &&  
+            <>
+            <div className="flex-1">
+              <label className={label}>Late Fee GST(%)</label>     
+              <select
+                {...register("gstRate")}
+                className={input}
+              >
+                <option value={0}>Select Rate</option>
+                {
+                  Array.from({ length: 20 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                  ))
+                }
+              </select>
+                {errors.gstRate && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.gstRate.message}
+                  </p>
+                )}
+            </div>
+            <div className="flex-1">
+              <label className={label}>GST on Late Fee</label>
+              <input
+                type="text"
+                {...register("gstOnLateFee")}
+                className={input}
+              />
+              {errors.lateFee && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.lateFee.message}
+                </p>
+              )}
+            </div>
+            </>}
+            <div className="flex-1">
+              <label className={label}>Late Fee</label>
+              <input
+                type="text"
+                {...register("lateFee")}
+                className={input}
+              />
+              {errors.lateFee && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {errors.lateFee.message}
+                </p>
+              )}
+            </div>
           </div>
           <div>
             <label className={label}>
@@ -366,10 +469,10 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
              <Controller
                 control={control}
                 name="paidDate"
-                disabled = {mode === "view"}
                 render={({ field }) => (
                   <DatePicker
                     value={field.value ? new Date(field.value) : undefined}
+                    readOnly = {mode === "view"}
                     onChange={(date) =>
                       field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                     }
@@ -426,9 +529,10 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
             <input {...register("paymentDetails")} className={input} disabled = {mode === "view"}/>
           </div>
         </div>
-        
+
         </CustomerSectionCard>
-        {selectedPolicy && <CustomerSectionCard
+        {selectedPolicy &&
+         <CustomerSectionCard
                     title="Policy Information"
                     icon={FileText}
                     className="mt-5"
