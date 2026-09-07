@@ -43,3 +43,11 @@ export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
   await productService.deleteProduct(req.params.id);
   res.status(204).json({ status: "success", data: null });
 });
+
+// @desc    Get options for a product
+// @route   GET /api/products/:id/options
+// @access  Private
+export const getProductOptions = catchAsync(async (req: Request, res: Response) => {
+  const options = await productService.getProductOptions(req.params.id);
+  res.status(200).json({ status: "success", data: options });
+});

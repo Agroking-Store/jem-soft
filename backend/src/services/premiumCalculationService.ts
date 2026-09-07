@@ -13,15 +13,27 @@ import { calculateLIC720 } from "./premiumcalculators/lic720Calculator.js";
 import { calculateLIC888 } from "./premiumcalculators/lic888Calculator.js";
 import { calculateLIC889 } from "./premiumcalculators/lic889Calculator.js";
 import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
+import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 
 interface PremiumInput {
   productId: string;
+
   age: number;
+
   secondaryAge?: number | null;
+
+  gender?: string | null;
+
+  smoker?: boolean | null;
+
   option?: number | null;
-  policyTerm: number; // Actual Policy Term
+
+  policyTerm: number;
+
   premiumPayingTerm?: number | null;
+
   sumAssured: number;
+
   premiumMode: string;
 }
 
@@ -36,7 +48,7 @@ export interface CalculatorInput {
   rate: number;
 }
 
-async function getModeFactor(
+export async function getModeFactor(
   productId: string,
   premiumMode: string
 ) {
@@ -106,6 +118,9 @@ async function getModeFactor(
 export async function calculatePremium(
   data: PremiumInput
 ) {
+  // Map gender from Male/Female to M/F for DB lookups
+  if (data.gender === "Male" || data.gender === "MALE") data.gender = "M";
+  if (data.gender === "Female" || data.gender === "FEMALE") data.gender = "F";
 
   // ==========================================
   // STEP 1 : Get Product
@@ -124,64 +139,64 @@ export async function calculatePremium(
     throw new AppError("Product not found", 404);
   }
 
-// ==========================================
-// STEP 2 : Premium Lookup Term
-// ==========================================
+  // ==========================================
+  // STEP 2 : Premium Lookup Term
+  // ==========================================
 
-const usesPptLookup =
-  product.planNumber !== null &&
-  ["771", "745", "883"].includes(product.planNumber);
+  const usesPptLookup =
+    product.planNumber !== null &&
+    ["771", "745", "883"].includes(product.planNumber);
 
-if (usesPptLookup && data.premiumPayingTerm == null) {
-  throw new AppError(
-    `PPT / Gua. Addn. Period is required for LIC Plan ${product.planNumber}`,
-    400
-  );
-}
-
-// Now TypeScript knows this is definitely a number
-const validatedPPT = data.premiumPayingTerm!;
-
-const lookupTerm: number = usesPptLookup
-  ? validatedPPT
-  : data.policyTerm;
-// ==========================================
-// STEP 3 : Premium Rate
-// ==========================================
-
-let premiumRate;
-
-if (product.planNumber === "888") {
-  // ------------------------------------------
-  // PLAN 888 - JEEVAN SATHI
-  // ------------------------------------------
-
-  if (data.secondaryAge == null) {
+  if (usesPptLookup && data.premiumPayingTerm == null) {
     throw new AppError(
-      "Secondary / spouse age is required for LIC Plan 888",
+      `PPT / Gua. Addn. Period is required for LIC Plan ${product.planNumber}`,
       400
     );
   }
 
-  if (data.option == null) {
-    throw new AppError(
-      "Option is required for LIC Plan 888",
-      400
-    );
-  }
+  // Now TypeScript knows this is definitely a number
+  const validatedPPT = data.premiumPayingTerm!;
 
-  premiumRate = await prisma.productPremiumRate.findFirst({
-    where: {
-      productId: data.productId,
-      entryAge: data.age,
-      secondaryAge: data.secondaryAge,
-      policyTerm: data.policyTerm,
-      premiumPayingTerm: null,
-      option: data.option,
-    },
-  });
+  const lookupTerm: number = usesPptLookup
+    ? validatedPPT
+    : data.policyTerm;
+  // ==========================================
+  // STEP 3 : Premium Rate
+  // ==========================================
 
-} // ========================================================
+  let premiumRate;
+
+  if (product.planNumber === "888") {
+    // ------------------------------------------
+    // PLAN 888 - JEEVAN SATHI
+    // ------------------------------------------
+
+    if (data.secondaryAge == null) {
+      throw new AppError(
+        "Secondary / spouse age is required for LIC Plan 888",
+        400
+      );
+    }
+
+    if (data.option == null) {
+      throw new AppError(
+        "Option is required for LIC Plan 888",
+        400
+      );
+    }
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: data.age,
+        secondaryAge: data.secondaryAge,
+        policyTerm: data.policyTerm,
+        premiumPayingTerm: null,
+        option: data.option,
+      },
+    });
+
+  } // ========================================================
   // PLAN 889
   // ========================================================
 
@@ -325,52 +340,109 @@ if (product.planNumber === "888") {
     });
   }
 
+  // ========================================================
+  // PLAN 887
+  // =========================================================
+
+  else if (product.planNumber === "887") {
+
+    if (data.option == null) {
+      throw new AppError(
+        "Option is required for LIC Plan 887",
+        400
+      );
+    }
+
+    if (data.gender == null) {
+      throw new AppError(
+        "Gender is required for LIC Plan 887",
+        400
+      );
+    }
+
+    if (data.smoker == null) {
+      throw new AppError(
+        "Smoker status is required for LIC Plan 887",
+        400
+      );
+    }
+
+    if (data.premiumPayingTerm == null) {
+      throw new AppError(
+        "Premium Paying Term is required for LIC Plan 887",
+        400
+      );
+    }
+
+    premiumRate =
+      await prisma.productPremiumRate.findFirst({
+        where: {
+          productId: data.productId,
+
+          entryAge: data.age,
+
+          secondaryAge: null,
+
+          gender: data.gender,
+
+          smoker: data.smoker,
+
+          policyTerm: data.policyTerm,
+
+          premiumPayingTerm:
+            data.premiumPayingTerm,
+
+          option: data.option,
+        },
+      });
+  }
+
   else {
-  // ------------------------------------------
-  // EXISTING PLANS
-  // ------------------------------------------
+    // ------------------------------------------
+    // EXISTING PLANS
+    // ------------------------------------------
 
-  const premiumPayingTermFilter =
-    data.premiumPayingTerm == null
-      ? undefined
-      : data.premiumPayingTerm;
+    const premiumPayingTermFilter =
+      data.premiumPayingTerm == null
+        ? undefined
+        : data.premiumPayingTerm;
 
-  premiumRate = await prisma.productPremiumRate.findFirst({
-    where: {
-      productId: data.productId,
-      entryAge: data.age,
-      policyTerm: lookupTerm,
-      premiumPayingTerm: premiumPayingTermFilter,
-    },
-  });
-
-  if (!premiumRate) {
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
         entryAge: data.age,
         policyTerm: lookupTerm,
-        premiumPayingTerm: undefined,
+        premiumPayingTerm: premiumPayingTermFilter,
       },
     });
+
+    if (!premiumRate) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: {
+          productId: data.productId,
+          entryAge: data.age,
+          policyTerm: lookupTerm,
+          premiumPayingTerm: undefined,
+        },
+      });
+    }
   }
-}
 
-if (!premiumRate) {
-  throw new AppError(
-    product.planNumber === "888"
-      ? `Premium rate not found for Primary Age ${data.age}, Secondary Age ${data.secondaryAge}, Term ${data.policyTerm}, Option ${data.option}`
-      : `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
-    404
-  );
-}
+  if (!premiumRate) {
+    throw new AppError(
+      product.planNumber === "888"
+        ? `Premium rate not found for Primary Age ${data.age}, Secondary Age ${data.secondaryAge}, Term ${data.policyTerm}, Option ${data.option}`
+        : `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
+      404
+    );
+  }
 
-if (!premiumRate) {
-  throw new AppError(
-    `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
-    404
-  );
-}
+  if (!premiumRate) {
+    throw new AppError(
+      `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
+      404
+    );
+  }
 
   // ==========================================
   // STEP 4 : Tabular Premium
@@ -444,7 +516,7 @@ if (!premiumRate) {
       break;
 
 
-     case "745":
+    case "745":
       premiumResult = await calculateLIC745({
         productId: data.productId,
         premiumMode: data.premiumMode,
@@ -471,18 +543,18 @@ if (!premiumRate) {
       break;
 
     case "736":
-    premiumResult = await calculateLIC736({
-    productId: data.productId,
-    premiumMode: data.premiumMode,
-    age: data.age,
-    policyTerm: data.policyTerm,
-    sumAssured: data.sumAssured,
-    tabularPremium,
-    rate,
-  });
+      premiumResult = await calculateLIC736({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm: data.policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
 
-  case "720":
-  case "721":
+    case "720":
+    case "721":
       premiumResult = await calculateLIC720({
         productId: data.productId,
         premiumMode: data.premiumMode,
@@ -492,50 +564,77 @@ if (!premiumRate) {
         tabularPremium,
         rate,
       });
-  break;
+      break;
 
-  case "888":
-  premiumResult = await calculateLIC888({
-    productId: data.productId,
-    premiumMode: data.premiumMode,
-    age: data.age,
-    secondaryAge: data.secondaryAge!,
-    policyTerm: data.policyTerm,
-    option: data.option!,
-    sumAssured: data.sumAssured,
-    tabularPremium,
-    rate,
-  });
-  break;
+    case "888":
+      premiumResult = await calculateLIC888({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        secondaryAge: data.secondaryAge!,
+        policyTerm: data.policyTerm,
+        option: data.option!,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
 
-  case "889":
-  premiumResult = await calculateLIC889({
-    productId: data.productId,
-    premiumMode: data.premiumMode,
-    age: data.age,
-    secondaryAge: data.secondaryAge!,
-    policyTerm: data.policyTerm,
-    premiumPayingTerm: data.premiumPayingTerm!,
-    option: data.option!,
-    sumAssured: data.sumAssured,
-    tabularPremium,
-    rate,
-  });
-  break;
+    case "889":
+      premiumResult = await calculateLIC889({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        secondaryAge: data.secondaryAge!,
+        policyTerm: data.policyTerm,
+        premiumPayingTerm: data.premiumPayingTerm!,
+        option: data.option!,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
 
-  case "774":
-  premiumResult = await calculateLIC774({
-    productId: data.productId,
-    premiumMode: data.premiumMode,
-    age: data.age,
-    premiumPayingTerm: data.premiumPayingTerm!,
-    policyTerm: data.policyTerm,
-    option: data.option!,
-    sumAssured: data.sumAssured,
-    tabularPremium,
-    rate,
-  });
-  break;
+    case "774":
+      premiumResult = await calculateLIC774({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        premiumPayingTerm: data.premiumPayingTerm!,
+        policyTerm: data.policyTerm,
+        option: data.option!,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "887":
+      premiumResult = await calculateLIC887({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+
+        age: data.age,
+
+        policyTerm: data.policyTerm,
+
+        premiumPayingTerm:
+          data.premiumPayingTerm!,
+
+        option: data.option!,
+
+        gender: data.gender!,
+
+        smoker: data.smoker!,
+
+        sumAssured: data.sumAssured,
+
+        tabularPremium,
+
+        rate,
+      });
+
+      break;
 
     default: {
 
