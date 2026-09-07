@@ -14,6 +14,9 @@ import CommissionLedgerReportView from "@/features/lic/comm-reports/CommissionLe
 import CommissionBillForm from "@/features/lic/comm-reports/CommissionBillForm";
 import CommissionBillReportView from "@/features/lic/comm-reports/CommissionBillReportView";
 import { CommissionBillFormData } from "@/features/lic/comm-reports/commissionBillData";
+import DeductionSummaryForm from "@/features/lic/comm-reports/DeductionSummaryForm";
+import DeductionSummaryReportView from "@/features/lic/comm-reports/DeductionSummaryReportView";
+import { DeductionSummaryFormData } from "@/features/lic/comm-reports/deductionSummaryData";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
 
@@ -22,7 +25,9 @@ type ViewState =
   | "commission-ledger-form"
   | "commission-ledger-report"
   | "commission-bill-form"
-  | "commission-bill-report";
+  | "commission-bill-report"
+  | "deduction-summary-form"
+  | "deduction-summary-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -31,6 +36,7 @@ export default function LICCommReportsPage() {
   
   const [selectedLedgerData, setSelectedLedgerData] = useState<CommissionLedgerFormData | null>(null);
   const [selectedBillData, setSelectedBillData] = useState<CommissionBillFormData | null>(null);
+  const [selectedDeductionData, setSelectedDeductionData] = useState<DeductionSummaryFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
@@ -62,6 +68,9 @@ export default function LICCommReportsPage() {
     } else if (card.id === "commission-bill") {
       setSelectedBillData(null);
       setCurrentView("commission-bill-form");
+    } else if (card.id === "deduction-summary") {
+      setSelectedDeductionData(null);
+      setCurrentView("deduction-summary-form");
     } else {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
@@ -76,6 +85,11 @@ export default function LICCommReportsPage() {
   const handleGenerateBillReport = (formData: CommissionBillFormData) => {
     setSelectedBillData(formData);
     setCurrentView("commission-bill-report");
+  };
+
+  const handleGenerateDeductionReport = (formData: DeductionSummaryFormData) => {
+    setSelectedDeductionData(formData);
+    setCurrentView("deduction-summary-report");
   };
 
   return (
@@ -164,7 +178,9 @@ export default function LICCommReportsPage() {
 
                   <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-700 group-hover:text-[#1877F2] transition">
                     <span>
-                      {card.id === "commission-ledger" || card.id === "commission-bill"
+                      {card.id === "commission-ledger" ||
+                      card.id === "commission-bill" ||
+                      card.id === "deduction-summary"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -214,9 +230,6 @@ export default function LICCommReportsPage() {
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateBillReport}
           initialData={selectedBillData}
-          agencies={agencies || []}
-          policies={policies || []}
-          customers={customers || []}
         />
       )}
 
@@ -225,8 +238,25 @@ export default function LICCommReportsPage() {
         <CommissionBillReportView
           formData={selectedBillData}
           policies={policies || []}
-          customers={customers || []}
           onBackToForm={() => setCurrentView("commission-bill-form")}
+        />
+      )}
+
+      {/* VIEW 6: Deduction Summary Form */}
+      {currentView === "deduction-summary-form" && (
+        <DeductionSummaryForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateDeductionReport}
+          initialData={selectedDeductionData}
+        />
+      )}
+
+      {/* VIEW 7: Deduction Summary Report Preview */}
+      {currentView === "deduction-summary-report" && selectedDeductionData && (
+        <DeductionSummaryReportView
+          formData={selectedDeductionData}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("deduction-summary-form")}
         />
       )}
     </div>
