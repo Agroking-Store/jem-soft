@@ -17,6 +17,13 @@ import { CommissionBillFormData } from "@/features/lic/comm-reports/commissionBi
 import DeductionSummaryForm from "@/features/lic/comm-reports/DeductionSummaryForm";
 import DeductionSummaryReportView from "@/features/lic/comm-reports/DeductionSummaryReportView";
 import { DeductionSummaryFormData } from "@/features/lic/comm-reports/deductionSummaryData";
+import CommissionSummaryForm from "@/features/lic/comm-reports/CommissionSummaryForm";
+import CommissionSummaryReportView from "@/features/lic/comm-reports/CommissionSummaryReportView";
+import { CommissionSummaryFormData } from "@/features/lic/comm-reports/commissionSummaryData";
+import CommissionOutstandingForm from "@/features/lic/comm-reports/CommissionOutstandingForm";
+import CommissionOutstandingReportView from "@/features/lic/comm-reports/CommissionOutstandingReportView";
+import { CommissionOutstandingFormData } from "@/features/lic/comm-reports/commissionOutstandingData";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
 
@@ -27,7 +34,11 @@ type ViewState =
   | "commission-bill-form"
   | "commission-bill-report"
   | "deduction-summary-form"
-  | "deduction-summary-report";
+  | "deduction-summary-report"
+  | "commission-summary-form"
+  | "commission-summary-report"
+  | "commission-outstanding-form"
+  | "commission-outstanding-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,12 +48,15 @@ export default function LICCommReportsPage() {
   const [selectedLedgerData, setSelectedLedgerData] = useState<CommissionLedgerFormData | null>(null);
   const [selectedBillData, setSelectedBillData] = useState<CommissionBillFormData | null>(null);
   const [selectedDeductionData, setSelectedDeductionData] = useState<DeductionSummaryFormData | null>(null);
+  const [selectedSummaryData, setSelectedSummaryData] = useState<CommissionSummaryFormData | null>(null);
+  const [selectedOutstandingData, setSelectedOutstandingData] = useState<CommissionOutstandingFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
   const { customers } = useSelector((state: RootState) => state.customers);
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { advisors } = useSelector((state: RootState) => state.advisors);
+  const { branches } = useSelector((state: RootState) => state.licBranch);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -50,6 +64,7 @@ export default function LICCommReportsPage() {
     dispatch(fetchCustomersMaster());
     dispatch(fetchAgencies());
     dispatch(fetchAdvisors());
+    dispatch(fetchLicBranches());
   }, [dispatch]);
 
   const filteredCards = useMemo(() => {
@@ -71,6 +86,12 @@ export default function LICCommReportsPage() {
     } else if (card.id === "deduction-summary") {
       setSelectedDeductionData(null);
       setCurrentView("deduction-summary-form");
+    } else if (card.id === "commission-summary") {
+      setSelectedSummaryData(null);
+      setCurrentView("commission-summary-form");
+    } else if (card.id === "commission-outstanding") {
+      setSelectedOutstandingData(null);
+      setCurrentView("commission-outstanding-form");
     } else {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
@@ -90,6 +111,16 @@ export default function LICCommReportsPage() {
   const handleGenerateDeductionReport = (formData: DeductionSummaryFormData) => {
     setSelectedDeductionData(formData);
     setCurrentView("deduction-summary-report");
+  };
+
+  const handleGenerateSummaryReport = (formData: CommissionSummaryFormData) => {
+    setSelectedSummaryData(formData);
+    setCurrentView("commission-summary-report");
+  };
+
+  const handleGenerateOutstandingReport = (formData: CommissionOutstandingFormData) => {
+    setSelectedOutstandingData(formData);
+    setCurrentView("commission-outstanding-report");
   };
 
   return (
@@ -257,6 +288,43 @@ export default function LICCommReportsPage() {
           formData={selectedDeductionData}
           policies={policies || []}
           onBackToForm={() => setCurrentView("deduction-summary-form")}
+        />
+      )}
+
+      {/* VIEW 8: Commission Summary Form */}
+      {currentView === "commission-summary-form" && (
+        <CommissionSummaryForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateSummaryReport}
+          initialData={selectedSummaryData}
+        />
+      )}
+
+      {/* VIEW 9: Commission Summary Report Preview */}
+      {currentView === "commission-summary-report" && selectedSummaryData && (
+        <CommissionSummaryReportView
+          formData={selectedSummaryData}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("commission-summary-form")}
+        />
+      )}
+
+      {/* VIEW 10: Commission Outstanding Form */}
+      {currentView === "commission-outstanding-form" && (
+        <CommissionOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateOutstandingReport}
+          initialData={selectedOutstandingData}
+          branches={branches || []}
+        />
+      )}
+
+      {/* VIEW 11: Commission Outstanding Report Preview */}
+      {currentView === "commission-outstanding-report" && selectedOutstandingData && (
+        <CommissionOutstandingReportView
+          formData={selectedOutstandingData}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("commission-outstanding-form")}
         />
       )}
     </div>
