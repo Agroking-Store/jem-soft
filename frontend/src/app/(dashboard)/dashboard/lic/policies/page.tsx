@@ -26,6 +26,7 @@ import {
   AlertCircle,
   BarChart,
   FileText,
+  ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
@@ -110,6 +111,24 @@ const getStatusBadge = (status: string) => {
     icon: StatusIcon,
   };
 };
+
+/** Compact page-number list with ellipsis for many pages, e.g. 1 … 4 5 6 … 10 */
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const items: (number | "ellipsis")[] = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  if (start > 2) items.push("ellipsis");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+  return items;
+}
 
 function PolicyTypeModal({
   isOpen,
@@ -234,6 +253,9 @@ export default function LICPoliciesPage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isClient, setIsClient] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
 
   const { policies, isLoading } = useSelector(
@@ -294,7 +316,7 @@ export default function LICPoliciesPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const { stats, filteredPolicies } = useMemo(() => {
+  const { filteredPolicies } = useMemo(() => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
     const filtered = policies.filter((policy) => {
@@ -328,6 +350,33 @@ export default function LICPoliciesPage() {
 
     return { stats: calculatedStats, filteredPolicies: filtered };
   }, [policies, searchTerm, filterStatus]);
+
+  // ── Pagination (applied AFTER search/filtering) ──
+  const totalItems = filteredPolicies.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+  const paginatedPolicies = useMemo(
+    () => filteredPolicies.slice(startIndex, endIndex),
+    [filteredPolicies, startIndex, endIndex],
+  );
+
+  // Reset to the first page whenever the search/filter criteria change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  // Keep the current page within bounds if the filtered list shrinks
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const pageItems = getPageItems(currentPage, totalPages);
+
+  const handleRowsPerPageChange = (value: number) => {
+    setRowsPerPage(value);
+    setCurrentPage(1);
+  };
 
   const statusOptions = ["All", "Active", "Pending", "Lapsed", "Completed"];
 
@@ -463,15 +512,79 @@ export default function LICPoliciesPage() {
         ) : (
           <CustomerTableFrame
             footer={
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>
-                  Showing{" "}
-                  <strong className="text-slate-700">
-                    {filteredPolicies.length}
-                  </strong>{" "}
-                  of <strong className="text-slate-700">{stats.total}</strong>{" "}
-                  policies
-                </span>
+              <div className="flex flex-col items-center justify-between gap-3 text-xs text-slate-500 sm:flex-row">
+                {/* Left: rows per page */}
+                <div className="flex items-center gap-2">
+                  <span className="whitespace-nowrap">Rows per page:</span>
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) =>
+                      handleRowsPerPageChange(Number(e.target.value))
+                    }
+                    className="rounded-lg border border-slate-200 bg-white py-1.5 pl-2.5 pr-2 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+                  >
+                    {[10, 20, 50].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Right: range + page controls */}
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  <span className="mr-1 whitespace-nowrap font-medium text-slate-600">
+                    {totalItems === 0
+                      ? "0–0 of 0"
+                      : `${startIndex + 1}–${endIndex} of ${totalItems}`}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-semibold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600"
+                  >
+                    <ChevronLeft size={13} />
+                    Previous
+                  </button>
+
+                  {pageItems.map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="inline-flex h-8 min-w-8 items-center justify-center text-slate-400"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setCurrentPage(item)}
+                        className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg border px-2 text-xs font-semibold transition-all ${
+                          currentPage === item
+                            ? "border-[#1877F2] bg-[#1877F2] text-white shadow-sm shadow-blue-200"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-semibold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600"
+                  >
+                    Next
+                    <ChevronRight size={13} />
+                  </button>
+                </div>
               </div>
             }
           >
@@ -505,7 +618,7 @@ export default function LICPoliciesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredPolicies.map((policy, index) => {
+                {paginatedPolicies.map((policy, index) => {
                   const statusName = policy.status?.statusName || "Unknown";
                   const statusBadge = getStatusBadge(statusName);
                   const StatusIcon = statusBadge.icon;
