@@ -40,7 +40,9 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
       return;
     }
 
-    console.log(`Matched Product: ${product.productName} (Plan ${product.planNumber})`);
+    console.log(
+      `Matched Product: ${product.productName} (Plan ${product.planNumber})`,
+    );
 
     let inserted = 0;
     let skipped = 0;
@@ -91,7 +93,6 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
         // Only look at Plan 717-specific records; never touch legacy 714/715 records
         const existing = await prisma.riderPremiumRate.findFirst({
           where: {
-            productId: product.id,
             riderId: rider.id,
             entryAge,
             riderTerm,
@@ -127,7 +128,6 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
 
         await prisma.riderPremiumRate.create({
           data: {
-            productId: product.id,
             riderId: rider.id,
             entryAge,
             riderTerm,
