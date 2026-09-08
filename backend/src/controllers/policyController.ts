@@ -61,7 +61,7 @@ export const previewPremium = catchAsync(
 
 export const previewRiderPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { riderId, age, riderTerm, sumAssured, premiumMode, productId } = req.body;
+    const { riderId, age, riderTerm, sumAssured, premiumMode, productId, option } = req.body;
 
     if (!riderId || !age || !riderTerm || !sumAssured || !premiumMode || !productId) {
       throw new AppError(
@@ -73,12 +73,18 @@ export const previewRiderPremium = catchAsync(
     const { prisma } = await import("../config/database.js");
     const { getModeFactor } = await import("../services/premiumCalculationService.js");
 
+    const whereClause: any = {
+      riderId,
+      entryAge: Number(age),
+      riderTerm: Number(riderTerm),
+    };
+
+    if (option !== undefined && option !== null && option !== "") {
+      whereClause.option = Number(option);
+    }
+
     const riderRate = await prisma.riderPremiumRate.findFirst({
-      where: {
-        riderId,
-        entryAge: Number(age),
-        riderTerm: Number(riderTerm),
-      },
+      where: whereClause,
     });
 
     if (!riderRate) {
@@ -96,6 +102,7 @@ export const previewRiderPremium = catchAsync(
       status: "success",
       data: {
         premium: installmentPremium,
+        rate: Number(riderRate.ratePerThousand),
       },
     });
   },

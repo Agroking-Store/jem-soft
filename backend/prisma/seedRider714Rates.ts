@@ -82,13 +82,14 @@ export const seedRiderPremium714 = async (
         }
 
         const existing =
-          await prisma.riderPremiumRate.findUnique({
+          await prisma.riderPremiumRate.findFirst({
             where: {
-              riderId_entryAge_riderTerm: {
-                riderId: rider.id,
-                entryAge,
-                riderTerm,
-              },
+
+              riderId: rider.id,
+              entryAge,
+              riderTerm,
+              option: null,
+
             },
           });
 
@@ -103,6 +104,7 @@ export const seedRiderPremium714 = async (
             entryAge,
             riderTerm,
             ratePerThousand: rate,
+            option: null,
           },
         });
 

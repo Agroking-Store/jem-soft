@@ -6,7 +6,7 @@ type ProductUpdateData = Partial<ProductCreateData>;
 
 export const getProducts = async () => {
   return await prisma.productMaster.findMany({
-    include: { provider: true, category: true },
+    include: { provider: true, category: true, riders: { include: { rider: true } } },
     orderBy: { productName: "asc" },
   });
 };
@@ -14,7 +14,7 @@ export const getProducts = async () => {
 export const getProductById = async (id: string) => {
   return await prisma.productMaster.findUnique({
     where: { id },
-    include: { provider: true, category: true },
+    include: { provider: true, category: true, riders: { include: { rider: true } } },
   });
 };
 

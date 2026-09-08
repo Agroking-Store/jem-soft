@@ -81,13 +81,12 @@ function TableHeadCell({
 }) {
   return (
     <th
-      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
-        align === "center"
-          ? "text-center"
-          : align === "right"
-            ? "text-right"
-            : "text-left"
-      }`}
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${align === "center"
+        ? "text-center"
+        : align === "right"
+          ? "text-right"
+          : "text-left"
+        }`}
     >
       {children}
     </th>
@@ -540,13 +539,12 @@ export default function LICPoliciesPage() {
                       onClick={() =>
                         router.push(`/dashboard/lic/policies/${policy.id}`)
                       }
-                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                        activeHighlight === policy.id
-                          ? "bg-yellow-50/50"
-                          : index % 2 === 0
-                            ? "bg-white"
-                            : "bg-slate-50/30"
-                      }`}
+                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${activeHighlight === policy.id
+                        ? "bg-yellow-50/50"
+                        : index % 2 === 0
+                          ? "bg-white"
+                          : "bg-slate-50/30"
+                        }`}
                     >
                       <td className="h-[72px] px-3 py-3 align-middle">
                         <span className="inline-flex whitespace-nowrap rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
@@ -588,7 +586,7 @@ export default function LICPoliciesPage() {
                       </td>
                       <td className="h-[72px] whitespace-nowrap px-3 py-3 text-right align-middle text-slate-800">
                         {policy.premium?.installmentPremium
-                          ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}`
+                          ? `₹ ${policy.premium.totalInstallmentPremium.toLocaleString("en-IN")}`
                           : "N/A"}
                       </td>
                       <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
@@ -613,8 +611,8 @@ export default function LICPoliciesPage() {
                       <td className="h-[72px] whitespace-nowrap px-3 py-3 align-middle text-slate-800">
                         {policy.nextPremiumDueDate
                           ? new Date(
-                              policy.nextPremiumDueDate,
-                            ).toLocaleDateString("en-IN")
+                            policy.nextPremiumDueDate,
+                          ).toLocaleDateString("en-IN")
                           : "N/A"}
                       </td>
                       <td className="h-[72px] px-3 py-3 text-center align-middle">

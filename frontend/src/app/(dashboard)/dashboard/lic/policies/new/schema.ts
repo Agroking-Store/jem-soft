@@ -23,6 +23,7 @@ export const riderSchema = z.object({
     z.coerce.number().positive("Must be positive").nullable(),
   ),
   mode: z.string().optional(),
+  option: z.string().optional(),
 });
 
 export const nomineeSchema = z.object({
