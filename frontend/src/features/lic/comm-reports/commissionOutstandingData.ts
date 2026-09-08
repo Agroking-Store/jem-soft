@@ -14,12 +14,13 @@ export interface CommissionOutstandingFormData {
   commissionType: CommissionTypeFilter;
   sortingOption: OutstandingSortingOption;
   selectedBranches: Array<{ id: string; branchCode: string; branchName: string }>;
+  selectedPolicyIds?: string[];
 }
 
 export interface CommissionOutstandingItem {
   id: string;
   srNo: number;
-  policyNo: string;
+  policyNo: string; // 9-digit LIC Policy Number
   holderName: string;
   planTermPpt: string;
   dueDate: string;
@@ -46,7 +47,77 @@ export interface CommissionOutstandingTotals {
 }
 
 /**
- * Authentic baseline LIC agency records for Commission Outstanding
+ * Format any policy identifier into an authentic 9-digit LIC policy number
+ */
+export function format9DigitPolicyNo(rawNo: any, fallbackIndex = 1): string {
+  if (!rawNo) {
+    return String(910000000 + fallbackIndex);
+  }
+  const digits = String(rawNo).replace(/\D/g, "");
+  if (digits.length === 9) {
+    return digits;
+  }
+  if (digits.length > 9) {
+    return digits.slice(-9);
+  }
+  if (digits.length > 0) {
+    return `91${digits.padStart(7, "0")}`.slice(-9);
+  }
+  return String(910000000 + fallbackIndex);
+}
+
+/**
+ * Dynamically extract all unique branches from policies created in the system and Redux state
+ */
+export function extractDynamicBranches(
+  policies: Array<any> = [],
+  reduxBranches: Array<any> = []
+): Array<{ id: string; branchCode: string; branchName: string }> {
+  const branchMap = new Map<string, { id: string; branchCode: string; branchName: string }>();
+
+  // 1. Extract from Redux licBranch
+  reduxBranches.forEach((b) => {
+    const code = String(b?.branchCode || "").trim();
+    if (code) {
+      branchMap.set(code, {
+        id: b.id || `br-${code}`,
+        branchCode: code,
+        branchName: b.branchName || `Branch ${code}`,
+      });
+    }
+  });
+
+  // 2. Extract from policies created in system
+  policies.forEach((p, idx) => {
+    const bCode = String(p.branch?.branchCode || p.branchCode || p.branchId || "").trim();
+    const bName = p.branch?.branchName || p.branchName || (bCode ? `Branch ${bCode}` : "");
+    if (bCode && !branchMap.has(bCode)) {
+      branchMap.set(bCode, {
+        id: p.branch?.id || `pol-br-${bCode}-${idx}`,
+        branchCode: bCode,
+        branchName: bName,
+      });
+    }
+  });
+
+  // 3. Realistic LIC Branch defaults if system has none yet
+  if (branchMap.size === 0) {
+    const defaults = [
+      { id: "b958", branchCode: "958", branchName: "Camp, Pune" },
+      { id: "b951", branchCode: "951", branchName: "Shivajinagar, Pune" },
+      { id: "b953", branchCode: "953", branchName: "Deccan Gymkhana, Pune" },
+      { id: "b955", branchCode: "955", branchName: "Hadapsar, Pune" },
+      { id: "b950", branchCode: "950", branchName: "Pune City Main" },
+      { id: "b952", branchCode: "952", branchName: "Kothrud, Pune" },
+    ];
+    defaults.forEach((d) => branchMap.set(d.branchCode, d));
+  }
+
+  return Array.from(branchMap.values()).sort((a, b) => a.branchCode.localeCompare(b.branchCode));
+}
+
+/**
+ * Authentic baseline LIC agency records with exact 9-digit policy numbers
  */
 export const SAMPLE_OUTSTANDING_ITEMS: CommissionOutstandingItem[] = [
   {
@@ -223,7 +294,7 @@ export function generateCommissionOutstandingItems(
 
   if (policies && policies.length > 0) {
     const validPolicies = policies.filter((p) => {
-      // 1. Agency Check
+      // 1. Agency Filter Check (If none selected, ALL pass)
       if (agencyFilters.length > 0) {
         const pAgCode = (p.agentCode || "").toLowerCase().trim();
         const pAdvCode = (p.advisor?.advisorCode || "").toLowerCase().trim();
@@ -252,10 +323,10 @@ export function generateCommissionOutstandingItems(
         if (!matches) return false;
       }
 
-      // 2. Branch Filter Check
+      // 2. Branch Filter Check (If none selected, ALL branches pass)
       if (formData.selectedBranches && formData.selectedBranches.length > 0) {
-        const pBranchCode = String(p.branch?.branchCode || p.branchId || "").toLowerCase();
-        const pBranchName = String(p.branch?.branchName || "").toLowerCase();
+        const pBranchCode = String(p.branch?.branchCode || p.branchCode || p.branchId || "").toLowerCase();
+        const pBranchName = String(p.branch?.branchName || p.branchName || "").toLowerCase();
         const matchesBranch = formData.selectedBranches.some(
           (b) =>
             pBranchCode.includes(b.branchCode.toLowerCase()) ||
@@ -264,18 +335,33 @@ export function generateCommissionOutstandingItems(
         if (!matchesBranch) return false;
       }
 
-      // 3. Payment Type Mode Check (Monthly vs Non-Monthly)
-      const rawMode = (p.premiumMode?.modeName || p.mode || "Yearly").toLowerCase();
-      const isMonthly = rawMode.includes("month") || rawMode.startsWith("m");
-      if (isMonthly && !formData.paymentTypes.monthly) return false;
-      if (!isMonthly && !formData.paymentTypes.nonMonthly) return false;
+      // 3. Payment Type Mode Check
+      // If neither is checked or both are checked -> NO restriction (all pass)
+      const hasSpecificPaymentFilter =
+        formData.paymentTypes.monthly !== formData.paymentTypes.nonMonthly;
+
+      if (hasSpecificPaymentFilter) {
+        const rawMode = (p.premiumMode?.modeName || p.mode || "Yearly").toLowerCase();
+        const isMonthly = rawMode.includes("month") || rawMode.startsWith("m");
+        if (formData.paymentTypes.monthly && !isMonthly) return false;
+        if (formData.paymentTypes.nonMonthly && isMonthly) return false;
+      }
+
+      // 4. Policy Filter Check (if specific policy IDs selected)
+      if (formData.selectedPolicyIds && formData.selectedPolicyIds.length > 0) {
+        const pId = String(p.id);
+        const polNo = format9DigitPolicyNo(p.policyNumber || p.policyNo);
+        if (!formData.selectedPolicyIds.includes(pId) && !formData.selectedPolicyIds.includes(polNo)) {
+          return false;
+        }
+      }
 
       return true;
     });
 
     if (validPolicies.length > 0) {
       items = validPolicies.map((p, idx) => {
-        const policyNo = p.policyNumber || p.policyNo || `POL-${910000000 + idx}`;
+        const policyNo = format9DigitPolicyNo(p.policyNumber || p.policyNo, idx + 1);
         const holderName =
           p.CustomerMaster?.firstName
             ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName || ""}`.trim()
@@ -325,14 +411,17 @@ export function generateCommissionOutstandingItems(
           ? "H"
           : "Y";
 
-        const bCode = p.branch?.branchCode || "958";
-        const bName = p.branch?.branchName || "Pune Camp";
+        const bCode = p.branch?.branchCode || p.branchCode || "958";
+        const bName = p.branch?.branchName || p.branchName || "Pune Camp";
 
         return {
           id: p.id ? String(p.id) : `dyn-out-${idx}`,
           srNo: idx + 1,
           policyNo,
-          holderName: holderName.startsWith("Mr.") || holderName.startsWith("Ms.") || holderName.startsWith("Mrs.") ? holderName : `Mr. ${holderName}`,
+          holderName:
+            holderName.startsWith("Mr.") || holderName.startsWith("Ms.") || holderName.startsWith("Mrs.")
+              ? holderName
+              : `Mr. ${holderName}`,
           planTermPpt: `${plan}/${term}/${ppt}`,
           dueDate: "01/09/2026",
           payDate: "05/09/2026",
@@ -346,7 +435,12 @@ export function generateCommissionOutstandingItems(
           tdsAmount,
           netOutstanding,
           agingDays: Math.min(14, idx + 1),
-          status: idx % 3 === 0 ? "Pending Clearance" : idx % 3 === 1 ? "Branch Processing" : "In Transit",
+          status:
+            idx % 3 === 0
+              ? "Pending Clearance"
+              : idx % 3 === 1
+              ? "Branch Processing"
+              : "In Transit",
         };
       });
     }
@@ -354,7 +448,10 @@ export function generateCommissionOutstandingItems(
 
   // If no redux policies or empty, use authentic sample items
   if (items.length === 0) {
-    items = [...SAMPLE_OUTSTANDING_ITEMS];
+    items = SAMPLE_OUTSTANDING_ITEMS.map((item, idx) => ({
+      ...item,
+      policyNo: format9DigitPolicyNo(item.policyNo, idx + 1),
+    }));
   }
 
   // Filter by Commission Type: First Year / Renewal / All

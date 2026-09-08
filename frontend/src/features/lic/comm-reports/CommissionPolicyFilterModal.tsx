@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { X, Search, Trash2, Shield, CheckSquare, Square, Check } from "lucide-react";
 import { getCustomerFullName } from "./commReportsUtils";
+import { format9DigitPolicyNo } from "./commissionOutstandingData";
 
 export interface CommissionPolicyFilterSelection {
   filterType: "Policies" | "Agent Bill Wise" | "Interest Date Wise";
@@ -125,7 +126,7 @@ export default function CommissionPolicyFilterModal({
     }> = [];
 
     eligiblePolicies.forEach((p, idx) => {
-      const polNo = p.policyNumber || p.policyNo || `POL-${idx + 1}`;
+      const polNo = format9DigitPolicyNo(p.policyNumber || p.policyNo, idx + 1);
       const holder =
         getCustomerFullName(p.CustomerMaster) !== "-"
           ? getCustomerFullName(p.CustomerMaster)

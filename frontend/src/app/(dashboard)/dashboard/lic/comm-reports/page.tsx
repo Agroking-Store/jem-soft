@@ -211,7 +211,9 @@ export default function LICCommReportsPage() {
                     <span>
                       {card.id === "commission-ledger" ||
                       card.id === "commission-bill" ||
-                      card.id === "deduction-summary"
+                      card.id === "deduction-summary" ||
+                      card.id === "commission-summary" ||
+                      card.id === "commission-outstanding"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -316,6 +318,7 @@ export default function LICCommReportsPage() {
           onGenerateReport={handleGenerateOutstandingReport}
           initialData={selectedOutstandingData}
           branches={branches || []}
+          policies={policies || []}
         />
       )}
 
