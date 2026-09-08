@@ -11,6 +11,7 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { fetchCustomers } from "@/features/customers/customerSlice";
@@ -491,6 +492,7 @@ const riderSchema = z.object({
     z.coerce.number().positive("Must be positive").nullable(),
   ),
   mode: z.string().optional(),
+  option: z.string().optional(),
 });
 
 const nomineeSchema = z.object({
@@ -517,6 +519,7 @@ const policySchema = z.object({
   age: z.string().optional(),
   gender: z.string().optional(),
   pan: z.string().optional(),
+  option: z.string().optional(),
 
   providerType: z.string().min(1, "Provider type is required"),
   productType: z.string().optional(),
@@ -660,6 +663,7 @@ export default function EditLICPolicyPage() {
     sumAssured: "",
     age: "",
   });
+  const [productOptionsData, setProductOptionsData] = useState<{terms: number[], ppts: number[], combinations: {term: number, ppt: number}[]}>({ terms: [], ppts: [], combinations: [] });
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -702,6 +706,7 @@ export default function EditLICPolicyPage() {
     clearErrors,
     setError,
     reset,
+    getValues,
     formState: { errors },
   } = useForm<PolicyFormValues>({
     resolver: async (values, context, options) => {
@@ -753,6 +758,16 @@ export default function EditLICPolicyPage() {
             path: ["completionDate"],
           },
         );
+      }
+
+      const selectedProductPlan = products.find(
+        (product) => product.id === values.productId,
+      )?.planNumber;
+      if (selectedProductPlan === "881") {
+        refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
+          message: "Please select an option for LIC Plan 881.",
+          path: ["option"],
+        });
       }
 
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
@@ -847,6 +862,10 @@ export default function EditLICPolicyPage() {
   const watchPolicyNumber = watch("policyNumber");
 
   const watchProductId = watch("productId");
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === watchProductId),
+    [watchProductId, products],
+  );
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
     [watchGroupId, groups],
@@ -906,7 +925,15 @@ export default function EditLICPolicyPage() {
 
       term: selectedPolicy.policyTerm ?? undefined,
 
-      ppt: selectedPolicy.premiumPayingTerm ?? undefined,
+      ppt:
+        selectedPolicy.premiumPayingTerm != null
+          ? (String(selectedPolicy.premiumPayingTerm) as any)
+          : undefined,
+
+      option:
+        selectedPolicy.premium?.option != null
+          ? String(selectedPolicy.premium.option)
+          : "",
 
       mode: selectedPolicy.premiumMode?.modeName ?? "",
 
@@ -1043,6 +1070,71 @@ export default function EditLICPolicyPage() {
       setUseNeft(true);
     }
   }, [selectedPolicy, reset, branches, selectedGroup]);
+
+  // Fetch available Term/PPT options for the selected product (same as Create Policy)
+  useEffect(() => {
+    if (!watchProductId) {
+      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+      return;
+    }
+    const fetchOptions = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/products/${watchProductId}/options`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+          }
+        );
+        if (response.data?.data) {
+          setProductOptionsData(response.data.data);
+
+          // Re-apply the saved PPT now that the dropdown options exist.
+          // Keep it only if it is valid for the selected plan, otherwise
+          // clear it and ask the user to select a valid PPT.
+          const currentPpt = getValues("ppt") as unknown as string | number | undefined;
+          if (currentPpt !== undefined && currentPpt !== null && currentPpt !== "") {
+            const ppts: number[] = (response.data.data.ppts || []).map(Number);
+            const combinations: { term: number, ppt: number }[] = response.data.data.combinations || [];
+            const isValidPpt =
+              ppts.includes(Number(currentPpt)) ||
+              combinations.some((c) => c.ppt === Number(currentPpt));
+            if (isValidPpt) {
+              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+            } else {
+              setValue("ppt", undefined, { shouldValidate: true, shouldDirty: true });
+              toast.error(
+                "The saved PPT is not valid for the selected plan. Please select a valid PPT.",
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch product options", error);
+      }
+    };
+    fetchOptions();
+  }, [watchProductId, setValue, getValues]);
+
+  // Auto-select PPT when Term is selected (same as Create Policy)
+  useEffect(() => {
+    if (watchTerm && productOptionsData.combinations.length > 0) {
+      const termValue = Number(watchTerm);
+      // Find combinations for this term
+      const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
+      if (matchingCombs.length === 1) {
+        // Only one possible PPT for this term, auto select it
+        setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+      } else if (matchingCombs.length > 0 && watchPpt) {
+        // If current PPT is not in the valid list for this term, clear or reset it
+        const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
+        if (!isValid) {
+          setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+        }
+      }
+    }
+  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt]);
 
   useEffect(() => {
     setValue("groupCode", selectedGroup?.groupCode || "");
@@ -1234,6 +1326,11 @@ export default function EditLICPolicyPage() {
       const payload = {
         ...data,
 
+        age: data.age ? Number(data.age) : undefined,
+        policyTerm: data.term ? Number(data.term) : undefined,
+        premiumPayingTerm: data.ppt ? Number(data.ppt) : undefined,
+        option: data.option ? Number(data.option) : undefined,
+
         advisorId: data.advisorId || null,
         branchId: data.branchId || null,
         attributes: {
@@ -1242,9 +1339,6 @@ export default function EditLICPolicyPage() {
           PREMIUM_PAYING_TERM: data.ppt,
           // Add other dynamic attributes here if they are on the form
         },
-
-        policyTerm: data.term,
-        premiumPayingTerm: data.ppt,
       };
 
       console.log("Advisor ID:", payload.advisorId);
@@ -1267,6 +1361,15 @@ export default function EditLICPolicyPage() {
       console.error("Failed to update policy:", err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const onInvalid = (formErrors: any) => {
+    const selectedProduct = products.find(
+      (product) => product.id === watchProductId,
+    );
+    if (selectedProduct?.planNumber === "881" && formErrors.option) {
+      toast.error("Please select an option for LIC Plan 881.");
     }
   };
 
@@ -1389,7 +1492,7 @@ export default function EditLICPolicyPage() {
       {/* Form Content - Grid Layout */}
       <form
         id="policy-form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         noValidate
         className="space-y-6"
       >
@@ -1696,14 +1799,42 @@ export default function EditLICPolicyPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      PPT
+                      {selectedProduct?.planNumber === "883"
+                        ? "Gua.Addn.Period"
+                        : "PPT"}
+                      {(selectedProduct?.planNumber === "889" ||
+                        selectedProduct?.planNumber === "881" ||
+                        selectedProduct?.planNumber === "912") && (
+                        <span className="text-red-500"> *</span>
+                      )}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       {...register("ppt")}
-                      placeholder="Enter PPT"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
+                      disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">
+                        {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
+                      </option>
+                      {(() => {
+                        let optionsToRender: (number | string)[] = productOptionsData.ppts;
+                        if (selectedProduct?.planNumber === "887") {
+                          if (watchMode === "Single") {
+                            optionsToRender = ["1"];
+                          } else {
+                            const currentTerm = Number(watchTerm);
+                            const allowed = [5, 10, 15];
+                            if (currentTerm && !allowed.includes(currentTerm)) {
+                              allowed.push(currentTerm);
+                            }
+                            optionsToRender = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                          }
+                        }
+                        return optionsToRender.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ));
+                      })()}
+                    </select>
                     {errors.ppt && (
                       <p className="text-xs text-red-500 mt-1">
                         {errors.ppt.message}
@@ -1715,6 +1846,28 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
+                  {products.find((product) => product.id === watchProductId)
+                    ?.planNumber === "881" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CustomerSectionCard>
             </div>

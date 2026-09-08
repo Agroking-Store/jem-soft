@@ -360,6 +360,7 @@ model RiderPremiumRate {
 
   entryAge Int
   riderTerm Int
+  option Int?
 
   ratePerThousand Decimal @db.Decimal(10,2)
 
@@ -368,7 +369,7 @@ model RiderPremiumRate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([riderId, entryAge, riderTerm])
+  @@unique([riderId, entryAge, riderTerm, option])
 }
 
 // ======================================================
@@ -743,6 +744,8 @@ model PolicyPremiumCalculation {
   riderPremium Decimal? @db.Decimal(18,2)
 
   // Premiums
+  option Int?
+
   basicYearlyPremium Decimal @db.Decimal(18,2)
 
   totalYearlyPremium Decimal @db.Decimal(18,2)

@@ -16,6 +16,7 @@ export interface ProductMaster {
   isActive: boolean;
   provider: { id: string; name: string; code: string };
   category: { id: string; categoryName: string; categoryCode: string };
+  riders?: { rider?: { riderName?: string } }[];
 }
 
 interface ProductMasterState {
