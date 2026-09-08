@@ -17,23 +17,14 @@ import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 
 interface PremiumInput {
   productId: string;
-
   age: number;
-
   secondaryAge?: number | null;
-
   gender?: string | null;
-
   smoker?: boolean | null;
-
   option?: number | null;
-
-  policyTerm: number;
-
+  policyTerm: number; // Actual Policy Term
   premiumPayingTerm?: number | null;
-
   sumAssured: number;
-
   premiumMode: string;
 }
 
@@ -48,10 +39,44 @@ export interface CalculatorInput {
   rate: number;
 }
 
-export async function getModeFactor(
-  productId: string,
-  premiumMode: string
-) {
+function parseRequiredInt(value: unknown, fieldName: string): number {
+  if (
+    value === undefined ||
+    value === null ||
+    (typeof value === "string" && value.trim() === "")
+  ) {
+    throw new AppError(`Invalid ${fieldName}`, 400);
+  }
+
+  const parsedValue = Number(value);
+  if (!Number.isInteger(parsedValue)) {
+    throw new AppError(`Invalid ${fieldName}`, 400);
+  }
+
+  return parsedValue;
+}
+
+function parseOptionalInt(
+  value: unknown,
+  fieldName: string,
+): number | null | undefined {
+  if (value === null) return null;
+  if (
+    value === undefined ||
+    (typeof value === "string" && value.trim() === "")
+  ) {
+    return undefined;
+  }
+
+  const parsedValue = Number(value);
+  if (!Number.isInteger(parsedValue)) {
+    throw new AppError(`Invalid ${fieldName}`, 400);
+  }
+
+  return parsedValue;
+}
+
+export async function getModeFactor(productId: string, premiumMode: string) {
   const premiumModeRecord = await prisma.premiumModeMaster.findFirst({
     where: {
       OR: [
@@ -75,16 +100,15 @@ export async function getModeFactor(
   });
 
   if (premiumModeRecord) {
-    const factorRecord =
-      await prisma.productPremiumModeFactor.findFirst({
-        where: {
-          productId,
-          premiumModeId: premiumModeRecord.id,
-        },
-        select: {
-          factor: true,
-        },
-      });
+    const factorRecord = await prisma.productPremiumModeFactor.findFirst({
+      where: {
+        productId,
+        premiumModeId: premiumModeRecord.id,
+      },
+      select: {
+        factor: true,
+      },
+    });
 
     if (factorRecord) {
       return Number(factorRecord.factor);
@@ -115,12 +139,48 @@ export async function getModeFactor(
   }
 }
 
-export async function calculatePremium(
-  data: PremiumInput
-) {
-  // Map gender from Male/Female to M/F for DB lookups
-  if (data.gender === "Male" || data.gender === "MALE") data.gender = "M";
-  if (data.gender === "Female" || data.gender === "FEMALE") data.gender = "F";
+export async function calculatePremium(data: PremiumInput) {
+  const age = parseRequiredInt(data.age, "entry age");
+  const secondaryAge = parseOptionalInt(data.secondaryAge, "secondary age");
+  const policyTerm = parseRequiredInt(data.policyTerm, "policy term");
+  const premiumPayingTerm = parseOptionalInt(
+    data.premiumPayingTerm,
+    "premium paying term",
+  );
+  const option = parseOptionalInt(data.option, "option");
+  const sumAssured = parseRequiredInt(data.sumAssured, "sum assured");
+
+  const normalizedGender =
+    data.gender == null ? null : String(data.gender).trim();
+
+  const normalizedSmoker =
+    data.smoker === true || data.smoker === false ? data.smoker : null;
+
+  const normalizedPremiumMode =
+    data.premiumMode == null ? "" : String(data.premiumMode).trim();
+
+  const normalizedData = {
+    ...data,
+    age,
+    secondaryAge,
+    policyTerm,
+    premiumPayingTerm,
+    option,
+    sumAssured,
+    premiumMode: normalizedPremiumMode,
+    gender:
+      normalizedGender === "Male" || normalizedGender === "MALE"
+        ? "M"
+        : normalizedGender === "Female" || normalizedGender === "FEMALE"
+          ? "F"
+          : normalizedGender,
+    smoker: normalizedSmoker,
+  };
+
+  Object.assign(data, normalizedData);
+
+  const activeGender = data.gender;
+  const activeSmoker = data.smoker;
 
   // ==========================================
   // STEP 1 : Get Product
@@ -147,19 +207,17 @@ export async function calculatePremium(
     product.planNumber !== null &&
     ["771", "745", "883"].includes(product.planNumber);
 
-  if (usesPptLookup && data.premiumPayingTerm == null) {
+  if (usesPptLookup && premiumPayingTerm == null) {
     throw new AppError(
       `PPT / Gua. Addn. Period is required for LIC Plan ${product.planNumber}`,
-      400
+      400,
     );
   }
 
   // Now TypeScript knows this is definitely a number
-  const validatedPPT = data.premiumPayingTerm!;
+  const validatedPPT = premiumPayingTerm!;
 
-  const lookupTerm: number = usesPptLookup
-    ? validatedPPT
-    : data.policyTerm;
+  const lookupTerm: number = usesPptLookup ? validatedPPT : policyTerm;
   // ==========================================
   // STEP 3 : Premium Rate
   // ==========================================
@@ -171,111 +229,83 @@ export async function calculatePremium(
     // PLAN 888 - JEEVAN SATHI
     // ------------------------------------------
 
-    if (data.secondaryAge == null) {
+    if (secondaryAge == null) {
       throw new AppError(
         "Secondary / spouse age is required for LIC Plan 888",
-        400
+        400,
       );
     }
 
-    if (data.option == null) {
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 888", 400);
+    }
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        secondaryAge,
+        policyTerm,
+        premiumPayingTerm: null,
+        option,
+      },
+    });
+  } // ========================================================
+  // PLAN 889
+  // ========================================================
+  else if (product.planNumber === "889") {
+    if (secondaryAge == null) {
       throw new AppError(
-        "Option is required for LIC Plan 888",
-        400
+        "Secondary / spouse age is required for LIC Plan 889",
+        400,
+      );
+    }
+
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 889", 400);
+    }
+
+    if (premiumPayingTerm == null) {
+      throw new AppError(
+        "Premium Paying Term is required for LIC Plan 889",
+        400,
       );
     }
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-        entryAge: data.age,
-        secondaryAge: data.secondaryAge,
-        policyTerm: data.policyTerm,
-        premiumPayingTerm: null,
-        option: data.option,
+        entryAge: age,
+        secondaryAge,
+        policyTerm,
+        premiumPayingTerm,
+        option,
       },
     });
-
-  } // ========================================================
-  // PLAN 889
-  // ========================================================
-
-  else if (product.planNumber === "889") {
-
-    if (data.secondaryAge == null) {
-      throw new AppError(
-        "Secondary / spouse age is required for LIC Plan 889",
-        400
-      );
-    }
-
-    if (data.option == null) {
-      throw new AppError(
-        "Option is required for LIC Plan 889",
-        400
-      );
-    }
-
-    if (data.premiumPayingTerm == null) {
-      throw new AppError(
-        "Premium Paying Term is required for LIC Plan 889",
-        400
-      );
-    }
-
-    premiumRate =
-      await prisma.productPremiumRate.findFirst({
-        where: {
-          productId: data.productId,
-
-          // Primary age
-          entryAge: data.age,
-
-          // Spouse age
-          secondaryAge:
-            data.secondaryAge,
-
-          // Policy term
-          policyTerm:
-            data.policyTerm,
-
-          // PPT
-          premiumPayingTerm:
-            data.premiumPayingTerm,
-
-          // Option
-          option:
-            data.option,
-        },
-      });
   }
 
   // ========================================================
   // PLAN 774
   // ========================================================
-
   else if (product.planNumber === "774") {
-    if (data.option == null) {
-      throw new AppError(
-        "Option is required for LIC Plan 774",
-        400
-      );
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 774", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 774",
-        400
+        400,
       );
     }
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-        entryAge: data.age,
-        policyTerm: data.policyTerm,
-        premiumPayingTerm: data.premiumPayingTerm,
-        option: data.option,
+        entryAge: age,
+        policyTerm,
+        premiumPayingTerm,
+        option,
       },
     });
   }
@@ -283,29 +313,25 @@ export async function calculatePremium(
   // ========================================================
   // PLAN 881
   // ========================================================
-
   else if (product.planNumber === "881") {
-    if (data.option == null) {
-      throw new AppError(
-        "Option is required for LIC Plan 881",
-        400
-      );
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 881", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 881",
-        400
+        400,
       );
     }
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-        entryAge: data.age,
-        policyTerm: data.policyTerm,
-        premiumPayingTerm: data.premiumPayingTerm,
-        option: data.option,
+        entryAge: age,
+        policyTerm,
+        premiumPayingTerm,
+        option,
       },
     });
   }
@@ -313,104 +339,68 @@ export async function calculatePremium(
   // ========================================================
   // PLAN 912
   // ========================================================
-
   else if (product.planNumber === "912") {
-    if (data.option == null) {
-      throw new AppError(
-        "Option is required for LIC Plan 912",
-        400
-      );
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 912", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
+    if (premiumPayingTerm == null) {
       throw new AppError(
         "Premium Paying Term is required for LIC Plan 912",
-        400
+        400,
       );
     }
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-        entryAge: data.age,
-        policyTerm: data.policyTerm,
-        premiumPayingTerm: data.premiumPayingTerm,
-        option: data.option,
+        entryAge: age,
+        policyTerm,
+        premiumPayingTerm,
+        option,
       },
     });
-  }
-
-  // ========================================================
-  // PLAN 887
-  // =========================================================
-
-  else if (product.planNumber === "887") {
-
-    if (data.option == null) {
-      throw new AppError(
-        "Option is required for LIC Plan 887",
-        400
-      );
+  } else if (product.planNumber === "887") {
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 887", 400);
     }
 
-    if (data.gender == null) {
-      throw new AppError(
-        "Gender is required for LIC Plan 887",
-        400
-      );
+    if (activeGender == null) {
+      throw new AppError("Gender is required for LIC Plan 887", 400);
     }
 
-    if (data.smoker == null) {
-      throw new AppError(
-        "Smoker status is required for LIC Plan 887",
-        400
-      );
+    if (activeSmoker == null) {
+      throw new AppError("Smoker status is required for LIC Plan 887", 400);
     }
 
-    if (data.premiumPayingTerm == null) {
-      throw new AppError(
-        "Premium Paying Term is required for LIC Plan 887",
-        400
-      );
+    if (premiumPayingTerm == null) {
+      throw new AppError("Premium Paying Term is required for LIC Plan 887", 400);
     }
 
-    premiumRate =
-      await prisma.productPremiumRate.findFirst({
-        where: {
-          productId: data.productId,
-
-          entryAge: data.age,
-
-          secondaryAge: null,
-
-          gender: data.gender,
-
-          smoker: data.smoker,
-
-          policyTerm: data.policyTerm,
-
-          premiumPayingTerm:
-            data.premiumPayingTerm,
-
-          option: data.option,
-        },
-      });
-  }
-
-  else {
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        secondaryAge: null,
+        gender: activeGender,
+        smoker: activeSmoker,
+        policyTerm,
+        premiumPayingTerm,
+        option,
+      },
+    });
+  } else {
     // ------------------------------------------
     // EXISTING PLANS
     // ------------------------------------------
 
     const premiumPayingTermFilter =
-      data.premiumPayingTerm == null
-        ? undefined
-        : data.premiumPayingTerm;
+      premiumPayingTerm == null ? undefined : premiumPayingTerm;
 
     premiumRate = await prisma.productPremiumRate.findFirst({
       where: {
         productId: data.productId,
-        entryAge: data.age,
+        entryAge: age,
         policyTerm: lookupTerm,
         premiumPayingTerm: premiumPayingTermFilter,
       },
@@ -420,7 +410,7 @@ export async function calculatePremium(
       premiumRate = await prisma.productPremiumRate.findFirst({
         where: {
           productId: data.productId,
-          entryAge: data.age,
+          entryAge: age,
           policyTerm: lookupTerm,
           premiumPayingTerm: undefined,
         },
@@ -433,14 +423,7 @@ export async function calculatePremium(
       product.planNumber === "888"
         ? `Premium rate not found for Primary Age ${data.age}, Secondary Age ${data.secondaryAge}, Term ${data.policyTerm}, Option ${data.option}`
         : `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
-      404
-    );
-  }
-
-  if (!premiumRate) {
-    throw new AppError(
-      `Premium rate not found for Age ${data.age}, Lookup Term ${lookupTerm}`,
-      404
+      404,
     );
   }
 
@@ -450,9 +433,7 @@ export async function calculatePremium(
 
   const rate = Number(premiumRate.tabularRate);
 
-  const tabularPremium = Number(
-    ((rate * data.sumAssured) / 1000).toFixed(2)
-  );
+  const tabularPremium = Number(((rate * data.sumAssured) / 1000).toFixed(2));
 
   // ==========================================
   // STEP 5 : Plan Calculator
@@ -461,7 +442,6 @@ export async function calculatePremium(
   let premiumResult;
 
   switch (product.planNumber) {
-
     case "714":
     case "715":
     case "733":
@@ -471,7 +451,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -483,7 +463,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -495,7 +475,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -507,7 +487,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm, // Actual Policy Term (100-age)
+        policyTerm, // Actual Policy Term (100-age)
         premiumPayingTerm: validatedPPT,
         sumAssured: data.sumAssured,
         tabularPremium,
@@ -515,13 +495,12 @@ export async function calculatePremium(
       });
       break;
 
-
     case "745":
       premiumResult = await calculateLIC745({
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         premiumPayingTerm: validatedPPT,
         sumAssured: data.sumAssured,
         tabularPremium,
@@ -534,7 +513,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         premiumPayingTerm: validatedPPT,
         sumAssured: data.sumAssured,
         tabularPremium,
@@ -547,7 +526,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -559,7 +538,7 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        policyTerm: data.policyTerm,
+        policyTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -572,8 +551,8 @@ export async function calculatePremium(
         premiumMode: data.premiumMode,
         age: data.age,
         secondaryAge: data.secondaryAge!,
-        policyTerm: data.policyTerm,
-        option: data.option!,
+        policyTerm,
+        option: option!,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -586,9 +565,9 @@ export async function calculatePremium(
         premiumMode: data.premiumMode,
         age: data.age,
         secondaryAge: data.secondaryAge!,
-        policyTerm: data.policyTerm,
-        premiumPayingTerm: data.premiumPayingTerm!,
-        option: data.option!,
+        policyTerm,
+        premiumPayingTerm: premiumPayingTerm!,
+        option: option!,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -600,9 +579,9 @@ export async function calculatePremium(
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,
-        premiumPayingTerm: data.premiumPayingTerm!,
-        policyTerm: data.policyTerm,
-        option: data.option!,
+        premiumPayingTerm: premiumPayingTerm!,
+        policyTerm,
+        option: option!,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
@@ -613,37 +592,24 @@ export async function calculatePremium(
       premiumResult = await calculateLIC887({
         productId: data.productId,
         premiumMode: data.premiumMode,
-
         age: data.age,
-
-        policyTerm: data.policyTerm,
-
-        premiumPayingTerm:
-          data.premiumPayingTerm!,
-
-        option: data.option!,
-
+        policyTerm,
+        premiumPayingTerm: premiumPayingTerm!,
+        option: option!,
         gender: data.gender!,
-
         smoker: data.smoker!,
-
         sumAssured: data.sumAssured,
-
         tabularPremium,
-
         rate,
       });
-
       break;
 
     default: {
-
-      const saRebate =
-        await rebateService.calculateSumAssuredRebate(
-          data.productId,
-          data.sumAssured,
-          tabularPremium
-        );
+      const saRebate = await rebateService.calculateSumAssuredRebate(
+        data.productId,
+        data.sumAssured,
+        tabularPremium,
+      );
 
       premiumResult = {
         saRebateRate: saRebate.rebateRate,
@@ -661,16 +627,10 @@ export async function calculatePremium(
   // STEP 6 : Mode Factor
   // ==========================================
 
-  const modeFactor = await getModeFactor(
-    data.productId,
-    data.premiumMode
-  );
+  const modeFactor = await getModeFactor(data.productId, data.premiumMode);
 
   const installmentPremium = Number(
-    (
-      premiumResult.basicYearlyPremium *
-      modeFactor
-    ).toFixed(2)
+    (premiumResult.basicYearlyPremium * modeFactor).toFixed(2),
   );
 
   // ==========================================

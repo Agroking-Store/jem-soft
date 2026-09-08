@@ -24,6 +24,7 @@ export const seedRiderPremiumCIR = async (
     try {
         let totalInserted = 0;
         let totalSkipped = 0;
+        let lastRiderCode = "";
 
         // --------------------------------------------------
         // Process cir_m_1 and cir_m_2
@@ -46,6 +47,7 @@ export const seedRiderPremiumCIR = async (
             console.log(
                 `Matched Rider: ${rider.riderName} (${rider.riderCode})`
             );
+            lastRiderCode = rider.riderCode;
 
             const premiumRows = sqlite
                 .prepare(`SELECT * FROM "${tableName}"`)
@@ -155,7 +157,7 @@ export const seedRiderPremiumCIR = async (
         console.log("\n=================================");
         console.log("       CIR RIDER SEED COMPLETE");
         console.log("=================================");
-        console.log(`✔ Rider Code      : ${rider.riderCode}`);
+        console.log(`✔ Rider Code      : ${lastRiderCode}`);
         console.log(`✔ Total Inserted  : ${totalInserted}`);
         console.log(`✔ Total Skipped   : ${totalSkipped}`);
         console.log(`✔ Option 1        : cir_m_1`);

@@ -4,7 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
 import { calculatePremium } from "./premiumCalculationService.js";
-import { addMonths } from 'date-fns';
+import { addMonths } from "date-fns";
 
 interface RiderData {
   description: string;
@@ -32,7 +32,7 @@ interface PolicyData {
 
   spouseAge?: number | null;
   option?: number | null;
-  
+
   productId: string;
   policyNumber: string;
   commencementDate: string;
@@ -118,15 +118,19 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   });
 
   //Paid Status By default
-  const paymentStatus = await prisma.paymentStatusMaster.findFirst({ where : {statusCode : {equals : "PAID"}}})
+  const paymentStatus = await prisma.paymentStatusMaster.findFirst({
+    where: { statusCode: { equals: "PAID" } },
+  });
 
   //Payment Mode By Default
-  const paymentMode = await prisma.paymentModeMaster.findFirst( {where : {modeCode : {equals : "CHQ"}}})
+  const paymentMode = await prisma.paymentModeMaster.findFirst({
+    where: { modeCode: { equals: "CHQ" } },
+  });
 
   //Get next premium due date
   const monthsToAdd = premiumMode?.months;
-  const dueDate =new Date(data.commencementDate);
-  const nextPremiumDueDate =  addMonths(dueDate,monthsToAdd!);
+  const dueDate = new Date(data.commencementDate);
+  const nextPremiumDueDate = addMonths(dueDate, monthsToAdd!);
 
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
@@ -160,7 +164,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
         statusId: status.id,
         premiumModeId: premiumMode.id,
-        paymentModeId : paymentMode?.id,
+        paymentModeId: paymentMode?.id,
 
         commencementDate: new Date(data.commencementDate),
         maturityDate: data.completionDate
@@ -193,20 +197,21 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
     const premium = await calculatePremium({
       productId: data.productId,
-      age: age!,
+      age: Number(age),
       secondaryAge:
-    data.spouseAge !== undefined &&
-    data.spouseAge !== null
-      ? Number(data.spouseAge)
-      : null,
-  option:
-    data.option !== undefined &&
-    data.option !== null
-      ? Number(data.option)
-      : null,
-      policyTerm: policyTerm!,
-      premiumPayingTerm: premiumPayingTerm,
-      sumAssured: sumAssured!, // Ensure sumAssured is not null
+        data.spouseAge !== undefined && data.spouseAge !== null
+          ? Number(data.spouseAge)
+          : null,
+      option:
+        data.option !== undefined && data.option !== null
+          ? Number(data.option)
+          : null,
+      policyTerm: Number(policyTerm),
+      premiumPayingTerm:
+        premiumPayingTerm !== undefined && premiumPayingTerm !== null
+          ? Number(premiumPayingTerm)
+          : null,
+      sumAssured: Number(sumAssured),
       premiumMode: data.mode,
       gender: data.gender,
       smoker: data.smoker,
@@ -216,6 +221,10 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       data: {
         policyId: newPolicy.id,
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium, // From service
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
@@ -842,27 +851,28 @@ export const updatePolicy = async (
 
     // Update Premium Calculation
     const premium = await calculatePremium({
-  productId: data.productId,
-  age: data.age,
-  secondaryAge:
-    data.spouseAge != null
-      ? Number(data.spouseAge)
-      : null,
-  option:
-    data.option != null
-      ? Number(data.option)
-      : null,
-  policyTerm: data.term!,
-  premiumPayingTerm: data.ppt,
-  sumAssured: data.sumAssured!,
-  premiumMode: data.mode,
-});
-    await tx.policyPremiumCalculation.update({
+      productId: data.productId,
+      age: Number(data.age),
+      secondaryAge: data.spouseAge != null ? Number(data.spouseAge) : null,
+      option: data.option != null ? Number(data.option) : null,
+      policyTerm: Number(data.term),
+      premiumPayingTerm:
+        data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null,
+      sumAssured: Number(data.sumAssured),
+      premiumMode: data.mode,
+      gender: data.gender,
+      smoker: data.smoker,
+    });
+    await tx.policyPremiumCalculation.upsert({
       where: {
         policyId: id,
       },
       update: {
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium,
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),
@@ -874,6 +884,10 @@ export const updatePolicy = async (
       create: {
         policyId: id,
         sumAssured: sumAssured ?? 0,
+        option:
+          data.option !== undefined && data.option !== null
+            ? Number(data.option)
+            : null,
         basicYearlyPremium: premium.basicYearlyPremium,
         totalYearlyPremium:
           premium.basicYearlyPremium + (totalRiderPremium ?? 0),

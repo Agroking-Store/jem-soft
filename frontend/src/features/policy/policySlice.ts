@@ -73,6 +73,7 @@ export interface Policy {
   premium?: {
     id: string;
     sumAssured: number;
+    option?: number | null;
     basicYearlyPremium?: number;
     totalYearlyPremium?: number;
     installmentPremium: number;
