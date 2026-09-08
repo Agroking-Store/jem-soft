@@ -478,15 +478,16 @@ export default function LICPoliciesPage() {
             <table className="w-full min-w-[1200px] table-fixed border-separate border-spacing-0 text-left text-sm">
               <colgroup>
                 <col className="w-[9%]" />
-                <col className="w-[16%]" />
-                <col className="w-[14%]" />
+                <col className="w-[15%]" />
+                <col className="w-[13%]" />
                 <col className="w-[10%]" />
+                <col className="w-[9%]" />
+                <col className="w-[7%]" />
+                <col className="w-[6%]" />
+                <col className="w-[6%]" />
                 <col className="w-[9%]" />
                 <col className="w-[8%]" />
                 <col className="w-[8%]" />
-                <col className="w-[8%]" />
-                <col className="w-[8%]" />
-                <col className="w-[10%]" />
               </colgroup>
               <thead>
                 <tr>
@@ -496,7 +497,8 @@ export default function LICPoliciesPage() {
                   <TableHeadCell align="right">Sum Assured</TableHeadCell>
                   <TableHeadCell align="right">Premium</TableHeadCell>
                   <TableHeadCell>Mode</TableHeadCell>
-                  <TableHeadCell>Term / PPT</TableHeadCell>
+                  <TableHeadCell>Term</TableHeadCell>
+                  <TableHeadCell>PPT</TableHeadCell>
                   <TableHeadCell>FUP Date</TableHeadCell>
                   <TableHeadCell align="center">Status</TableHeadCell>
                   <TableHeadCell align="center">Actions</TableHeadCell>
@@ -595,20 +597,14 @@ export default function LICPoliciesPage() {
                         {policy.premiumMode?.modeName || "N/A"}
                       </td>
                       <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
-                        <div className="flex flex-col text-xs">
-                          <span>
-                            T:{" "}
-                            {policy.policyTerm
-                              ? `${policy.policyTerm}Y`
-                              : "N/A"}
-                          </span>
-                          <span className="text-slate-400">
-                            P:{" "}
-                            {policy.premiumPayingTerm
-                              ? `${policy.premiumPayingTerm}Y`
-                              : "N/A"}
-                          </span>
-                        </div>
+                        {policy.policyTerm
+                          ? `${policy.policyTerm}Y`
+                          : "N/A"}
+                      </td>
+                      <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
+                        {policy.premiumPayingTerm
+                          ? `${policy.premiumPayingTerm}Y`
+                          : "N/A"}
                       </td>
                       <td className="h-[72px] whitespace-nowrap px-3 py-3 align-middle text-slate-800">
                         {policy.nextPremiumDueDate
