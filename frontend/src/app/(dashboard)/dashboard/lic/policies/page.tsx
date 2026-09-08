@@ -81,7 +81,7 @@ function TableHeadCell({
 }) {
   return (
     <th
-      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
         align === "center"
           ? "text-center"
           : align === "right"
@@ -551,7 +551,7 @@ export default function LICPoliciesPage() {
                       }`}
                     >
                       <td className="h-[72px] px-3 py-3 align-middle">
-                        <span className="inline-flex whitespace-nowrap rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
+                        <span className="block w-fit max-w-full truncate rounded-lg bg-[#f1f5f9] px-3 py-1.5 font-mono text-xs font-semibold text-[#475569]">
                           {policy.policyNumber}
                         </span>
                       </td>
@@ -559,8 +559,8 @@ export default function LICPoliciesPage() {
                         <div className="flex items-center gap-3 text-left">
                           <Seal name={holderName} size={36} />
                           <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="truncate font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <span className="min-w-0 truncate font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2]">
                                 {holderName}
                               </span>
                               <ChevronRight
