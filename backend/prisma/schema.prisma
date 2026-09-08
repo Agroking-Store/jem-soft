@@ -360,6 +360,7 @@ model RiderPremiumRate {
 
   entryAge Int
   riderTerm Int
+  option Int?
 
   ratePerThousand Decimal @db.Decimal(10,2)
 
@@ -368,7 +369,7 @@ model RiderPremiumRate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([riderId, entryAge, riderTerm])
+  @@unique([riderId, entryAge, riderTerm, option])
 }
 
 // ======================================================

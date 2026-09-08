@@ -82,7 +82,7 @@ function TableHeadCell({
 }) {
   return (
     <th
-      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
         align === "center"
           ? "text-center"
           : align === "right"
@@ -610,8 +610,7 @@ export default function LICPoliciesPage() {
                   <TableHeadCell align="right">Sum Assured</TableHeadCell>
                   <TableHeadCell align="right">Premium</TableHeadCell>
                   <TableHeadCell>Mode</TableHeadCell>
-                  <TableHeadCell>Term</TableHeadCell>
-                  <TableHeadCell>PPT</TableHeadCell>
+                  <TableHeadCell>Term / PPT</TableHeadCell>
                   <TableHeadCell>FUP Date</TableHeadCell>
                   <TableHeadCell align="center">Status</TableHeadCell>
                   <TableHeadCell align="center">Actions</TableHeadCell>
@@ -703,21 +702,27 @@ export default function LICPoliciesPage() {
                       </td>
                       <td className="h-[72px] whitespace-nowrap px-3 py-3 text-right align-middle text-slate-800">
                         {policy.premium?.installmentPremium
-                          ? `₹ ${policy.premium.installmentPremium.toLocaleString("en-IN")}`
+                          ? `₹ ${policy.premium.totalInstallmentPremium.toLocaleString("en-IN")}`
                           : "N/A"}
                       </td>
                       <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
                         {policy.premiumMode?.modeName || "N/A"}
                       </td>
                       <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
-                        {policy.policyTerm
-                          ? `${policy.policyTerm}Y`
-                          : "N/A"}
-                      </td>
-                      <td className="h-[72px] px-3 py-3 align-middle text-slate-800">
-                        {policy.premiumPayingTerm
-                          ? `${policy.premiumPayingTerm}Y`
-                          : "N/A"}
+                        <div className="flex flex-col text-xs">
+                          <span>
+                            T:{" "}
+                            {policy.policyTerm
+                              ? `${policy.policyTerm}Y`
+                              : "N/A"}
+                          </span>
+                          <span className="text-slate-400">
+                            P:{" "}
+                            {policy.premiumPayingTerm
+                              ? `${policy.premiumPayingTerm}Y`
+                              : "N/A"}
+                          </span>
+                        </div>
                       </td>
                       <td className="h-[72px] whitespace-nowrap px-3 py-3 align-middle text-slate-800">
                         {policy.nextPremiumDueDate

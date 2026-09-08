@@ -328,6 +328,7 @@ export default function NewLICPolicyPage() {
     append: appendRider,
     remove: removeRider,
     replace: replaceRiders,
+    update: updateRider,
   } = useFieldArray({
     control,
     name: "riders",
@@ -639,27 +640,31 @@ export default function NewLICPolicyPage() {
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
   const ridersPreviewKey = Array.isArray(watchRiders) 
-    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}`).join('|') 
+    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.option}`).join('|') 
     : "";
 
-  // Auto-fill Term Rider fields
+  // Auto-fill Term Rider and CIR fields
   useEffect(() => {
     if (Array.isArray(watchRiders)) {
       watchRiders.forEach((r, index) => {
-        if (r.description && r.description.toLowerCase().includes("term")) {
-          const expectedSum = watchSumAssured || "";
-          const expectedTerm = watchTerm || "";
-          const expectedPpt = watchPpt || "";
+        const desc = r.description?.toLowerCase() || "";
+        if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
           
-          if (r.sum != expectedSum || r.term != expectedTerm || r.ppt != expectedPpt) {
-            setValue(`riders.${index}.sum`, expectedSum);
-            setValue(`riders.${index}.term`, expectedTerm);
-            setValue(`riders.${index}.ppt`, expectedPpt);
+          if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(expectedTerm || "") || String(r.ppt || "") !== String(expectedPpt || "")) {
+            updateRider(index, {
+              ...r,
+              sum: expectedSum,
+              term: expectedTerm,
+              ppt: expectedPpt
+            });
           }
         }
       });
     }
-  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, setValue]);
+  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, updateRider]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
@@ -688,7 +693,8 @@ export default function NewLICPolicyPage() {
                     riderTerm: term,
                     sumAssured: sum,
                     premiumMode: mode,
-                    productId: watchProductId
+                    productId: watchProductId,
+                    option: rider.option
                   },
                   {
                     signal: controller.signal,
@@ -698,22 +704,28 @@ export default function NewLICPolicyPage() {
                   }
                 );
                 const finalRiderPremium = response.data?.data?.premium || 0;
+                if (response.data?.data?.rate) {
+                  console.log(`Rider Premium Rate for index ${index}:`, response.data.data.rate);
+                }
                 return { index, newPremium: finalRiderPremium, currentPremium, isValid: true };
               } catch (error) {
                 if (!axios.isCancel(error)) {
                   console.error("Failed to fetch rider premium preview", error);
                 }
-                return { index, newPremium: currentPremium, currentPremium, isValid: false };
+                return { index, newPremium: 0, currentPremium, isValid: true };
               }
             }
-            return { index, newPremium: currentPremium, currentPremium, isValid: false };
+            return { index, newPremium: 0, currentPremium, isValid: true };
           })
         );
 
         updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
           totalInstallmentRiderPremium += newPremium;
           if (isValid && newPremium !== currentPremium) {
-            setValue(`riders.${index}.premium`, newPremium);
+            updateRider(index, {
+              ...watchRiders[index],
+              premium: newPremium
+            });
           }
         });
 
@@ -906,20 +918,40 @@ export default function NewLICPolicyPage() {
 
   // Auto-populate riders when a product is selected
   useEffect(() => {
-    if (selectedProduct && Array.isArray(selectedProduct.productRiders)) {
-      const newRiders = selectedProduct.productRiders.map((pr: any) => ({
-        description: pr.rider?.riderName || "",
-        sum: null,
-        term: null,
-        ppt: null,
-        premium: null,
-        mode: "",
-      }));
-      replaceRiders(newRiders);
+    // Look for riders instead of productRiders to match the backend response
+    if (selectedProduct) {
+      if (Array.isArray(selectedProduct.riders) && selectedProduct.riders.length > 0) {
+        const newRiders = selectedProduct.riders.map((pr: any) => ({
+          description: pr.rider?.riderName || "",
+          sum: null,
+          term: null,
+          ppt: null,
+          premium: null,
+          mode: "",
+        }));
+        replaceRiders(newRiders);
+      } else {
+        // Fallback: If DB hasn't mapped riders to this product yet, show Term Rider by default
+        const termRider = riders.find((r) => r.riderName.toLowerCase().includes("term"));
+        if (termRider) {
+          replaceRiders([
+            {
+              description: termRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+            },
+          ]);
+        } else {
+          replaceRiders([]);
+        }
+      }
     } else {
       replaceRiders([]);
     }
-  }, [selectedProduct, replaceRiders]);
+  }, [selectedProduct, replaceRiders, riders]);
 
   // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
