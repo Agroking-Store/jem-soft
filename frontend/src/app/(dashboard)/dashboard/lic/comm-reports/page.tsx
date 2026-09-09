@@ -23,6 +23,9 @@ import { CommissionSummaryFormData } from "@/features/lic/comm-reports/commissio
 import CommissionOutstandingForm from "@/features/lic/comm-reports/CommissionOutstandingForm";
 import CommissionOutstandingReportView from "@/features/lic/comm-reports/CommissionOutstandingReportView";
 import { CommissionOutstandingFormData } from "@/features/lic/comm-reports/commissionOutstandingData";
+import ShortCommissionForm from "@/features/lic/comm-reports/ShortCommissionForm";
+import ShortCommissionReportView from "@/features/lic/comm-reports/ShortCommissionReportView";
+import { ShortCommissionFormData } from "@/features/lic/comm-reports/shortCommissionData";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
@@ -38,7 +41,9 @@ type ViewState =
   | "commission-summary-form"
   | "commission-summary-report"
   | "commission-outstanding-form"
-  | "commission-outstanding-report";
+  | "commission-outstanding-report"
+  | "short-commission-form"
+  | "short-commission-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,6 +55,7 @@ export default function LICCommReportsPage() {
   const [selectedDeductionData, setSelectedDeductionData] = useState<DeductionSummaryFormData | null>(null);
   const [selectedSummaryData, setSelectedSummaryData] = useState<CommissionSummaryFormData | null>(null);
   const [selectedOutstandingData, setSelectedOutstandingData] = useState<CommissionOutstandingFormData | null>(null);
+  const [selectedShortCommissionData, setSelectedShortCommissionData] = useState<ShortCommissionFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
@@ -92,6 +98,9 @@ export default function LICCommReportsPage() {
     } else if (card.id === "commission-outstanding") {
       setSelectedOutstandingData(null);
       setCurrentView("commission-outstanding-form");
+    } else if (card.id === "short-excess-commissions") {
+      setSelectedShortCommissionData(null);
+      setCurrentView("short-commission-form");
     } else {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
@@ -121,6 +130,11 @@ export default function LICCommReportsPage() {
   const handleGenerateOutstandingReport = (formData: CommissionOutstandingFormData) => {
     setSelectedOutstandingData(formData);
     setCurrentView("commission-outstanding-report");
+  };
+
+  const handleGenerateShortCommissionReport = (formData: ShortCommissionFormData) => {
+    setSelectedShortCommissionData(formData);
+    setCurrentView("short-commission-report");
   };
 
   return (
@@ -213,7 +227,8 @@ export default function LICCommReportsPage() {
                       card.id === "commission-bill" ||
                       card.id === "deduction-summary" ||
                       card.id === "commission-summary" ||
-                      card.id === "commission-outstanding"
+                      card.id === "commission-outstanding" ||
+                      card.id === "short-excess-commissions"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -328,6 +343,25 @@ export default function LICCommReportsPage() {
           formData={selectedOutstandingData}
           policies={policies || []}
           onBackToForm={() => setCurrentView("commission-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 12: Short Commission Form */}
+      {currentView === "short-commission-form" && (
+        <ShortCommissionForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateShortCommissionReport}
+          initialData={selectedShortCommissionData}
+          policies={policies || []}
+        />
+      )}
+
+      {/* VIEW 13: Short Commission Report Preview */}
+      {currentView === "short-commission-report" && selectedShortCommissionData && (
+        <ShortCommissionReportView
+          formData={selectedShortCommissionData}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("short-commission-form")}
         />
       )}
     </div>
