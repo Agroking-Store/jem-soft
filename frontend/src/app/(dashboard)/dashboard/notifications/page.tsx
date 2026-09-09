@@ -118,50 +118,48 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
     <div className="max-w-7xl mx-auto space-y-6">
 
       {/* Header */}
-      <div className="flex justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-            <BellRing />
-          </span>
-          <span>
-            <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
-              Notifications
-            </h1>
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-
-           <button
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+          <div className="flex flex-row gap-4 items-center">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+              <BellRing />
+            </span>
+            <span>
+              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+                Notifications
+              </h1>
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
               onClick={() => {window.history.back();}}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]">
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
               <ArrowLeft size={18} />
               Back
             </button>
-          {unreadNotifications.length > 0 && (
-            <button
-              onClick={() => setMarkConfirmationModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]">
-              <Eye size={18} />
-              Mark All Read
-            </button>
-          )}
-
-          {readNotifications.length > 0 && (
-            <button
-              onClick={() => {setDeleteConfirmationModalOpen(true)}}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#0B1220]/20 transition-colors hover:bg-[#16294D]">
-              <Trash2 size={18} />
-              Delete All Read
-            </button>
-          )}
-        </div>
-      </div>
+            {unreadNotifications.length > 0 && (
+              <button
+                onClick={() => setMarkConfirmationModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
+                <Eye size={18} />
+                Mark All Read
+              </button>
+            )} 
+            {readNotifications.length > 0 && (
+              <button
+                onClick={() => {setDeleteConfirmationModalOpen(true)}}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
+                <Trash2 size={18} />
+                Delete All Read
+              </button>
+            )} 
+          </div> 
+    </div>
 
        
 
         <nav
       aria-label="Notification module navigation"
-      className="inline-flex max-w-full bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1"
+      className="inline-flex max-w-full bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100"
     >
       <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, icon: Icon }) => {
@@ -172,12 +170,13 @@ const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
               aria-current={isActive ? "page" : undefined}
               className={`
                 relative flex items-center gap-2 px-4 py-2 rounded-xl
-                text-[13px] font-bold whitespace-nowrap
-                transition-all duration-200 select-none
+                text-[16px] font-bold whitespace-nowrap
+                transition-all duration-200 select-none 
+                cursor-pointer
                 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md shadow-black/30"
-                    : "text-white/55 hover:text-white hover:bg-white/[0.07] active:bg-white/10"
+                    ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                    : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
                 }
               `}
               onClick={() => setActivetab(key)}

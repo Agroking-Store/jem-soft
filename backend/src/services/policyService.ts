@@ -546,6 +546,7 @@ export const getAllPolicies = async (
           attribute: true,
         },
       },
+      policyRiders : true,
     },
     orderBy: { commencementDate: "desc" },
   });
