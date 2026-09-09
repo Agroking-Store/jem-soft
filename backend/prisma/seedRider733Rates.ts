@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
 
-export const seedRiderPremium717 = async (prisma: PrismaClient) => {
+export const seedRiderPremium733 = async (prisma: PrismaClient) => {
   const sqlite = new Database("./prisma/Creations.db", {
     readonly: true,
   });
 
-  const tableName = "TermRider_717";
+  const tableName = "TermRider_733";
   const riderCode = "TERM";
 
   try {
@@ -31,12 +31,12 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
 
     const product = await prisma.productMaster.findFirst({
       where: {
-        planNumber: "717",
+        planNumber: "733",
       },
     });
 
     if (!product) {
-      console.log(`❌ Product with planNumber 717 not found in ProductMaster`);
+      console.log(`❌ Product with planNumber 733 not found in ProductMaster`);
       return;
     }
 
@@ -54,7 +54,7 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
       return;
     }
 
-    // Detect columns like T10, T11 ... T25
+    // Detect columns T13 ... T25
     const termColumns = Object.keys(premiumRows[0]).filter((key) =>
       /^T\d+$/.test(key),
     );
@@ -64,7 +64,6 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
     for (const row of premiumRows) {
       const entryAge = Number(row.Age);
 
-      // Skip note/invalid rows
       if (Number.isNaN(entryAge)) {
         invalid++;
         continue;
@@ -90,7 +89,6 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
           continue;
         }
 
-        // Only look at Plan 717-specific records; never touch legacy 714/715 records
         const existing = await prisma.riderPremiumRate.findFirst({
           where: {
             riderId: rider.id,
@@ -103,11 +101,9 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
         if (existing) {
           const existingRate = Number(existing.ratePerThousand);
 
-          // Same exact record already exists
           if (existingRate === rate) {
             skipped++;
           } else {
-            // Update ONLY the Plan 717-specific record
             await prisma.riderPremiumRate.update({
               where: {
                 id: existing.id,
@@ -118,8 +114,9 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
             });
 
             updated++;
+
             console.log(
-              `♻ Updated 717 Rate: Age ${entryAge}, Term ${riderTerm} | Old Rate: ${existingRate} | New Rate: ${rate}`,
+              `♻ Updated 733 Rate: Age ${entryAge}, Term ${riderTerm} | Old Rate: ${existingRate} | New Rate: ${rate}`,
             );
           }
 
@@ -144,8 +141,8 @@ export const seedRiderPremium717 = async (prisma: PrismaClient) => {
     console.log(`✔ Rider Code : ${rider.riderCode}`);
     console.log(`✔ Rider Name : ${rider.riderName}`);
     console.log(`✔ Source     : ${tableName}`);
-    console.log(`✔ Age Range  : 18 - 60`);
-    console.log(`✔ Term Range : T10 - T25`);
+    console.log(`✔ Age Range  : 18 - 50`);
+    console.log(`✔ Term Range : T13 - T25`);
     console.log(`✔ Inserted   : ${inserted}`);
     console.log(`✔ Skipped    : ${skipped}`);
     console.log(`✔ Invalid    : ${invalid}`);
