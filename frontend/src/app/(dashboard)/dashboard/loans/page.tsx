@@ -156,28 +156,32 @@ export default function LoansPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-            <Landmark />
-          </span>
-          <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
-            Loans
-          </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm mb-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <Landmark size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Loans
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+            </p>
+          </div>
         </div>
         {isClient && canEdit && (
-          <div className="flex gap-4">
-            <button
-              onClick={() => router.push("/dashboard/loans/new")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#16294D] cursor-pointer"
-            >
-              <Plus size={18} /> New Loan
-            </button>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => router.push("/dashboard/loans/repay")}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-blue-600 border border-blue-200 shadow-sm transition-all hover:bg-blue-50 cursor-pointer active:scale-[0.98]"
             >
-              <HandCoins size={18} /> Repay Loan
+              <HandCoins size={16} /> Repay Loan
+            </button>
+            <button
+              onClick={() => router.push("/dashboard/loans/new")}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer active:scale-[0.98]"
+            >
+              <Plus size={16} /> New Loan
             </button>
           </div>
         )}
@@ -189,40 +193,40 @@ export default function LoansPage() {
           {
             label: "Total Loans",
             value: stats.total,
-            icon: <Landmark className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <Landmark className="w-6 h-6 text-blue-600" />,
           },
           {
             label: "Active Loans",
             value: stats.activeLoans,
-            icon: <Activity className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <Activity className="w-6 h-6 text-blue-600" />,
           },
           {
             label: "Total Disbursed",
             value: `₹${stats.totalDisbursed.toLocaleString("en-IN")}`,
-            icon: <HandCoins className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <HandCoins className="w-6 h-6 text-blue-600" />,
           },
           {
             label: "Total Outstanding",
             value: `₹${stats.totalOutstanding.toLocaleString("en-IN")}`,
-            icon: <Banknote className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <Banknote className="w-6 h-6 text-blue-600" />,
           },
         ].map((card) => (
           <div
             key={card.label}
-            className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-md text-[#E8C77A] font-bold">{card.label}</p>
-                <p className="text-2xl font-bold text-[#E8C77A]">
+                <p className="text-sm font-medium text-slate-500">{card.label}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
                   {isLoading ? (
-                    <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded" />
+                    <span className="inline-block w-16 h-8 bg-slate-100 animate-pulse rounded" />
                   ) : (
                     card.value
                   )}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                 {card.icon}
               </div>
             </div>
@@ -317,51 +321,45 @@ export default function LoansPage() {
       </div>
 
       {/* Table */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
-            Loans
-          </h2>
-          <p className="text-sm text-slate-500">Browse all loan records.</p>
-        </div>
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full min-w-full border-separate border-spacing-0 text-left text-sm">
+            <thead className="bg-slate-50/70">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Policy #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Customer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Loan Amount
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Outstanding
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Interest Rate
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Loan Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Status
                 </th>
                 {isClient && canEdit && (
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="sticky top-0 z-10 border-b border-slate-100 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
-              {paginatedLoans.map((loan) => {
+            <tbody className="divide-y divide-slate-100">
+              {paginatedLoans.map((loan, index) => {
                 const cust = loan.policy?.CustomerMaster;
                 return (
-                  <tr key={loan.id} className="hover:bg-slate-50 transition">
+                  <tr key={loan.id} className={`group border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
                     <td className="px-4 py-3 text-sm text-slate-600 font-mono">
                       {loan.policy?.policyNumber || "—"}
                     </td>
@@ -403,31 +401,31 @@ export default function LoansPage() {
                     </td>
                     {isClient && canEdit && (
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() =>
                               router.push(`/dashboard/loans/${loan.id}`)
                             }
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                             title="View"
                           >
-                            <Eye size={16} />
+                            <Eye size={14} />
                           </button>
                           <button
                             onClick={() =>
                               router.push(`/dashboard/loans/edit/${loan.id}`)
                             }
-                            className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
                             title="Edit"
                           >
-                            <Edit size={16} />
+                            <Edit size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(loan)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
                             title="Delete"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
@@ -438,7 +436,7 @@ export default function LoansPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
       {/* Pagination */}
       <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-slate-200 bg-white">
