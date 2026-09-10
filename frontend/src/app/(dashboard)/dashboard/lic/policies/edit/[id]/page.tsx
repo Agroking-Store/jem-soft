@@ -1260,63 +1260,152 @@ export default function EditLICPolicyPage() {
     setValue("agentCode", advisor?.advisorCode || "");
   }, [watchAdvisorId, advisors, setValue]);
 
+  // Auto-fill Term Rider and CIR fields
+  useEffect(() => {
+    if (Array.isArray(watchRiders)) {
+      const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+      const isWholeLife = ["771", "745", "883", "887"].includes(selectedPlan || "");
+
+      watchRiders.forEach((r, index) => {
+        const desc = r.description?.toLowerCase() || "";
+        if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          let expectedTerm = watchTerm ? Number(watchTerm) : null;
+          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (isWholeLife && watchAge && expectedPpt) {
+            const riderRecord = riders.find((rv: any) => rv.riderName === r.description);
+            if (riderRecord) {
+              const fetchOptions = async () => {
+                try {
+                  const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                      },
+                    }
+                  );
+                  if (response.data?.data?.combinations?.length > 0) {
+                    const validComb = response.data.data.combinations[0];
+                    if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(validComb.term || "") || String(r.ppt || "") !== String(validComb.ppt || "")) {
+                      const updatedRiders = [...watchRiders];
+                      updatedRiders[index] = {
+                        ...r,
+                        sum: expectedSum,
+                        term: validComb.term,
+                        ppt: validComb.ppt
+                      };
+                      setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+                    }
+                  }
+                } catch (error) {
+                  console.error("Failed to fetch rider options", error);
+                }
+              };
+              if (String(r.sum || "") !== String(expectedSum || "") || !r.term || !r.ppt || String(r.ppt || "") !== String(expectedPpt || "")) {
+                 fetchOptions();
+              }
+              return;
+            }
+          }
+
+          if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(expectedTerm || "") || String(r.ppt || "") !== String(expectedPpt || "")) {
+            const updatedRiders = [...watchRiders];
+            updatedRiders[index] = {
+              ...r,
+              sum: expectedSum,
+              term: expectedTerm,
+              ppt: expectedPpt
+            };
+            setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+          }
+        }
+      });
+    }
+  }, [JSON.stringify(watchRiders), watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, setValue]);
+
+  // Use setValue to update the form value; using a string to avoid potential issues with number formatting
   useEffect(() => {
     const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
     const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
     const total = basic + rider;
-    // Use setValue to update the form value; using a string to avoid potential issues with number formatting
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
-    if (watchRiders) {
-      let totalRiderPremium = 0;
-      watchRiders.forEach((rider, index) => {
-        const sum = parseFloat(String(rider.sum)) || 0;
-        const term = parseFloat(String(rider.term)) || 0;
-        const ppt = parseFloat(String(rider.ppt)) || 0;
-        const mode = rider.mode;
-        let currentPremium = parseFloat(String(rider.premium)) || 0;
+    if (Array.isArray(watchRiders) && watchProductId && watchAge) {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(async () => {
+        let totalInstallmentRiderPremium = 0;
+        
+        const updatedRiders = await Promise.all(
+          watchRiders.map(async (rider, index) => {
+            const sum = parseFloat(String(rider.sum)) || 0;
+            const term = parseFloat(String(rider.term)) || 0;
+            const ppt = parseFloat(String(rider.ppt)) || 0;
+            const mode = rider.mode || watchMode;
+            const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
+            const riderId = riderRecord?.id;
+            const currentPremium = parseFloat(String(rider.premium)) || 0;
 
-        if (sum > 0 && term > 0 && ppt > 0 && mode) {
-          // Placeholder: Assume yearly premium is 1% of sum assured.
-          const yearlyRiderPremium = sum * 0.01;
-          let installmentRiderPremium = 0;
+            if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
+              try {
+                const response = await axios.post(
+                  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/rider-premium-preview`,
+                  {
+                    riderId,
+                    age: watchAge,
+                    riderTerm: term,
+                    premiumPayingTerm: ppt,
+                    sumAssured: sum,
+                    premiumMode: mode,
+                    productId: watchProductId,
+                    option: rider.option
+                  },
+                  {
+                    signal: controller.signal,
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                  }
+                );
+                const finalRiderPremium = response.data?.data?.premium || 0;
+                return { index, newPremium: finalRiderPremium, currentPremium, isValid: true };
+              } catch (error) {
+                if (!axios.isCancel(error)) {
+                  console.error("Failed to fetch rider premium preview", error);
+                }
+                return { index, newPremium: 0, currentPremium, isValid: true };
+              }
+            }
+            return { index, newPremium: 0, currentPremium, isValid: true };
+          })
+        );
 
-          // Apply mode factors to calculate installment premium for the rider
-          switch (mode) {
-            case "Yearly":
-              installmentRiderPremium = yearlyRiderPremium;
-              break;
-            case "Half-yearly":
-              installmentRiderPremium = yearlyRiderPremium * 0.51;
-              break;
-            case "Quarterly":
-              installmentRiderPremium = yearlyRiderPremium * 0.26;
-              break;
-            case "Monthly":
-              installmentRiderPremium = yearlyRiderPremium * 0.088;
-              break;
-            default:
-              installmentRiderPremium = 0;
+        updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
+          totalInstallmentRiderPremium += newPremium;
+          if (isValid && newPremium !== currentPremium) {
+            setValue(`riders.${index}.premium`, newPremium, { shouldValidate: true, shouldDirty: true });
           }
-          const finalRiderPremium = parseFloat(
-            installmentRiderPremium.toFixed(2),
-          );
-          if (finalRiderPremium !== currentPremium) {
-            setValue(`riders.${index}.premium`, finalRiderPremium);
-            currentPremium = finalRiderPremium;
-          }
-        }
-        totalRiderPremium += currentPremium;
-      });
-      setValue(
-        "totalRiderPremium",
-        totalRiderPremium > 0 ? totalRiderPremium : undefined,
-      );
+        });
+
+        setValue(
+          "totalRiderPremium",
+          totalInstallmentRiderPremium > 0
+            ? totalInstallmentRiderPremium
+            : undefined,
+        );
+
+      }, 300);
+
+      return () => {
+        controller.abort();
+        clearTimeout(timeoutId);
+      };
     }
-  }, [JSON.stringify(watchRiders), setValue]);
+  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, setValue]);
 
   const onSubmit = async (data: PolicyFormValues) => {
     console.log("Submit clicked");

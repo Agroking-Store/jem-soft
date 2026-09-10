@@ -61,3 +61,24 @@ export const deleteRiderMaster = catchAsync(async (req: Request, res: Response, 
     data: null,
   });
 });
+
+export const getRiderOptions = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { age, ppt, productId } = req.query;
+
+  if (!age) {
+    throw new AppError("Age is required", 400);
+  }
+
+  const options = await riderMasterService.getRiderOptions(
+    id, 
+    Number(age), 
+    ppt ? Number(ppt) : undefined,
+    productId as string | undefined
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: options,
+  });
+});
