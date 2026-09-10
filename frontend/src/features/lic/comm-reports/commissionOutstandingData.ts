@@ -414,6 +414,19 @@ export function generateCommissionOutstandingItems(
         const bCode = p.branch?.branchCode || p.branchCode || "958";
         const bName = p.branch?.branchName || p.branchName || "Pune Camp";
 
+        // Due date from nextPremiumDueDate (actual policy data)
+        const dueRaw = p.nextPremiumDueDate;
+        let dueDate = "01/09/2026";
+        let payDate = "05/09/2026";
+        if (dueRaw) {
+          const d = new Date(dueRaw);
+          dueDate = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+          // Pay date is typically 3-5 days after due date
+          const pd = new Date(d);
+          pd.setDate(pd.getDate() + 4);
+          payDate = `${String(pd.getDate()).padStart(2, "0")}/${String(pd.getMonth() + 1).padStart(2, "0")}/${pd.getFullYear()}`;
+        }
+
         return {
           id: p.id ? String(p.id) : `dyn-out-${idx}`,
           srNo: idx + 1,
@@ -423,8 +436,8 @@ export function generateCommissionOutstandingItems(
               ? holderName
               : `Mr. ${holderName}`,
           planTermPpt: `${plan}/${term}/${ppt}`,
-          dueDate: "01/09/2026",
-          payDate: "05/09/2026",
+          dueDate,
+          payDate,
           mode,
           branchCode: bCode,
           branchName: bName,
@@ -434,7 +447,7 @@ export function generateCommissionOutstandingItems(
           grossCommission,
           tdsAmount,
           netOutstanding,
-          agingDays: Math.min(14, idx + 1),
+          agingDays: dueRaw ? Math.max(0, Math.floor((now.getTime() - new Date(dueRaw).getTime()) / (1000 * 60 * 60 * 24))) : idx + 1,
           status:
             idx % 3 === 0
               ? "Pending Clearance"

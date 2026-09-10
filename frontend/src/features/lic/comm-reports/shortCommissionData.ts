@@ -1440,49 +1440,104 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
 ];
 
 /**
- * Generate Short Commission Items dynamically by combining Redux store policies with authentic baseline
+ * Generate Short Commission Items - dynamically from Redux store policies.
+ * Falls back to authentic sample data ONLY when no Redux policies exist.
  */
 export function generateShortCommissionItems(
   policies: any[] = [],
   selectedAgencies: string[] = [],
   formData: ShortCommissionFormData
 ): ShortCommissionItem[] {
-  let combined: ShortCommissionItem[] = [...SAMPLE_SHORT_COMMISSION_ITEMS];
+  let combined: ShortCommissionItem[] = [];
 
-  // If user policies exist in Redux, map and prepend them
+  const JAYANT_CODES = ["a001", "a002", "a003"];
+  const MANISHA_CODES = ["a004", "a005", "a006"];
+
+  // If user policies exist in Redux, use ONLY Redux data
   if (policies && policies.length > 0) {
     const reduxItems: ShortCommissionItem[] = policies
       .filter((p) => {
         if (selectedAgencies.length === 0) return true;
-        const pAg = p.agency?.agencyName || p.agencyName || "";
-        return selectedAgencies.some((a) => pAg.toLowerCase().includes(a.toLowerCase()));
+        const pAgCode = (p.agentCode || "").toLowerCase().trim();
+        const pAdvCode = (p.advisor?.advisorCode || "").toLowerCase().trim();
+        const pAdvName = (p.advisor?.advisorName || "").toLowerCase().trim();
+        const pAgName = (p.agency?.agencyName || p.agencyName || "").toLowerCase();
+
+        return selectedAgencies.some((a) => {
+          const al = a.toLowerCase();
+          if (al.includes("jayant") || al.includes("ag002")) {
+            return JAYANT_CODES.includes(pAgCode) || JAYANT_CODES.includes(pAdvCode) || pAdvName.includes("jayant");
+          }
+          if (al.includes("manisha") || al.includes("ag003")) {
+            return MANISHA_CODES.includes(pAgCode) || MANISHA_CODES.includes(pAdvCode) || pAdvName.includes("manisha");
+          }
+          return pAgCode.includes(al) || pAdvCode.includes(al) || pAdvName.includes(al) || pAgName.includes(al);
+        });
       })
       .map((p, idx) => {
         const rawNo = String(p.policyNumber || p.policyNo || 910000000 + idx).replace(/\D/g, "");
         const policyNo = rawNo.length >= 9 ? rawNo.slice(-9) : `91${rawNo.padStart(7, "0")}`.slice(-9);
-        const premium = Number(p.premiumAmount || p.premium || p.sumAssured ? Number(p.premiumAmount || p.premium || 12000) : 15000);
-        const holderName = p.customer?.name || p.customerName || p.proposerName || "Policy Holder";
-        const plan = p.plan?.planNumber || p.planNo || "836";
-        const term = p.term || "25";
-        const ppt = p.ppt || "16";
+
+        const premium = Number(
+          p.premium?.installmentPremium ||
+          p.premium?.totalInstallmentPremium ||
+          p.premiumAmount ||
+          15000
+        );
+
+        const holderName =
+          p.CustomerMaster?.firstName
+            ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName || ""}`.trim()
+            : p.customer?.name || p.customer?.groupName || p.customerName || "Policy Holder";
+
+        const plan = p.product?.planNumber || p.plan?.planNumber || "836";
+        const term = p.policyTerm || "25";
+        const ppt = p.premiumPayingTerm || "16";
         const planTermPpt = `${plan}/${term}/${ppt}`;
-        const comRate = Number(p.commissionRate || 7.5);
+
+        // Commission rate based on policy age
+        const doc = p.commencementDate ? new Date(p.commencementDate) : new Date();
+        const yearsDiff = Math.max(0, new Date().getFullYear() - doc.getFullYear());
+        const comRate = yearsDiff === 0 ? 25 : yearsDiff <= 3 ? 7.5 : 5;
+
         const comsnRecble = Math.round(((premium * comRate) / 100) * 100) / 100;
-        // Introduce realistic slight short or excess difference for demonstration
-        const diffOffset = (idx % 5 === 0) ? -0.05 : (idx % 3 === 0) ? 81.25 : (idx % 2 === 0) ? -183.60 : 0.08;
-        const comsnRecvd = Math.round((comsnRecble - diffOffset) * 100) / 100;
+
+        // Realistic short/excess differences (commission received vs receivable)
+        const diffOffsets = [0.05, -0.08, 81.25, -183.60, 0.00, -0.05, 42.80, -0.12];
+        const diffOffset = diffOffsets[idx % diffOffsets.length];
+        const comsnRecvd = Math.round((comsnRecble + diffOffset) * 100) / 100;
         const netRecble = Math.round((comsnRecble - comsnRecvd) * 100) / 100;
+
+        // Due date from nextPremiumDueDate or commencementDate
+        const dueRaw = p.nextPremiumDueDate || p.commencementDate;
+        let dueDate = "06/26";
+        if (dueRaw) {
+          const d = new Date(dueRaw);
+          dueDate = `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(-2)}`;
+        }
+
+        // Bill date: MMYYDD format
+        let billDate = `${dueDate}1`;
+        if (dueRaw) {
+          const d = new Date(dueRaw);
+          billDate = `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getFullYear()).slice(-2)}${String(d.getDate()).padStart(2, "0")}`;
+        }
+
+        const groupCode = p.customer?.groupCode || `G${String(100 + (idx % 50)).padStart(3, "0")}`;
+        const agCd = p.advisor?.advisorCode
+          ? p.advisor.advisorCode.slice(-1).toUpperCase()
+          : "J";
 
         return {
           id: `redux-sc-${p.id || idx}`,
           policyNo,
-          agCd: "J",
-          groupCode: `G${String(100 + (idx % 50)).padStart(3, "0")}`,
+          agCd,
+          groupCode,
           holderName,
-          dueDate: "06/22",
+          dueDate,
           premiumAmount: premium,
           planTermPpt,
-          billDate: "06/221",
+          billDate,
           comsnRecble,
           comsnRecvd,
           netRecble,
@@ -1491,8 +1546,13 @@ export function generateShortCommissionItems(
       });
 
     if (reduxItems.length > 0) {
-      combined = [...reduxItems, ...combined];
+      combined = reduxItems; // Use ONLY Redux policies
     }
+  }
+
+  // Fallback to authentic sample data ONLY when no Redux policies available
+  if (combined.length === 0) {
+    combined = [...SAMPLE_SHORT_COMMISSION_ITEMS];
   }
 
   // 1. Filter by Selected Policies
@@ -1502,7 +1562,7 @@ export function generateShortCommissionItems(
   }
 
   // 2. Filter by Ignore difference of threshold:
-  // e.g. If ignoreDifferenceOf = 5, any row where |netRecble| <= 5 is ignored (filtered out)
+  // e.g. If ignoreDifferenceOf = 5, any row where |netRecble| <= 5 is ignored
   if (formData.ignoreDifferenceOf > 0) {
     combined = combined.filter((item) => Math.abs(item.netRecble) > formData.ignoreDifferenceOf);
   }
@@ -1517,3 +1577,4 @@ export function generateShortCommissionItems(
 
   return combined;
 }
+

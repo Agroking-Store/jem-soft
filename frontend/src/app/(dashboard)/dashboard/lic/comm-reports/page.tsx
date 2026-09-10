@@ -26,6 +26,9 @@ import { CommissionOutstandingFormData } from "@/features/lic/comm-reports/commi
 import ShortCommissionForm from "@/features/lic/comm-reports/ShortCommissionForm";
 import ShortCommissionReportView from "@/features/lic/comm-reports/ShortCommissionReportView";
 import { ShortCommissionFormData } from "@/features/lic/comm-reports/shortCommissionData";
+import GapCommissionForm from "@/features/lic/comm-reports/GapCommissionForm";
+import GapCommissionReportView from "@/features/lic/comm-reports/GapCommissionReportView";
+import { GapCommissionFormData } from "@/features/lic/comm-reports/gapCommissionData";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
 import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
@@ -43,7 +46,9 @@ type ViewState =
   | "commission-outstanding-form"
   | "commission-outstanding-report"
   | "short-commission-form"
-  | "short-commission-report";
+  | "short-commission-report"
+  | "gap-commission-form"
+  | "gap-commission-report";
 
 export default function LICCommReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -56,6 +61,7 @@ export default function LICCommReportsPage() {
   const [selectedSummaryData, setSelectedSummaryData] = useState<CommissionSummaryFormData | null>(null);
   const [selectedOutstandingData, setSelectedOutstandingData] = useState<CommissionOutstandingFormData | null>(null);
   const [selectedShortCommissionData, setSelectedShortCommissionData] = useState<ShortCommissionFormData | null>(null);
+  const [selectedGapCommissionData, setSelectedGapCommissionData] = useState<GapCommissionFormData | null>(null);
 
   // Redux Store Data
   const { policies } = useSelector((state: RootState) => state.policies);
@@ -101,6 +107,9 @@ export default function LICCommReportsPage() {
     } else if (card.id === "short-excess-commissions") {
       setSelectedShortCommissionData(null);
       setCurrentView("short-commission-form");
+    } else if (card.id === "gap-commissions") {
+      setSelectedGapCommissionData(null);
+      setCurrentView("gap-commission-form");
     } else {
       // Future placeholder for other forms
       alert(`The report form for ${card.title} is coming soon!`);
@@ -135,6 +144,11 @@ export default function LICCommReportsPage() {
   const handleGenerateShortCommissionReport = (formData: ShortCommissionFormData) => {
     setSelectedShortCommissionData(formData);
     setCurrentView("short-commission-report");
+  };
+
+  const handleGenerateGapCommissionReport = (formData: GapCommissionFormData) => {
+    setSelectedGapCommissionData(formData);
+    setCurrentView("gap-commission-report");
   };
 
   return (
@@ -228,7 +242,8 @@ export default function LICCommReportsPage() {
                       card.id === "deduction-summary" ||
                       card.id === "commission-summary" ||
                       card.id === "commission-outstanding" ||
-                      card.id === "short-excess-commissions"
+                      card.id === "short-excess-commissions" ||
+                      card.id === "gap-commissions"
                         ? "Open Form & Report"
                         : "View Details"}
                     </span>
@@ -362,6 +377,25 @@ export default function LICCommReportsPage() {
           formData={selectedShortCommissionData}
           policies={policies || []}
           onBackToForm={() => setCurrentView("short-commission-form")}
+        />
+      )}
+
+      {/* VIEW 14: Gap Commission Form */}
+      {currentView === "gap-commission-form" && (
+        <GapCommissionForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateGapCommissionReport}
+          initialData={selectedGapCommissionData}
+          policies={policies || []}
+        />
+      )}
+
+      {/* VIEW 15: Gap Commission Report Preview */}
+      {currentView === "gap-commission-report" && selectedGapCommissionData && (
+        <GapCommissionReportView
+          formData={selectedGapCommissionData}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("gap-commission-form")}
         />
       )}
     </div>

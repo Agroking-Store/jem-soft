@@ -53,17 +53,19 @@ export default function ShortCommissionForm({
   const [isAgencyFilterModalOpen, setIsAgencyFilterModalOpen] = useState(false);
   const [isPolicyFilterModalOpen, setIsPolicyFilterModalOpen] = useState(false);
 
-  // Available policies combined
+  // Available policies: use Redux policies when available (don't mix with sample)
   const availablePolicies = useMemo(() => {
     if (policies && policies.length > 0) return policies;
-    // Map sample items into policy-like objects for the modal
-    return SAMPLE_SHORT_COMMISSION_ITEMS.map((item) => ({
+    // Map sample items into policy-like objects for the modal ONLY as fallback
+    return SAMPLE_SHORT_COMMISSION_ITEMS.map((item, idx) => ({
       id: item.policyNo,
       policyNumber: item.policyNo,
       policyNo: item.policyNo,
       customer: { name: item.holderName },
+      CustomerMaster: null,
       customerName: item.holderName,
       premiumAmount: item.premiumAmount,
+      product: { planNumber: item.planTermPpt.split("/")[0] },
       plan: { planNumber: item.planTermPpt.split("/")[0] },
     }));
   }, [policies]);
