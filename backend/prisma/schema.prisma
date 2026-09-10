@@ -232,6 +232,7 @@ model ProductMaster {
   modeRebates ProductModeRebate[]
   modeRebateRates  ProductModeRebateRate[]
 
+  riderPremiumRates RiderPremiumRate[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -356,20 +357,23 @@ model ProductPremiumModeFactor {
 model RiderPremiumRate {
   id String @id @default(uuid())
 
-  riderId String
+  riderId   String
+  productId String
 
   entryAge Int
   riderTerm Int
+  premiumPayingTerm Int?
   option Int?
 
   ratePerThousand Decimal @db.Decimal(10,2)
 
-  rider RiderMaster @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  rider   RiderMaster  @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([riderId, entryAge, riderTerm, option])
+  @@unique([riderId, productId, entryAge, riderTerm, premiumPayingTerm, option])
 }
 
 // ======================================================

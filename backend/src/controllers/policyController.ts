@@ -18,7 +18,7 @@ export const createPolicy = catchAsync(
 
 export const previewPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { productId, age, secondaryAge, option,policyTerm, premiumPayingTerm, sumAssured, premiumMode, gender, smoker } = req.body;
+    const { productId, age, secondaryAge, option, policyTerm, premiumPayingTerm, sumAssured, premiumMode, gender, smoker } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
       throw new AppError(
@@ -32,14 +32,14 @@ export const previewPremium = catchAsync(
       age: Number(age),
       secondaryAge:
         secondaryAge !== undefined &&
-        secondaryAge !== null &&
-        secondaryAge !== ""
+          secondaryAge !== null &&
+          secondaryAge !== ""
           ? Number(secondaryAge)
           : null,
       option:
         option !== undefined &&
-        option !== null &&
-        option !== ""
+          option !== null &&
+          option !== ""
           ? Number(option)
           : null,
       policyTerm: Number(policyTerm),
@@ -61,7 +61,7 @@ export const previewPremium = catchAsync(
 
 export const previewRiderPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { riderId, age, riderTerm, sumAssured, premiumMode, productId, option } = req.body;
+    const { riderId, age, riderTerm, premiumPayingTerm, sumAssured, premiumMode, productId, option } = req.body;
 
     if (!riderId || !age || !riderTerm || !sumAssured || !premiumMode || !productId) {
       throw new AppError(
@@ -75,6 +75,7 @@ export const previewRiderPremium = catchAsync(
 
     const whereClause: any = {
       riderId,
+      productId,
       entryAge: Number(age),
       riderTerm: Number(riderTerm),
     };
@@ -83,9 +84,33 @@ export const previewRiderPremium = catchAsync(
       whereClause.option = Number(option);
     }
 
-    const riderRate = await prisma.riderPremiumRate.findFirst({
-      where: whereClause,
+    let riderRate = null;
+
+    const product = await prisma.productMaster.findUnique({
+      where: { id: productId },
     });
+
+    const isWholeLife = product && ["771", "745", "883", "887"].includes(product.planNumber);
+
+    if (isWholeLife && premiumPayingTerm !== undefined && premiumPayingTerm !== null && premiumPayingTerm !== "") {
+      // For whole life plans, rider rates are strictly dependent on the premium paying term.
+      riderRate = await prisma.riderPremiumRate.findFirst({
+        where: {
+          ...whereClause,
+          premiumPayingTerm: Number(premiumPayingTerm),
+        },
+      });
+    }
+
+    if (!riderRate) {
+      // For standard plans (or fallback if exact PPT match failed), the rates are independent of PPT in the DB (premiumPayingTerm is null).
+      riderRate = await prisma.riderPremiumRate.findFirst({
+        where: {
+          ...whereClause,
+          premiumPayingTerm: null,
+        },
+      });
+    }
 
     if (!riderRate) {
       throw new AppError(

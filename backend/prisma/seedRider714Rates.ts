@@ -10,6 +10,7 @@ export const seedRiderPremium714 = async (
 
   const tableName = "TermRider_714";
   const riderCode = "TERM";
+  const planNumber = "714";
 
   try {
     const premiumRows = sqlite
@@ -20,7 +21,6 @@ export const seedRiderPremium714 = async (
       `Processing ${tableName} (${premiumRows.length} rows)`
     );
 
-    // Find rider
     const rider = await prisma.riderMaster.findUnique({
       where: {
         riderCode,
@@ -38,15 +38,33 @@ export const seedRiderPremium714 = async (
       `Matched Rider: ${rider.riderName} (${rider.riderCode})`
     );
 
+    // Find product
+    const product = await prisma.productMaster.findFirst({
+      where: {
+        planNumber,
+      },
+    });
+
+    if (!product) {
+      console.log(
+        `❌ Product with planNumber ${planNumber} not found`
+      );
+      return;
+    }
+
+    console.log(
+      `Matched Product: ${product.productName} (Plan ${product.planNumber})`
+    );
+
     let inserted = 0;
     let skipped = 0;
+    let invalid = 0;
 
     if (premiumRows.length === 0) {
       console.log(`❌ No data found in ${tableName}`);
       return;
     }
 
-    // Detect columns like T12, T13, T14 ... T35
     const termColumns = Object.keys(premiumRows[0]).filter(
       (key) => /^T\d+$/.test(key)
     );
@@ -57,6 +75,7 @@ export const seedRiderPremium714 = async (
       const entryAge = Number(row.Age);
 
       if (Number.isNaN(entryAge)) {
+        invalid++;
         console.log(`⚠️ Invalid age: ${row.Age}`);
         continue;
       }
@@ -71,7 +90,6 @@ export const seedRiderPremium714 = async (
         const riderTerm = Number(match[1]);
         const rate = Number(row[column]);
 
-        // Skip empty / zero / invalid rates
         if (
           row[column] == null ||
           row[column] === "" ||
@@ -84,12 +102,12 @@ export const seedRiderPremium714 = async (
         const existing =
           await prisma.riderPremiumRate.findFirst({
             where: {
-
+              productId: product.id,
               riderId: rider.id,
               entryAge,
               riderTerm,
+              premiumPayingTerm: null,
               option: null,
-
             },
           });
 
@@ -100,11 +118,13 @@ export const seedRiderPremium714 = async (
 
         await prisma.riderPremiumRate.create({
           data: {
+            productId: product.id,
             riderId: rider.id,
             entryAge,
             riderTerm,
-            ratePerThousand: rate,
+            premiumPayingTerm: null,
             option: null,
+            ratePerThousand: rate,
           },
         });
 
@@ -113,12 +133,15 @@ export const seedRiderPremium714 = async (
     }
 
     console.log("\n=================================");
+    console.log(`✔ Plan       : ${planNumber}`);
     console.log(`✔ Rider Code : ${rider.riderCode}`);
     console.log(`✔ Rider Name : ${rider.riderName}`);
     console.log(`✔ Source     : ${tableName}`);
     console.log(`✔ Term Range : T12 - T35`);
+    console.log(`✔ PPT        : NULL`);
     console.log(`✔ Inserted   : ${inserted}`);
     console.log(`✔ Skipped    : ${skipped}`);
+    console.log(`✔ Invalid    : ${invalid}`);
     console.log("=================================");
   } catch (error) {
     console.error(

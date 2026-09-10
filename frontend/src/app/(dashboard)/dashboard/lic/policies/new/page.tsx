@@ -646,13 +646,52 @@ export default function NewLICPolicyPage() {
   // Auto-fill Term Rider and CIR fields
   useEffect(() => {
     if (Array.isArray(watchRiders)) {
+      const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+      const isWholeLife = ["771", "745", "883", "887"].includes(selectedPlan || "");
+
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
         if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
-          const expectedTerm = watchTerm ? Number(watchTerm) : null;
-          const expectedPpt = watchPpt ? Number(watchPpt) : null;
-          
+          let expectedTerm = watchTerm ? Number(watchTerm) : null;
+          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (isWholeLife && watchAge && expectedPpt) {
+            const riderRecord = riders.find((rv: any) => rv.riderName === r.description);
+            if (riderRecord) {
+              const fetchOptions = async () => {
+                try {
+                  const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                      },
+                    }
+                  );
+                  if (response.data?.data?.combinations?.length > 0) {
+                    const validComb = response.data.data.combinations[0];
+                    if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(validComb.term || "") || String(r.ppt || "") !== String(validComb.ppt || "")) {
+                      updateRider(index, {
+                        ...r,
+                        sum: expectedSum,
+                        term: validComb.term,
+                        ppt: validComb.ppt
+                      });
+                    }
+                  }
+                } catch (error) {
+                  console.error("Failed to fetch rider options", error);
+                }
+              };
+              // Only fetch if sum doesn't match or term/ppt are empty/not matching the base ppt, to avoid infinite loops when it settles
+              if (String(r.sum || "") !== String(expectedSum || "") || !r.term || !r.ppt || String(r.ppt || "") !== String(expectedPpt || "")) {
+                 fetchOptions();
+              }
+              return;
+            }
+          }
+
           if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(expectedTerm || "") || String(r.ppt || "") !== String(expectedPpt || "")) {
             updateRider(index, {
               ...r,
@@ -664,7 +703,7 @@ export default function NewLICPolicyPage() {
         }
       });
     }
-  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, updateRider]);
+  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, updateRider]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
@@ -691,6 +730,7 @@ export default function NewLICPolicyPage() {
                     riderId,
                     age: watchAge,
                     riderTerm: term,
+                    premiumPayingTerm: ppt,
                     sumAssured: sum,
                     premiumMode: mode,
                     productId: watchProductId,

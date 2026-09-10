@@ -1,22 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import Database from "better-sqlite3";
 
-export const seedRiderPremium715 = async (prisma: PrismaClient) => {
+export const seedRiderPremium715 = async (
+  prisma: PrismaClient
+) => {
   const sqlite = new Database("./prisma/Creations.db", {
     readonly: true,
   });
 
   const tableName = "TermRider_715";
   const riderCode = "TERM";
+  const planNumber = "715";
 
   try {
     const premiumRows = sqlite
       .prepare(`SELECT * FROM "${tableName}"`)
       .all() as any[];
 
-    console.log(`Processing ${tableName} (${premiumRows.length} rows)`);
+    console.log(
+      `Processing ${tableName} (${premiumRows.length} rows)`
+    );
 
-    // Find rider
     const rider = await prisma.riderMaster.findUnique({
       where: {
         riderCode,
@@ -24,23 +28,40 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
     });
 
     if (!rider) {
-      console.log(`❌ Rider with code ${riderCode} not found in RiderMaster`);
+      console.log(
+        `❌ Rider with code ${riderCode} not found in RiderMaster`
+      );
       return;
     }
 
-    console.log(`Matched Rider: ${rider.riderName} (${rider.riderCode})`);
+    const product = await prisma.productMaster.findFirst({
+      where: {
+        planNumber,
+      },
+    });
+
+    if (!product) {
+      console.log(
+        `❌ Product with planNumber ${planNumber} not found`
+      );
+      return;
+    }
+
+    console.log(
+      `Matched Product: ${product.productName} (Plan ${product.planNumber})`
+    );
 
     let inserted = 0;
     let skipped = 0;
+    let invalid = 0;
 
     if (premiumRows.length === 0) {
       console.log(`❌ No data found in ${tableName}`);
       return;
     }
 
-    // Detect columns T15, T16 ... T35
-    const termColumns = Object.keys(premiumRows[0]).filter((key) =>
-      /^T\d+$/.test(key),
+    const termColumns = Object.keys(premiumRows[0]).filter(
+      (key) => /^T\d+$/.test(key)
     );
 
     console.log("Term columns:", termColumns);
@@ -49,7 +70,7 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
       const entryAge = Number(row.Age);
 
       if (Number.isNaN(entryAge)) {
-        console.log(`⚠️ Invalid age: ${row.Age}`);
+        invalid++;
         continue;
       }
 
@@ -63,7 +84,6 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
         const riderTerm = Number(match[1]);
         const rate = Number(row[column]);
 
-        // Skip empty / zero / invalid rates
         if (
           row[column] == null ||
           row[column] === "" ||
@@ -73,14 +93,17 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
           continue;
         }
 
-        const existing = await prisma.riderPremiumRate.findFirst({
-          where: {
-            riderId: rider.id,
-            entryAge,
-            riderTerm,
-            option: null,
-          },
-        });
+        const existing =
+          await prisma.riderPremiumRate.findFirst({
+            where: {
+              productId: product.id,
+              riderId: rider.id,
+              entryAge,
+              riderTerm,
+              premiumPayingTerm: null,
+              option: null,
+            },
+          });
 
         if (existing) {
           skipped++;
@@ -89,11 +112,13 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
 
         await prisma.riderPremiumRate.create({
           data: {
+            productId: product.id,
             riderId: rider.id,
             entryAge,
             riderTerm,
-            ratePerThousand: rate,
+            premiumPayingTerm: null,
             option: null,
+            ratePerThousand: rate,
           },
         });
 
@@ -102,15 +127,21 @@ export const seedRiderPremium715 = async (prisma: PrismaClient) => {
     }
 
     console.log("\n=================================");
+    console.log(`✔ Plan       : ${planNumber}`);
     console.log(`✔ Rider Code : ${rider.riderCode}`);
     console.log(`✔ Rider Name : ${rider.riderName}`);
     console.log(`✔ Source     : ${tableName}`);
     console.log(`✔ Term Range : T15 - T35`);
+    console.log(`✔ PPT        : NULL`);
     console.log(`✔ Inserted   : ${inserted}`);
     console.log(`✔ Skipped    : ${skipped}`);
+    console.log(`✔ Invalid    : ${invalid}`);
     console.log("=================================");
   } catch (error) {
-    console.error(`❌ Error seeding ${tableName}:`, error);
+    console.error(
+      `❌ Error seeding ${tableName}:`,
+      error
+    );
     throw error;
   } finally {
     sqlite.close();
