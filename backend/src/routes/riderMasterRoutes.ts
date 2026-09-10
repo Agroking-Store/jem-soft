@@ -16,6 +16,10 @@ router
   );
 
 router
+  .route("/:id/options")
+  .get(riderMasterController.getRiderOptions);
+
+router
   .route("/:id")
   .get(riderMasterController.getRiderMaster)
   .patch(restrictTo("ADMIN"), riderMasterController.updateRiderMaster)

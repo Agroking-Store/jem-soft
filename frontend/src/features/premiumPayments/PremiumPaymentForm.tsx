@@ -151,6 +151,9 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
         {
           setSelectedPolicy(p);
           getInstallmentNumber(policyId,1);
+          p?.policyRiders?.map((r) => {
+            console.log("Id",r.id)
+          })
         }
 
         if (p?.nextPremiumDueDate)
@@ -241,7 +244,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
 
           getInstallmentNumber(policyId,dueInstallments);
         }
-       
+
       }
   }, [policyId, policies, setValue ,gstRate]);
 
@@ -390,20 +393,42 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
               </p>
             )}
           </div>
-          <div>
-            <label className={label}>Premium Amount  <span className="text-rose-500">*</span></label>
-            <input
-              type="text"
-              {...register("premiumAmount")}
-              className={input}
-              disabled = {mode === "view"}
-            />
-            {errors.premiumAmount && (
+          {(selectedPolicy?.premium?.totalInstallmentPremium - selectedPolicy?.premium?.installmentPremium) > 0 &&
+            <div className="flex gap-3 col-span-2">
+            <div>
+              <label className={label}>Base Premium Amount</label>
+              <input
+                type="text"
+                value= {selectedPolicy?.premium?.installmentPremium ?? 0}
+                className={`${input} bg-slate-50 cursor-not-allowed`}
+                disabled
+              />
+            </div>  
+            <div>
+              <label className={label}>Rider Amount</label>
+              <input
+                type="text"
+                value = {(selectedPolicy?.premium?.totalInstallmentPremium - selectedPolicy?.premium?.installmentPremium ?? 0).toFixed(2)}
+                className={`${input} bg-slate-50 cursor-not-allowed`}
+                disabled
+              />
+             
+            </div>  
+            <div>
+              <label className={label}>Total Premium Amount  <span className="text-rose-500">*</span></label>
+              <input
+                type="text"
+                {...register("premiumAmount")}
+                className={`${input} bg-slate-50 cursor-not-allowed`}
+                disabled
+              />
+              {errors.premiumAmount && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.premiumAmount.message}
               </p>
             )}
-          </div>       
+            </div>             
+          </div>}     
           {/* <div>
             <label className={label}>Payment Status *</label>
             <select {...register("paymentStatus")} className={input}>
@@ -461,6 +486,21 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
               )}
             </div>
           </div>
+          
+          <div>
+            <label className={label}>Total Amount</label>
+            <input
+              type="number"
+              value = {totalAmount}
+              className={`${input} disabled:bg-slate-50`}
+              disabled
+            />
+            {errors.lateFee && (
+              <p className="mt-1 text-xs text-rose-600">
+                {errors.lateFee.message}
+              </p>
+            )}
+          </div>
           <div>
             <label className={label}>
               Payment Date{" "}
@@ -482,20 +522,6 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
             {errors.paidDate && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.paidDate.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className={label}>Total Amount</label>
-            <input
-              type="number"
-              value = {totalAmount}
-              className={`${input} disabled:bg-slate-50`}
-              disabled
-            />
-            {errors.lateFee && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.lateFee.message}
               </p>
             )}
           </div>
@@ -524,7 +550,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
               </p>
             )}
           </div>
-          <div>
+          <div className="col-span-2">
             <label className={label}>Payment Details</label>
             <input {...register("paymentDetails")} className={input} disabled = {mode === "view"}/>
           </div>
