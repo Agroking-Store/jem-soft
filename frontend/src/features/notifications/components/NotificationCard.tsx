@@ -50,7 +50,7 @@ export default function NotificationCard({
     >
       {/* Notification Content */}
       <button
-        onClick={onClick}
+        onClick={handleView}
         className="flex-1 text-left hover:bg-slate-50 rounded-md p-1"
       >
         <div className="flex items-center gap-2">

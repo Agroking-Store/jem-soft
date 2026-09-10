@@ -1,5 +1,7 @@
 import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
+import { createNotification } from "./notificationService.js";
+import { NotificationType } from "@prisma/client";
 
 export interface PremiumPaymentData {
   policyId: string;
@@ -113,7 +115,8 @@ export const getPaymentById = async (id: string) => {
 export const createPayment = async (data: PremiumPaymentData) => {
   const policy = await prisma.policy.findUnique({
     where: { id: data.policyId },
-    select: { id: true },
+    select: { id: true , policyNumber : true  },
+    
   });
 
   if (!policy) throw new AppError("Policy not found", 404);
@@ -145,12 +148,30 @@ export const createPayment = async (data: PremiumPaymentData) => {
 
   await prisma.policy.update({where : {id : data.policyId} , data :{ nextPremiumDueDate : new Date(data.futureDueDate) }} );
 
+  //Create Notification
+  prisma.$transaction(async (tx) => {
+    await createNotification(tx, {
+        title: "Policy Premium Paid",
+        message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}.`,
+        type: NotificationType.PREMIUM_PAID,
+        policyId: policy.id,
+      });
+  });
+
+   
+
   return payment;
 };
 
 export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) => {
   const existing = await prisma.premiumPayment.findUnique({
     where: { id },
+  });
+
+  const policy = await prisma.policy.findUnique({
+    where: { id : existing?.policyId },
+    select: { id: true , policyNumber : true  },
+    
   });
 
    const formattedDueDate = new Date(data.dueDate);
@@ -166,6 +187,16 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
 
 
   const status = await validatePaymentStatus(data.paymentStatusId);
+
+  //Create Notification
+  prisma.$transaction(async (tx) => {
+    await createNotification(tx, {
+        title: "Policy Premium Updated",
+        message: `Premium record for Policy (${policy?.policyNumber}) has been updated.`,
+        type: NotificationType.PREMIUM_UPDATED,
+        policyId: policy?.id,
+      });
+  });
 
   return prisma.premiumPayment.update({
     where: { id },
@@ -217,10 +248,25 @@ export const deletePayment = async (id: string) => {
   const payment = await prisma.premiumPayment.findUnique({ where: { id } });
   if (!payment) throw new AppError("Premium payment not found", 404);
 
+  const policy = await prisma.policy.findUnique({
+    where: { id : payment?.policyId },
+    select: { id: true , policyNumber : true  },
+    
+  });
   // const paidStatus = await getStatus("PAID");
   // if (payment.paymentStatusId === paidStatus.id) {
   //   throw new AppError("Paid premium payments cannot be deleted", 400);
   // }
 
   await prisma.premiumPayment.delete({ where: { id } });
+
+  //Create Notification
+  prisma.$transaction(async (tx) => {
+    await createNotification(tx, {
+        title: "Policy Premium Deleted",
+        message: `Premium record for Policy (${policy?.policyNumber}) has been deleted.`,
+        type: NotificationType.PREMIUM_DELETED,
+        policyId: policy?.id,
+      });
+  });
 };
