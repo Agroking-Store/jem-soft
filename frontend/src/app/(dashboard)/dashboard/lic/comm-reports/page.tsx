@@ -347,6 +347,7 @@ export default function LICCommReportsPage() {
           onBack={() => setCurrentView("cards")}
           onGenerateReport={handleGenerateOutstandingReport}
           initialData={selectedOutstandingData}
+          agencies={agencies || []}
           branches={branches || []}
           policies={policies || []}
         />

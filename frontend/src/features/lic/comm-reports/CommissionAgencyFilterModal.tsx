@@ -4,22 +4,35 @@ import { useState, useMemo, useEffect } from "react";
 import { X, Search, Trash2, Building2, CheckSquare, Square, Check } from "lucide-react";
 import { SelectedFilterItem } from "@/features/lic/reports/FilterOptionsModal";
 
+export interface CommissionAgencyItem {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  branchCode?: string;
+  branchName?: string;
+}
+
 interface CommissionAgencyFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  agencies?: Array<{ id: string; agencyCode: string; agencyName: string; branchId?: string }>;
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
   selectedFilters: SelectedFilterItem[];
   onApplyFilters: (filters: SelectedFilterItem[]) => void;
 }
 
-export const SYSTEM_COMMISSION_AGENCIES = [
-  { id: "ag002", name: "Jayant Mahabole", code: "AG002", description: "Advisors: A001, A002, A003" },
-  { id: "ag003", name: "Manisha Y Mahabole", code: "AG003", description: "Advisors: A004, A005, A006" },
-  { id: "ag001", name: "Other Agencies", code: "AG001", description: "All other advisors & direct codes" },
+export const SYSTEM_COMMISSION_AGENCIES: CommissionAgencyItem[] = [
+  { id: "ag002", name: "Jayant Mahabole", code: "AG002", description: "Advisors: A001, A002, A003", branchCode: "955", branchName: "Hadapsar, Pune" },
+  { id: "ag003", name: "Manisha Y Mahabole", code: "AG003", description: "Advisors: A004, A005, A006", branchCode: "955", branchName: "Hadapsar, Pune" },
+  { id: "ag001", name: "Other Agencies", code: "AG001", description: "All other advisors & direct codes", branchCode: "958", branchName: "Camp, Pune" },
 ];
 
 export default function CommissionAgencyFilterModal({
   isOpen,
   onClose,
+  agencies = [],
+  branches = [],
   selectedFilters = [],
   onApplyFilters,
 }: CommissionAgencyFilterModalProps) {
@@ -34,16 +47,63 @@ export default function CommissionAgencyFilterModal({
     }
   }, [isOpen, selectedFilters]);
 
+  // Combine Redux agencies with system agencies
+  const agencyList = useMemo(() => {
+    const list: CommissionAgencyItem[] = [];
+    const seen = new Set<string>();
+
+    // 1. Redux agencies
+    if (agencies && agencies.length > 0) {
+      agencies.forEach((ag) => {
+        let bCode = "958";
+        let bName = "Camp, Pune";
+
+        if (ag.agencyCode === "AG002" || ag.agencyCode === "AG003") {
+          bCode = "955";
+          bName = "Hadapsar, Pune";
+        } else if (ag.branchId) {
+          const matchB = branches.find((b) => b.id === ag.branchId || b.branchCode === ag.branchId);
+          if (matchB) {
+            bCode = matchB.branchCode;
+            bName = matchB.branchName;
+          }
+        }
+
+        seen.add(ag.agencyCode.toLowerCase());
+        seen.add(ag.agencyName.toLowerCase());
+
+        list.push({
+          id: ag.id,
+          name: ag.agencyName,
+          code: ag.agencyCode,
+          description: `Branch: ${bCode} (${bName})`,
+          branchCode: bCode,
+          branchName: bName,
+        });
+      });
+    }
+
+    // 2. Add System defaults if not already present
+    SYSTEM_COMMISSION_AGENCIES.forEach((sysAg) => {
+      if (!seen.has(sysAg.code.toLowerCase()) && !seen.has(sysAg.name.toLowerCase())) {
+        list.push(sysAg);
+      }
+    });
+
+    return list.length > 0 ? list : SYSTEM_COMMISSION_AGENCIES;
+  }, [agencies, branches]);
+
   const filteredAgencies = useMemo(() => {
     const query = searchText.toLowerCase().trim();
-    if (!query) return SYSTEM_COMMISSION_AGENCIES;
-    return SYSTEM_COMMISSION_AGENCIES.filter(
+    if (!query) return agencyList;
+    return agencyList.filter(
       (a) =>
         a.name.toLowerCase().includes(query) ||
         a.code.toLowerCase().includes(query) ||
-        a.description.toLowerCase().includes(query)
+        (a.description && a.description.toLowerCase().includes(query)) ||
+        (a.branchCode && a.branchCode.toLowerCase().includes(query))
     );
-  }, [searchText]);
+  }, [searchText, agencyList]);
 
   const isAllSelected =
     filteredAgencies.length > 0 &&
@@ -180,11 +240,16 @@ export default function CommissionAgencyFilterModal({
                       className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-xs text-slate-900">{agency.name}</span>
                         <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] font-mono font-semibold text-slate-600">
                           {agency.code}
                         </span>
+                        {agency.branchCode && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-blue-50 text-[10px] font-mono font-bold text-[#1877F2] border border-blue-100">
+                            Branch: {agency.branchCode}
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] text-slate-500 mt-0.5">{agency.description}</p>
                     </div>

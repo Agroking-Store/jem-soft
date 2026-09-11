@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 
 interface CommissionOutstandingFormProps {
   initialData?: CommissionOutstandingFormData | null;
+  agencies?: Array<{ id: string; agencyCode: string; agencyName: string; branchId?: string }>;
   branches?: BranchFilterItem[];
   policies?: any[];
   onBack: () => void;
@@ -34,6 +35,7 @@ interface CommissionOutstandingFormProps {
 
 export default function CommissionOutstandingForm({
   initialData,
+  agencies = [],
   branches = [],
   policies = [],
   onBack,
@@ -84,6 +86,128 @@ export default function CommissionOutstandingForm({
     onGenerateReport(formData);
   };
 
+  // Calculate branches belonging to the currently selected agency(ies)
+  // When an agency is selected (e.g. Jayant Mahabole), only branches under that agency appear in the branch filter modal.
+  const availableBranchesForAgency = useMemo(() => {
+    // If no agency filter selected, show all dynamic branches
+    if (!formData.dataFilters || formData.dataFilters.length === 0) {
+      return dynamicBranches;
+    }
+
+    const JAYANT_CODES = ["a001", "a002", "a003"];
+    const MANISHA_CODES = ["a004", "a005", "a006"];
+
+    const agencyNamesOrIds = formData.dataFilters
+      .filter((f) => f.type === "Agencies")
+      .map((f) => ({ id: f.id.toLowerCase(), name: f.name.toLowerCase() }));
+
+    if (agencyNamesOrIds.length === 0) {
+      return dynamicBranches;
+    }
+
+    const branchCodeMap = new Map<string, BranchFilterItem>();
+
+    // 1. From policies matching selected agency
+    if (policies && policies.length > 0) {
+      policies.forEach((p) => {
+        const pAgCode = (p.agentCode || "").toLowerCase().trim();
+        const pAdvCode = (p.advisor?.advisorCode || "").toLowerCase().trim();
+        const pAdvName = (p.advisor?.advisorName || "").toLowerCase().trim();
+        const pAgName = (p.agency?.agencyName || p.agencyName || "").toLowerCase();
+
+        const matches = agencyNamesOrIds.some((f) => {
+          if (f.name.includes("jayant") || f.id.includes("ag002")) {
+            return (
+              JAYANT_CODES.includes(pAgCode) ||
+              JAYANT_CODES.includes(pAdvCode) ||
+              pAdvName.includes("jayant") ||
+              pAgName.includes("jayant")
+            );
+          }
+          if (f.name.includes("manisha") || f.id.includes("ag003")) {
+            return (
+              MANISHA_CODES.includes(pAgCode) ||
+              MANISHA_CODES.includes(pAdvCode) ||
+              pAdvName.includes("manisha") ||
+              pAgName.includes("manisha")
+            );
+          }
+          return (
+            pAgCode.includes(f.id) ||
+            pAdvCode.includes(f.id) ||
+            pAdvName.includes(f.name) ||
+            pAgName.includes(f.name)
+          );
+        });
+
+        if (matches) {
+          const bCode = String(p.branch?.branchCode || p.branchCode || p.branchId || "").trim();
+          const bName = p.branch?.branchName || p.branchName || (bCode ? `Branch ${bCode}` : "");
+          if (bCode && !branchCodeMap.has(bCode)) {
+            branchCodeMap.set(bCode, {
+              id: p.branch?.id || `br-${bCode}`,
+              branchCode: bCode,
+              branchName: bName,
+            });
+          }
+        }
+      });
+    }
+
+    // 2. Also check LIC Policy Form specific mappings:
+    agencyNamesOrIds.forEach((f) => {
+      // Jayant Mahabole (AG002) or Manisha Y Mahabole (AG003) -> Branch 955 (Hadapsar, Pune)
+      if (f.name.includes("jayant") || f.id.includes("ag002") || f.name.includes("manisha") || f.id.includes("ag003")) {
+        const br955 = dynamicBranches.find((b) => b.branchCode === "955") || {
+          id: "b955",
+          branchCode: "955",
+          branchName: "Hadapsar, Pune",
+        };
+        branchCodeMap.set("955", br955);
+      }
+
+      // Check Redux agency branchId
+      const matchedAgency = agencies.find(
+        (a) =>
+          a.id.toLowerCase() === f.id ||
+          a.agencyCode.toLowerCase() === f.id ||
+          a.agencyName.toLowerCase() === f.name
+      );
+      if (matchedAgency?.branchId) {
+        const b = dynamicBranches.find(
+          (db) => db.id === matchedAgency.branchId || db.branchCode === matchedAgency.branchId
+        );
+        if (b) branchCodeMap.set(b.branchCode, b);
+      }
+    });
+
+    // If matches found, return them; otherwise fallback to dynamicBranches
+    if (branchCodeMap.size > 0) {
+      return Array.from(branchCodeMap.values()).sort((a, b) => a.branchCode.localeCompare(b.branchCode));
+    }
+
+    return dynamicBranches;
+  }, [formData.dataFilters, dynamicBranches, policies, agencies]);
+
+  // When agency filter is applied: DO NOT autofill branches.
+  // Just update agency filter, and if any previously selected branches are not under this agency, clean them up.
+  const handleApplyAgencies = (filters: Array<{ type: string; id: string; name: string }>) => {
+    setFormData((prev) => {
+      // Keep only branches that are valid under newly selected agency
+      return {
+        ...prev,
+        dataFilters: filters || [],
+      };
+    });
+  };
+
+  const handleClearAgencyFilter = () => {
+    setFormData((prev) => ({
+      ...prev,
+      dataFilters: [],
+    }));
+  };
+
   const getAgencyFilterDisplayLabel = () => {
     const selectedAgencies = formData.dataFilters?.filter((f) => f.type === "Agencies") || [];
     if (selectedAgencies.length === 0) {
@@ -100,9 +224,9 @@ export default function CommissionOutstandingForm({
       return "All Branches Selected";
     }
     if (formData.selectedBranches.length === 1) {
-      return `Branch ${formData.selectedBranches[0].branchCode}`;
+      return `Branch ${formData.selectedBranches[0].branchCode} - ${formData.selectedBranches[0].branchName}`;
     }
-    return `${formData.selectedBranches.length} branches selected`;
+    return `${formData.selectedBranches.length} branches selected (${formData.selectedBranches.map((b) => b.branchCode).join(", ")})`;
   };
 
   const getPolicyFilterDisplayLabel = () => {
@@ -219,7 +343,7 @@ export default function CommissionOutstandingForm({
                 {formData.dataFilters && formData.dataFilters.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, dataFilters: [] }))}
+                    onClick={handleClearAgencyFilter}
                     className="p-2.5 rounded-xl border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 transition"
                     title="Clear Filter"
                   >
@@ -227,7 +351,23 @@ export default function CommissionOutstandingForm({
                   </button>
                 )}
               </div>
+
+              {/* Available Branches Info Indicator under Selected Agency */}
+              {formData.dataFilters && formData.dataFilters.length > 0 && availableBranchesForAgency.length > 0 && (
+                <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                  <span className="text-[11px] font-semibold text-slate-500">Available Branches:</span>
+                  {availableBranchesForAgency.map((b) => (
+                    <span
+                      key={b.id}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-[#1877F2] text-[10.5px] font-bold font-mono shadow-2xs"
+                    >
+                      Branch {b.branchCode} ({b.branchName})
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
+
 
             {/* Date Range: From & To */}
             <div className="space-y-1.5">
@@ -636,17 +776,17 @@ export default function CommissionOutstandingForm({
       <CommissionAgencyFilterModal
         isOpen={isAgencyFilterModalOpen}
         onClose={() => setIsAgencyFilterModalOpen(false)}
+        agencies={agencies}
+        branches={dynamicBranches}
         selectedFilters={formData.dataFilters}
-        onApplyFilters={(filters) =>
-          setFormData((prev) => ({ ...prev, dataFilters: filters }))
-        }
+        onApplyFilters={handleApplyAgencies}
       />
 
-      {/* Dynamic Branch Filter Modal */}
+      {/* Dynamic Branch Filter Modal (Filtered based on Selected Agency) */}
       <CommissionBranchFilterModal
         isOpen={isBranchFilterModalOpen}
         onClose={() => setIsBranchFilterModalOpen(false)}
-        branches={dynamicBranches}
+        branches={availableBranchesForAgency}
         selectedBranches={formData.selectedBranches}
         onApplyBranches={(selected) =>
           setFormData((prev) => ({ ...prev, selectedBranches: selected }))
