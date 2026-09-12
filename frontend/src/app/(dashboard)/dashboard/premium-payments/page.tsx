@@ -128,14 +128,17 @@ export default function PremiumPaymentsPage() {
         ].map(([l, v]) => (
           <div
             key={String(l)}
-            className="rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50 p-5"
+            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
           >
-            <p className="text-xs font-bold uppercase tracking-wider text-[#E8C77A]">
-              {l}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-white">
-              {isLoading ? "…" : v}
-            </p>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <div>
+              <p className="text-sm font-semibold text-slate-500">
+                {l}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-slate-900">
+                {isLoading ? "…" : v}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -150,13 +153,13 @@ export default function PremiumPaymentsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search policy or customer"
-              className="w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#B8873A]"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-3 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             />
           </div>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
           >
             <option value="ALL">All Statuses</option>
             <option value="PAID">Paid</option>
@@ -164,10 +167,11 @@ export default function PremiumPaymentsPage() {
           </select>
         </div>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="overflow-x-auto mt-2">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
+            <thead className="bg-slate-50/70">
               <tr>
                 {[
                   "Policy",
@@ -180,7 +184,7 @@ export default function PremiumPaymentsPage() {
                   "Status",
                   "Actions"
                 ].map((h) => (
-                  <th key={h} className="px-5 py-3">
+                  <th key={h} className="sticky top-0 z-10 border-b border-slate-100 px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                     {h}
                   </th>
                 ))}

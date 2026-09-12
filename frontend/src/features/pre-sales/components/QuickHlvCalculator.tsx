@@ -340,7 +340,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => calculate()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white font-semibold text-sm rounded-lg transition"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 active:scale-[0.98] text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-200 transition-all"
           >
             <Play size={14} className="fill-current" />
             Calculate
@@ -368,7 +368,7 @@ export default function QuickHlvCalculator() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={downloading || previewing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-amber-600/30 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold text-sm rounded-lg transition disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-semibold text-sm rounded-lg transition disabled:opacity-60"
           >
             {downloading
               ? <Loader2 size={14} className="animate-spin" />
@@ -513,7 +513,7 @@ export default function QuickHlvCalculator() {
                       <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 border border-slate-200">
                         {[true, false].map((v) => (
                           <button key={String(v)} type="button" onClick={() => setWhatIf(v)}
-                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${whatIf === v ? "bg-[#0B1220] text-white" : "text-slate-500 hover:text-slate-800"}`}>
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${whatIf === v ? "bg-[#1877F2] text-white" : "text-slate-500 hover:text-slate-800"}`}>
                             {v ? "Yes" : "No"}
                           </button>
                         ))}
@@ -530,19 +530,20 @@ export default function QuickHlvCalculator() {
 
         {/* ── Right sidebar card ── */}
         <div className="lg:col-span-4">
-          <div className="bg-gradient-to-br from-[#0B1220] to-[#1A2536] text-white border border-slate-800 rounded-xl shadow-lg p-6 h-full">
-            <h3 className="font-serif font-bold text-lg text-[#D9AE63] mb-4">Calculation Summary</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 h-full relative overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <h3 className="font-bold text-lg text-slate-900 mb-4">Calculation Summary</h3>
             <div className="space-y-3 text-sm">
               {[
                 { label: "Annual Income",        value: `₹ ${fmt(incomeNum)}`,    color: "" },
                 { label: "Household Expenses",   value: `₹ ${fmt(expensesNum)}`,  color: "" },
-                { label: "Investment Margin",     value: `₹ ${fmt(investMargin)}`, color: "text-emerald-400" },
-                { label: "Existing Protection",  value: `₹ ${fmt(totalProtect)}`, color: "text-amber-400" },
-                { label: "Productive Years",     value: prodYears > 0 ? `${prodYears} yrs` : "--", color: "text-blue-400" },
+                { label: "Investment Margin",     value: `₹ ${fmt(investMargin)}`, color: "text-emerald-600" },
+                { label: "Existing Protection",  value: `₹ ${fmt(totalProtect)}`, color: "text-amber-600" },
+                { label: "Productive Years",     value: prodYears > 0 ? `${prodYears} yrs` : "--", color: "text-blue-600" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="flex justify-between border-b border-white/10 pb-2">
-                  <span className="text-white/60 text-xs">{label}:</span>
-                  <span className={`font-bold ${color}`}>{value}</span>
+                <div key={label} className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-500 text-xs">{label}:</span>
+                  <span className={`font-bold ${color || "text-slate-900"}`}>{value}</span>
                 </div>
               ))}
 
@@ -554,18 +555,18 @@ export default function QuickHlvCalculator() {
               )}
 
               <button type="button" onClick={() => calculate()}
-                className="w-full mt-4 py-2.5 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-sm rounded-lg hover:shadow-md transition">
+                className="w-full mt-4 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-200 transition-all">
                 Compute Human Life Value
               </button>
 
               <button type="button" onClick={handleViewPDF} disabled={previewing || downloading}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-2 shadow-sm">
                 {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
                 {previewing ? "Preparing…" : "View PDF Report"}
               </button>
 
               <button type="button" onClick={handleDownloadPDF} disabled={downloading || previewing}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-2 shadow-sm">
                 {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {downloading ? "Generating PDF…" : "Download PDF Report"}
               </button>
@@ -580,13 +581,14 @@ export default function QuickHlvCalculator() {
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { label: "Human Life Value (HLV)", value: `₹ ${fmt(hlv)}`, cls: "text-[#0B1220]", bg: "bg-white" },
+              { label: "Human Life Value (HLV)", value: `₹ ${fmt(hlv)}`, cls: "text-[#1877F2]", bg: "bg-white" },
               { label: "Cash Flow Arrangement",  value: `₹ ${fmt(cashFlow)}`, cls: "text-slate-600", bg: "bg-white" },
               { label: "Additional Cover Required", value: `₹ ${fmt(addInsurance)}`, cls: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
             ].map(({ label, value, cls, bg }) => (
-              <div key={label} className={`${bg} border border-slate-200 rounded-xl shadow-sm p-6 text-center min-w-0`}>
-                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</span>
-                <span className={`block break-words text-2xl font-serif font-extrabold ${cls}`}>{value}</span>
+              <div key={label} className={`${bg} border border-slate-200 rounded-2xl shadow-sm p-6 text-center min-w-0 relative overflow-hidden`}>
+                {label === "Human Life Value (HLV)" && <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />}
+                <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{label}</span>
+                <span className={`block break-words text-2xl font-bold ${cls}`}>{value}</span>
               </div>
             ))}
           </div>

@@ -107,82 +107,68 @@ export default function OrganizationPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">
-          Organization Management
-        </h1>
-        <p className="text-slate-500">
-          Manage your organization structure and settings
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm mb-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <Building2 size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Organization Management
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Manage your organization structure and settings
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Agencies</p>
-          <p className="text-2xl font-bold text-slate-900">12</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Branches</p>
-          <p className="text-2xl font-bold text-slate-900">24</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Areas</p>
-          <p className="text-2xl font-bold text-slate-900">8</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Employees</p>
-          <p className="text-2xl font-bold text-slate-900">156</p>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <p className="text-xs text-slate-500 uppercase tracking-wider">Brokers</p>
-          <p className="text-2xl font-bold text-slate-900">5</p>
-        </div>
+        {[
+          { label: "Agencies", value: "12" },
+          { label: "Branches", value: "24" },
+          { label: "Areas", value: "8" },
+          { label: "Employees", value: "156" },
+          { label: "Brokers", value: "5" },
+        ].map((stat, idx) => (
+          <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <div>
+              <p className="text-sm font-semibold text-slate-500">{stat.label}</p>
+              <p className="mt-1 text-2xl font-bold text-slate-900">{stat.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Module Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {modules.map((module) => {
-          const colors = getColorClasses(module.color);
           const Icon = module.icon;
 
           return (
             <div
               key={module.id}
               onClick={() => router.push(module.href)}
-              className={`
-                group relative bg-white rounded-xl shadow-sm border border-slate-200
-                p-6 cursor-pointer transition-all duration-200
-                hover:shadow-lg hover:border-transparent
-                ${colors.hover}
-              `}
+              className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md cursor-pointer"
             >
-              {/* Icon */}
-              <div className={`
-                w-14 h-14 rounded-xl flex items-center justify-center mb-4
-                ${colors.iconBg}
-              `}>
-                <Icon className={`w-7 h-7 ${colors.icon}`} />
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2] transition-colors duration-200 group-hover:bg-[#1877F2] group-hover:text-white">
+                <Icon size={20} />
               </div>
-
-              {/* Title */}
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                {module.title}
-              </h3>
-
-              {/* Description */}
-              <p className="text-sm text-slate-500 mb-4">
-                {module.description}
-              </p>
-
-              {/* Arrow indicator */}
-              <div className="flex items-center text-sm font-medium text-blue-600 group-hover:translate-x-1 transition-transform">
-                <span>Learn More</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold tracking-tight text-[#0f172a]">
+                  {module.title}
+                </h3>
+                <p className="mt-0.5 truncate text-sm font-medium text-slate-500">
+                  {module.description}
+                </p>
               </div>
-
-              {/* Subtle hover effect */}
-              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-blue-400 transition-colors pointer-events-none"></div>
+              <ArrowRight
+                size={16}
+                className="shrink-0 text-[#1877F2] transition-transform duration-200 group-hover:translate-x-1"
+              />
             </div>
           );
         })}

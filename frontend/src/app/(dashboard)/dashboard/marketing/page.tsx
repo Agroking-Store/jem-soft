@@ -220,42 +220,38 @@ export default function MarketingPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Brand Hero Header */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-6 py-6 sm:px-8 sm:py-7">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#B8873A]/20 border border-[#B8873A]/30 text-[#E8C77A] shadow-inner">
-                <Megaphone size={24} />
-              </div>
-              <div>
-                <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#E8C77A] sm:text-3xl">
-                  Marketing & Communications Hub
-                </h1>
-                <p className="mt-1 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-                  Automated upcoming premium due reminders, WhatsApp/SMS/Email campaigns, and customer service preferences.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleRunScan}
-                disabled={isScanning}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#B8873A] hover:bg-[#a0742f] text-white text-xs font-bold uppercase tracking-wider shadow-md shadow-[#B8873A]/20 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <Play size={14} className={isScanning ? "animate-spin" : ""} />
-                {isScanning ? "Scanning Policies..." : "Run Due Date Scan Now"}
-              </button>
-              <button
-                onClick={loadAllData}
-                className="p-2.5 text-[#E8C77A] hover:text-white bg-white/10 hover:bg-white/20 rounded-xl transition-colors cursor-pointer border border-white/10"
-                title="Refresh"
-              >
-                <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
-              </button>
-            </div>
+      {/* Top Banner Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <Megaphone size={26} />
           </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Marketing & Communications Hub
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Automated upcoming premium due reminders, WhatsApp/SMS/Email campaigns, and customer service preferences.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRunScan}
+            disabled={isScanning}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          >
+            <Play size={16} className={isScanning ? "animate-spin" : ""} />
+            {isScanning ? "Scanning Policies..." : "Run Due Date Scan Now"}
+          </button>
+          <button
+            onClick={loadAllData}
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-blue-600 border border-blue-200 shadow-sm transition-all hover:bg-blue-50 cursor-pointer active:scale-[0.98]"
+            title="Refresh"
+          >
+            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
 
@@ -274,13 +270,13 @@ export default function MarketingPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as TabType)}
-              className={`flex items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all cursor-pointer ${
                 isActive
-                  ? "border-[#B8873A] text-[#0B1220] bg-slate-50/80 rounded-t-xl"
-                  : "border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300"
+                  ? "border-[#1877F2] text-[#1877F2] bg-blue-50/50"
+                  : "border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300"
               }`}
             >
-              <Icon size={16} className={isActive ? "text-[#B8873A]" : ""} />
+              <Icon size={16} className={isActive ? "text-[#1877F2]" : ""} />
               {tab.label}
             </button>
           );
@@ -292,62 +288,62 @@ export default function MarketingPage() {
         <div className="space-y-6">
           {/* Quick Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 to-indigo-500" />
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Audience Size</span>
-                <div className="p-2 rounded-xl bg-blue-50 text-blue-600"><Users size={18} /></div>
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-semibold text-slate-500">Audience Size</span>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1877F2] flex items-center justify-center"><Users size={18} /></div>
               </div>
-              <p className="font-serif text-2xl font-bold text-slate-900">{audienceCount?.totalMembers ?? "--"}</p>
-              <p className="text-xs text-slate-400 mt-1">Customer master records in database</p>
+              <p className="text-2xl font-bold text-slate-900">{audienceCount?.totalMembers ?? "--"}</p>
+              <p className="text-xs font-medium text-slate-400 mt-1">Customer master records</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-500 to-teal-500" />
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">SMS Opt-In</span>
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600"><Smartphone size={18} /></div>
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-semibold text-slate-500">SMS Opt-In</span>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1877F2] flex items-center justify-center"><Smartphone size={18} /></div>
               </div>
-              <p className="font-serif text-2xl font-bold text-emerald-600">{audienceCount?.smsEligible ?? "--"}</p>
-              <p className="text-xs text-slate-400 mt-1">Customers allowing SMS Marketing</p>
+              <p className="text-2xl font-bold text-slate-900">{audienceCount?.smsEligible ?? "--"}</p>
+              <p className="text-xs font-medium text-slate-400 mt-1">Customers allowing SMS</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] to-[#E8C77A]" />
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Email Opt-In</span>
-                <div className="p-2 rounded-xl bg-amber-50 text-[#B8873A]"><Mail size={18} /></div>
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-semibold text-slate-500">Email Opt-In</span>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1877F2] flex items-center justify-center"><Mail size={18} /></div>
               </div>
-              <p className="font-serif text-2xl font-bold text-[#B8873A]">{audienceCount?.emailEligible ?? "--"}</p>
-              <p className="text-xs text-slate-400 mt-1">Customers allowing Email Marketing</p>
+              <p className="text-2xl font-bold text-slate-900">{audienceCount?.emailEligible ?? "--"}</p>
+              <p className="text-xs font-medium text-slate-400 mt-1">Customers allowing Email</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-slate-700 to-slate-900" />
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Dispatched History</span>
-                <div className="p-2 rounded-xl bg-slate-100 text-slate-800"><History size={18} /></div>
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-semibold text-slate-500">Dispatched History</span>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1877F2] flex items-center justify-center"><History size={18} /></div>
               </div>
-              <p className="font-serif text-2xl font-bold text-slate-900">{logsTotal}</p>
-              <p className="text-xs text-slate-400 mt-1">Logged notifications & messages</p>
+              <p className="text-2xl font-bold text-slate-900">{logsTotal}</p>
+              <p className="text-xs font-medium text-slate-400 mt-1">Logged notifications</p>
             </div>
           </div>
 
           {/* Automated Scanner Status Card */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] text-white p-6 sm:p-7 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-[#f0f7ff] text-slate-900 p-6 sm:p-7 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="text-[11px] uppercase tracking-widest text-[#E8C77A] font-bold">
+                <span className={`h-2.5 w-2.5 rounded-full ${settings?.isAutoReminderEnabled ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}></span>
+                <span className="text-xs font-semibold text-slate-600">
                   {settings?.isAutoReminderEnabled ? "Automated Engine: Active" : "Automated Engine: Paused"}
                 </span>
               </div>
-              <h3 className="font-serif text-xl font-semibold text-white">Daily Insurance Due-Date & Birthday Scanner</h3>
-              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              <h3 className="text-lg font-bold text-slate-900">Daily Insurance Due-Date & Birthday Scanner</h3>
+              <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
                 Scans all policies daily at {settings?.cronScheduleTime || "09:00 AM"}. Automatically triggers SMS & Email reminders {settings?.dueDaysBefore || "30, 15, 7, 1, 0"} days before due date to opted-in customers.
               </p>
               {settings?.lastRunAt && (
-                <p className="text-[11px] text-slate-400 font-mono">
+                <p className="text-xs text-slate-400 font-medium">
                   Last executed on: {new Date(settings.lastRunAt).toLocaleString("en-IN")}
                 </p>
               )}
@@ -356,20 +352,20 @@ export default function MarketingPage() {
             <button
               onClick={handleRunScan}
               disabled={isScanning}
-              className="shrink-0 px-5 py-2.5 bg-[#B8873A] hover:bg-[#a0742f] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
+              className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-sm font-semibold shadow-md transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer flex items-center gap-2"
             >
-              <Play size={14} /> Run Scan Now
+              <Play size={16} /> Run Scan Now
             </button>
           </div>
 
           {/* Recent Communication Logs Preview */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900">Recent Communication History</h3>
               <button
                 onClick={() => setActiveTab("logs")}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-800 cursor-pointer"
+                className="text-sm font-semibold text-[#1877F2] hover:text-blue-700 cursor-pointer"
               >
                 View All Logs &rarr;
               </button>
@@ -380,14 +376,14 @@ export default function MarketingPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-600">
-                  <thead className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase">
+                  <thead className="bg-slate-50/70">
                     <tr>
-                      <th className="py-3 px-4">Date & Time</th>
-                      <th className="py-3 px-4">Customer</th>
-                      <th className="py-3 px-4">Channel</th>
-                      <th className="py-3 px-4">Recipient</th>
-                      <th className="py-3 px-4">Trigger</th>
-                      <th className="py-3 px-4">Status</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Date & Time</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Customer</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Channel</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Recipient</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Trigger</th>
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -443,7 +439,7 @@ export default function MarketingPage() {
             </div>
             <button
               onClick={() => setShowNewCampaignModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-500/20 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
             >
               <Plus size={16} /> Create Campaign
             </button>
@@ -484,7 +480,7 @@ export default function MarketingPage() {
                   {camp.status !== "COMPLETED" && (
                     <button
                       onClick={() => handleSendCampaign(camp.id)}
-                      className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full py-2 bg-[#1877F2] hover:bg-[#1664d8] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
                     >
                       <Send size={14} /> Broadcast Now
                     </button>

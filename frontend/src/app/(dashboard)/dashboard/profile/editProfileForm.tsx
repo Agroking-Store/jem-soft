@@ -71,16 +71,23 @@ export default function EditProfileForm({
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-[#0B1220] p-2.5 rounded-xl">
-            <UserIcon className="w-6 h-6 text-[#E8C77A]" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm mb-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <UserIcon size={26} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Profile</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Profile
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Manage your personal information and preferences.
+            </p>
+          </div>
         </div>
         <Button
           onClick={() => setIsEditing(true)}
-          className="bg-[#0B1220] hover:bg-[#132342] text-[#E8C77A] font-semibold flex items-center gap-2 rounded-lg px-5 py-2.5 transition-colors"
+          className="bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 active:scale-[0.98] text-white font-semibold flex items-center gap-2 rounded-xl shadow-md shadow-blue-200 px-5 py-2.5 transition-all"
         >
           <Edit2 className="w-4 h-4" />
           Edit Profile
@@ -90,43 +97,52 @@ export default function EditProfileForm({
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Name Card */}
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-md border border-slate-800 flex items-center justify-between group hover:shadow-lg transition-all">
-          <div>
-            <p className="text-[#E8C77A]/80 text-sm font-semibold mb-1 tracking-wide">Name</p>
-            <p className="text-[#E8C77A] text-xl font-bold truncate pr-2">{user?.name || "User"}</p>
-          </div>
-          <div className="p-3 border border-[#E8C77A]/20 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
-            <UserIcon className="w-6 h-6 text-[#E8C77A]" />
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-500 text-sm font-semibold mb-1 tracking-wide">Name</p>
+              <p className="text-slate-900 text-xl font-bold truncate pr-2">{user?.name || "User"}</p>
+            </div>
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <UserIcon className="w-6 h-6" />
+            </div>
           </div>
         </div>
 
         {/* Email Card */}
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-md border border-slate-800 flex items-center justify-between group hover:shadow-lg transition-all">
-          <div className="overflow-hidden">
-            <p className="text-[#E8C77A]/80 text-sm font-semibold mb-1 tracking-wide">Email</p>
-            <p className="text-[#E8C77A] text-lg font-bold truncate pr-2" title={user?.email}>{user?.email || "No Email"}</p>
-          </div>
-          <div className="p-3 border border-[#E8C77A]/20 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors shrink-0">
-            <Mail className="w-6 h-6 text-[#E8C77A]" />
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="flex items-center justify-between overflow-hidden">
+            <div className="overflow-hidden">
+              <p className="text-slate-500 text-sm font-semibold mb-1 tracking-wide">Email</p>
+              <p className="text-slate-900 text-lg font-bold truncate pr-2" title={user?.email}>{user?.email || "No Email"}</p>
+            </div>
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <Mail className="w-6 h-6" />
+            </div>
           </div>
         </div>
 
         {/* Role Card */}
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-md border border-slate-800 flex items-center justify-between group hover:shadow-lg transition-all">
-          <div>
-            <p className="text-[#E8C77A]/80 text-sm font-semibold mb-1 tracking-wide">Role</p>
-            <p className="text-[#E8C77A] text-xl font-bold uppercase">{user?.role || "GUEST"}</p>
-          </div>
-          <div className="p-3 border border-[#E8C77A]/20 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
-            <Shield className="w-6 h-6 text-[#E8C77A]" />
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-500 text-sm font-semibold mb-1 tracking-wide">Role</p>
+              <p className="text-slate-900 text-xl font-bold uppercase">{user?.role || "GUEST"}</p>
+            </div>
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <Shield className="w-6 h-6" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Account Details Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 py-5 border-b-2 border-b-[#E8C77A]/40 bg-slate-50/30">
-          <h2 className="text-[#132342] font-bold tracking-[0.1em] text-sm mb-1 uppercase">Account Details</h2>
+        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/70">
+          <h2 className="text-[#0f172a] font-bold tracking-[0.14em] text-[11px] mb-1 uppercase">Account Details</h2>
           <p className="text-slate-500 text-sm">More details about your account and activity.</p>
         </div>
         <div className="p-0 overflow-x-auto">
@@ -140,8 +156,8 @@ export default function EditProfileForm({
             <tbody className="divide-y divide-slate-50">
               <tr className="hover:bg-slate-50/50 transition-colors">
                 <td className="py-4 px-6 flex items-center gap-3">
-                  <div className="bg-[#0B1220] p-1.5 rounded-lg shadow-sm">
-                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  <div className="flex shrink-0 items-center justify-center w-8 h-8 bg-blue-50 text-[#1877F2] rounded-lg shadow-sm">
+                    <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium text-slate-700">Account Status</span>
                 </td>
@@ -154,8 +170,8 @@ export default function EditProfileForm({
               </tr>
               <tr className="hover:bg-slate-50/50 transition-colors">
                 <td className="py-4 px-6 flex items-center gap-3">
-                  <div className="bg-[#0B1220] p-1.5 rounded-lg shadow-sm">
-                    <UserIcon className="w-4 h-4 text-white" />
+                  <div className="flex shrink-0 items-center justify-center w-8 h-8 bg-blue-50 text-[#1877F2] rounded-lg shadow-sm">
+                    <UserIcon className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium text-slate-700">Account Type</span>
                 </td>
@@ -167,8 +183,8 @@ export default function EditProfileForm({
               </tr>
               <tr className="hover:bg-slate-50/50 transition-colors">
                 <td className="py-4 px-6 flex items-center gap-3">
-                  <div className="bg-[#0B1220] p-1.5 rounded-lg shadow-sm">
-                    <Mail className="w-4 h-4 text-white" />
+                  <div className="flex shrink-0 items-center justify-center w-8 h-8 bg-blue-50 text-[#1877F2] rounded-lg shadow-sm">
+                    <Mail className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium text-slate-700">Contact Email</span>
                 </td>
@@ -238,7 +254,7 @@ export default function EditProfileForm({
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="rounded-full bg-[#0B1220] hover:bg-[#132342] text-[#E8C77A] font-semibold px-6 py-2 min-w-[120px] transition-colors"
+                  className="rounded-full bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 active:scale-[0.98] text-white font-semibold px-6 py-2 min-w-[120px] transition-all shadow-md shadow-blue-200"
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </Button>

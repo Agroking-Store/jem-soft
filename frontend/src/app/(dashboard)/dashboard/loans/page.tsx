@@ -213,11 +213,12 @@ export default function LoansPage() {
         ].map((card) => (
           <div
             key={card.label}
-            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
           >
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500">{card.label}</p>
+                <p className="text-sm font-semibold text-slate-500">{card.label}</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">
                   {isLoading ? (
                     <span className="inline-block w-16 h-8 bg-slate-100 animate-pulse rounded" />
@@ -226,7 +227,7 @@ export default function LoansPage() {
                   )}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+              <div className="w-12 h-12 bg-blue-50 text-[#1877F2] rounded-xl flex items-center justify-center">
                 {card.icon}
               </div>
             </div>
@@ -247,7 +248,7 @@ export default function LoansPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by policy # or customer..."
-              className="w-full h-11 pl-10 pr-4 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm placeholder:text-slate-400 focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             />
           </div>
           <div className="flex flex-col">
@@ -257,7 +258,7 @@ export default function LoansPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-11 w-40 rounded-lg border border-slate-200 bg-white px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="h-11 w-40 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             >
               <option value="ALL">All Status</option>
               <option value="ACTIVE">Active</option>
@@ -274,7 +275,7 @@ export default function LoansPage() {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="h-11 w-44 rounded-lg border border-slate-200 bg-white px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="h-11 w-44 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             />
           </div>
           <div className="flex flex-col">
@@ -285,7 +286,7 @@ export default function LoansPage() {
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="h-11 w-44 rounded-lg border border-slate-200 bg-white px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="h-11 w-44 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             />
           </div>
           <div className="flex flex-col">
@@ -295,7 +296,7 @@ export default function LoansPage() {
             <select
               value={customerFilter}
               onChange={(e) => setCustomerFilter(e.target.value)}
-              className="h-11 w-48 rounded-lg border border-slate-200 bg-white px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              className="h-11 w-48 rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-sm focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
             >
               <option value="ALL">All Customers</option>
               {customers.map((c) => (

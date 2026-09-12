@@ -131,14 +131,21 @@ export default function Page() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
-          <ShieldUser />
-        </span>
-        <h1 className="text-2xl font-serif font-semibold tracking-tight text-slate-900">
-          Claims
-        </h1>
+    <div className="max-w-7xl mx-auto space-y-6 pb-8">
+      {/* Top Banner Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <ShieldUser size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Claims
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Stats (FIXED) */}
@@ -147,32 +154,33 @@ export default function Page() {
           {
             label: "Total Claims",
             value: stats.total,
-            icon: <ShieldAlert className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <ShieldAlert className="w-6 h-6" />,
           },
           {
             label: "Pending Claims",
             value: stats.pending,
-            icon: <ShieldQuestionMark className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <ShieldQuestionMark className="w-6 h-6" />,
           },
           {
             label: "Settled / Approved",
             value: stats.approved,
-            icon: <ShieldCheck className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <ShieldCheck className="w-6 h-6" />,
           },
           {
             label: "Total Claim Amount",
             value: `₹${stats.totalAmount.toLocaleString("en-IN")}`,
-            icon: <IndianRupee className="w-6 h-6 text-[#E8C77A]" />,
+            icon: <IndianRupee className="w-6 h-6" />,
           },
         ].map((card) => (
           <div
             key={card.label}
-            className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
           >
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-md text-[#E8C77A] font-bold">{card.label}</p>
-                <p className="text-2xl font-bold text-[#E8C77A]">
+                <p className="text-sm font-semibold text-slate-500">{card.label}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
                   {isLoading ? (
                     <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded" />
                   ) : (
@@ -180,7 +188,7 @@ export default function Page() {
                   )}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 text-[#1877F2] rounded-xl flex items-center justify-center">
                 {card.icon}
               </div>
             </div>
@@ -200,7 +208,7 @@ export default function Page() {
               placeholder="Search by policy #, claimant, amount..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
             />
           </div>
         </div>
@@ -216,7 +224,7 @@ export default function Page() {
           {canEdit && (
             <button
               onClick={() => router.push("/dashboard/claims/new")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#16294D] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus size={16} /> New Claim
             </button>
@@ -225,38 +233,32 @@ export default function Page() {
       </CustomerToolbar>
 
       {/* Table */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
-            Claims
-          </h2>
-          <p className="text-sm text-slate-500">Browse all claim records.</p>
-        </div>
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
         <CustomerTableFrame>
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-slate-50/70">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Policy #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Claimant
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Amount
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   Status
                 </th>
                 {canEdit && (
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                     Actions
                   </th>
                 )}
@@ -269,31 +271,31 @@ export default function Page() {
                 return (
                   <tr
                     key={claim.id}
-                    className="group hover:bg-slate-50 transition"
+                    className="group border-b border-slate-100 transition-colors hover:bg-blue-50/40 bg-white"
                   >
-                    <td className="px-4 py-3 text-sm text-slate-600 font-mono">
+                    <td className="px-4 py-4 align-top text-sm font-mono text-[#475569]">
                       {claim.policy?.policyNumber || "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4 align-top">
                       <div className="flex gap-3 items-center">
-                        <Seal name={claim.claimantName || "—"} size={34} />
-                        <span className="text-sm text-slate-600">
+                        <Seal name={claim.claimantName || "—"} size={36} />
+                        <span className="font-semibold text-slate-900">
                           {claim.claimantName || "—"}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-4 align-top text-sm text-slate-600">
                       {claim.claimType}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                    <td className="px-4 py-4 align-top text-sm font-medium text-slate-900">
                       ₹{Number(claim.claimAmount).toLocaleString("en-IN")}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-4 align-top text-sm text-slate-600">
                       {claim.claimDate
                         ? new Date(claim.claimDate).toLocaleDateString("en-IN")
                         : "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4 align-top">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${badge.color}`}
                       >
@@ -301,32 +303,32 @@ export default function Page() {
                       </span>
                     </td>
                     {canEdit && (
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+                      <td className="px-4 py-4 text-right align-top">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() =>
                               router.push(`/dashboard/claims/${claim.id}`)
                             }
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
                             title="View"
                           >
-                            <Eye size={16} />
+                            <Eye size={14} />
                           </button>
                           <button
                             onClick={() =>
                               router.push(`/dashboard/claims/edit/${claim.id}`)
                             }
-                            className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
                             title="Edit"
                           >
-                            <Edit size={16} />
+                            <Edit size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(claim)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
                             title="Delete"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
@@ -337,7 +339,7 @@ export default function Page() {
             </tbody>
           </table>
         </CustomerTableFrame>
-      </section>
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -409,7 +411,7 @@ export default function Page() {
               canEdit && (
                 <button
                   onClick={() => router.push("/dashboard/claims/new")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#B8873A] to-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-white"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
                 >
                   <Plus size={16} /> New Claim
                 </button>

@@ -28,7 +28,7 @@ function PreSalesModuleNavInner() {
   return (
     <nav
       aria-label="Pre-Sales module navigation"
-      className="inline-flex max-w-full bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1"
+      className="inline-flex max-w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5"
     >
       <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, icon: Icon, href }) => {
@@ -44,12 +44,12 @@ function PreSalesModuleNavInner() {
                 transition-all duration-200 select-none
                 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md shadow-black/30"
-                    : "text-white/55 hover:text-white hover:bg-white/[0.07] active:bg-white/10"
+                    ? "bg-[#f0f7ff] text-[#1e3a8a] shadow-sm ring-1 ring-blue-100"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                 }
               `}
             >
-              <Icon size={15} strokeWidth={isActive ? 2.6 : 2} />
+              <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
               <span className="tracking-tight">{label}</span>
             </Link>
           );
@@ -63,7 +63,7 @@ export default function PreSalesModuleNav() {
   return (
     <Suspense
       fallback={
-        <div className="inline-block bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1 h-[48px] w-[500px] max-w-full animate-pulse" />
+        <div className="inline-block bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 h-[48px] w-[500px] max-w-full animate-pulse" />
       }
     >
       <PreSalesModuleNavInner />

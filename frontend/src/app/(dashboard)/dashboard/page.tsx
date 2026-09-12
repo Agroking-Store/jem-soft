@@ -73,66 +73,63 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div
-          className="bg-linear-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group"
           onClick={() => router.push("/dashboard/customers")}
           role="button"
         >
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Customers</p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
+              <p className="text-sm font-semibold text-slate-500">Total Customers</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
                 {!isMounted || isLoadingMasterCustomers ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
                 ) : (
                   masterCustomers.length
                 )}
               </p>
-              {/* <p className="text-xs text-green-600 mt-1">↑ 12% this month</p> */}
             </div>
-            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-[#E8C77A]" />
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <Users className="w-6 h-6" />
             </div>
           </div>
         </div>
 
         <div
-          className="bg-linear-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group"
           onClick={() => router.push("/dashboard/lic/policies")}
           role="button"
         >
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Policies Issued</p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
+              <p className="text-sm font-semibold text-slate-500">Total Policies Issued</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
                 {!isMounted || isLoadingPolicies ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
                 ) : (
                   policies.length
                 )}
               </p>
-              {/* <p className="text-xs text-green-600 mt-1">↑ 8% this week</p> */}
             </div>
-            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldPlus className="w-6 h-6  text-[#E8C77A]" />
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <ShieldPlus className="w-6 h-6" />
             </div>
           </div>
         </div>
 
-
-
         <div
-          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group"
           onClick={() => router.push("/dashboard/loans")}
           role="button"
         >
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
           <div className="flex items-center justify-between">
-
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">
+              <p className="text-sm font-semibold text-slate-500">
                 Total Loans
               </p>
-
-              <p className="text-2xl font-bold text-[#E8C77A]">
+              <p className="text-2xl font-bold text-slate-900 mt-1">
                 {!isMounted || isLoadingLoans ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
                 ) : (
@@ -140,36 +137,31 @@ export default function DashboardPage() {
                 )}
               </p>
             </div>
-
-            <div className="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-              <Landmark className="w-6 h-6 text-[#E8C77A]" />
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <Landmark className="w-6 h-6" />
             </div>
-
           </div>
         </div>
 
-
-
-
         <div
-          className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+          className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden group"
           onClick={() => router.push("/dashboard/claims")}
           role="button"
         >
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-md text-[#E8C77A] font-bold">Total Claims Raised</p>
-              <p className="text-2xl font-bold text-[#E8C77A]">
+              <p className="text-sm font-semibold text-slate-500">Total Claims Raised</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">
                 {!isMounted || isLoadingPolicies ? (
                   <span className="inline-block w-16 h-8 bg-slate-200 animate-pulse rounded"></span>
                 ) : (
                   claims.length
                 )}
               </p>
-              {/* <p className="text-xs text-green-600 mt-1">↑ 8% this week</p> */}
             </div>
-            <div className="w-12 h-12  bg-slate-800 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6  text-[#E8C77A]" />
+            <div className="flex shrink-0 w-12 h-12 items-center justify-center bg-blue-50 text-[#1877F2] rounded-xl group-hover:bg-[#1877F2] group-hover:text-white transition-colors">
+              <ShieldCheck className="w-6 h-6" />
             </div>
           </div>
         </div>
