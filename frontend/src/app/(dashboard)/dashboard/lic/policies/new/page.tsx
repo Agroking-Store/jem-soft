@@ -115,7 +115,7 @@ export default function NewLICPolicyPage() {
     sumAssured: "",
     age: "",
   });
-  const [productOptionsData, setProductOptionsData] = useState<{terms: number[], ppts: number[], combinations: {term: number, ppt: number}[]}>({ terms: [], ppts: [], combinations: [] });
+  const [productOptionsData, setProductOptionsData] = useState<{ terms: number[], ppts: number[], combinations: { term: number, ppt: number }[] }>({ terms: [], ppts: [], combinations: [] });
   const policyTypeParam = searchParams.get("policyType")?.toLowerCase();
   const selectedPolicyType =
     policyTypeParam === "other"
@@ -639,8 +639,8 @@ export default function NewLICPolicyPage() {
     setValue("totalYearlyPremium", total > 0 ? total : undefined);
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
-  const ridersPreviewKey = Array.isArray(watchRiders) 
-    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.option}`).join('|') 
+  const ridersPreviewKey = Array.isArray(watchRiders)
+    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.option}`).join('|')
     : "";
 
   // Auto-fill Term Rider and CIR fields
@@ -686,7 +686,7 @@ export default function NewLICPolicyPage() {
               };
               // Only fetch if sum doesn't match or term/ppt are empty/not matching the base ppt, to avoid infinite loops when it settles
               if (String(r.sum || "") !== String(expectedSum || "") || !r.term || !r.ppt || String(r.ppt || "") !== String(expectedPpt || "")) {
-                 fetchOptions();
+                fetchOptions();
               }
               return;
             }
@@ -711,7 +711,7 @@ export default function NewLICPolicyPage() {
       const controller = new AbortController();
       const timeoutId = window.setTimeout(async () => {
         let totalInstallmentRiderPremium = 0;
-        
+
         const updatedRiders = await Promise.all(
           watchRiders.map(async (rider, index) => {
             const sum = parseFloat(String(rider.sum)) || 0;
@@ -734,7 +734,8 @@ export default function NewLICPolicyPage() {
                     sumAssured: sum,
                     premiumMode: mode,
                     productId: watchProductId,
-                    option: rider.option
+                    option: rider.option,
+                    gender: watchGender
                   },
                   {
                     signal: controller.signal,
@@ -973,20 +974,33 @@ export default function NewLICPolicyPage() {
       } else {
         // Fallback: If DB hasn't mapped riders to this product yet, show Term Rider by default
         const termRider = riders.find((r) => r.riderName.toLowerCase().includes("term"));
+        const cirRider = riders.find((r) => r.riderName.toLowerCase().includes("critical illness") || r.riderName.toLowerCase().includes("cir"));
+
+        const defaultRiders = [];
+
         if (termRider) {
-          replaceRiders([
-            {
-              description: termRider.riderName,
-              sum: null,
-              term: null,
-              ppt: null,
-              premium: null,
-              mode: "",
-            },
-          ]);
-        } else {
-          replaceRiders([]);
+          defaultRiders.push({
+            description: termRider.riderName,
+            sum: null,
+            term: null,
+            ppt: null,
+            premium: null,
+            mode: "",
+          });
         }
+
+        if ((selectedProduct.planNumber === "714" || selectedProduct.planNumber === "715" || selectedProduct.planNumber === "889") && cirRider) {
+          defaultRiders.push({
+            description: cirRider.riderName,
+            sum: null,
+            term: null,
+            ppt: null,
+            premium: null,
+            mode: "",
+          });
+        }
+
+        replaceRiders(defaultRiders);
       }
     } else {
       replaceRiders([]);
@@ -1284,260 +1298,239 @@ export default function NewLICPolicyPage() {
 
       {/* Form Content - Grid Layout */}
       <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
-        {/* Section 1: Policy Holder's Details */}
-        <div
-          ref={sectionRefs["policy-holder"]} // Keep ref for scrolling
-        >
-          <PolicyHolderSection
-            groups={groups}
-            groupMembers={groupMembers}
-            selectedGroup={selectedGroup}
-            attributeHintsAge={attributeHints.age}
-          />
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+          {/* Section 1: Policy Holder's Details */}
+          <div
+            ref={sectionRefs["policy-holder"]} // Keep ref for scrolling
+          >
+            <PolicyHolderSection
+              groups={groups}
+              groupMembers={groupMembers}
+              selectedGroup={selectedGroup}
+              attributeHintsAge={attributeHints.age}
+            />
+          </div>
 
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Section 2: Policy Details */}
-            <div
-              ref={sectionRefs["policy-details"]} // Keep ref for scrolling
-            >
-              <CustomerSectionCard title="Policy Details" icon={FileText}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <input type="hidden" {...register("providerType")} />
-                  <input type="hidden" {...register("productType")} />
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Section 2: Policy Details */}
+              <div
+                ref={sectionRefs["policy-details"]} // Keep ref for scrolling
+              >
+                <CustomerSectionCard title="Policy Details" icon={FileText}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <input type="hidden" {...register("providerType")} />
+                    <input type="hidden" {...register("productType")} />
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Policy Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register("policyNumber")}
-                      placeholder="Enter policy number"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.policyNumber && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.policyNumber.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Plan <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="productId" // Use Controller for custom components
-                      render={({ field }) => (
-                        <SearchableSelect
-                          placeholder="Search plan..."
-                          searchPlaceholder="Search by name or plan number"
-                          options={productOptions}
-                          value={field.value}
-                          onChange={(val) => {
-                            field.onChange(val);
-                            const selectedProduct = products.find((p) => p.id === val);
-                            if (selectedProduct) {
-                              setValue("providerId", selectedProduct.providerId || "");
-                              setValue("productType", selectedProduct.productType || "");
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Policy Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        {...register("policyNumber")}
+                        placeholder="Enter policy number"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.policyNumber && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.policyNumber.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Plan <span className="text-red-500">*</span>
+                      </label>
+                      <Controller
+                        control={control}
+                        name="productId" // Use Controller for custom components
+                        render={({ field }) => (
+                          <SearchableSelect
+                            placeholder="Search plan..."
+                            searchPlaceholder="Search by name or plan number"
+                            options={productOptions}
+                            value={field.value}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              const selectedProduct = products.find((p) => p.id === val);
+                              if (selectedProduct) {
+                                setValue("providerId", selectedProduct.providerId || "");
+                                setValue("productType", selectedProduct.productType || "");
+                              }
+                            }}
+                            error={errors.productId?.message}
+                            disabled={productsLoading}
+                          />
+                        )}
+                      />
+                      {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Commencement Date <span className="text-red-500">*</span>
+                      </label>
+                      <Controller
+                        control={control}
+                        name="commencementDate"
+                        render={({ field }) => (
+                          <DatePicker
+                            value={field.value ? new Date(field.value) : undefined}
+                            onChange={(date) =>
+                              field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                             }
-                          }}
-                          error={errors.productId?.message}
-                          disabled={productsLoading}
-                        />
+                          />
+                        )}
+                      />
+                      {errors.commencementDate && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.commencementDate.message}
+                        </p>
                       )}
-                    />
-                    {errors.productId && <p className="text-xs text-red-500 mt-1">{errors.productId.message}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Commencement Date <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="commencementDate"
-                      render={({ field }) => (
-                        <DatePicker
-                          value={field.value ? new Date(field.value) : undefined}
-                          onChange={(date) =>
-                            field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                          }
-                        />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Mode <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("mode")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Mode</option>
+                        {modes.map((mode) => (
+                          <option key={mode.id} value={mode.modeName}>
+                            {mode.modeName}
+                          </option>
+                        ))}
+                        {selectedProduct?.planNumber === "774" && !modes.find(m => m.modeName === "SSS") && (
+                          <option value="SSS">SSS</option>
+                        )}
+                      </select>
+                      {errors.mode && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.mode.message}
+                        </p>
                       )}
-                    />
-                    {errors.commencementDate && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.commencementDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Mode <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      {...register("mode")}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    >
-                      <option value="">Select Mode</option>
-                      {modes.map((mode) => (
-                        <option key={mode.id} value={mode.modeName}>
-                          {mode.modeName}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Completion Date <span className="text-red-500">*</span>
+                      </label>
+                      <Controller
+                        control={control}
+                        name="completionDate"
+                        render={({ field }) => (
+                          <DatePicker
+                            value={field.value ? new Date(field.value) : undefined}
+                            onChange={(date) =>
+                              field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                            }
+                          />
+                        )}
+                      />
+                      {errors.completionDate && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.completionDate.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Term
+                      </label>
+                      <select
+                        {...register("term")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                        disabled={["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")}
+                      >
+                        <option value="">Select Term</option>
+                        {["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
+                          <option value={String(100 - Number(watchAge))}>{100 - Number(watchAge)}</option>
+                        ) : (
+                          productOptionsData.terms.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))
+                        )}
+                      </select>
+                      {errors.term && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.term.message}
+                        </p>
+                      )}
+                      {attributeHints.term && !errors.term && (
+                        <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        {selectedProduct?.planNumber === "883"
+                          ? "Gua.Addn.Period"
+                          : "PPT"}
+                        {(selectedProduct?.planNumber === "889" ||
+                          selectedProduct?.planNumber === "881" ||
+                          selectedProduct?.planNumber === "912") && (
+                            <span className="text-red-500"> *</span>
+                          )}
+                      </label>
+                      <select
+                        {...register("ppt")}
+                        disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
                         </option>
-                      ))}
-                      {selectedProduct?.planNumber === "774" && !modes.find(m => m.modeName === "SSS") && (
-                        <option value="SSS">SSS</option>
-                      )}
-                    </select>
-                    {errors.mode && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.mode.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Completion Date <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      control={control}
-                      name="completionDate"
-                      render={({ field }) => (
-                        <DatePicker
-                          value={field.value ? new Date(field.value) : undefined}
-                          onChange={(date) =>
-                            field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                          }
-                        />
-                      )}
-                    />
-                    {errors.completionDate && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.completionDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Term
-                    </label>
-                    <select
-                      {...register("term")}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                      disabled={["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")}
-                    >
-                      <option value="">Select Term</option>
-                      {["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
-                        <option value={String(100 - Number(watchAge))}>{100 - Number(watchAge)}</option>
-                      ) : (
-                        productOptionsData.terms.map(t => (
-                          <option key={t} value={t}>{t}</option>
-                        ))
-                      )}
-                    </select>
-                    {errors.term && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.term.message}
-                      </p>
-                    )}
-                    {attributeHints.term && !errors.term && (
-                      <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      {selectedProduct?.planNumber === "883"
-                        ? "Gua.Addn.Period"
-                        : "PPT"}
-                      {(selectedProduct?.planNumber === "889" ||
-                        selectedProduct?.planNumber === "881" ||
-                        selectedProduct?.planNumber === "912") && (
-                        <span className="text-red-500"> *</span>
-                      )}
-                    </label>
-                    <select
-                      {...register("ppt")}
-                      disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="">
-                        {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
-                      </option>
-                      {(() => {
-                        let optionsToRender = productOptionsData.ppts;
-                        if (selectedProduct?.planNumber === "887") {
-                          if (watchMode === "Single") {
-                            optionsToRender = ["1"];
-                          } else {
-                            const currentTerm = Number(watch("term"));
-                            const allowed = [5, 10, 15];
-                            if (currentTerm && !allowed.includes(currentTerm)) {
-                              allowed.push(currentTerm);
+                        {(() => {
+                          let optionsToRender = productOptionsData.ppts;
+                          if (selectedProduct?.planNumber === "887") {
+                            if (watchMode === "Single") {
+                              optionsToRender = ["1"];
+                            } else {
+                              const currentTerm = Number(watch("term"));
+                              const allowed = [5, 10, 15];
+                              if (currentTerm && !allowed.includes(currentTerm)) {
+                                allowed.push(currentTerm);
+                              }
+                              optionsToRender = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
                             }
-                            optionsToRender = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
                           }
-                        }
-                        return optionsToRender.map(p => (
-                          <option key={p} value={p}>{p}</option>
-                        ));
-                      })()}
-                    </select>
-                    {errors.ppt && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.ppt.message}
-                      </p>
-                    )}
-                    {attributeHints.ppt && !errors.ppt && !errors.term && (
-                      <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
-                    )}
-                  </div>
-                  {selectedProduct?.planNumber === "881" && (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Option <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        {...register("option")}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                      >
-                        <option value="">Select Option</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                        <option value="3">Option 3</option>
+                          return optionsToRender.map(p => (
+                            <option key={p} value={p}>{p}</option>
+                          ));
+                        })()}
                       </select>
-                      {errors.option && (
+                      {errors.ppt && (
                         <p className="text-xs text-red-500 mt-1">
-                          {errors.option.message}
+                          {errors.ppt.message}
                         </p>
                       )}
-                    </div>
-                  )}
-                  {selectedProduct?.planNumber === "912" && (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Option <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        {...register("option")}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                      >
-                        <option value="">Select Option</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                      </select>
-                      {errors.option && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {errors.option.message}
-                        </p>
+                      {attributeHints.ppt && !errors.ppt && !errors.term && (
+                        <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
                       )}
                     </div>
-                  )}
-                  {selectedProduct?.planNumber === "887" && (
-                    <>
+                    {selectedProduct?.planNumber === "881" && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Option <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("option")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        >
+                          <option value="">Select Option</option>
+                          <option value="1">Option 1</option>
+                          <option value="2">Option 2</option>
+                          <option value="3">Option 3</option>
+                        </select>
+                        {errors.option && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.option.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {selectedProduct?.planNumber === "912" && (
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                           Option <span className="text-red-500">*</span>
@@ -1556,52 +1549,9 @@ export default function NewLICPolicyPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex flex-col justify-center">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                          Smoker Status
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-sm ${!watchSmoker ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Non-Smoker</span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              {...register("smoker")}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B8873A]"></div>
-                          </label>
-                          <span className={`text-sm ${watchSmoker ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Smoker</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  {(selectedProduct?.planNumber === "888" ||
-                    selectedProduct?.planNumber === "889") && (
+                    )}
+                    {selectedProduct?.planNumber === "887" && (
                       <>
-                        <div>
-                          <Controller
-                            name="spouseId"
-                            control={control}
-                            render={({ field }) => (
-                              <LifeAssuredAutoComplete
-                                label="Spouse"
-                                required
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                members={groupMembers}
-                                disabled={!watchGroupId || groupMembers.length === 0}
-                                placeholder={
-                                  watchGroupId
-                                    ? groupMembers.length > 0
-                                      ? "Search spouse..."
-                                      : "No members in group"
-                                    : "Select a group first"
-                                }
-                                error={errors.spouseId?.message}
-                              />
-                            )}
-                          />
-                        </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1">
                             Option <span className="text-red-500">*</span>
@@ -1620,12 +1570,132 @@ export default function NewLICPolicyPage() {
                             </p>
                           )}
                         </div>
+                        <div className="flex flex-col justify-center">
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Smoker Status
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-sm ${!watchSmoker ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Non-Smoker</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                {...register("smoker")}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B8873A]"></div>
+                            </label>
+                            <span className={`text-sm ${watchSmoker ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Smoker</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {(selectedProduct?.planNumber === "888" ||
+                      selectedProduct?.planNumber === "889") && (
+                        <>
+                          <div>
+                            <Controller
+                              name="spouseId"
+                              control={control}
+                              render={({ field }) => (
+                                <LifeAssuredAutoComplete
+                                  label="Spouse"
+                                  required
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  members={groupMembers}
+                                  disabled={!watchGroupId || groupMembers.length === 0}
+                                  placeholder={
+                                    watchGroupId
+                                      ? groupMembers.length > 0
+                                        ? "Search spouse..."
+                                        : "No members in group"
+                                      : "Select a group first"
+                                  }
+                                  error={errors.spouseId?.message}
+                                />
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Option <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              {...register("option")}
+                              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                            >
+                              <option value="">Select Option</option>
+                              <option value="1">Option 1</option>
+                              <option value="2">Option 2</option>
+                            </select>
+                            {errors.option && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.option.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Spouse DOB
+                            </label>
+                            <input
+                              {...register("spouseDob")}
+                              type="date"
+                              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                              readOnly
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Spouse Age
+                            </label>
+                            <input
+                              {...register("spouseAge")}
+                              type="number"
+                              placeholder="Autofilled"
+                              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                              readOnly
+                            />
+                            {errors.spouseAge && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.spouseAge.message}
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    {selectedProduct?.planNumber === "774" && (
+                      <>
+                        <div>
+                          <Controller
+                            name="proposerId"
+                            control={control}
+                            render={({ field }) => (
+                              <LifeAssuredAutoComplete
+                                label="Proposer's Name"
+                                required
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                members={groupMembers}
+                                disabled={!watchGroupId || groupMembers.length === 0}
+                                placeholder={
+                                  watchGroupId
+                                    ? groupMembers.length > 0
+                                      ? "Search proposer..."
+                                      : "No members in group"
+                                    : "Select a group first"
+                                }
+                                error={errors.proposerId?.message}
+                              />
+                            )}
+                          />
+                        </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Spouse DOB
+                            Proposer DOB
                           </label>
                           <input
-                            {...register("spouseDob")}
+                            {...register("proposerDob")}
                             type="date"
                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                             readOnly
@@ -1633,735 +1703,437 @@ export default function NewLICPolicyPage() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Spouse Age
+                            Proposer Age
                           </label>
                           <input
-                            {...register("spouseAge")}
+                            {...register("proposerAge")}
                             type="number"
                             placeholder="Autofilled"
                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                             readOnly
                           />
-                          {errors.spouseAge && (
+                          {errors.proposerAge && (
                             <p className="text-xs text-red-500 mt-1">
-                              {errors.spouseAge.message}
+                              {errors.proposerAge.message}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Option <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            {...register("option")}
+                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          >
+                            <option value="">Select Option</option>
+                            {(watchMode === "Single" || watchMode === "SSS") ? (
+                              <>
+                                <option value="3">Option 3</option>
+                                <option value="4">Option 4</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                              </>
+                            )}
+                          </select>
+                          {errors.option && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.option.message}
                             </p>
                           )}
                         </div>
                       </>
                     )}
-                  {selectedProduct?.planNumber === "774" && (
-                    <>
-                      <div>
-                        <Controller
-                          name="proposerId"
-                          control={control}
-                          render={({ field }) => (
-                            <LifeAssuredAutoComplete
-                              label="Proposer's Name"
-                              required
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              members={groupMembers}
-                              disabled={!watchGroupId || groupMembers.length === 0}
-                              placeholder={
-                                watchGroupId
-                                  ? groupMembers.length > 0
-                                    ? "Search proposer..."
-                                    : "No members in group"
-                                  : "Select a group first"
-                              }
-                              error={errors.proposerId?.message}
-                            />
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Proposer DOB
-                        </label>
-                        <input
-                          {...register("proposerDob")}
-                          type="date"
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Proposer Age
-                        </label>
-                        <input
-                          {...register("proposerAge")}
-                          type="number"
-                          placeholder="Autofilled"
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                          readOnly
-                        />
-                        {errors.proposerAge && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.proposerAge.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Option <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          {...register("option")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                        >
-                          <option value="">Select Option</option>
-                          {(watchMode === "Single" || watchMode === "SSS") ? (
-                            <>
-                              <option value="3">Option 3</option>
-                              <option value="4">Option 4</option>
-                            </>
-                          ) : (
-                            <>
-                              <option value="1">Option 1</option>
-                              <option value="2">Option 2</option>
-                            </>
-                          )}
-                        </select>
-                        {errors.option && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.option.message}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CustomerSectionCard>
-            </div>
-            {/* Section 4: Riders Details */}
-            <div
-              ref={sectionRefs["riders"]} // Keep ref for scrolling
-            >
-              <CustomerSectionCard
-                title="Riders Details"
-                icon={Shield}
-                actions={
-                  <button
-                    type="button"
-                    onClick={() =>
-                      appendRider({
-                        description: "",
-                        sum: null,
-                        term: null,
-                        ppt: null,
-                        premium: null,
-                      })
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-                  >
-                    <Plus size={14} />
-                    Add Rider
-                  </button>
-                }
+                  </div>
+                </CustomerSectionCard>
+              </div>
+              {/* Section 4: Riders Details */}
+              <div
+                ref={sectionRefs["riders"]} // Keep ref for scrolling
               >
-                <div className="border border-slate-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                          Rider Description
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                          Sum
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                          Term
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                          PPT
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                          Premium
-                        </th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {riderFields.length === 0 ? (
+                <CustomerSectionCard
+                  title="Riders Details"
+                  icon={Shield}
+                  actions={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        appendRider({
+                          description: "",
+                          sum: null,
+                          term: null,
+                          ppt: null,
+                          premium: null,
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                    >
+                      <Plus size={14} />
+                      Add Rider
+                    </button>
+                  }
+                >
+                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-slate-50">
                         <tr>
-                          <td
-                            colSpan={6}
-                            className="px-4 py-6 text-center text-slate-500 text-sm"
-                          >
-                            No Rider to Show
-                          </td>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                            Rider Description
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                            Sum
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                            Term
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                            PPT
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                            Premium
+                          </th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
+                            Action
+                          </th>
                         </tr>
-                      ) : (
-                        riderFields.map((field, index) => (
-                          <tr key={field.id}>
-                            <td className="px-2 py-1.5 w-1/3">
-                              <select
-                                {...register(`riders.${index}.description`)}
-                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                              >
-                                <option value="">Select Rider</option>
-                                {riders.map((rider) => (
-                                  <option
-                                    key={rider.id}
-                                    value={rider.riderName}
-                                  >
-                                    {rider.riderCode
-                                      ? `[${rider.riderCode}] `
-                                      : ""}
-                                    {rider.riderName}
-                                  </option>
-                                ))}
-                              </select>
-                              {errors.riders?.[index]?.description && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {errors.riders[index]?.description?.message}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-2 py-1.5">
-                              <input
-                                type="text"
-                                {...register(`riders.${index}.sum`)}
-                                placeholder="Sum"
-                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                              />
-                              {errors.riders?.[index]?.sum && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {errors.riders[index]?.sum?.message}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-2 py-1.5">
-                              <input
-                                type="text"
-                                {...register(`riders.${index}.term`)}
-                                placeholder="Term"
-                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                              />
-                              {errors.riders?.[index]?.term && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {errors.riders[index]?.term?.message}
-                                </p>
-                              )}
-                            </td>
-
-                            <td className="px-2 py-1.5">
-                              <input
-                                type="text"
-                                {...register(`riders.${index}.ppt`)}
-                                placeholder="PPT"
-                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                              />
-                              {errors.riders?.[index]?.ppt && (
-                                <p className="text-xs text-red-500 mt-1">
-                                  {errors.riders[index]?.ppt?.message}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-2 py-1.5">
-                              <input
-                                type="text"
-                                {...register(`riders.${index}.premium`)}
-                                placeholder="Premium"
-                                readOnly
-                                className="w-20 text-sm border-slate-200 rounded-md bg-slate-50 cursor-not-allowed focus:outline-none"
-                              />
-                            </td>
-                            <td className="px-2 py-1.5 text-center">
-                              <button
-                                type="button"
-                                onClick={() => removeRider(index)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Remove Rider"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {riderFields.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={6}
+                              className="px-4 py-6 text-center text-slate-500 text-sm"
+                            >
+                              No Rider to Show
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CustomerSectionCard>
-            </div>
-          </div>
+                        ) : (
+                          riderFields.map((field, index) => (
+                            <tr key={field.id}>
+                              <td className="px-2 py-1.5 w-1/3">
+                                <select
+                                  {...register(`riders.${index}.description`)}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                >
+                                  <option value="">Select Rider</option>
+                                  {riders.map((rider) => (
+                                    <option
+                                      key={rider.id}
+                                      value={rider.riderName}
+                                    >
+                                      {rider.riderCode
+                                        ? `[${rider.riderCode}] `
+                                        : ""}
+                                      {rider.riderName}
+                                    </option>
+                                  ))}
+                                </select>
+                                {errors.riders?.[index]?.description && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {errors.riders[index]?.description?.message}
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.sum`)}
+                                  placeholder="Sum"
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                />
+                                {errors.riders?.[index]?.sum && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {errors.riders[index]?.sum?.message}
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.term`)}
+                                  placeholder="Term"
+                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                />
+                                {errors.riders?.[index]?.term && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {errors.riders[index]?.term?.message}
+                                  </p>
+                                )}
+                              </td>
 
-          {/* Right Column */}
-          <div className="lg:col-span-1">
-            {/* Section 3: Policy Premium Calculation */}
-            <div
-              ref={sectionRefs["premium-calculation"]}
-              className="sticky top-6"
-            >
-              <CustomerSectionCard
-                title="Policy Premium Calculation"
-                icon={Banknote}
+                              <td className="px-2 py-1.5">
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.ppt`)}
+                                  placeholder="PPT"
+                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                />
+                                {errors.riders?.[index]?.ppt && (
+                                  <p className="text-xs text-red-500 mt-1">
+                                    {errors.riders[index]?.ppt?.message}
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.premium`)}
+                                  placeholder="Premium"
+                                  readOnly
+                                  className="w-20 text-sm border-slate-200 rounded-md bg-slate-50 cursor-not-allowed focus:outline-none"
+                                />
+                              </td>
+                              <td className="px-2 py-1.5 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => removeRider(index)}
+                                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Remove Rider"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CustomerSectionCard>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-1">
+              {/* Section 3: Policy Premium Calculation */}
+              <div
+                ref={sectionRefs["premium-calculation"]}
+                className="sticky top-6"
               >
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Sum Assured
-                    </label>
-                    <input
-                      type="text"
-                      {...register("sumAssured")}
-                      placeholder="Enter sum assured"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.sumAssured && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.sumAssured.message}
-                      </p>
-                    )}
-                    {attributeHints.sumAssured && !errors.sumAssured && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {attributeHints.sumAssured}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Basic Yearly Premium
-                    </label>
-                    <input
-                      type="text"
-                      {...register("basicYearlyPremium")}
-                      placeholder="Enter basic yearly premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.basicYearlyPremium && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.basicYearlyPremium.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Total Yearly Premium
-                    </label>
-                    <input
-                      type="text"
-                      {...register("totalYearlyPremium")}
-                      placeholder="Enter total yearly premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                      readOnly
-                    />
-                    {errors.totalYearlyPremium && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.totalYearlyPremium.message}
-                      </p>
-                    )}
-                  </div>
+                <CustomerSectionCard
+                  title="Policy Premium Calculation"
+                  icon={Banknote}
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Sum Assured
+                      </label>
+                      <input
+                        type="text"
+                        {...register("sumAssured")}
+                        placeholder="Enter sum assured"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.sumAssured && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.sumAssured.message}
+                        </p>
+                      )}
+                      {attributeHints.sumAssured && !errors.sumAssured && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          {attributeHints.sumAssured}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Basic Yearly Premium
+                      </label>
+                      <input
+                        type="text"
+                        {...register("basicYearlyPremium")}
+                        placeholder="Enter basic yearly premium"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.basicYearlyPremium && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.basicYearlyPremium.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Total Yearly Premium
+                      </label>
+                      <input
+                        type="text"
+                        {...register("totalYearlyPremium")}
+                        placeholder="Enter total yearly premium"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        readOnly
+                      />
+                      {errors.totalYearlyPremium && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.totalYearlyPremium.message}
+                        </p>
+                      )}
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Total Rider Premium
-                    </label>
-                    <input
-                      type="text"
-                      {...register("totalRiderPremium")}
-                      placeholder="Total rider premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.totalRiderPremium && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.totalRiderPremium.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Installment Premium
-                    </label>
-                    <input
-                      type="text"
-                      {...register("installmentPremium")}
-                      placeholder="Installment premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.installmentPremium && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.installmentPremium.message}
-                      </p>
-                    )}
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Total Rider Premium
+                      </label>
+                      <input
+                        type="text"
+                        {...register("totalRiderPremium")}
+                        placeholder="Total rider premium"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.totalRiderPremium && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.totalRiderPremium.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Installment Premium
+                      </label>
+                      <input
+                        type="text"
+                        {...register("installmentPremium")}
+                        placeholder="Installment premium"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.installmentPremium && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.installmentPremium.message}
+                        </p>
+                      )}
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Total Installment Premium
-                    </label>
-                    <input
-                      type="text"
-                      {...register("totalInstallmentPremium")}
-                      placeholder="Total installment premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Total Installment Premium
+                      </label>
+                      <input
+                        type="text"
+                        {...register("totalInstallmentPremium")}
+                        placeholder="Total installment premium"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                    </div>
                   </div>
-                </div>
-              </CustomerSectionCard>
+                </CustomerSectionCard>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          ref={sectionRefs["advanced"]} // Ref is on the main container
-        >
-          <CustomerSectionCard
-            title="Advanced Options"
-            icon={Settings}
-            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
+          <div
+            ref={sectionRefs["advanced"]} // Ref is on the main container
           >
-            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* ================= LEFT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Current Status ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">
-                        Current Status
-                      </h3>
-                    </div>
-                    <span className="text-sm text-slate-500">
-                      Check Current Status of Policy
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5">
-                          Policy Status
-                        </label>
-                        <select
-                          {...register("statusId")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {statuses.map((status) => (
-                            <option key={status.id} value={status.id}>
-                              {status.statusName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Premium (F.U.P.) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fupDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={(date) =>
-                                field.onChange(
-                                  date ? format(date, "yyyy-MM-dd") : "",
-                                )
-                              }
-                            />
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Premium Adjusted
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Premium Adjusted"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div className="flex items-center pt-8">
-                        <input
-                          id="premiumDeposit"
-                          type="checkbox"
-                          className="h-5 w-5"
-                        />
-                        <label
-                          htmlFor="premiumDeposit"
-                          className="ml-3 text-sm"
-                        >
-                          Create Premium Deposit Entries
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Loan Taken
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Loan Taken"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Loan Int. (FULI) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fuliDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={(date) =>
-                                field.onChange(
-                                  date ? format(date, "yyyy-MM-dd") : "",
-                                )
-                              }
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* ================= NACH & NEFT ================= */}
-                {watchProductId && (
+            <CustomerSectionCard
+              title="Advanced Options"
+              icon={Settings}
+              className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
+            >
+              <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* ================= LEFT COLUMN ================= */}
+                <div className="space-y-6">
+                  {/* ================= Current Status ================= */}
                   <div className="border border-slate-200 rounded-xl">
                     <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                      <h3 className="font-semibold text-slate-900">
-                        NACH & NEFT Details
-                      </h3>
+                      <div>
+                        <h3 className="font-semibold text-slate-900">
+                          Current Status
+                        </h3>
+                      </div>
                       <span className="text-sm text-slate-500">
-                        Provide NACH / NEFT Details for Bank Transactions
+                        Check Current Status of Policy
                       </span>
                     </div>
                     <div className="p-5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="md:col-span-2 flex items-center gap-3">
-                          <input
-                            id="useNachCheckbox"
-                            type="checkbox"
-                            checked={useNach}
-                            onChange={(e) => setUseNach(e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="useNachCheckbox"
-                            className="text-sm font-medium text-slate-700 cursor-pointer"
+                        <div>
+                          <label className="block text-sm font-medium mb-1.5">
+                            Policy Status
+                          </label>
+                          <select
+                            {...register("statusId")}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            Premiums will be paid through NACH
-                          </label>
+                            {statuses.map((status) => (
+                              <option key={status.id} value={status.id}>
+                                {status.statusName}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">
-                            Bank Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Bank Name"
-                            {...register("bankName")}
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Account Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Account Number"
-                            {...register("accountNumber")}
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            IFSC Code
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="IFSC Code"
-                            {...register("ifscCode")}
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Account Holder Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Account Holder Name"
-                            {...register("accountHolderName")}
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Bank Branch
-                          </label>
-                          <input
-                            {...register("bankBranch")}
-                            type="text"
-                            placeholder="Bank Branch"
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            City
-                          </label>
-                          <input
-                            {...register("city")}
-                            type="text"
-                            placeholder="City"
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Account Type
-                          </label>
-                          <input
-                            {...register("accountType")}
-                            placeholder="Account Type"
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="bolck text-sm font-medium mb-2">
-                            Debt Date
-                          </label>
-                          <input
-                            value={watchFupDate || ""}
-                            readOnly
-                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            MICR Number
-                          </label>
-                          <input
-                            {...register("micrNumber")}
-                            type="text"
-                            placeholder="MICR Number"
-                            readOnly={!useNach}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-
-                        {/* NEFT Section */}
-                        <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
-
-                        <div className="md:col-span-2 flex items-center gap-3">
-                          <input
-                            id="useNeftCheckbox"
-                            type="checkbox"
-                            checked={useNeft}
-                            onChange={(e) => setUseNeft(e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="useNeftCheckbox"
-                            className="text-sm font-medium text-slate-700 cursor-pointer"
-                          >
-                            NEFT details are available
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Bank Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Bank Name"
-                            {...register("neftBankName")}
-                            readOnly={!useNeft}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Account Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Account Number"
-                            {...register("neftAccountNumber")}
-                            readOnly={!useNeft}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            IFSC Code
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="IFSC Code"
-                            {...register("neftIfscCode")}
-                            readOnly={!useNeft}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Account Holder Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Account Holder Name"
-                            {...register("neftAccountHolderName")}
-                            readOnly={!useNeft}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Bank Branch
-                          </label>
-                          <input
-                            {...register("neftBankBranch")}
-                            type="text"
-                            placeholder="Bank Branch"
-                            readOnly={!useNeft}
-                            className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Submission Date
+                            First Unpaid Premium (F.U.P.) Date
                           </label>
                           <Controller
                             control={control}
-                            name="neftSubmissionDate"
+                            name="fupDate"
                             render={({ field }) => (
                               <DatePicker
                                 value={
-                                  field.value
-                                    ? new Date(field.value)
-                                    : undefined
+                                  field.value ? new Date(field.value) : undefined
                                 }
                                 onChange={(date) =>
                                   field.onChange(
                                     date ? format(date, "yyyy-MM-dd") : "",
                                   )
                                 }
-                                readOnly={!useNeft}
+                              />
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Premium Adjusted
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Premium Adjusted"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          />
+                        </div>
+                        <div className="flex items-center pt-8">
+                          <input
+                            id="premiumDeposit"
+                            type="checkbox"
+                            className="h-5 w-5"
+                          />
+                          <label
+                            htmlFor="premiumDeposit"
+                            className="ml-3 text-sm"
+                          >
+                            Create Premium Deposit Entries
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Loan Taken
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Loan Taken"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            First Unpaid Loan Int. (FULI) Date
+                          </label>
+                          <Controller
+                            control={control}
+                            name="fuliDate"
+                            render={({ field }) => (
+                              <DatePicker
+                                value={
+                                  field.value ? new Date(field.value) : undefined
+                                }
+                                onChange={(date) =>
+                                  field.onChange(
+                                    date ? format(date, "yyyy-MM-dd") : "",
+                                  )
+                                }
                               />
                             )}
                           />
@@ -2369,313 +2141,555 @@ export default function NewLICPolicyPage() {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-              {/* ================= RIGHT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Nomination Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <h3 className="font-semibold text-slate-900">
-                      Nomination Details
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        appendNominee({
-                          nomineeName: "",
-                          relationship: "",
-                          dateOfBirth: "",
-                          percentage: null,
-                          phone: "",
-                          email: "",
-                        })
-                      }
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                    >
-                      <Plus size={16} />
-                      Add Nominee
-                    </button>
-                  </div>
-                  <div className="p-5">
-                    {nomineeFields.length === 0 ? (
-                      <p className="text-sm text-slate-500 text-center py-4">
-                        No nominees added. Click Add Nominee to start.
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {nomineeFields.map((field, index) => (
-                          <div
-                            key={field.id}
-                            className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Nominee Name
-                                </label>
-                                <input
-                                  {...register(`nominees.${index}.nomineeName`)}
-                                  placeholder="Full Name"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.nomineeName && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.nomineeName
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Relationship
-                                </label>
-                                <input
-                                  {...register(
-                                    `nominees.${index}.relationship`,
-                                  )}
-                                  placeholder="e.g., Spouse, Son"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.relationship && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.relationship
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Date of Birth
-                                </label>
-                                <Controller
-                                  control={control}
-                                  name={`nominees.${index}.dateOfBirth`}
-                                  render={({ field }) => (
-                                    <DatePicker
-                                      value={
-                                        field.value
-                                          ? new Date(field.value)
-                                          : undefined
-                                      }
-                                      onChange={(date) =>
-                                        field.onChange(
-                                          date
-                                            ? format(date, "yyyy-MM-dd")
-                                            : "",
-                                        )
-                                      }
-                                    />
-                                  )}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Share %
-                                </label>
-                                <input
-                                  type="number"
-                                  {...register(`nominees.${index}.percentage`)}
-                                  placeholder="e.g., 100"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                {errors.nominees?.[index]?.percentage && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.percentage
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Phone
-                                </label>
-                                <input
-                                  type="tel"
-                                  {...register(`nominees.${index}.phone`)}
-                                  placeholder="Mobile Number"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Email
-                                </label>
-                                <input
-                                  type="email"
-                                  {...register(`nominees.${index}.email`)}
-                                  placeholder="Email Address"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.email && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {errors.nominees[index]?.email?.message}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeNominee(index)}
-                              className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Remove Nominee"
+                  {/* ================= NACH & NEFT ================= */}
+                  {watchProductId && (
+                    <div className="border border-slate-200 rounded-xl">
+                      <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                        <h3 className="font-semibold text-slate-900">
+                          NACH & NEFT Details
+                        </h3>
+                        <span className="text-sm text-slate-500">
+                          Provide NACH / NEFT Details for Bank Transactions
+                        </span>
+                      </div>
+                      <div className="p-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="md:col-span-2 flex items-center gap-3">
+                            <input
+                              id="useNachCheckbox"
+                              type="checkbox"
+                              checked={useNach}
+                              onChange={(e) => setUseNach(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                              htmlFor="useNachCheckbox"
+                              className="text-sm font-medium text-slate-700 cursor-pointer"
                             >
-                              <Trash2 size={14} />
-                            </button>
+                              Premiums will be paid through NACH
+                            </label>
                           </div>
-                        ))}
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Name
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Bank Name"
+                              {...register("bankName")}
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Number
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Account Number"
+                              {...register("accountNumber")}
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              IFSC Code
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="IFSC Code"
+                              {...register("ifscCode")}
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Holder Name
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Account Holder Name"
+                              {...register("accountHolderName")}
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Branch
+                            </label>
+                            <input
+                              {...register("bankBranch")}
+                              type="text"
+                              placeholder="Bank Branch"
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              City
+                            </label>
+                            <input
+                              {...register("city")}
+                              type="text"
+                              placeholder="City"
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Type
+                            </label>
+                            <input
+                              {...register("accountType")}
+                              placeholder="Account Type"
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="bolck text-sm font-medium mb-2">
+                              Debt Date
+                            </label>
+                            <input
+                              value={watchFupDate || ""}
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              MICR Number
+                            </label>
+                            <input
+                              {...register("micrNumber")}
+                              type="text"
+                              placeholder="MICR Number"
+                              readOnly={!useNach}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+
+                          {/* NEFT Section */}
+                          <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+
+                          <div className="md:col-span-2 flex items-center gap-3">
+                            <input
+                              id="useNeftCheckbox"
+                              type="checkbox"
+                              checked={useNeft}
+                              onChange={(e) => setUseNeft(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                              htmlFor="useNeftCheckbox"
+                              className="text-sm font-medium text-slate-700 cursor-pointer"
+                            >
+                              NEFT details are available
+                            </label>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Name
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Bank Name"
+                              {...register("neftBankName")}
+                              readOnly={!useNeft}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Number
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Account Number"
+                              {...register("neftAccountNumber")}
+                              readOnly={!useNeft}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              IFSC Code
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="IFSC Code"
+                              {...register("neftIfscCode")}
+                              readOnly={!useNeft}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Holder Name
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Account Holder Name"
+                              {...register("neftAccountHolderName")}
+                              readOnly={!useNeft}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Branch
+                            </label>
+                            <input
+                              {...register("neftBankBranch")}
+                              type="text"
+                              placeholder="Bank Branch"
+                              readOnly={!useNeft}
+                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Submission Date
+                            </label>
+                            <Controller
+                              control={control}
+                              name="neftSubmissionDate"
+                              render={({ field }) => (
+                                <DatePicker
+                                  value={
+                                    field.value
+                                      ? new Date(field.value)
+                                      : undefined
+                                  }
+                                  onChange={(date) =>
+                                    field.onChange(
+                                      date ? format(date, "yyyy-MM-dd") : "",
+                                    )
+                                  }
+                                  readOnly={!useNeft}
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-                {/* ================= Annuity Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Annuity Details
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-sm text-slate-500">
-                      This will be enabled for Annuity Policies.
-                    </p>
-                  </div>
-                </div>
-                {/* ================= Other Information ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Other Information
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      Agency, Branch, Notes & Other Policy Information
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agency <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          {...register("agencyId")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Agency</option>
-                          {agencies.map((agency) => (
-                            <option key={agency.id} value={agency.id}>
-                              {agency.agencyName}
-                            </option>
+                {/* ================= RIGHT COLUMN ================= */}
+                <div className="space-y-6">
+                  {/* ================= Nomination Details ================= */}
+                  <div className="border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
+                      <h3 className="font-semibold text-slate-900">
+                        Nomination Details
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          appendNominee({
+                            nomineeName: "",
+                            relationship: "",
+                            dateOfBirth: "",
+                            percentage: null,
+                            phone: "",
+                            email: "",
+                          })
+                        }
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                      >
+                        <Plus size={16} />
+                        Add Nominee
+                      </button>
+                    </div>
+                    <div className="p-5">
+                      {nomineeFields.length === 0 ? (
+                        <p className="text-sm text-slate-500 text-center py-4">
+                          No nominees added. Click Add Nominee to start.
+                        </p>
+                      ) : (
+                        <div className="space-y-4">
+                          {nomineeFields.map((field, index) => (
+                            <div
+                              key={field.id}
+                              className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Nominee Name
+                                  </label>
+                                  <input
+                                    {...register(`nominees.${index}.nomineeName`)}
+                                    placeholder="Full Name"
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                  {errors.nominees?.[index]?.nomineeName && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                      {
+                                        errors.nominees[index]?.nomineeName
+                                          ?.message
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Relationship
+                                  </label>
+                                  <input
+                                    {...register(
+                                      `nominees.${index}.relationship`,
+                                    )}
+                                    placeholder="e.g., Spouse, Son"
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                  {errors.nominees?.[index]?.relationship && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                      {
+                                        errors.nominees[index]?.relationship
+                                          ?.message
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Date of Birth
+                                  </label>
+                                  <Controller
+                                    control={control}
+                                    name={`nominees.${index}.dateOfBirth`}
+                                    render={({ field }) => (
+                                      <DatePicker
+                                        value={
+                                          field.value
+                                            ? new Date(field.value)
+                                            : undefined
+                                        }
+                                        onChange={(date) =>
+                                          field.onChange(
+                                            date
+                                              ? format(date, "yyyy-MM-dd")
+                                              : "",
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Share %
+                                  </label>
+                                  <input
+                                    type="number"
+                                    {...register(`nominees.${index}.percentage`)}
+                                    placeholder="e.g., 100"
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  />
+                                  {errors.nominees?.[index]?.percentage && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                      {
+                                        errors.nominees[index]?.percentage
+                                          ?.message
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Phone
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    {...register(`nominees.${index}.phone`)}
+                                    placeholder="Mobile Number"
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1">
+                                    Email
+                                  </label>
+                                  <input
+                                    type="email"
+                                    {...register(`nominees.${index}.email`)}
+                                    placeholder="Email Address"
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
+                                  />
+                                  {errors.nominees?.[index]?.email && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                      {errors.nominees[index]?.email?.message}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeNominee(index)}
+                                className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove Nominee"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           ))}
-                        </select>
-                        {errors.agencyId && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.agencyId.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Controller
-                          name="branchId"
-                          control={control}
-                          render={({ field }) => (
-                            <BranchAutoComplete
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              branches={branches}
-                            />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* ================= Annuity Details ================= */}
+                  <div className="border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between px-5 py-4 border-b">
+                      <h3 className="font-semibold text-slate-900">
+                        Annuity Details
+                      </h3>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-sm text-slate-500">
+                        This will be enabled for Annuity Policies.
+                      </p>
+                    </div>
+                  </div>
+                  {/* ================= Other Information ================= */}
+                  <div className="border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between px-5 py-4 border-b">
+                      <h3 className="font-semibold text-slate-900">
+                        Other Information
+                      </h3>
+                      <span className="text-sm text-slate-500">
+                        Agency, Branch, Notes & Other Policy Information
+                      </span>
+                    </div>
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Agency <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            {...register("agencyId")}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Agency</option>
+                            {agencies.map((agency) => (
+                              <option key={agency.id} value={agency.id}>
+                                {agency.agencyName}
+                              </option>
+                            ))}
+                          </select>
+                          {errors.agencyId && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.agencyId.message}
+                            </p>
                           )}
-                        />
-                      </div>
-                      <div className="relative">
-                        <Controller
-                          name="advisorId"
-                          control={control}
-                          render={({ field }) => (
-                            <AdvisorAutoComplete
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              advisors={filteredAdvisors}
-                              disabled={!watchAgencyId}
-                              placeholder={
-                                watchAgencyId
-                                  ? "Search Advisor..."
-                                  : "Select Agency First"
-                              }
-                            />
+                        </div>
+                        <div>
+                          <Controller
+                            name="branchId"
+                            control={control}
+                            render={({ field }) => (
+                              <BranchAutoComplete
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                branches={branches}
+                              />
+                            )}
+                          />
+                        </div>
+                        <div className="relative">
+                          <Controller
+                            name="advisorId"
+                            control={control}
+                            render={({ field }) => (
+                              <AdvisorAutoComplete
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                advisors={filteredAdvisors}
+                                disabled={!watchAgencyId}
+                                placeholder={
+                                  watchAgencyId
+                                    ? "Search Advisor..."
+                                    : "Select Agency First"
+                                }
+                              />
+                            )}
+                          />
+                          {errors.advisorId && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.advisorId.message}
+                            </p>
                           )}
-                        />
-                        {errors.advisorId && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.advisorId.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agent Code (Autofilled)
-                        </label>
-                        <input
-                          {...register("agentCode")}
-                          readOnly
-                          placeholder="Auto Filled"
-                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Medical
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Medical Details"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Tax Beneficiary
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Tax Beneficiary"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div className="flex items-center mt-8">
-                        <input
-                          id="ageAdmitted"
-                          type="checkbox"
-                          className="h-5 w-5"
-                        />
-                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">
-                          Age Admitted
-                        </label>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2">
-                          Notes
-                        </label>
-                        <textarea
-                          rows={4}
-                          placeholder="Enter Notes..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Agent Code (Autofilled)
+                          </label>
+                          <input
+                            {...register("agentCode")}
+                            readOnly
+                            placeholder="Auto Filled"
+                            className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Medical
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Medical Details"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Tax Beneficiary
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Tax Beneficiary"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                          />
+                        </div>
+                        <div className="flex items-center mt-8">
+                          <input
+                            id="ageAdmitted"
+                            type="checkbox"
+                            className="h-5 w-5"
+                          />
+                          <label htmlFor="ageAdmitted" className="ml-3 text-sm">
+                            Age Admitted
+                          </label>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-2">
+                            Notes
+                          </label>
+                          <textarea
+                            rows={4}
+                            placeholder="Enter Notes..."
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CustomerSectionCard>
-        </div>
-      </form>
+            </CustomerSectionCard>
+          </div>
+        </form>
       </FormProvider>
     </div>
   );

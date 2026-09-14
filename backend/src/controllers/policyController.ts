@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { Gender } from "@prisma/client";
 import { catchAsync } from "../utils/catchAsync.js";
 import * as policyService from "../services/policyService.js";
 import { calculatePremium } from "../services/premiumCalculationService.js";
@@ -7,6 +8,7 @@ import { AppError } from "../utils/AppError.js";
 export const createPolicy = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const newPolicy = await policyService.createPolicy(req.body);
+
     res.status(201).json({
       status: "success",
       data: {
@@ -18,7 +20,18 @@ export const createPolicy = catchAsync(
 
 export const previewPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { productId, age, secondaryAge, option, policyTerm, premiumPayingTerm, sumAssured, premiumMode, gender, smoker } = req.body;
+    const {
+      productId,
+      age,
+      secondaryAge,
+      option,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+      premiumMode,
+      gender,
+      smoker,
+    } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
       throw new AppError(
@@ -43,7 +56,12 @@ export const previewPremium = catchAsync(
           ? Number(option)
           : null,
       policyTerm: Number(policyTerm),
-      premiumPayingTerm: premiumPayingTerm ? Number(premiumPayingTerm) : null,
+      premiumPayingTerm:
+        premiumPayingTerm !== undefined &&
+          premiumPayingTerm !== null &&
+          premiumPayingTerm !== ""
+          ? Number(premiumPayingTerm)
+          : null,
       sumAssured: Number(sumAssured),
       premiumMode,
       gender,
@@ -61,9 +79,26 @@ export const previewPremium = catchAsync(
 
 export const previewRiderPremium = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { riderId, age, riderTerm, premiumPayingTerm, sumAssured, premiumMode, productId, option } = req.body;
+    const {
+      riderId,
+      age,
+      riderTerm,
+      premiumPayingTerm,
+      sumAssured,
+      premiumMode,
+      productId,
+      option,
+      gender,
+    } = req.body;
 
-    if (!riderId || !age || !riderTerm || !sumAssured || !premiumMode || !productId) {
+    if (
+      !riderId ||
+      !age ||
+      !riderTerm ||
+      !sumAssured ||
+      !premiumMode ||
+      !productId
+    ) {
       throw new AppError(
         "Rider ID, age, rider term, sum assured, product ID, and premium mode are required.",
         400,
@@ -71,7 +106,62 @@ export const previewRiderPremium = catchAsync(
     }
 
     const { prisma } = await import("../config/database.js");
-    const { getModeFactor } = await import("../services/premiumCalculationService.js");
+    const { getModeFactor } = await import(
+      "../services/premiumCalculationService.js"
+    );
+
+    // =========================================================
+    // NORMALIZE GENDER
+    // =========================================================
+    // Frontend may send:
+    // "Male", "male", "MALE"
+    // "Female", "female", "FEMALE"
+    //
+    // Prisma enum accepts only:
+    // Gender.MALE
+    // Gender.FEMALE
+    //
+    // If no gender is supplied, we use null because
+    // not all riders are gender-specific.
+    // =========================================================
+
+    let normalizedGender: Gender | null = null;
+
+    if (gender !== undefined && gender !== null && gender !== "") {
+      const genderValue = String(gender).trim().toUpperCase();
+
+      if (genderValue === "MALE") {
+        normalizedGender = Gender.MALE;
+      } else if (genderValue === "FEMALE") {
+        normalizedGender = Gender.FEMALE;
+      } else {
+        throw new AppError(
+          `Invalid gender '${gender}'. Expected Male or Female.`,
+          400,
+        );
+      }
+    }
+
+    // =========================================================
+    // FIND PRODUCT
+    // =========================================================
+
+    const product = await prisma.productMaster.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+
+    if (!product) {
+      throw new AppError(
+        `Product with ID ${productId} not found.`,
+        404,
+      );
+    }
+
+    // =========================================================
+    // BUILD BASE WHERE CLAUSE
+    // =========================================================
 
     const whereClause: any = {
       riderId,
@@ -80,54 +170,122 @@ export const previewRiderPremium = catchAsync(
       riderTerm: Number(riderTerm),
     };
 
-    if (option !== undefined && option !== null && option !== "") {
+    if (
+      option !== undefined &&
+      option !== null &&
+      option !== ""
+    ) {
       whereClause.option = Number(option);
     }
 
+    // =========================================================
+    // PLANS THAT USE PPT FOR RIDER RATES
+    // =========================================================
+
+    const usesRiderPPT = [
+      "771",
+      "745",
+      "883",
+      "887",
+      "881",
+      "889",
+      "912"
+    ].includes(product.planNumber);
+
     let riderRate = null;
 
-    const product = await prisma.productMaster.findUnique({
-      where: { id: productId },
-    });
+    // =========================================================
+    // BUILD QUERIES TO TRY (ORDERED BY SPECIFICITY)
+    // =========================================================
+    
+    const queriesToTry = [];
 
-    const isWholeLife = product && ["771", "745", "883", "887"].includes(product.planNumber);
-
-    if (isWholeLife && premiumPayingTerm !== undefined && premiumPayingTerm !== null && premiumPayingTerm !== "") {
-      // For whole life plans, rider rates are strictly dependent on the premium paying term.
-      riderRate = await prisma.riderPremiumRate.findFirst({
-        where: {
-          ...whereClause,
-          premiumPayingTerm: Number(premiumPayingTerm),
-        },
-      });
+    let queryPPT: number | null = null;
+    
+    if (usesRiderPPT) {
+      if (product.planNumber === "883") {
+        // Plan 883 Term Rider always has PPT 1, and riderTerm comes from DB
+        queryPPT = 1;
+        delete whereClause.riderTerm;
+      } else if (
+        premiumPayingTerm !== undefined &&
+        premiumPayingTerm !== null &&
+        premiumPayingTerm !== ""
+      ) {
+        queryPPT = Number(premiumPayingTerm);
+      }
     }
 
-    if (!riderRate) {
-      // For standard plans (or fallback if exact PPT match failed), the rates are independent of PPT in the DB (premiumPayingTerm is null).
-      riderRate = await prisma.riderPremiumRate.findFirst({
-        where: {
-          ...whereClause,
-          premiumPayingTerm: null,
-        },
-      });
+    if (queryPPT !== null) {
+      if (normalizedGender) {
+        queriesToTry.push({ ...whereClause, gender: normalizedGender, premiumPayingTerm: queryPPT });
+      }
+      queriesToTry.push({ ...whereClause, gender: null, premiumPayingTerm: queryPPT });
+    } else {
+      if (normalizedGender) {
+        queriesToTry.push({ ...whereClause, gender: normalizedGender, premiumPayingTerm: null });
+      }
+      queriesToTry.push({ ...whereClause, gender: null, premiumPayingTerm: null });
     }
 
+    // =========================================================
+    // EXECUTE QUERIES
+    // =========================================================
+
+    for (const query of queriesToTry) {
+      riderRate = await prisma.riderPremiumRate.findFirst({
+        where: query,
+      });
+      if (riderRate) break;
+    }
+
+    // =========================================================
+    // RATE NOT FOUND
+    // =========================================================
+
     if (!riderRate) {
+      const genderText =
+        normalizedGender === Gender.MALE
+          ? "Male"
+          : normalizedGender === Gender.FEMALE
+            ? "Female"
+            : "Gender-independent";
+
       throw new AppError(
-        `Premium rate not found for Rider ${riderId}, Age ${age}, Term ${riderTerm}`,
+        `Premium rate not found for Rider ${riderId}, Age ${age}, Term ${riderTerm}, ${genderText}.`,
         404,
       );
     }
 
-    const tabularPremium = (Number(riderRate.ratePerThousand) * Number(sumAssured)) / 1000;
-    const modeFactor = await getModeFactor(productId, premiumMode);
-    const installmentPremium = Number((tabularPremium * modeFactor).toFixed(2));
+    // =========================================================
+    // CALCULATE PREMIUM
+    // =========================================================
+
+    const tabularPremium =
+      (Number(riderRate.ratePerThousand) * Number(sumAssured)) /
+      1000;
+
+    const modeFactor = await getModeFactor(
+      productId,
+      premiumMode,
+    );
+
+    const installmentPremium = Number(
+      (tabularPremium * modeFactor).toFixed(2),
+    );
+
+    // =========================================================
+    // RESPONSE
+    // =========================================================
 
     res.status(200).json({
       status: "success",
       data: {
         premium: installmentPremium,
         rate: Number(riderRate.ratePerThousand),
+        gender: riderRate.gender,
+        riderTerm: riderRate.riderTerm,
+        premiumPayingTerm: riderRate.premiumPayingTerm,
       },
     });
   },
@@ -148,22 +306,46 @@ export const getAllPolicies = catchAsync(
       page,
       limit,
     } = req.query;
+
     const policies = await policyService.getAllPolicies({
       search: typeof search === "string" ? search : undefined,
-      holderName: typeof holderName === "string" ? holderName : undefined,
-      policyNumber: typeof policyNumber === "string" ? policyNumber : undefined,
-      planName: typeof planName === "string" ? planName : undefined,
-      groupCode: typeof groupCode === "string" ? groupCode : undefined,
-      premium: typeof premium === "string" ? premium : undefined,
-      dueDate: typeof dueDate === "string" ? dueDate : undefined,
-      sumAssured: typeof sumAssured === "string" ? sumAssured : undefined,
-      status: typeof status === "string" ? status : undefined,
+      holderName:
+        typeof holderName === "string" ? holderName : undefined,
+      policyNumber:
+        typeof policyNumber === "string"
+          ? policyNumber
+          : undefined,
+      planName:
+        typeof planName === "string" ? planName : undefined,
+      groupCode:
+        typeof groupCode === "string" ? groupCode : undefined,
+      premium:
+        typeof premium === "string" ? premium : undefined,
+      dueDate:
+        typeof dueDate === "string" ? dueDate : undefined,
+      sumAssured:
+        typeof sumAssured === "string"
+          ? sumAssured
+          : undefined,
+      status:
+        typeof status === "string" ? status : undefined,
     });
-    const hasPagination = page !== undefined || limit !== undefined;
+
+    const hasPagination =
+      page !== undefined || limit !== undefined;
+
     const pageNumber = Math.max(Number(page) || 1, 1);
-    const limitNumber = Math.max(Number(limit) || policies.length || 1, 1);
+
+    const limitNumber = Math.max(
+      Number(limit) || policies.length || 1,
+      1,
+    );
+
     const paginatedPolicies = hasPagination
-      ? policies.slice((pageNumber - 1) * limitNumber, pageNumber * limitNumber)
+      ? policies.slice(
+        (pageNumber - 1) * limitNumber,
+        pageNumber * limitNumber,
+      )
       : policies;
 
     res.status(200).json({
@@ -178,8 +360,6 @@ export const getAllPolicies = catchAsync(
 
 export const deletePolicy = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // The service function already checks for existence and throws an error.
-    // So we don't need to check here again.
     await policyService.deletePolicy(req.params.id);
 
     res.status(204).json({
@@ -189,23 +369,28 @@ export const deletePolicy = catchAsync(
   },
 );
 
-export const getPolicyById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const getPolicyById = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-  const policy = await policyService.getPolicyById(id);
+    const policy = await policyService.getPolicyById(id);
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      policy,
-    },
-  });
-});
+    res.status(200).json({
+      status: "success",
+      data: {
+        policy,
+      },
+    });
+  },
+);
 
 export const getPoliciesByMember = catchAsync(
   async (req: Request, res: Response) => {
     const { memberId } = req.params;
-    const policies = await policyService.getPoliciesByMember(memberId);
+
+    const policies =
+      await policyService.getPoliciesByMember(memberId);
+
     res.status(200).json({
       status: "success",
       results: policies.length,
@@ -216,19 +401,31 @@ export const getPoliciesByMember = catchAsync(
   },
 );
 
-export const updatePolicy = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const updatePolicy = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-  console.log("updatePolicy controller - req.params.id:", id);
-  console.log("updatePolicy controller - req.body:", req.body);
+    console.log(
+      "updatePolicy controller - req.params.id:",
+      id,
+    );
 
-  const updatedPolicy = await policyService.updatePolicy(id, req.body);
-  const refreshedPolicy = await policyService.getPolicyById(updatedPolicy.id);
+    console.log(
+      "updatePolicy controller - req.body:",
+      req.body,
+    );
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      policy: refreshedPolicy,
-    },
-  });
-});
+    const updatedPolicy =
+      await policyService.updatePolicy(id, req.body);
+
+    const refreshedPolicy =
+      await policyService.getPolicyById(updatedPolicy.id);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        policy: refreshedPolicy,
+      },
+    });
+  },
+);

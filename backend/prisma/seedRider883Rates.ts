@@ -10,27 +10,36 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
   const riderCode = "TERM";
   const planNumber = "883";
 
+  // Plan 883:
+  // T1 = Premium Paying Term 1
+  const premiumPayingTerm = 1;
+
   try {
     // --------------------------------------------------
     // Read SQLite data
     // --------------------------------------------------
+
     const premiumRows = sqlite
       .prepare(`SELECT * FROM "${tableName}"`)
       .all() as any[];
 
-    console.log(`Processing ${tableName} (${premiumRows.length} rows)`);
+    console.log(
+      `Processing ${tableName} (${premiumRows.length} rows)`
+    );
 
     // --------------------------------------------------
     // Validate source data
     // --------------------------------------------------
+
     if (premiumRows.length === 0) {
-      console.log(`❌ No data found in ${tableName}`);
+      console.log(`❌ No data found in ${tableName} `);
       return;
     }
 
     // --------------------------------------------------
     // Find TERM rider
     // --------------------------------------------------
+
     const rider = await prisma.riderMaster.findUnique({
       where: {
         riderCode,
@@ -38,15 +47,20 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
     });
 
     if (!rider) {
-      console.log(`❌ Rider with code ${riderCode} not found in RiderMaster`);
+      console.log(
+        `❌ Rider with code ${riderCode} not found in RiderMaster`
+      );
       return;
     }
 
-    console.log(`Matched Rider: ${rider.riderName} (${rider.riderCode})`);
+    console.log(
+      `Matched Rider: ${rider.riderName} (${rider.riderCode})`
+    );
 
     // --------------------------------------------------
     // Find Plan 883 product
     // --------------------------------------------------
+
     const product = await prisma.productMaster.findFirst({
       where: {
         planNumber,
@@ -55,13 +69,13 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
 
     if (!product) {
       console.log(
-        `❌ Product with planNumber ${planNumber} not found in ProductMaster`,
+        `❌ Product with planNumber ${planNumber} not found in ProductMaster`
       );
       return;
     }
 
     console.log(
-      `Matched Product: ${product.productName} (Plan ${product.planNumber})`,
+      `Matched Product: ${product.productName} (Plan ${product.planNumber})`
     );
 
     let inserted = 0;
@@ -70,17 +84,15 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
     let updated = 0;
 
     // --------------------------------------------------
-    // Plan 883
+    // Plan 883 mapping
     //
     // Age        -> Entry Age
     // Rider_Term -> Rider Term
-    // T1         -> Premium Paying Term 1
+    // T1         -> PPT 1
+    //
+    // option     -> NULL
     // --------------------------------------------------
-    const premiumPayingTerm = 1;
 
-    // --------------------------------------------------
-    // Process rows
-    // --------------------------------------------------
     for (const row of premiumRows) {
       const entryAge = Number(row.Age);
       const riderTerm = Number(row.Rider_Term);
@@ -89,8 +101,12 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
       // ------------------------------------------------
       // Validate Age
       // ------------------------------------------------
+
       if (Number.isNaN(entryAge)) {
-        console.log(`⚠️ Invalid age: ${row.Age}`);
+        console.log(
+          `⚠️ Invalid age: ${row.Age} `
+        );
+
         invalid++;
         continue;
       }
@@ -98,54 +114,79 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
       // ------------------------------------------------
       // Validate Rider Term
       // ------------------------------------------------
+
       if (Number.isNaN(riderTerm)) {
         console.log(
-          `⚠️ Invalid Rider_Term for Age ${entryAge}: ${row.Rider_Term}`,
+          `⚠️ Invalid Rider_Term for Age ${entryAge}: ${row.Rider_Term} `
         );
+
         invalid++;
         continue;
       }
 
       // ------------------------------------------------
-      // Skip empty / zero / invalid rate
+      // Validate T1 rate
       // ------------------------------------------------
-      if (row.T1 == null || row.T1 === "" || rate === 0 || Number.isNaN(rate)) {
+
+      if (
+        row.T1 == null ||
+        row.T1 === "" ||
+        rate === 0 ||
+        Number.isNaN(rate)
+      ) {
+        console.log(
+          `⚠️ Invalid T1 rate for Age ${entryAge}, Rider Term ${riderTerm}: ${row.T1} `
+        );
+
+        invalid++;
         continue;
       }
 
-      /*
-       * Plan 883 mapping:
-       *
-       * Age        -> entryAge
-       * Rider_Term -> riderTerm
-       * T1         -> premiumPayingTerm 1
-       *
-       * option -> null
-       */
+      // ------------------------------------------------
+      // Check existing record
+      //
+      // Unique mapping:
+      //
+      // Product
+      // Rider
+      // Age
+      // Rider Term
+      // PPT = 1
+      // Option = NULL
+      // ------------------------------------------------
 
-      // ------------------------------------------------
-      // Check existing Plan 883 record
-      // ------------------------------------------------
-      const existing = await prisma.riderPremiumRate.findFirst({
-        where: {
-          productId: product.id,
-          riderId: rider.id,
-          entryAge,
-          riderTerm,
-          premiumPayingTerm,
-          option: null,
-        },
-      });
+      const existing =
+        await prisma.riderPremiumRate.findFirst({
+          where: {
+            productId: product.id,
+            riderId: rider.id,
+            entryAge,
+            riderTerm,
+            premiumPayingTerm,
+            option: null,
+          },
+        });
 
       // ------------------------------------------------
       // Existing record
       // ------------------------------------------------
+
       if (existing) {
-        const existingRate = Number(existing.ratePerThousand);
+        const existingRate = Number(
+          existing.ratePerThousand
+        );
 
         // Same rate -> skip
         if (existingRate === rate) {
           skipped++;
+
+          console.log(
+            `⏭ Skipped 883 Rate: ` +
+            `Age ${entryAge}, ` +
+            `Term ${riderTerm}, ` +
+            `PPT ${premiumPayingTerm}, ` +
+            `Rate ${rate} `
+          );
         } else {
           // Different rate -> update
           await prisma.riderPremiumRate.update({
@@ -160,7 +201,12 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
           updated++;
 
           console.log(
-            `♻ Updated 883 Rate: Age ${entryAge}, Term ${riderTerm}, PPT ${premiumPayingTerm} | Old Rate: ${existingRate} | New Rate: ${rate}`,
+            `♻ Updated 883 Rate: ` +
+            `Age ${entryAge}, ` +
+            `Term ${riderTerm}, ` +
+            `PPT ${premiumPayingTerm} | ` +
+            `Old Rate: ${existingRate} | ` +
+            `New Rate: ${rate} `
           );
         }
 
@@ -170,14 +216,25 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
       // ------------------------------------------------
       // Insert new record
       // ------------------------------------------------
+
       await prisma.riderPremiumRate.create({
         data: {
           productId: product.id,
           riderId: rider.id,
+
+          // Age from SQLite
           entryAge,
+
+          // Rider term from SQLite
           riderTerm,
+
+          // T1 = PPT 1
           premiumPayingTerm,
+
+          // Rider premium rate
           ratePerThousand: rate,
+
+          // Rider has no option
           option: null,
         },
       });
@@ -185,30 +242,42 @@ export const seedRiderPremium883 = async (prisma: PrismaClient) => {
       inserted++;
 
       console.log(
-        `➕ Inserted 883 Rate: Age ${entryAge}, Term ${riderTerm}, PPT ${premiumPayingTerm}, Rate ${rate}`,
+        `➕ Inserted 883 Rate: ` +
+        `Age ${entryAge}, ` +
+        `Term ${riderTerm}, ` +
+        `PPT ${premiumPayingTerm}, ` +
+        `Rate ${rate} `
       );
     }
 
     // --------------------------------------------------
     // Summary
     // --------------------------------------------------
+
     console.log("\n=================================");
     console.log("       PLAN 883 RIDER SEED");
     console.log("=================================");
-    console.log(`✔ Rider Code : ${rider.riderCode}`);
-    console.log(`✔ Rider Name : ${rider.riderName}`);
-    console.log(`✔ Source     : ${tableName}`);
-    console.log(`✔ Plan       : ${planNumber}`);
-    console.log(`✔ Age Range  : 18 - 60`);
-    console.log(`✔ Rider Term : From Rider_Term`);
-    console.log(`✔ PPT        : 1`);
-    console.log(`✔ Inserted   : ${inserted}`);
-    console.log(`✔ Skipped    : ${skipped}`);
-    console.log(`✔ Invalid    : ${invalid}`);
-    console.log(`♻ Updated    : ${updated}`);
+
+    console.log(`✔ Rider Code: ${rider.riderCode} `);
+    console.log(`✔ Rider Name: ${rider.riderName} `);
+    console.log(`✔ Source: ${tableName} `);
+    console.log(`✔ Plan: ${planNumber} `);
+    console.log(`✔ Age Range: 18 - 60`);
+    console.log(`✔ Rider Term: From Rider_Term`);
+    console.log(`✔ PPT: 1(T1)`);
+    console.log(`✔ Option: NULL`);
+    console.log(`✔ Inserted: ${inserted} `);
+    console.log(`✔ Skipped: ${skipped} `);
+    console.log(`✔ Invalid: ${invalid} `);
+    console.log(`♻ Updated: ${updated} `);
+
     console.log("=================================");
+
   } catch (error) {
-    console.error(`❌ Error seeding ${tableName}:`, error);
+    console.error(
+      `❌ Error seeding ${tableName}: `,
+      error
+    );
 
     throw error;
   } finally {
