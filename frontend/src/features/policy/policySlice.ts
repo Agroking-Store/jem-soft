@@ -159,7 +159,7 @@ export const fetchPolicies = createAsyncThunk<
   { rejectValue: string }
 >("policies/fetchAll", async (params, { rejectWithValue }) => {
   try {
-    const response = await getPoliciesApi(params);
+    const response = await getPoliciesApi(params || undefined);
     return response.data.data.policies;
   } catch (err: any) {
     return rejectWithValue(
