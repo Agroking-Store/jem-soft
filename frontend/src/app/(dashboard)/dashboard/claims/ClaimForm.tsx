@@ -727,8 +727,9 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                         <p>
                           Total Premium Paid: ₹
                           {(
+                            calculation.surrenderInfo.totalPaidPremium ??
                             calculation.surrenderInfo.basicPremium *
-                            calculation.surrenderInfo.numberOfPremiumsPaid
+                              calculation.surrenderInfo.numberOfPremiumsPaid
                           ).toLocaleString("en-IN")}{" "}
                           ({calculation.surrenderInfo.numberOfPremiumsPaid}{" "}
                           premiums)
