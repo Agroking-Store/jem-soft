@@ -189,15 +189,13 @@ const calculateMaturityClaim = (
  * SSV = Total Premium Paid × SSV %
  */
 const calculateSurrenderClaim = (
-  basicPremium: number,
-  numberOfPremiumsPaid: number,
+  totalPaidPremium: number,
   outstandingLoan: number,
   loanInterest: number,
   gsvPercentage: number,
   ssvPercentage: number,
   bonus: number,
 ): { amount: number; gsv: number; ssv: number; surrenderValue: number } => {
-  const totalPaidPremium = basicPremium * numberOfPremiumsPaid;
   const gsv = round2(totalPaidPremium * gsvPercentage);
   const ssv = round2(totalPaidPremium * ssvPercentage);
   const surrenderValue = Math.max(gsv, ssv);
@@ -549,13 +547,61 @@ export const calculateClaimAmount = async (
   const loanInterest = loanDetails?.accruedInterest ?? 0;
 
   // ── Surrender-specific values ──
+  const installmentPremium =
+    toNumber(policy.premium?.installmentPremium) ||
+    toNumber(policy.premium?.totalInstallmentPremium) ||
+    toNumber(policy.premium?.basicYearlyPremium);
+
   const basicPremium =
-    toNumber(policy.premium?.basicYearlyPremium) ||
-    toNumber(policy.premium?.installmentPremium);
-  const numberOfPremiumsPaid = policy.premiumPayments.filter((p) => {
-    const code = p.paymentStatus?.statusCode;
-    return code === "PAID" || code === "Paid";
-  }).length;
+    installmentPremium > 0
+      ? installmentPremium
+      : toNumber(policy.premium?.basicYearlyPremium);
+
+  const paidPayments = policy.premiumPayments.filter((p) => {
+    const code = String(p.paymentStatus?.statusCode ?? "")
+      .trim()
+      .toUpperCase();
+    return code === "PAID" || !!p.paidDate;
+  });
+
+  // Calculate actual total premium paid from all successful payment records
+  const paidAmountsSum = round2(
+    paidPayments.reduce((sum, p) => sum + toNumber(p.premiumAmount), 0),
+  );
+
+  // Highest installment number recorded across paid payments
+  const maxInstallmentNo = Math.max(
+    0,
+    ...paidPayments.map((p) => p.installmentNo || 0),
+  );
+
+  // Determine actual number of premiums (installments) paid and total paid premium
+  let numberOfPremiumsPaid = 0;
+  let totalPaidPremium = 0;
+
+  if (paidAmountsSum > 0) {
+    totalPaidPremium = paidAmountsSum;
+    if (basicPremium > 0) {
+      numberOfPremiumsPaid = Math.max(
+        maxInstallmentNo,
+        Math.round(paidAmountsSum / basicPremium),
+        paidPayments.length,
+      );
+    } else {
+      numberOfPremiumsPaid = maxInstallmentNo || paidPayments.length;
+    }
+  } else if (maxInstallmentNo > 0 && basicPremium > 0) {
+    numberOfPremiumsPaid = maxInstallmentNo;
+    totalPaidPremium = round2(numberOfPremiumsPaid * basicPremium);
+  } else {
+    numberOfPremiumsPaid = paidPayments.length;
+    totalPaidPremium = round2(numberOfPremiumsPaid * basicPremium);
+  }
+
+  const effectiveBasicPremium =
+    numberOfPremiumsPaid > 0
+      ? round2(totalPaidPremium / numberOfPremiumsPaid)
+      : basicPremium;
 
   const gsvPercentage =
     findAttributeValue(
@@ -593,8 +639,7 @@ export const calculateClaimAmount = async (
     );
   } else if (normalizedType === "Surrender") {
     const result = calculateSurrenderClaim(
-      basicPremium,
-      numberOfPremiumsPaid,
+      totalPaidPremium,
       outstandingLoan,
       loanInterest,
       gsvPercentage,
@@ -606,10 +651,11 @@ export const calculateClaimAmount = async (
       gsv: result.gsv,
       ssv: result.ssv,
       surrenderValue: result.surrenderValue,
-      basicPremium,
+      basicPremium: effectiveBasicPremium,
       numberOfPremiumsPaid,
-      gsvPercentage: gsvPercentage * 100,
-      ssvPercentage: ssvPercentage * 100,
+      totalPaidPremium,
+      gsvPercentage: round2(gsvPercentage * 100),
+      ssvPercentage: round2(ssvPercentage * 100),
     };
   }
 
