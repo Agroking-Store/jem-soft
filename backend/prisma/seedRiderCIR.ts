@@ -22,11 +22,25 @@ export const seedRiderPremiumCIR = async (
             tableName: "cir_m_1",
             riderCode: "CIR",
             option: 1,
+            gender: "MALE" as const,
         },
         {
             tableName: "cir_m_2",
             riderCode: "CIR2",
             option: 2,
+            gender: "MALE" as const,
+        },
+        {
+            tableName: "cir_f_1",
+            riderCode: "CIR",
+            option: 1,
+            gender: "FEMALE" as const,
+        },
+        {
+            tableName: "cir_f_2",
+            riderCode: "CIR2",
+            option: 2,
+            gender: "FEMALE" as const,
         },
     ];
 
@@ -71,6 +85,7 @@ export const seedRiderPremiumCIR = async (
                 tableName,
                 riderCode,
                 option,
+                gender,
             } of tables) {
                 // ----------------------------------------------
                 // Find Rider
@@ -191,6 +206,7 @@ export const seedRiderPremiumCIR = async (
                                     riderTerm,
                                     premiumPayingTerm: null,
                                     option,
+                                    gender,
                                 },
                             });
 
@@ -213,6 +229,7 @@ export const seedRiderPremiumCIR = async (
                                 premiumPayingTerm: null,
 
                                 option,
+                                gender,
                                 ratePerThousand: rate,
                             },
                         });

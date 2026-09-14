@@ -58,11 +58,37 @@ export const deleteRiderMaster = async (id: string): Promise<void> => {
 
 export const getRiderOptions = async (riderId: string, age: number, ppt?: number, productId?: string) => {
   const whereClause: any = { riderId, entryAge: age };
-  if (ppt !== undefined && !Number.isNaN(ppt)) {
-    whereClause.premiumPayingTerm = ppt;
-  }
+  
   if (productId) {
     whereClause.productId = productId;
+    
+    // Fetch product to determine PPT behavior
+    const product = await prisma.productMaster.findUnique({
+      where: { id: productId },
+      select: { planNumber: true }
+    });
+
+    if (product) {
+      const usesRiderPPT = [
+        "771",
+        "745",
+        "883",
+        "887",
+        "881",
+        "889",
+        "912"
+      ].includes(product.planNumber || "");
+
+      if (usesRiderPPT) {
+        if (product.planNumber === "883") {
+          whereClause.premiumPayingTerm = 1;
+        } else if (ppt !== undefined && !Number.isNaN(ppt)) {
+          whereClause.premiumPayingTerm = ppt;
+        }
+      } else {
+        whereClause.premiumPayingTerm = null;
+      }
+    }
   }
 
   const rates = await prisma.riderPremiumRate.findMany({

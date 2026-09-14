@@ -357,6 +357,11 @@ model ProductPremiumModeFactor {
 // ======================================================
 
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 model RiderPremiumRate {
   id String @id @default(uuid())
 
@@ -368,15 +373,17 @@ model RiderPremiumRate {
   premiumPayingTerm Int?
   option Int?
 
+  gender Gender?
+
   ratePerThousand Decimal @db.Decimal(10,2)
 
-  rider   RiderMaster  @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  rider   RiderMaster   @relation(fields: [riderId], references: [id], onDelete: Cascade)
   product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([riderId, productId, entryAge, riderTerm, premiumPayingTerm, option])
+  @@unique([riderId, productId, entryAge, riderTerm, premiumPayingTerm, option, gender])
 }
 
 // ======================================================

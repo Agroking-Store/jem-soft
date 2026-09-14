@@ -246,7 +246,6 @@ export async function calculatePremium(data: PremiumInput) {
         entryAge: age,
         secondaryAge,
         policyTerm,
-        premiumPayingTerm: null,
         option,
       },
     });
