@@ -247,13 +247,16 @@ export default function MarketingPage() {
 
       const res = await sendDirectMessageApi({
         customerId: item.customerId,
-        channel: item.smsOptedIn ? "SMS" : "EMAIL",
+        channel: "ALL",
         subject: `Happy ${wishType} from Your Insurance Advisor!`,
         message,
       });
 
       if (res.success) {
-        toast.success(`${wishType} wish sent to ${item.customerName}!`);
+        toast.success(`${wishType} sent to ${item.customerName} via SMS & Email!`);
+        setCelebrations((prev) =>
+          prev.map((c) => (c.id === item.id ? { ...c, alreadySentToday: true } : c))
+        );
         loadAllData();
       }
     } catch (err: any) {
@@ -286,12 +289,26 @@ export default function MarketingPage() {
     }
   };
 
-  // Filtered Celebrations
+  // Filtered Celebrations - also exclude items where isToday && alreadySentToday (already auto-dispatched today)
+  // After tomorrow they won't appear because daysRemaining becomes negative (backend only returns <= daysAhead)
   const filteredCelebrations = celebrations.filter((c) => {
     if (c.daysRemaining > celebrationDaysFilter) return false;
     if (celebrationTypeFilter !== "ALL" && c.type !== celebrationTypeFilter) return false;
     return true;
   });
+
+  // For overview tab - deduplicate logs by showing only the latest log per customer per day
+  // (Since each channel creates a separate row, we group to avoid confusion)
+  const deduplicatedOverviewLogs: CommunicationLog[] = [];
+  const seenCustomerLogKeys = new Set<string>();
+  for (const log of logs) {
+    const dateKey = new Date(log.createdAt).toDateString();
+    const key = `${log.customerId}-${log.triggerType}-${dateKey}`;
+    if (!seenCustomerLogKeys.has(key)) {
+      seenCustomerLogKeys.add(key);
+      deduplicatedOverviewLogs.push(log);
+    }
+  }
 
   // Filtered Templates
   const filteredTemplates = templates.filter((t) => {
@@ -485,15 +502,21 @@ export default function MarketingPage() {
                             {isBirthday ? "Birthday" : "Wedding Anniversary"}
                           </span>
 
-                          <span
-                            className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                              item.isToday
-                                ? "bg-red-100 text-red-700 animate-pulse font-bold"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {item.isToday ? "Today! 🎉" : item.daysRemaining === 1 ? "Tomorrow" : `In ${item.daysRemaining} days`}
-                          </span>
+                          {item.alreadySentToday ? (
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              Sent Today ✅
+                            </span>
+                          ) : (
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                                item.isToday
+                                  ? "bg-red-100 text-red-700 animate-pulse font-bold"
+                                  : "bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {item.isToday ? "Today! 🎉" : item.daysRemaining === 1 ? "Tomorrow" : `In ${item.daysRemaining} days`}
+                            </span>
+                          )}
                         </div>
 
                         <h4 className="font-bold text-sm text-slate-900 pt-1">{item.customerName}</h4>
@@ -508,15 +531,21 @@ export default function MarketingPage() {
 
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <span className="text-[11px] text-slate-400">
-                          {item.smsOptedIn ? "SMS Allowed" : "SMS Opt-Out"}
+                          Channels: SMS & Email
                         </span>
-                        <button
-                          onClick={() => handleSendDirectWish(item)}
-                          disabled={isWishingCustomer === item.id}
-                          className="px-3 py-1 bg-gradient-to-r from-[#1877F2] to-[#2563eb] text-white text-xs font-semibold rounded-lg hover:brightness-110 cursor-pointer disabled:opacity-50"
-                        >
-                          {isWishingCustomer === item.id ? "Sending..." : "Wish Now"}
-                        </button>
+                        {item.alreadySentToday ? (
+                          <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
+                            Already Sent ✅
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleSendDirectWish(item)}
+                            disabled={isWishingCustomer === item.id}
+                            className="px-3 py-1 bg-gradient-to-r from-[#1877F2] to-[#2563eb] text-white text-xs font-semibold rounded-lg hover:brightness-110 cursor-pointer disabled:opacity-50"
+                          >
+                            {isWishingCustomer === item.id ? "Sending..." : "Wish Now (SMS & Email)"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -539,7 +568,7 @@ export default function MarketingPage() {
               </button>
             }
           >
-            {logs.length === 0 ? (
+            {deduplicatedOverviewLogs.length === 0 ? (
               <p className="text-xs text-slate-400 text-center py-6">No communication logs recorded yet.</p>
             ) : (
               <CustomerTableFrame>
@@ -555,7 +584,7 @@ export default function MarketingPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {logs.slice(0, 5).map((log) => (
+                    {deduplicatedOverviewLogs.slice(0, 5).map((log) => (
                       <tr key={log.id} className="hover:bg-blue-50/30 transition-colors">
                         <td className="py-3 px-4 font-mono">{new Date(log.createdAt).toLocaleString("en-IN")}</td>
                         <td className="py-3 px-4 font-semibold text-slate-900">{log.customerName || "N/A"}</td>

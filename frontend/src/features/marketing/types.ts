@@ -94,6 +94,7 @@ export interface CelebrationItem {
   upcomingDate: string;
   daysRemaining: number;
   isToday: boolean;
+  alreadySentToday?: boolean;
   smsOptedIn: boolean;
   emailOptedIn: boolean;
 }

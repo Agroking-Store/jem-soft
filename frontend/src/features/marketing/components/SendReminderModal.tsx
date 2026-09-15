@@ -50,6 +50,8 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
   // Separate loading states for each channel
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingSms, setSendingSms] = useState(false);
+  const [sendingAll, setSendingAll] = useState(false);
 
   const customer = policy?.CustomerMaster;
   const customerName =
@@ -102,8 +104,11 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       : "");
 
   // ── Channel-specific send handler ──────────────────────────────────────
-  const handleSend = async (channel: "EMAIL") => {
-    setSendingEmail(true);
+  const handleSend = async (channel: "EMAIL" | "SMS" | "ALL") => {
+    if (channel === "EMAIL") setSendingEmail(true);
+    if (channel === "SMS") setSendingSms(true);
+    if (channel === "ALL") setSendingAll(true);
+
     try {
       const res = await sendReminderApi({
         policyId: policy.id,
@@ -114,17 +119,20 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       });
 
       if (res.success) {
-        toast.success(`📧 Email dispatched for policy ${policy.policyNumber}!`);
+        const channelLabel = channel === "ALL" ? "SMS & Email" : channel;
+        toast.success(`Dispatched ${channelLabel} reminder for policy ${policy.policyNumber}!`);
         if (onSuccess) onSuccess();
       } else {
-        toast.error(res.message || "Failed to send Email");
+        toast.error(res.message || `Failed to send ${channel}`);
       }
     } catch (err: any) {
       toast.error(
-        err.response?.data?.message || err.message || "Failed to send Email"
+        err.response?.data?.message || err.message || `Failed to send ${channel}`
       );
     } finally {
-      setSendingEmail(false);
+      if (channel === "EMAIL") setSendingEmail(false);
+      if (channel === "SMS") setSendingSms(false);
+      if (channel === "ALL") setSendingAll(false);
     }
   };
 
@@ -257,19 +265,38 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
           <div className="flex flex-wrap gap-2.5 items-center justify-between">
             {/* Left: channel buttons */}
             <div className="flex flex-wrap gap-2">
-              {/* SMS – Coming Soon */}
+              {/* Both SMS + Email */}
               <button
                 type="button"
-                disabled
-                title="SMS integration coming soon"
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl
-                  bg-slate-200 text-slate-400 cursor-not-allowed relative"
+                onClick={() => handleSend("ALL")}
+                disabled={sendingAll || (!smsOptedIn && !emailOptedIn)}
+                title="Send both SMS and Email reminders"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
+                  bg-gradient-to-r from-[#1877F2] to-[#2563eb] hover:brightness-110 text-white shadow-sm shadow-blue-500/30"
               >
-                <Smartphone size={14} />
-                Send SMS
-                <span className="absolute -top-2 -right-2 text-[9px] font-bold bg-slate-500 text-white px-1.5 py-0.5 rounded-full leading-none">
-                  Soon
-                </span>
+                {sendingAll ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <BellRing size={14} />
+                )}
+                {sendingAll ? "Sending All…" : "Send SMS & Email"}
+              </button>
+
+              {/* SMS */}
+              <button
+                type="button"
+                onClick={() => handleSend("SMS")}
+                disabled={sendingSms || !smsOptedIn || !mobile}
+                title={!mobile ? "No mobile number" : !smsOptedIn ? "Customer opted out of SMS" : "Send SMS reminder"}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
+                  bg-sky-600 hover:bg-sky-700 text-white shadow-sm shadow-sky-600/30"
+              >
+                {sendingSms ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Smartphone size={14} />
+                )}
+                {sendingSms ? "Sending SMS…" : "Send SMS"}
               </button>
 
               {/* Email */}
@@ -315,9 +342,10 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
           {/* Channel legend */}
           <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-400">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300 inline-block" /> SMS → Coming Soon</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> All → SMS + Email</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> SMS → Fast2SMS / Gateway</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> Email → Gmail SMTP</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> WhatsApp → Click-to-chat</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> WhatsApp → Instant Chat</span>
           </div>
         </div>
       </div>

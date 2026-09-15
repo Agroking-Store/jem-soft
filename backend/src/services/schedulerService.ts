@@ -252,13 +252,34 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const allCustomers = await prisma.customerMaster.findMany({
-    include: {
-      miscInfo: true,
-      contactInfo: true,
-      preferences: true,
-    },
-  });
+  const todayStart = new Date(today);
+  todayStart.setHours(0, 0, 0, 0);
+
+  const [allCustomers, todayLogs] = await Promise.all([
+    prisma.customerMaster.findMany({
+      include: {
+        miscInfo: true,
+        contactInfo: true,
+        preferences: true,
+      },
+    }),
+    prisma.communicationLog.findMany({
+      where: {
+        createdAt: { gte: todayStart },
+      },
+      select: {
+        customerId: true,
+        metadata: true,
+        triggerType: true,
+      },
+    }),
+  ]);
+
+  const sentCustomerIdsToday = new Set(
+    todayLogs
+      .filter((l) => l.customerId)
+      .map((l) => l.customerId as string)
+  );
 
   const celebrations: Array<{
     id: string;
@@ -271,6 +292,7 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
     upcomingDate: string;
     daysRemaining: number;
     isToday: boolean;
+    alreadySentToday: boolean;
     smsOptedIn: boolean;
     emailOptedIn: boolean;
   }> = [];
@@ -308,6 +330,7 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
           upcomingDate: nextDate.toISOString(),
           daysRemaining,
           isToday: daysRemaining === 0,
+          alreadySentToday: daysRemaining === 0 && sentCustomerIdsToday.has(cm.id),
           smsOptedIn,
           emailOptedIn,
         });
@@ -338,6 +361,7 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
           upcomingDate: nextDate.toISOString(),
           daysRemaining,
           isToday: daysRemaining === 0,
+          alreadySentToday: daysRemaining === 0 && sentCustomerIdsToday.has(cm.id),
           smsOptedIn,
           emailOptedIn,
         });
