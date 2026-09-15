@@ -1,4 +1,4 @@
-﻿import prisma from "../config/database.js";
+import prisma from "../config/database.js";
 import { CommunicationChannel, TemplateCategory } from "@prisma/client";
 
 export interface TemplateVariables {
@@ -147,6 +147,29 @@ export const seedDefaultTemplates = async (): Promise<void> => {
             <p style="font-size: 14px; color: #94a3b8; margin: 0;">Warmest Regards,</p>
             <p style="font-size: 18px; font-weight: bold; color: #ffffff; margin: 5px 0;">{advisor_name}</p>
             <p style="font-size: 14px; color: #cbd5e1; margin: 0;">{agency_name} | {advisor_phone}</p>
+          </div>
+        </div>
+      `,
+      variables: "customer_name,advisor_name,advisor_phone,agency_name",
+    },
+    {
+      code: "ANNIVERSARY_WISHES",
+      name: "Customer Wedding Anniversary Greeting",
+      category: TemplateCategory.ANNIVERSARY,
+      channel: CommunicationChannel.ALL,
+      subject: "Happy Wedding Anniversary from {agency_name}! 💐",
+      smsBody:
+        "Wishing you a very Happy Wedding Anniversary {customer_name}! May your journey of togetherness be blessed with eternal happiness and prosperity. Warm wishes from {advisor_name} & {agency_name}.",
+      emailBody: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; text-align: center; background: linear-gradient(135deg, #065f46, #064e3b); color: #ffffff; border-radius: 12px;">
+          <h1 style="color: #6ee7b7; font-size: 28px; margin-bottom: 10px;">Happy Wedding Anniversary, {customer_name}! 💐</h1>
+          <p style="font-size: 16px; line-height: 1.6; color: #e2e8f0;">
+            May your bond of love and companionship grow stronger and brighter with each passing year!
+          </p>
+          <div style="margin: 30px 0; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+            <p style="font-size: 14px; color: #a7f3d0; margin: 0;">Warmest Congratulations,</p>
+            <p style="font-size: 18px; font-weight: bold; color: #ffffff; margin: 5px 0;">{advisor_name}</p>
+            <p style="font-size: 14px; color: #e2e8f0; margin: 0;">{agency_name} | {advisor_phone}</p>
           </div>
         </div>
       `,

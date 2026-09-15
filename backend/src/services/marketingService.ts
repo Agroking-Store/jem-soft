@@ -1,4 +1,4 @@
-﻿import prisma from "../config/database.js";
+import prisma from "../config/database.js";
 import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
 import { sendSms } from "./smsService.js";
 import { sendEmail } from "./emailService.js";
@@ -109,87 +109,119 @@ export const executeCampaign = async (campaignId: string) => {
 
   let successfulCount = 0;
   let failedCount = 0;
+  const BATCH_SIZE = 25;
+  const DELAY_BETWEEN_BATCHES_MS = 1500;
 
-  for (const customer of audience) {
-    const customerName = `${customer.salutation ? customer.salutation + " " : ""}${customer.firstName} ${customer.lastName}`.trim();
-    const phone = customer.contactInfo?.mobile1 || customer.contactInfo?.mobile2;
-    const email = customer.contactInfo?.emailPersonal || customer.contactInfo?.emailBusiness;
+  const chunks: Array<typeof audience> = [];
+  for (let i = 0; i < audience.length; i += BATCH_SIZE) {
+    chunks.push(audience.slice(i, i + BATCH_SIZE));
+  }
 
-    const allowsSms = customer.preferences ? customer.preferences.smsMarketing : true;
-    const allowsEmail = customer.preferences ? customer.preferences.emailMarketing : true;
+  for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+    const currentChunk = chunks[chunkIdx];
+    await Promise.allSettled(
+      currentChunk.map(async (customer) => {
+        try {
+          const customerName = `${customer.salutation ? customer.salutation + " " : ""}${customer.firstName} ${customer.lastName}`.trim();
+          const phone = customer.contactInfo?.mobile1 || customer.contactInfo?.mobile2;
+          const email = customer.contactInfo?.emailPersonal || customer.contactInfo?.emailBusiness;
 
-    const templateVars = {
-      customer_name: customerName,
-      advisor_name: "Your Insurance Advisor",
-      advisor_phone: "+91-9876543210",
-      agency_name: "Jem Soft Insurance",
-    };
+          const allowsSms = customer.preferences ? customer.preferences.smsMarketing : true;
+          const allowsEmail = customer.preferences ? customer.preferences.emailMarketing : true;
 
-    const smsBody =
-      campaign.customMessage ||
-      (campaign.template?.smsBody
-        ? renderTemplateText(campaign.template.smsBody, templateVars)
-        : "Exclusive insurance plans available from your advisor.");
+          const templateVars = {
+            customer_name: customerName,
+            advisor_name: "Your Insurance Advisor",
+            advisor_phone: "+91-9876543210",
+            agency_name: "Jem Soft Insurance",
+          };
 
-    const emailSubject =
-      campaign.customSubject ||
-      (campaign.template?.subject
-        ? renderTemplateText(campaign.template.subject, templateVars)
-        : campaign.title);
+          const smsBody =
+            campaign.customMessage ||
+            (campaign.template?.smsBody
+              ? renderTemplateText(campaign.template.smsBody, templateVars)
+              : "Exclusive insurance plans available from your advisor.");
 
-    const emailHtml = campaign.template?.emailBody
-      ? renderTemplateText(campaign.template.emailBody, templateVars)
-      : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${smsBody}</p></div>`;
+          const emailSubject =
+            campaign.customSubject ||
+            (campaign.template?.subject
+              ? renderTemplateText(campaign.template.subject, templateVars)
+              : campaign.title);
 
-    // 1. Send SMS if allowed
-    if (
-      (campaign.channel === CommunicationChannel.SMS || campaign.channel === CommunicationChannel.ALL) &&
-      allowsSms &&
-      phone
-    ) {
-      const smsRes = await sendSms({ recipientPhone: phone, message: smsBody });
-      if (smsRes.status === DeliveryStatus.SENT) successfulCount++;
-      else failedCount++;
+          const emailHtml = campaign.template?.emailBody
+            ? renderTemplateText(campaign.template.emailBody, templateVars)
+            : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${smsBody}</p></div>`;
 
-      await prisma.communicationLog.create({
-        data: {
-          customerId: customer.id,
-          customerName,
-          channel: CommunicationChannel.SMS,
-          recipient: phone,
-          content: smsBody,
-          status: smsRes.status,
-          errorMessage: smsRes.errorMessage,
-          triggerType: "MARKETING_CAMPAIGN",
-          metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title }),
-        },
-      });
-    }
+          // 1. Send SMS if allowed
+          if (
+            (campaign.channel === CommunicationChannel.SMS || campaign.channel === CommunicationChannel.ALL) &&
+            allowsSms &&
+            phone
+          ) {
+            const smsRes = await sendSms({ recipientPhone: phone, message: smsBody });
+            if (smsRes.status === DeliveryStatus.SENT) successfulCount++;
+            else failedCount++;
 
-    // 2. Send Email if allowed
-    if (
-      (campaign.channel === CommunicationChannel.EMAIL || campaign.channel === CommunicationChannel.ALL) &&
-      allowsEmail &&
-      email
-    ) {
-      const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: smsBody });
-      if (emailRes.status === DeliveryStatus.SENT) successfulCount++;
-      else failedCount++;
+            await prisma.communicationLog.create({
+              data: {
+                customerId: customer.id,
+                customerName,
+                channel: CommunicationChannel.SMS,
+                recipient: phone,
+                content: smsBody,
+                status: smsRes.status,
+                errorMessage: smsRes.errorMessage,
+                triggerType: "MARKETING_CAMPAIGN",
+                metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title, batch: chunkIdx + 1 }),
+              },
+            });
+          }
 
-      await prisma.communicationLog.create({
-        data: {
-          customerId: customer.id,
-          customerName,
-          channel: CommunicationChannel.EMAIL,
-          recipient: email,
-          subject: emailSubject,
-          content: emailHtml,
-          status: emailRes.status,
-          errorMessage: emailRes.errorMessage,
-          triggerType: "MARKETING_CAMPAIGN",
-          metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title }),
-        },
-      });
+          // 2. Send Email if allowed
+          if (
+            (campaign.channel === CommunicationChannel.EMAIL || campaign.channel === CommunicationChannel.ALL) &&
+            allowsEmail &&
+            email
+          ) {
+            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: smsBody });
+            if (emailRes.status === DeliveryStatus.SENT) successfulCount++;
+            else failedCount++;
+
+            await prisma.communicationLog.create({
+              data: {
+                customerId: customer.id,
+                customerName,
+                channel: CommunicationChannel.EMAIL,
+                recipient: email,
+                subject: emailSubject,
+                content: emailHtml,
+                status: emailRes.status,
+                errorMessage: emailRes.errorMessage,
+                triggerType: "MARKETING_CAMPAIGN",
+                metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title, batch: chunkIdx + 1 }),
+              },
+            });
+          }
+        } catch (itemErr: any) {
+          failedCount++;
+          console.error(`Error in broadcast to customer ${customer.id}:`, itemErr.message);
+        }
+      })
+    );
+
+    // Update partial counts
+    await prisma.marketingCampaign.update({
+      where: { id: campaignId },
+      data: {
+        totalRecipients: audience.length,
+        successfulCount,
+        failedCount,
+      },
+    });
+
+    // Delay between batches if more remain
+    if (chunkIdx < chunks.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
     }
   }
 

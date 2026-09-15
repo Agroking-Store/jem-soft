@@ -1,4 +1,4 @@
-﻿import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/axios";
 import {
   CommunicationLog,
   NotificationTemplate,
@@ -97,5 +97,13 @@ export const getAudienceEstimationApi = async (params?: any) => {
     success: boolean;
     data: { totalMembers: number; smsEligible: number; emailEligible: number };
   }>("/marketing/audience", { params });
+  return res.data;
+};
+
+export const getUpcomingCelebrationsApi = async (days = 30) => {
+  const res = await axiosInstance.get<{
+    success: boolean;
+    data: import("../types").CelebrationItem[];
+  }>("/communications/upcoming-celebrations", { params: { days } });
   return res.data;
 };

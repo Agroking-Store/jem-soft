@@ -82,3 +82,18 @@ export interface DirectMessagePayload {
   message: string;
   policyId?: string;
 }
+
+export interface CelebrationItem {
+  id: string;
+  customerId: string;
+  customerName: string;
+  phone?: string;
+  email?: string;
+  type: "BIRTHDAY" | "ANNIVERSARY";
+  originalDate: string;
+  upcomingDate: string;
+  daysRemaining: number;
+  isToday: boolean;
+  smsOptedIn: boolean;
+  emailOptedIn: boolean;
+}

@@ -8,6 +8,7 @@ import {
   Mail,
   MessageSquare,
   Send,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { sendReminderApi, getTemplatesApi } from "../services/marketingApi";
