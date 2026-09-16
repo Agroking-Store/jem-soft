@@ -53,18 +53,33 @@ export const sendWhatsapp = async (
     // .env: WHATSAPP_PROVIDER=GATEWAY, WHATSAPP_API_URL=http://localhost:3333/message/text
     // ──────────────────────────────────────────────────────────────────────────
     if (whatsappProvider === "GATEWAY" && process.env.WHATSAPP_API_URL) {
-      const gatewayUrl = process.env.WHATSAPP_API_URL;
-      const apiKey = process.env.WHATSAPP_API_KEY || "";
+      const rawUrl = process.env.WHATSAPP_API_URL.trim().replace(/\/$/, "");
+      const session = process.env.WHATSAPP_SESSION?.trim() || "Jemsoft";
+      const rawKey = process.env.WHATSAPP_API_KEY || "";
+
+      // Intelligently resolve endpoint for WPPConnect or generic gateway
+      let targetUrl = rawUrl;
+      if (!targetUrl.includes("/send-message") && !targetUrl.includes("/message")) {
+        targetUrl = `${rawUrl}/api/${session}/send-message`;
+      }
+
+      // Extract clean Bearer token if formatted as "session:token"
+      let token = rawKey.trim();
+      if (token.includes(":") && !token.startsWith("http")) {
+        token = token.split(":").slice(1).join(":").trim();
+      }
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-      if (apiKey) {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-        headers["x-api-key"] = apiKey;
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+        headers["x-api-key"] = token;
       }
 
-      const response = await fetch(gatewayUrl, {
+      console.log(`[WhatsApp Gateway] Dispatching to ${targetUrl} for ${cleanPhone}`);
+
+      const response = await fetch(targetUrl, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -77,13 +92,14 @@ export const sendWhatsapp = async (
 
       if (response.ok) {
         const data: any = await response.json().catch(() => ({}));
+        console.log(`[WhatsApp Gateway Success]:`, data?.status || "SENT");
         return {
           status: DeliveryStatus.SENT,
-          messageId: data.id || data.messageId || `WA_GW_${Date.now()}`,
+          messageId: data.id || data.messageId || data?.response?.[0]?.id || `WA_GW_${Date.now()}`,
         };
       } else {
         const errText = await response.text();
-        console.warn(`[WhatsApp Gateway Warning]: ${errText}`);
+        console.warn(`[WhatsApp Gateway Warning (${response.status})]: ${errText}`);
       }
     }
 

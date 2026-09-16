@@ -1,1 +1,1 @@
-{"config":{"webhook":"","waitQrCode":true}}
+{"config":{"waitQrCode":true,"autoClose":0}}
