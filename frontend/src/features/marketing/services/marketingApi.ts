@@ -95,7 +95,7 @@ export const sendCampaignApi = async (id: string) => {
 export const getAudienceEstimationApi = async (params?: any) => {
   const res = await axiosInstance.get<{
     success: boolean;
-    data: { totalMembers: number; smsEligible: number; emailEligible: number };
+    data: { totalMembers: number; whatsappEligible?: number; smsEligible?: number; emailEligible: number };
   }>("/marketing/audience", { params });
   return res.data;
 };

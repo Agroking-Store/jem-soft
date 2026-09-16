@@ -934,7 +934,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           <div className="p-5 space-y-4">
             <FormSelect label="Preferred Communication Address" {...register("preferredCommAddress")}><option value="">Select preference</option>{ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect>
             <div className="flex items-center gap-8">
-              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" /><div><p className="text-sm font-semibold text-slate-700">SMS Marketing</p><p className="text-xs text-slate-400">Allow SMS notifications</p></div></label>
+              <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" /><div><p className="text-sm font-semibold text-slate-700">WhatsApp Marketing</p><p className="text-xs text-slate-400">Allow WhatsApp notifications</p></div></label>
               <label className="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" {...register("emailMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" /><div><p className="text-sm font-semibold text-slate-700">Email Marketing</p><p className="text-xs text-slate-400">Allow email notifications</p></div></label>
             </div>
           </div>

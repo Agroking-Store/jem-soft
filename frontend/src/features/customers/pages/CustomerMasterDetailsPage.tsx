@@ -461,7 +461,7 @@ export default function CustomerMasterDetailsPage({
                 <InfoRow label="Preferred Comm. Address" value={c.preferences.preferredCommAddress} />
                 <div className="flex items-center gap-2">
                   {c.preferences.smsMarketing ? <CheckCircle size={15} className="text-green-500" /> : <XCircle size={15} className="text-slate-300" />}
-                  <span className="text-sm text-slate-700 font-medium">SMS Marketing</span>
+                  <span className="text-sm text-slate-700 font-medium">WhatsApp Marketing</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {c.preferences.emailMarketing ? <CheckCircle size={15} className="text-green-500" /> : <XCircle size={15} className="text-slate-300" />}
@@ -474,14 +474,14 @@ export default function CustomerMasterDetailsPage({
           {/* Communication & Notices History */}
           <SectionCard title={`Communication & Notices History (${customerLogs.length})`} icon={<Megaphone size={16} />}>
             {customerLogs.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-4">No recent SMS or Email notices recorded for this customer.</p>
+              <p className="text-xs text-slate-400 text-center py-4">No recent WhatsApp or Email notices recorded for this customer.</p>
             ) : (
               <div className="space-y-2">
                 {customerLogs.map((log) => (
                   <div key={log.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${log.channel === "SMS" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
+                        <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${log.channel === "WHATSAPP" ? "bg-emerald-100 text-emerald-800" : log.channel === "SMS" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
                           {log.channel}
                         </span>
                         <span className="font-semibold text-slate-800">{log.triggerType}</span>

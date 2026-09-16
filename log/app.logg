@@ -1,0 +1,163 @@
+{
+  message: 'Server is running on port: 21465',
+  level: 'info',
+  timestamp: '2026-09-16T10:07:36.856Z'
+}
+{
+  message: '\x1B[31m Visit http://localhost:21465/api-docs for Swagger docs',
+  level: 'info',
+  timestamp: '2026-09-16T10:07:36.858Z'
+}
+{
+  message: 'WPPConnect-Server version: 2.10.23',
+  level: 'info',
+  timestamp: '2026-09-16T10:07:36.858Z'
+}
+{
+  message: 'Server is running on port: 21465',
+  level: 'info',
+  timestamp: '2026-09-16T10:18:12.479Z'
+}
+{
+  message: '\x1B[31m Visit http://localhost:21465/api-docs for Swagger docs',
+  level: 'info',
+  timestamp: '2026-09-16T10:18:12.490Z'
+}
+{
+  message: 'WPPConnect-Server version: 2.10.23',
+  level: 'info',
+  timestamp: '2026-09-16T10:18:12.490Z'
+}
+{
+  message: 'Server is running on port: 21465',
+  level: 'info',
+  timestamp: '2026-09-16T10:20:09.567Z'
+}
+{
+  message: '\x1B[31m Visit http://localhost:21465/api-docs for Swagger docs',
+  level: 'info',
+  timestamp: '2026-09-16T10:20:09.575Z'
+}
+{
+  message: 'WPPConnect-Server version: 2.10.23',
+  level: 'info',
+  timestamp: '2026-09-16T10:20:09.575Z'
+}
+{
+  message: 'Server is running on port: 21465',
+  level: 'info',
+  timestamp: '2026-09-16T10:30:02.865Z'
+}
+{
+  message: '\x1B[31m Visit http://localhost:21465/api-docs for Swagger docs',
+  level: 'info',
+  timestamp: '2026-09-16T10:30:02.878Z'
+}
+{
+  message: 'WPPConnect-Server version: 2.10.23',
+  level: 'info',
+  timestamp: '2026-09-16T10:30:02.878Z'
+}
+{
+  message: 'inChat\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T10:57:36.688Z'
+}
+{
+  message: 'notLogged\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T10:57:37.371Z'
+}
+{
+  message: 'browserClose\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T10:58:38.349Z'
+}
+{
+  message: 'qrReadError\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T10:58:38.487Z'
+}
+{
+  level: 'error',
+  message: 'Auto Close Called',
+  stack: 'Error: Auto Close Called\n' +
+    '    at Whatsapp.waitForLogin (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\api\\layers\\host.layer.js:364:19)\n' +
+    '    at async create (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\controllers\\initializer.js:220:30)\n' +
+    '    at async CreateSessionUtil.createSessionUtil (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:64:25)\n' +
+    '    at async CreateSessionUtil.opendata (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:165:5)\n' +
+    '    at async startSession (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\controller\\sessionController.js:240:3)',
+  timestamp: '2026-09-16T10:58:38.497Z'
+}
+{
+  level: 'error',
+  message: 'req.client.close is not a function',
+  stack: 'TypeError: req.client.close is not a function\n' +
+    '    at closeSession (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\controller\\sessionController.js:264:24)\n' +
+    '    at Layer.handle [as handle_request] (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\express\\lib\\router\\layer.js:95:5)\n' +
+    '    at next (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\express\\lib\\router\\route.js:149:13)\n' +
+    '    at C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\middleware\\auth.js:75:11',
+  timestamp: '2026-09-16T11:07:02.665Z'
+}
+{
+  message: 'inChat\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:30:31.541Z'
+}
+{
+  message: 'notLogged\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:30:31.691Z'
+}
+{
+  message: 'browserClose\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:31:32.509Z'
+}
+{
+  message: 'qrReadError\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:31:32.824Z'
+}
+{
+  level: 'error',
+  message: 'Auto Close Called',
+  stack: 'Error: Auto Close Called\n' +
+    '    at Whatsapp.waitForLogin (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\api\\layers\\host.layer.js:364:19)\n' +
+    '    at async create (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\controllers\\initializer.js:220:30)\n' +
+    '    at async CreateSessionUtil.createSessionUtil (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:64:25)\n' +
+    '    at async CreateSessionUtil.opendata (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:165:5)\n' +
+    '    at async C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\controller\\sessionController.js:141:5',
+  timestamp: '2026-09-16T11:31:32.827Z'
+}
+{
+  message: 'inChat\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:33:07.949Z'
+}
+{
+  message: 'notLogged\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:33:08.561Z'
+}
+{
+  message: 'browserClose\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:34:09.561Z'
+}
+{
+  message: 'qrReadError\n\n',
+  level: 'info',
+  timestamp: '2026-09-16T11:34:09.894Z'
+}
+{
+  level: 'error',
+  message: 'Auto Close Called',
+  stack: 'Error: Auto Close Called\n' +
+    '    at Whatsapp.waitForLogin (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\api\\layers\\host.layer.js:364:19)\n' +
+    '    at async create (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect-team\\wppconnect\\dist\\controllers\\initializer.js:220:30)\n' +
+    '    at async CreateSessionUtil.createSessionUtil (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:64:25)\n' +
+    '    at async CreateSessionUtil.opendata (C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\util\\createSessionUtil.js:165:5)\n' +
+    '    at async C:\\Users\\sarfa\\AppData\\Roaming\\npm\\node_modules\\@wppconnect\\server-cli\\node_modules\\@wppconnect\\server\\dist\\controller\\sessionController.js:141:5',
+  timestamp: '2026-09-16T11:34:09.899Z'
+}

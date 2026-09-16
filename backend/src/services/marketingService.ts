@@ -1,6 +1,6 @@
 import prisma from "../config/database.js";
 import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
-import { sendSms } from "./smsService.js";
+import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
 import { renderTemplateText } from "./templateService.js";
 
@@ -32,13 +32,13 @@ export const getAudienceCount = async (criteria?: any) => {
   });
 
   let totalMembers = allMembers.length;
-  let smsEligible = 0;
+  let whatsappEligible = 0;
   let emailEligible = 0;
 
   for (const m of allMembers) {
-    const hasSmsPref = m.preferences ? m.preferences.smsMarketing : true;
+    const hasWhatsappPref = m.preferences ? m.preferences.smsMarketing : true;
     const hasPhone = Boolean(m.contactInfo?.mobile1 || m.contactInfo?.mobile2);
-    if (hasSmsPref && hasPhone) smsEligible++;
+    if (hasWhatsappPref && hasPhone) whatsappEligible++;
 
     const hasEmailPref = m.preferences ? m.preferences.emailMarketing : true;
     const hasEmail = Boolean(m.contactInfo?.emailPersonal || m.contactInfo?.emailBusiness);
@@ -47,7 +47,8 @@ export const getAudienceCount = async (criteria?: any) => {
 
   return {
     totalMembers,
-    smsEligible,
+    whatsappEligible,
+    smsEligible: whatsappEligible,
     emailEligible,
   };
 };
@@ -126,7 +127,7 @@ export const executeCampaign = async (campaignId: string) => {
           const phone = customer.contactInfo?.mobile1 || customer.contactInfo?.mobile2;
           const email = customer.contactInfo?.emailPersonal || customer.contactInfo?.emailBusiness;
 
-          const allowsSms = customer.preferences ? customer.preferences.smsMarketing : true;
+          const allowsWhatsapp = customer.preferences ? customer.preferences.smsMarketing : true;
           const allowsEmail = customer.preferences ? customer.preferences.emailMarketing : true;
 
           const templateVars = {
@@ -136,7 +137,7 @@ export const executeCampaign = async (campaignId: string) => {
             agency_name: "Jem Soft Insurance",
           };
 
-          const smsBody =
+          const messageText =
             campaign.customMessage ||
             (campaign.template?.smsBody
               ? renderTemplateText(campaign.template.smsBody, templateVars)
@@ -150,27 +151,28 @@ export const executeCampaign = async (campaignId: string) => {
 
           const emailHtml = campaign.template?.emailBody
             ? renderTemplateText(campaign.template.emailBody, templateVars)
-            : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${smsBody}</p></div>`;
+            : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`;
 
-          // 1. Send SMS if allowed
-          if (
-            (campaign.channel === CommunicationChannel.SMS || campaign.channel === CommunicationChannel.ALL) &&
-            allowsSms &&
-            phone
-          ) {
-            const smsRes = await sendSms({ recipientPhone: phone, message: smsBody });
-            if (smsRes.status === DeliveryStatus.SENT) successfulCount++;
+          // 1. Send WhatsApp if allowed
+          const sendWhatsappChannel =
+            campaign.channel === CommunicationChannel.WHATSAPP ||
+            campaign.channel === CommunicationChannel.ALL ||
+            (campaign.channel as any) === "SMS";
+
+          if (sendWhatsappChannel && allowsWhatsapp && phone) {
+            const waRes = await sendWhatsapp({ recipientPhone: phone, message: messageText });
+            if (waRes.status === DeliveryStatus.SENT) successfulCount++;
             else failedCount++;
 
             await prisma.communicationLog.create({
               data: {
                 customerId: customer.id,
                 customerName,
-                channel: CommunicationChannel.SMS,
+                channel: CommunicationChannel.WHATSAPP,
                 recipient: phone,
-                content: smsBody,
-                status: smsRes.status,
-                errorMessage: smsRes.errorMessage,
+                content: messageText,
+                status: waRes.status,
+                errorMessage: waRes.errorMessage,
                 triggerType: "MARKETING_CAMPAIGN",
                 metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title, batch: chunkIdx + 1 }),
               },
@@ -183,7 +185,7 @@ export const executeCampaign = async (campaignId: string) => {
             allowsEmail &&
             email
           ) {
-            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: smsBody });
+            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: messageText });
             if (emailRes.status === DeliveryStatus.SENT) successfulCount++;
             else failedCount++;
 

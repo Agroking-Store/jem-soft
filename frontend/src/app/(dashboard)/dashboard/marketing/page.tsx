@@ -5,6 +5,7 @@ import {
   Megaphone,
   Mail,
   Smartphone,
+  MessageSquare,
   Calendar,
   Clock,
   Send,
@@ -74,10 +75,10 @@ export default function MarketingPage() {
 
   // Campaigns State
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
-  const [audienceCount, setAudienceCount] = useState<{ totalMembers: number; smsEligible: number; emailEligible: number } | null>(null);
+  const [audienceCount, setAudienceCount] = useState<{ totalMembers: number; whatsappEligible?: number; smsEligible?: number; emailEligible: number } | null>(null);
   const [showNewCampaignModal, setShowNewCampaignModal] = useState<boolean>(false);
   const [newCampaignTitle, setNewCampaignTitle] = useState<string>("");
-  const [newCampaignChannel, setNewCampaignChannel] = useState<"ALL" | "SMS" | "EMAIL">("ALL");
+  const [newCampaignChannel, setNewCampaignChannel] = useState<"ALL" | "WHATSAPP" | "EMAIL">("ALL");
   const [newCampaignTemplateId, setNewCampaignTemplateId] = useState<string>("");
   const [newCampaignCustomMessage, setNewCampaignCustomMessage] = useState<string>("");
   const [isBroadcasting, setIsBroadcasting] = useState<string | null>(null);
@@ -253,7 +254,7 @@ export default function MarketingPage() {
       });
 
       if (res.success) {
-        toast.success(`${wishType} sent to ${item.customerName} via SMS & Email!`);
+        toast.success(`${wishType} sent to ${item.customerName} via WhatsApp & Email!`);
         setCelebrations((prev) =>
           prev.map((c) => (c.id === item.id ? { ...c, alreadySentToday: true } : c))
         );
@@ -357,9 +358,9 @@ export default function MarketingPage() {
           tone="accent"
         />
         <CustomerStatCard
-          label="SMS Opted-In"
-          value={audienceCount?.smsEligible ?? 0}
-          icon={Smartphone}
+          label="WhatsApp Opted-In"
+          value={audienceCount?.whatsappEligible ?? audienceCount?.smsEligible ?? 0}
+          icon={MessageSquare}
           tone="success"
         />
         <CustomerStatCard
@@ -420,7 +421,7 @@ export default function MarketingPage() {
                 Automatic Premium Due, Birthday & Anniversary Alerts
               </h3>
               <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
-                Runs automatically every day at <strong>{settings?.cronScheduleTime || "09:00 AM"}</strong>. Automatically dispatches SMS & Email alerts for due dates at <strong>{settings?.dueDaysBefore || "30, 15, 7, 1, 0"}</strong> days before due date, plus Birthday & Wedding Anniversary greetings.
+                Runs automatically every day at <strong>{settings?.cronScheduleTime || "09:00 AM"}</strong>. Dispatches <strong>WhatsApp & Email</strong> reminders based on policy frequency: <strong>Monthly (7, 3, 0 days)</strong> | <strong>Yearly / Half-Yearly / Quarterly (30, 15, 7, 3, 0 days)</strong>. Reminders stop automatically when paid.
               </p>
               {settings?.lastRunAt && (
                 <p className="text-[11px] font-medium text-slate-500 pt-1">
@@ -531,7 +532,7 @@ export default function MarketingPage() {
 
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <span className="text-[11px] text-slate-400">
-                          Channels: SMS & Email
+                          Channels: WhatsApp & Email
                         </span>
                         {item.alreadySentToday ? (
                           <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
@@ -543,7 +544,7 @@ export default function MarketingPage() {
                             disabled={isWishingCustomer === item.id}
                             className="px-3 py-1 bg-gradient-to-r from-[#1877F2] to-[#2563eb] text-white text-xs font-semibold rounded-lg hover:brightness-110 cursor-pointer disabled:opacity-50"
                           >
-                            {isWishingCustomer === item.id ? "Sending..." : "Wish Now (SMS & Email)"}
+                            {isWishingCustomer === item.id ? "Sending..." : "Wish Now (WhatsApp & Email)"}
                           </button>
                         )}
                       </div>
@@ -591,7 +592,11 @@ export default function MarketingPage() {
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                              log.channel === "SMS" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                              log.channel === "WHATSAPP"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : log.channel === "EMAIL"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-slate-100 text-slate-800"
                             }`}
                           >
                             {log.channel}
@@ -629,7 +634,7 @@ export default function MarketingPage() {
             <div>
               <h2 className="text-base font-bold text-slate-900">Marketing & Promotional Campaigns</h2>
               <p className="text-xs text-slate-500">
-                Safe batch broadcasting (25 emails/SMS per chunk with delay) so system never crashes or gets blocked.
+                Safe batch broadcasting (25 emails/WhatsApp per chunk with delay) so system never crashes or gets blocked.
               </p>
             </div>
             <button
@@ -713,8 +718,8 @@ export default function MarketingPage() {
                       onChange={(e: any) => setNewCampaignChannel(e.target.value)}
                       className="w-full p-2.5 border rounded-xl text-xs"
                     >
-                      <option value="ALL">Both SMS & Email</option>
-                      <option value="SMS">SMS Only</option>
+                      <option value="ALL">Both WhatsApp & Email</option>
+                      <option value="WHATSAPP">WhatsApp Only</option>
                       <option value="EMAIL">Email Only</option>
                     </select>
                   </div>
@@ -739,7 +744,7 @@ export default function MarketingPage() {
                     <label className="block font-semibold text-slate-700 mb-1">Custom Message / Override</label>
                     <textarea
                       rows={3}
-                      placeholder="Enter SMS or Email copy text..."
+                      placeholder="Enter WhatsApp or Email copy text..."
                       value={newCampaignCustomMessage}
                       onChange={(e) => setNewCampaignCustomMessage(e.target.value)}
                       className="w-full p-2.5 border rounded-xl text-xs"
@@ -845,11 +850,12 @@ export default function MarketingPage() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">SMS Message Body</label>
+                    <label className="block font-semibold text-slate-700 mb-1">WhatsApp / Message Body</label>
                     <textarea
                       rows={4}
                       value={selectedTemplate.smsBody || ""}
                       onChange={(e) => setSelectedTemplate({ ...selectedTemplate, smsBody: e.target.value })}
+                      placeholder="Enter WhatsApp message format (*bold*, _italic_, dynamic tags)..."
                       className="w-full p-2.5 border rounded-xl text-xs font-mono"
                     />
                   </div>
@@ -928,25 +934,68 @@ export default function MarketingPage() {
             </div>
 
             {/* Channels Allowed */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 border rounded-xl">
-                <input
-                  type="checkbox"
-                  checked={settings.sendSms}
-                  onChange={(e) => setSettings({ ...settings, sendSms: e.target.checked })}
-                  className="w-4 h-4 text-[#1877F2] cursor-pointer"
-                />
-                <span className="font-semibold text-slate-700">Allow SMS Dispatch</span>
+            <div className="space-y-3">
+              <label className="block font-semibold text-slate-700">Active Delivery Channels</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-slate-50 border rounded-xl">
+                  <input
+                    type="checkbox"
+                    checked={settings.sendWhatsapp ?? settings.sendSms}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        sendWhatsapp: e.target.checked,
+                        sendSms: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-[#1877F2] cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                      <MessageSquare size={13} className="text-emerald-600" />
+                      Allow WhatsApp Dispatch
+                    </span>
+                    <p className="text-[10px] text-slate-400">Automated WhatsApp messages to customers</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-50 border rounded-xl">
+                  <input
+                    type="checkbox"
+                    checked={settings.sendEmail}
+                    onChange={(e) => setSettings({ ...settings, sendEmail: e.target.checked })}
+                    className="w-4 h-4 text-[#1877F2] cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                      <Mail size={13} className="text-blue-600" />
+                      Allow Email Dispatch
+                    </span>
+                    <p className="text-[10px] text-slate-400">Automated HTML emails to customers</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3 p-3 border rounded-xl">
-                <input
-                  type="checkbox"
-                  checked={settings.sendEmail}
-                  onChange={(e) => setSettings({ ...settings, sendEmail: e.target.checked })}
-                  className="w-4 h-4 text-[#1877F2] cursor-pointer"
-                />
-                <span className="font-semibold text-slate-700">Allow Email Dispatch</span>
-              </div>
+            </div>
+
+            {/* Frequency Rules Explainer */}
+            <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-xl space-y-2">
+              <p className="font-bold text-blue-900 text-xs flex items-center gap-1.5">
+                <span>📋</span> Smart Policy Frequency Rules
+              </p>
+              <ul className="text-[11px] text-blue-800 space-y-1 list-disc list-inside">
+                <li>
+                  <strong>Monthly policies:</strong> Automatically triggered at <strong>7 days</strong>, <strong>3 days</strong>, and <strong>On Due Date (0 days)</strong>.
+                </li>
+                <li>
+                  <strong>Yearly / Half-Yearly / Quarterly:</strong> Automatically triggered at <strong>30 days</strong>, <strong>15 days</strong>, <strong>7 days</strong>, <strong>3 days</strong>, and <strong>On Due Date (0 days)</strong>.
+                </li>
+                <li>
+                  <strong>Automatic Stop on Payment:</strong> As soon as the customer pays the installment, all further reminders for that installment stop immediately.
+                </li>
+                <li>
+                  <strong>Single Premium Policies:</strong> Automatically excluded from recurring due reminders.
+                </li>
+              </ul>
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex justify-end">
@@ -987,7 +1036,7 @@ export default function MarketingPage() {
                 className="p-2 border rounded-xl text-xs font-medium text-slate-700 bg-white"
               >
                 <option value="">All Channels</option>
-                <option value="SMS">SMS</option>
+                <option value="WHATSAPP">WhatsApp</option>
                 <option value="EMAIL">Email</option>
               </select>
 
@@ -1060,7 +1109,11 @@ export default function MarketingPage() {
                       <td className="py-3 px-4">
                         <span
                           className={`text-[11px] font-bold px-2 py-0.5 rounded ${
-                            log.channel === "SMS" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                            log.channel === "WHATSAPP"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : log.channel === "SMS"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-blue-100 text-blue-800"
                           }`}
                         >
                           {log.channel}

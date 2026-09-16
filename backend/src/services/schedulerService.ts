@@ -1,13 +1,17 @@
 import prisma from "../config/database.js";
 import cron from "node-cron";
 import { getReminderSettings, sendPolicyDueReminder } from "./communicationService.js";
-import { sendSms } from "./smsService.js";
+import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
 import { renderTemplateText, seedDefaultTemplates } from "./templateService.js";
 import { CommunicationChannel } from "@prisma/client";
 
 /**
  * Scan all policies and trigger due date reminders and birthday wishes
+ * - Monthly Policy: Reminders at 7 days, 3 days, and On day (0)
+ * - Yearly / Half-Yearly / Quarterly Policy: Reminders at 30 days, 15 days, 7 days, 3 days, and On day (0)
+ * - Stopped automatically if premium is already paid or policy is inactive
+ * - Dispatches via WhatsApp and Email
  */
 export const runSchedulerScan = async () => {
   console.log("⏰ [SCHEDULER] Starting automated communication scan...");
@@ -17,12 +21,6 @@ export const runSchedulerScan = async () => {
     console.log("⏸️ [SCHEDULER] Automated reminders are currently disabled in settings.");
     return { status: "SKIPPED", message: "Automated reminders are disabled" };
   }
-
-  // Parse days from comma-separated string e.g. "30,15,7,1,0"
-  const targetDays = settings.dueDaysBefore
-    .split(",")
-    .map((s) => parseInt(s.trim(), 10))
-    .filter((n) => !isNaN(n));
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -46,6 +44,9 @@ export const runSchedulerScan = async () => {
       },
       premium: true,
       product: true,
+      provider: true,
+      premiumMode: true,
+      status: true,
     },
   });
 
@@ -54,25 +55,107 @@ export const runSchedulerScan = async () => {
   for (const policy of activePolicies) {
     if (!policy.nextPremiumDueDate) continue;
 
+    // Check policy inactive statuses
+    const inactiveStatuses = [
+      "SURRENDERED",
+      "FULLY PAID UP",
+      "COMPLETED",
+      "MATURITY CLAIMED",
+      "CLAIMED",
+    ];
+    if (
+      policy.status &&
+      inactiveStatuses.includes(policy.status.statusCode.toUpperCase())
+    ) {
+      continue;
+    }
+
     const dueDate = new Date(policy.nextPremiumDueDate);
     dueDate.setHours(0, 0, 0, 0);
 
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-    // Check if diffDays matches any of the configured target days
-    if (targetDays.includes(diffDays)) {
-      try {
-        await sendPolicyDueReminder({
-          policyId: policy.id,
-          triggerType: "AUTOMATED_CRON",
-          dueDaysRemaining: diffDays,
-        });
-        remindersDispatched++;
-        console.log(`✅ [SCHEDULER] Sent reminder for policy ${policy.policyNumber} (Due in ${diffDays} days)`);
-      } catch (err: any) {
-        console.error(`❌ [SCHEDULER] Error sending reminder for policy ${policy.policyNumber}:`, err.message);
-      }
+    // Determine target reminder days based on policy frequency:
+    // Monthly: 7, 3, 0 (on day)
+    // Yearly / Half-Yearly / Quarterly: 30, 15, 7, 3, 0 (on day)
+    const modeCode = policy.premiumMode?.modeCode?.toUpperCase() || "";
+    const modeMonths = policy.premiumMode?.months;
+    const modeName = (policy.premiumMode?.modeName || "").toLowerCase();
+
+    const isMonthly =
+      modeMonths === 1 || modeCode === "MLY" || modeName.includes("month");
+    const isSingle =
+      modeMonths === 0 || modeCode === "SIN" || modeName.includes("single");
+
+    if (isSingle) {
+      continue; // Single premium policies have no recurring due dates
+    }
+
+    const targetDays = isMonthly ? [7, 3, 0] : [30, 15, 7, 3, 0];
+
+    // Check if diffDays matches any of the policy-frequency target days
+    if (!targetDays.includes(diffDays)) {
+      continue;
+    }
+
+    // Check if payment was ALREADY MADE for this due date:
+    // "agar usne bhardi toh reminder stop hona chahiye"
+    const dueDateStart = new Date(dueDate);
+    dueDateStart.setHours(0, 0, 0, 0);
+    const dueDateEnd = new Date(dueDate);
+    dueDateEnd.setHours(23, 59, 59, 999);
+
+    const paidRecord = await prisma.premiumPayment.findFirst({
+      where: {
+        policyId: policy.id,
+        dueDate: {
+          gte: dueDateStart,
+          lte: dueDateEnd,
+        },
+        OR: [
+          { paidDate: { not: null } },
+          { paymentStatus: { statusCode: "PAID" } },
+        ],
+      },
+    });
+
+    if (paidRecord) {
+      console.log(
+        `⏩ [SCHEDULER] Skipping policy ${policy.policyNumber}: installment for ${dueDate.toISOString().split("T")[0]} is already PAID.`
+      );
+      continue;
+    }
+
+    // Avoid duplicate sending on the SAME day for the same policy
+    const alreadySentToday = await prisma.communicationLog.findFirst({
+      where: {
+        policyId: policy.id,
+        triggerType: "AUTOMATED_CRON",
+        createdAt: { gte: today },
+      },
+    });
+
+    if (alreadySentToday) {
+      continue;
+    }
+
+    try {
+      await sendPolicyDueReminder({
+        policyId: policy.id,
+        triggerType: "AUTOMATED_CRON",
+        dueDaysRemaining: diffDays,
+        channel: "ALL",
+      });
+      remindersDispatched++;
+      console.log(
+        `✅ [SCHEDULER] Sent reminder for policy ${policy.policyNumber} (${isMonthly ? "Monthly" : "Yearly/H/Q"}, Due in ${diffDays} days)`
+      );
+    } catch (err: any) {
+      console.error(
+        `❌ [SCHEDULER] Error sending reminder for policy ${policy.policyNumber}:`,
+        err.message
+      );
     }
   }
 
@@ -93,7 +176,7 @@ export const runSchedulerScan = async () => {
       const customerName = `${cm.salutation ? cm.salutation + " " : ""}${cm.firstName} ${cm.lastName}`.trim();
       const phone = cm.contactInfo?.mobile1 || cm.contactInfo?.mobile2;
       const email = cm.contactInfo?.emailPersonal || cm.contactInfo?.emailBusiness;
-      const allowsSms = cm.preferences ? cm.preferences.smsMarketing : true;
+      const allowsWhatsapp = cm.preferences ? cm.preferences.smsMarketing : true;
       const allowsEmail = cm.preferences ? cm.preferences.emailMarketing : true;
 
       const templateVars = {
@@ -104,8 +187,17 @@ export const runSchedulerScan = async () => {
       };
 
       // --- A. Birthday Check ---
-      const birthDate = cm.miscInfo?.dobForGreetings ? new Date(cm.miscInfo.dobForGreetings) : cm.dob ? new Date(cm.dob) : null;
-      if (birthDate && birthDate.getMonth() + 1 === currentMonth && birthDate.getDate() === currentDay) {
+      const birthDate = cm.miscInfo?.dobForGreetings
+        ? new Date(cm.miscInfo.dobForGreetings)
+        : cm.dob
+        ? new Date(cm.dob)
+        : null;
+
+      if (
+        birthDate &&
+        birthDate.getMonth() + 1 === currentMonth &&
+        birthDate.getDate() === currentDay
+      ) {
         try {
           let birthdayTmpl = await prisma.notificationTemplate.findUnique({
             where: { code: "BIRTHDAY_WISHES" },
@@ -118,21 +210,33 @@ export const runSchedulerScan = async () => {
             });
           }
 
-          const smsText = renderTemplateText(birthdayTmpl?.smsBody || `Happy Birthday ${customerName}!`, templateVars);
-          const emailHtml = renderTemplateText(birthdayTmpl?.emailBody || `<p>${smsText}</p>`, templateVars);
-          const emailSubject = renderTemplateText(birthdayTmpl?.subject || "Happy Birthday! 🎂", templateVars);
+          const messageText = renderTemplateText(
+            birthdayTmpl?.smsBody || `Happy Birthday ${customerName}!`,
+            templateVars
+          );
+          const emailHtml = renderTemplateText(
+            birthdayTmpl?.emailBody || `<p>${messageText}</p>`,
+            templateVars
+          );
+          const emailSubject = renderTemplateText(
+            birthdayTmpl?.subject || "Happy Birthday! 🎂",
+            templateVars
+          );
 
-          if (allowsSms && phone) {
-            const smsRes = await sendSms({ recipientPhone: phone, message: smsText });
+          if (allowsWhatsapp && phone) {
+            const waRes = await sendWhatsapp({
+              recipientPhone: phone,
+              message: messageText,
+            });
             await prisma.communicationLog.create({
               data: {
                 customerId: cm.id,
                 customerName,
-                channel: CommunicationChannel.SMS,
+                channel: CommunicationChannel.WHATSAPP,
                 recipient: phone,
-                content: smsText,
-                status: smsRes.status,
-                errorMessage: smsRes.errorMessage,
+                content: messageText,
+                status: waRes.status,
+                errorMessage: waRes.errorMessage,
                 triggerType: "AUTOMATED_CRON",
                 metadata: JSON.stringify({ event: "BIRTHDAY" }),
               },
@@ -140,7 +244,12 @@ export const runSchedulerScan = async () => {
           }
 
           if (allowsEmail && email) {
-            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: smsText });
+            const emailRes = await sendEmail({
+              to: email,
+              subject: emailSubject,
+              html: emailHtml,
+              text: messageText,
+            });
             await prisma.communicationLog.create({
               data: {
                 customerId: cm.id,
@@ -165,8 +274,15 @@ export const runSchedulerScan = async () => {
       }
 
       // --- B. Wedding Anniversary Check ---
-      const anniversaryDate = cm.miscInfo?.marriageDate ? new Date(cm.miscInfo.marriageDate) : null;
-      if (anniversaryDate && anniversaryDate.getMonth() + 1 === currentMonth && anniversaryDate.getDate() === currentDay) {
+      const anniversaryDate = cm.miscInfo?.marriageDate
+        ? new Date(cm.miscInfo.marriageDate)
+        : null;
+
+      if (
+        anniversaryDate &&
+        anniversaryDate.getMonth() + 1 === currentMonth &&
+        anniversaryDate.getDate() === currentDay
+      ) {
         try {
           let annivTmpl = await prisma.notificationTemplate.findUnique({
             where: { code: "ANNIVERSARY_WISHES" },
@@ -179,21 +295,33 @@ export const runSchedulerScan = async () => {
             });
           }
 
-          const smsText = renderTemplateText(annivTmpl?.smsBody || `Happy Wedding Anniversary ${customerName}!`, templateVars);
-          const emailHtml = renderTemplateText(annivTmpl?.emailBody || `<p>${smsText}</p>`, templateVars);
-          const emailSubject = renderTemplateText(annivTmpl?.subject || "Happy Wedding Anniversary! 💐", templateVars);
+          const messageText = renderTemplateText(
+            annivTmpl?.smsBody || `Happy Wedding Anniversary ${customerName}!`,
+            templateVars
+          );
+          const emailHtml = renderTemplateText(
+            annivTmpl?.emailBody || `<p>${messageText}</p>`,
+            templateVars
+          );
+          const emailSubject = renderTemplateText(
+            annivTmpl?.subject || "Happy Wedding Anniversary! 💐",
+            templateVars
+          );
 
-          if (allowsSms && phone) {
-            const smsRes = await sendSms({ recipientPhone: phone, message: smsText });
+          if (allowsWhatsapp && phone) {
+            const waRes = await sendWhatsapp({
+              recipientPhone: phone,
+              message: messageText,
+            });
             await prisma.communicationLog.create({
               data: {
                 customerId: cm.id,
                 customerName,
-                channel: CommunicationChannel.SMS,
+                channel: CommunicationChannel.WHATSAPP,
                 recipient: phone,
-                content: smsText,
-                status: smsRes.status,
-                errorMessage: smsRes.errorMessage,
+                content: messageText,
+                status: waRes.status,
+                errorMessage: waRes.errorMessage,
                 triggerType: "AUTOMATED_CRON",
                 metadata: JSON.stringify({ event: "ANNIVERSARY" }),
               },
@@ -201,7 +329,12 @@ export const runSchedulerScan = async () => {
           }
 
           if (allowsEmail && email) {
-            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: smsText });
+            const emailRes = await sendEmail({
+              to: email,
+              subject: emailSubject,
+              html: emailHtml,
+              text: messageText,
+            });
             await prisma.communicationLog.create({
               data: {
                 customerId: cm.id,
@@ -293,6 +426,7 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
     daysRemaining: number;
     isToday: boolean;
     alreadySentToday: boolean;
+    whatsappOptedIn: boolean;
     smsOptedIn: boolean;
     emailOptedIn: boolean;
   }> = [];
@@ -303,7 +437,7 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
     const customerName = `${cm.salutation ? cm.salutation + " " : ""}${cm.firstName} ${cm.lastName}`.trim();
     const phone = cm.contactInfo?.mobile1 || cm.contactInfo?.mobile2 || undefined;
     const email = cm.contactInfo?.emailPersonal || cm.contactInfo?.emailBusiness || undefined;
-    const smsOptedIn = cm.preferences ? cm.preferences.smsMarketing : true;
+    const whatsappOptedIn = cm.preferences ? cm.preferences.smsMarketing : true;
     const emailOptedIn = cm.preferences ? cm.preferences.emailMarketing : true;
 
     // 1. Birthday
@@ -331,7 +465,8 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
           daysRemaining,
           isToday: daysRemaining === 0,
           alreadySentToday: daysRemaining === 0 && sentCustomerIdsToday.has(cm.id),
-          smsOptedIn,
+          whatsappOptedIn,
+          smsOptedIn: whatsappOptedIn,
           emailOptedIn,
         });
       }
@@ -362,7 +497,8 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
           daysRemaining,
           isToday: daysRemaining === 0,
           alreadySentToday: daysRemaining === 0 && sentCustomerIdsToday.has(cm.id),
-          smsOptedIn,
+          whatsappOptedIn,
+          smsOptedIn: whatsappOptedIn,
           emailOptedIn,
         });
       }

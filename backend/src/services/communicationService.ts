@@ -6,7 +6,7 @@ import {
   Prisma,
 } from "@prisma/client";
 import { renderTemplateText, TemplateVariables, seedDefaultTemplates } from "./templateService.js";
-import { sendSms } from "./smsService.js";
+import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
 
 export interface SendReminderOptions {
@@ -16,7 +16,7 @@ export interface SendReminderOptions {
   customMessage?: string;
   customSubject?: string;
   dueDaysRemaining?: number;
-  channel?: "SMS" | "EMAIL" | "ALL";
+  channel?: "WHATSAPP" | "EMAIL" | "ALL" | "SMS";
 }
 
 export interface DirectMessageOptions {
@@ -34,7 +34,7 @@ export interface DirectMessageOptions {
 export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
   const { policyId, triggerType = "MANUAL_REMINDER", customMessage, customSubject, channel = "ALL" } = options;
 
-  // 1. Fetch Policy with Customer, Member, Calculations, Advisor, Agency
+  // 1. Fetch Policy with Customer, Member, Calculations, Advisor, Agency, Premium Mode
   const policy = await prisma.policy.findUnique({
     where: { id: policyId },
     include: {
@@ -49,6 +49,7 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
       product: true,
       provider: true,
       premium: true,
+      premiumMode: true,
       advisor: {
         include: {
           agency: true,
@@ -103,6 +104,8 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     policy.premium?.installmentPremium?.toString() ||
     "0.00";
 
+  const premiumModeName = policy.premiumMode?.modeName || "Regular";
+
   // Determine Template Code
   let templateCode = options.templateCode;
   if (!templateCode) {
@@ -133,8 +136,10 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     plan_name: policy.product?.productName || "Insurance Plan",
     provider_name: policy.provider?.name || "LIC",
     premium_amount: premiumAmount,
+    premium_mode: premiumModeName,
     due_date: formattedDueDate,
     due_days: dueDays !== undefined ? Math.max(0, dueDays) : "upcoming",
+    due_days_text: dueDays === 0 ? "Today" : `${dueDays} days remaining`,
     advisor_name: policy.advisor?.advisorName || "Your Insurance Advisor",
     advisor_phone: policy.advisor?.phone || "+91-9876543210",
     agency_name: policy.advisor?.agency?.agencyName || "Jem Soft Insurance Agency",
@@ -144,7 +149,7 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     customSubject ||
     renderTemplateText(template?.subject || "Insurance Premium Reminder", templateVars);
 
-  const smsText =
+  const messageText =
     customMessage ||
     renderTemplateText(
       template?.smsBody ||
@@ -153,31 +158,34 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     );
 
   const emailHtml = renderTemplateText(
-    template?.emailBody || `<p>${smsText}</p>`,
+    template?.emailBody || `<p>${messageText}</p>`,
     templateVars
   );
 
   const results: {
-    sms?: { status: DeliveryStatus; message?: string };
+    whatsapp?: { status: DeliveryStatus; message?: string };
     email?: { status: DeliveryStatus; message?: string };
     inApp?: { status: DeliveryStatus; message?: string };
   } = {};
 
   // Check Preferences: Default to true if preferences record does not exist
-  const allowsSms = preferences ? preferences.smsMarketing : true;
+  // Using preferences.smsMarketing flag for WhatsApp preference
+  const allowsWhatsapp = preferences ? preferences.smsMarketing : true;
   const allowsEmail = preferences ? preferences.emailMarketing : true;
 
-  // 1. DISPATCH SMS (if opted in AND channel allows)
-  const sendSmsChannel = channel === "SMS" || channel === "ALL";
-  if (sendSmsChannel && allowsSms && recipientPhone) {
-    const smsResult = await sendSms({
+  // 1. DISPATCH WHATSAPP (if opted in AND channel allows)
+  const sendWhatsappChannel =
+    channel === "WHATSAPP" || channel === "ALL" || (channel as any) === "SMS";
+
+  if (sendWhatsappChannel && allowsWhatsapp && recipientPhone) {
+    const waResult = await sendWhatsapp({
       recipientPhone,
-      message: smsText,
+      message: messageText,
     });
 
-    results.sms = {
-      status: smsResult.status,
-      message: smsResult.errorMessage || "SMS Sent",
+    results.whatsapp = {
+      status: waResult.status,
+      message: waResult.errorMessage || "WhatsApp Sent",
     };
 
     await prisma.communicationLog.create({
@@ -186,30 +194,30 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
         customerName,
         policyId: policy.id,
         policyNumber: policy.policyNumber,
-        channel: CommunicationChannel.SMS,
+        channel: CommunicationChannel.WHATSAPP,
         recipient: recipientPhone,
         subject: null,
-        content: smsText,
-        status: smsResult.status,
-        errorMessage: smsResult.errorMessage,
+        content: messageText,
+        status: waResult.status,
+        errorMessage: waResult.errorMessage,
         triggerType,
-        metadata: JSON.stringify({ templateCode, dueDays }),
+        metadata: JSON.stringify({ templateCode, dueDays, mode: premiumModeName }),
       },
     });
-  } else if (!allowsSms) {
-    results.sms = { status: DeliveryStatus.SKIPPED, message: "Customer opted out of SMS" };
+  } else if (!allowsWhatsapp && sendWhatsappChannel) {
+    results.whatsapp = { status: DeliveryStatus.SKIPPED, message: "Customer opted out of WhatsApp" };
     await prisma.communicationLog.create({
       data: {
         customerId: customerMaster?.id || policy.customer?.id,
         customerName,
         policyId: policy.id,
         policyNumber: policy.policyNumber,
-        channel: CommunicationChannel.SMS,
+        channel: CommunicationChannel.WHATSAPP,
         recipient: recipientPhone || "N/A",
         subject: null,
-        content: smsText,
+        content: messageText,
         status: DeliveryStatus.SKIPPED,
-        errorMessage: "Customer disabled SMS Marketing in Service Preferences",
+        errorMessage: "Customer disabled WhatsApp Marketing in Service Preferences",
         triggerType,
       },
     });
@@ -222,7 +230,7 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
       to: recipientEmail,
       subject: emailSubject,
       html: emailHtml,
-      text: smsText,
+      text: messageText,
     });
 
     results.email = {
@@ -243,10 +251,10 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
         status: emailResult.status,
         errorMessage: emailResult.errorMessage,
         triggerType,
-        metadata: JSON.stringify({ templateCode, dueDays }),
+        metadata: JSON.stringify({ templateCode, dueDays, mode: premiumModeName }),
       },
     });
-  } else if (!allowsEmail) {
+  } else if (!allowsEmail && sendEmailChannel) {
     results.email = { status: DeliveryStatus.SKIPPED, message: "Customer opted out of Email" };
     await prisma.communicationLog.create({
       data: {
@@ -270,7 +278,7 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     await prisma.notification.create({
       data: {
         title: `Premium Due Alert: Policy ${policy.policyNumber}`,
-        message: `Premium of Rs. ${premiumAmount} for ${customerName} is due on ${formattedDueDate} (${dueDays} days remaining).`,
+        message: `Premium of Rs. ${premiumAmount} (${premiumModeName}) for ${customerName} is due on ${formattedDueDate} (${dueDays} days remaining).`,
         type: NotificationType.PREMIUM_DUE,
         policyId: policy.id,
       },
@@ -316,18 +324,22 @@ export const sendDirectMessage = async (options: DirectMessageOptions) => {
 
   const results: any = {};
 
-  if (channel === CommunicationChannel.SMS || channel === CommunicationChannel.ALL) {
+  if (
+    channel === CommunicationChannel.WHATSAPP ||
+    channel === CommunicationChannel.ALL ||
+    (channel as any) === "SMS"
+  ) {
     if (preferences && !preferences.smsMarketing) {
-      results.sms = { status: DeliveryStatus.SKIPPED, message: "Opted out of SMS" };
+      results.whatsapp = { status: DeliveryStatus.SKIPPED, message: "Opted out of WhatsApp" };
     } else if (recipientPhone) {
-      const res = await sendSms({ recipientPhone, message });
-      results.sms = res;
+      const res = await sendWhatsapp({ recipientPhone, message });
+      results.whatsapp = res;
       await prisma.communicationLog.create({
         data: {
           customerId: customerMaster.id,
           customerName,
           policyId,
-          channel: CommunicationChannel.SMS,
+          channel: CommunicationChannel.WHATSAPP,
           recipient: recipientPhone,
           content: message,
           status: res.status,
@@ -443,6 +455,7 @@ export const getReminderSettings = async () => {
 export const updateReminderSettings = async (data: {
   isAutoReminderEnabled?: boolean;
   dueDaysBefore?: string;
+  sendWhatsapp?: boolean;
   sendSms?: boolean;
   sendEmail?: boolean;
   sendInApp?: boolean;
@@ -450,8 +463,17 @@ export const updateReminderSettings = async (data: {
   cronScheduleTime?: string;
 }) => {
   const current = await getReminderSettings();
+  const updateData: any = { ...data };
+
+  // Map sendWhatsapp to sendSms database field seamlessly
+  if (data.sendWhatsapp !== undefined) {
+    updateData.sendSms = data.sendWhatsapp;
+  }
+  delete updateData.sendWhatsapp;
+
   return prisma.reminderSetting.update({
     where: { id: current.id },
-    data,
+    data: updateData,
   });
 };
+

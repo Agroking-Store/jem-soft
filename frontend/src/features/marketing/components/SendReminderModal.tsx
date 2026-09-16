@@ -50,7 +50,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
   // Separate loading states for each channel
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [sendingSms, setSendingSms] = useState(false);
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
   const [sendingAll, setSendingAll] = useState(false);
 
   const customer = policy?.CustomerMaster;
@@ -58,7 +58,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     `${customer?.firstName || ""} ${customer?.lastName || ""}`.trim() || "Valued Customer";
   const mobile = customer?.contactInfo?.mobile1 || "";
   const email = customer?.contactInfo?.emailPersonal || "Not specified";
-  const smsOptedIn = customer?.preferences ? customer.preferences.smsMarketing : true;
+  const whatsappOptedIn = customer?.preferences ? customer.preferences.smsMarketing : true;
   const emailOptedIn = customer?.preferences ? customer.preferences.emailMarketing : true;
 
   const premiumAmount =
@@ -88,7 +88,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
   const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
 
-  const previewSms =
+  const previewWhatsapp =
     customMessage ||
     (currentTemplate?.smsBody
       ? currentTemplate.smsBody
@@ -104,9 +104,9 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       : "");
 
   // ── Channel-specific send handler ──────────────────────────────────────
-  const handleSend = async (channel: "EMAIL" | "SMS" | "ALL") => {
+  const handleSend = async (channel: "EMAIL" | "WHATSAPP" | "ALL") => {
     if (channel === "EMAIL") setSendingEmail(true);
-    if (channel === "SMS") setSendingSms(true);
+    if (channel === "WHATSAPP") setSendingWhatsapp(true);
     if (channel === "ALL") setSendingAll(true);
 
     try {
@@ -119,7 +119,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       });
 
       if (res.success) {
-        const channelLabel = channel === "ALL" ? "SMS & Email" : channel;
+        const channelLabel = channel === "ALL" ? "WhatsApp & Email" : channel;
         toast.success(`Dispatched ${channelLabel} reminder for policy ${policy.policyNumber}!`);
         if (onSuccess) onSuccess();
       } else {
@@ -131,7 +131,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       );
     } finally {
       if (channel === "EMAIL") setSendingEmail(false);
-      if (channel === "SMS") setSendingSms(false);
+      if (channel === "WHATSAPP") setSendingWhatsapp(false);
       if (channel === "ALL") setSendingAll(false);
     }
   };
@@ -145,7 +145,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     const clean = mobile.replace(/\D/g, "");
     const phone = clean.length === 10 ? `91${clean}` : clean;
     window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(previewSms)}`,
+      `https://wa.me/${phone}?text=${encodeURIComponent(previewWhatsapp)}`,
       "_blank"
     );
   };
@@ -165,52 +165,54 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden transform transition-all">
-        {/* Gold Accent Bar */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] p-5 text-white flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#B8873A]/20 rounded-xl border border-[#B8873A]/40 text-[#E8C77A]">
-              <BellRing size={20} />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <BellRing size={18} />
             </div>
             <div>
-              <h3 className="font-serif font-semibold text-lg text-[#E8C77A]">
-                Send Premium Due Reminder
+              <h3 className="font-bold text-base text-[#0B1220]">
+                Send Policy Due Reminder
               </h3>
-              <p className="text-xs text-slate-300">
-                Policy: {policy.policyNumber} | Due: {formattedDueDate}
+              <p className="text-xs text-slate-500 font-medium">
+                Policy #{policy.policyNumber} • {customerName}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10 cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
-          {/* Customer & Policy Summary */}
-          <div className="bg-[#0B1220]/5 rounded-xl p-4 border border-[#B8873A]/20 grid grid-cols-2 gap-3 text-xs">
+        {/* Content */}
+        <div className="p-6 space-y-4 overflow-y-auto flex-1">
+          {/* Policy Summary Box */}
+          <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
             <div>
-              <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
-                Customer
-              </span>
-              <p className="font-serif font-bold text-slate-900 text-sm">{customerName}</p>
-              <p className="text-slate-600 font-mono mt-0.5">{mobile || "No Mobile"}</p>
+              <span className="text-slate-400 font-medium">Customer:</span>
+              <p className="font-semibold text-slate-800">{customerName}</p>
+              <p className="text-slate-500 text-[11px] font-mono">{mobile || "No phone"}</p>
             </div>
             <div>
-              <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
-                Installment Premium
-              </span>
-              <p className="font-bold text-[#B8873A] text-base">
-                ₹ {Number(premiumAmount).toLocaleString("en-IN")}
+              <span className="text-slate-400 font-medium">Plan / Product:</span>
+              <p className="font-semibold text-slate-800">
+                {policy.product?.productName || "Standard Plan"}
               </p>
-              <p className="text-slate-500 truncate mt-0.5">{email}</p>
+              <p className="text-slate-500 text-[11px]">{policy.provider?.name || "LIC"}</p>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium">Installment Premium:</span>
+              <p className="font-bold text-amber-600 text-sm">₹{String(premiumAmount)}</p>
+            </div>
+            <div>
+              <span className="text-slate-400 font-medium">Due Date:</span>
+              <p className="font-bold text-rose-600">{formattedDueDate}</p>
             </div>
           </div>
 
@@ -220,7 +222,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
               Service Preferences:
             </span>
             <div className="flex items-center gap-2">
-              {optPill(smsOptedIn, "SMS", Smartphone)}
+              {optPill(whatsappOptedIn, "WhatsApp", MessageSquare)}
               {optPill(emailOptedIn, "Email", Mail)}
             </div>
           </div>
@@ -247,17 +249,17 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs font-semibold text-[#0B1220] uppercase tracking-wider">
-                Message Preview
+                WhatsApp Message Preview
               </label>
-              <span className="text-slate-400 text-xs font-mono">{previewSms.length} chars</span>
+              <span className="text-slate-400 text-xs font-mono">{previewWhatsapp.length} chars</span>
             </div>
-            <div className="p-4 bg-[#0B1220] text-slate-100 rounded-xl text-xs font-mono leading-relaxed border border-slate-800 shadow-inner min-h-[72px]">
-              {previewSms || <span className="text-slate-500 italic">Select a template above…</span>}
+            <div className="p-4 bg-[#0B1220] text-slate-100 rounded-xl text-xs font-mono whitespace-pre-wrap leading-relaxed border border-slate-800 shadow-inner min-h-[90px]">
+              {previewWhatsapp || <span className="text-slate-500 italic">Select a template above…</span>}
             </div>
           </div>
         </div>
 
-        {/* ── Footer: 3 separate action buttons ───────────────────────── */}
+        {/* ── Footer: Action buttons ───────────────────────── */}
         <div className="bg-slate-50 px-6 py-4 border-t border-slate-200">
           <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-3">
             Choose channel to send
@@ -265,12 +267,12 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
           <div className="flex flex-wrap gap-2.5 items-center justify-between">
             {/* Left: channel buttons */}
             <div className="flex flex-wrap gap-2">
-              {/* Both SMS + Email */}
+              {/* Both WhatsApp + Email */}
               <button
                 type="button"
                 onClick={() => handleSend("ALL")}
-                disabled={sendingAll || (!smsOptedIn && !emailOptedIn)}
-                title="Send both SMS and Email reminders"
+                disabled={sendingAll || (!whatsappOptedIn && !emailOptedIn)}
+                title="Send both WhatsApp and Email reminders automatically"
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
                   bg-gradient-to-r from-[#1877F2] to-[#2563eb] hover:brightness-110 text-white shadow-sm shadow-blue-500/30"
               >
@@ -279,24 +281,24 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
                 ) : (
                   <BellRing size={14} />
                 )}
-                {sendingAll ? "Sending All…" : "Send SMS & Email"}
+                {sendingAll ? "Sending All…" : "Send WhatsApp & Email"}
               </button>
 
-              {/* SMS */}
+              {/* WhatsApp (Automated) */}
               <button
                 type="button"
-                onClick={() => handleSend("SMS")}
-                disabled={sendingSms || !smsOptedIn || !mobile}
-                title={!mobile ? "No mobile number" : !smsOptedIn ? "Customer opted out of SMS" : "Send SMS reminder"}
+                onClick={() => handleSend("WHATSAPP")}
+                disabled={sendingWhatsapp || !whatsappOptedIn || !mobile}
+                title={!mobile ? "No mobile number" : !whatsappOptedIn ? "Customer opted out of WhatsApp" : "Send automated WhatsApp reminder"}
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
-                  bg-sky-600 hover:bg-sky-700 text-white shadow-sm shadow-sky-600/30"
+                  bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/30"
               >
-                {sendingSms ? (
+                {sendingWhatsapp ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  <Smartphone size={14} />
+                  <MessageSquare size={14} />
                 )}
-                {sendingSms ? "Sending SMS…" : "Send SMS"}
+                {sendingWhatsapp ? "Sending…" : "Send WhatsApp"}
               </button>
 
               {/* Email */}
@@ -316,17 +318,17 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
                 {sendingEmail ? "Sending…" : "Send Email"}
               </button>
 
-              {/* WhatsApp */}
+              {/* WhatsApp Web Direct Chat */}
               <button
                 type="button"
                 onClick={handleOpenWhatsApp}
                 disabled={!mobile}
-                title={!mobile ? "No mobile number" : "Open WhatsApp"}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
-                  bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/30"
+                title={!mobile ? "No mobile number" : "Open in WhatsApp Web"}
+                className="inline-flex items-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed
+                  bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
               >
-                <MessageSquare size={14} />
-                WhatsApp
+                <MessageSquare size={13} className="text-emerald-600" />
+                Open Chat
               </button>
             </div>
 
@@ -342,10 +344,10 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
 
           {/* Channel legend */}
           <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-400">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> All → SMS + Email</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> SMS → Fast2SMS / Gateway</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> All → WhatsApp + Email</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> WhatsApp → Automatic Dispatch</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> Email → Gmail SMTP</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> WhatsApp → Instant Chat</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-500 inline-block" /> Open Chat → WhatsApp Web</span>
           </div>
         </div>
       </div>
