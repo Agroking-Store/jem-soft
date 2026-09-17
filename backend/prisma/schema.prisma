@@ -539,6 +539,12 @@ model Policy {
 
   customer       Customer           @relation(fields: [clientId], references: [id])
   CustomerMaster CustomerMaster     @relation(fields: [CustomerMasterId], references: [id])
+
+  proposerId     String?
+  proposer       CustomerMaster?    @relation("PolicyProposer", fields: [proposerId], references: [id])
+  
+  spouseId       String?
+  spouse         CustomerMaster?    @relation("PolicySpouse", fields: [spouseId], references: [id])
   provider       InsuranceProvider  @relation(fields: [providerId], references: [id])
   product        ProductMaster      @relation(fields: [productId], references: [id], onDelete: Restrict)
   status         PolicyStatusMaster @relation(fields: [statusId], references: [id])
@@ -856,7 +862,10 @@ model CustomerMaster {
   bankDetails CustomerBankDetails[]
   miscInfo    CustomerMiscInfo?
   preferences     CustomerServicePreferences?
-  policies        Policy[]
+  policies         Policy[]
+  proposerPolicies Policy[] @relation("PolicyProposer")
+  spousePolicies   Policy[] @relation("PolicySpouse")
+
   familyHistories FamilyHistory[]
   medicalHistories MedicalHistory[]
 }

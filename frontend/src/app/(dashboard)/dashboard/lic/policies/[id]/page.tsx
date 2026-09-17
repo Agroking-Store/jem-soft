@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,85 +54,7 @@ import {
   type SelectOption,
 } from "@/features/customers/components/CustomerUi";
 
-const riderSchema = z.object({
-  description: z.string().optional(),
-  sum: z.number().nullable().optional(),
-  term: z.number().nullable().optional(),
-  ppt: z.number().nullable().optional(),
-  mode: z.string().optional(),
-  premium: z.number().nullable().optional(),
-});
-
-const policySchema = z.object({
-  groupId: z.string().optional(),
-  groupCode: z.string().optional(),
-  lifeAssuredId: z.string().optional(),
-  dob: z.string().optional(),
-  age: z.string().optional(),
-  gender: z.string().optional(),
-  pan: z.string().optional(),
-  option: z.string().optional(),
-  smoker: z.boolean().optional(),
-
-  providerType: z.string().optional(),
-  providerId: z.string().optional(),
-  policyNumber: z.string().optional(),
-  productId: z.string().optional(),
-  mode: z.string().optional(),
-  commencementDate: z.string().optional(),
-  completionDate: z.string().optional(),
-  term: z.number().optional(),
-  ppt: z.number().optional(),
-  extraClass: z.string().optional(),
-  ratePercent: z.number().optional(),
-
-  sumAssured: z.number().optional(),
-  basicYearlyPremium: z.number().optional(),
-  totalYearlyPremium: z.number().optional(),
-  totalRiderPremium: z.number().optional(),
-  installmentPremium: z.number().optional(),
-  gst: z.number().optional(),
-  totalInstallmentPremium: z.number().optional(),
-
-  riders: z.array(riderSchema).optional(),
-
-  advisorId: z.string().optional(),
-  agentCode: z.string().optional(),
-  agencyId: z.string().optional(),
-  branchId: z.string().optional(),
-
-  policyStatus: z.string().optional(),
-  statusId: z.string().optional(),
-  fupDate: z.string().optional(),
-  fuliDate: z.string().optional(),
-  premiumAdjusted: z.string().optional(),
-  loanTaken: z.string().optional(),
-  annuityDetails: z.string().optional(),
-  otherInformation: z.string().optional(),
-  bankName: z.string().optional(),
-  bankBranch: z.string().optional(),
-  city: z.string().optional(),
-  accountType: z.string().optional(),
-  accountNumber: z.string().optional(),
-  ifscCode: z.string().optional(),
-  micrNumber: z.string().optional(),
-  accountHolderName: z.string().optional(),
-  neftBankName: z.string().optional(),
-  neftBankBranch: z.string().optional(),
-  neftAccountNumber: z.string().optional(),
-  neftIfscCode: z.string().optional(),
-  neftAccountHolderName: z.string().optional(),
-  neftSubmissionDate: z.string().optional(),
-  branchName: z.string().optional(),
-  medical: z.string().optional(),
-  salesChannel: z.string().optional(),
-  ageAdmitted: z.string().optional(),
-  taxBeneficiary: z.string().optional(),
-  notes: z.string().optional(),
-  nominees: z.array(z.any()).optional(),
-});
-
-type PolicyFormValues = z.infer<typeof policySchema>;
+import { policySchema, type PolicyFormValues } from "../new/schema";
 
 export default function ViewLICPolicyPage() {
   const router = useRouter();
@@ -145,13 +67,15 @@ export default function ViewLICPolicyPage() {
     (state: RootState) => state.policies,
   );
 
-  const { register, control, watch, reset } = useForm<PolicyFormValues>({
+  const methods = useForm<PolicyFormValues>({
     resolver: zodResolver(policySchema) as any,
     defaultValues: {
       riders: [],
       nominees: [],
     },
   });
+
+  const { register, control, watch, reset } = methods;
 
   const { customers: groups, isLoading: groupsLoading } = useSelector(
     (s: RootState) => s.customers,
@@ -269,6 +193,19 @@ export default function ViewLICPolicyPage() {
         0,
       ) || undefined;
 
+    const ageValue = selectedPolicy.CustomerMaster?.dob
+      ? Math.floor(
+          (Date.now() -
+            new Date(selectedPolicy.CustomerMaster.dob).getTime()) /
+            (365.25 * 24 * 60 * 60 * 1000),
+        )
+      : 0;
+
+    const targetBankCustomer =
+      (selectedPolicy as any).proposerId
+        ? masterCustomers.find((c: any) => c.id === (selectedPolicy as any).proposerId) || selectedPolicy.CustomerMaster
+        : selectedPolicy.CustomerMaster;
+
     reset({
       groupId: selectedPolicy.clientId ?? "",
       groupCode: selectedPolicy.customer?.groupCode ?? "",
@@ -313,62 +250,67 @@ export default function ViewLICPolicyPage() {
             .toISOString()
             .substring(0, 10)
         : "",
-      age: selectedPolicy.CustomerMaster?.dob
-        ? Math.floor(
-            (Date.now() -
-              new Date(selectedPolicy.CustomerMaster.dob).getTime()) /
-              (365.25 * 24 * 60 * 60 * 1000),
-          ).toString()
-        : "",
+      proposerDob: 
+        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+          ? new Date(targetBankCustomer.dob).toISOString().substring(0, 10)
+          : "",
+      proposerAge: 
+        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+          ? Math.floor(
+              (Date.now() - new Date(targetBankCustomer.dob).getTime()) /
+                (365.25 * 24 * 60 * 60 * 1000)
+            )
+          : undefined,
+      age: ageValue || undefined,
       gender: selectedPolicy.CustomerMaster?.gender ?? "",
       pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
+
+      proposerId: (selectedPolicy as any).proposerId ?? "",
+      spouseId: (selectedPolicy as any).spouseId ?? "",
+      smoker: (selectedPolicy as any).smoker ?? false,
+      extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
+      ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
+
       loanTaken: getPolicyAttr("loanTaken") || "",
       annuityDetails: getPolicyAttr("annuityDetails") || "",
       otherInformation: selectedPolicy.remarks ?? "",
       bankName:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.bankName ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
+            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
+          : "",
       bankBranch:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.bankBranch ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
+            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
+          : "",
       city:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.city ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.city ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.city ??
+            targetBankCustomer?.bankDetails?.[0]?.city ?? ""
+          : "",
       accountType:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.accountType ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountType ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountType ??
+            targetBankCustomer?.bankDetails?.[0]?.accountType ?? ""
+          : "",
       accountNumber:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.accountNumber ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
+            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
+          : "",
       ifscCode:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.ifscCode ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
+            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
+          : "",
       micrNumber:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.micrNumber ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.micrNumber ??
-        "",
-      accountHolderName: selectedPolicy.CustomerMaster
-        ? getFullName(selectedPolicy.CustomerMaster)
+        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.micrNumber ??
+            targetBankCustomer?.bankDetails?.[0]?.micrNumber ?? ""
+          : "",
+      accountHolderName: selectedPolicy.paymentMode?.modeCode === "NACH" && targetBankCustomer
+        ? getFullName(targetBankCustomer)
         : "",
       branchName: selectedPolicy.branch?.branchName ?? "",
       medical: getPolicyAttr("medical") || "",
@@ -391,35 +333,31 @@ export default function ViewLICPolicyPage() {
           email: nominee.email ?? "",
         })) ?? [],
       neftBankName:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.bankName ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
+            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
+          : "",
       neftBankBranch:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.bankBranch ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
+            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
+          : "",
       neftAccountNumber:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.accountNumber ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
-        "",
+        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
+            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
+          : "",
       neftIfscCode:
-        selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
-        )?.ifscCode ??
-        selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
-        "",
-      neftAccountHolderName: selectedPolicy.CustomerMaster
-        ? getFullName(selectedPolicy.CustomerMaster)
+        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
+          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
+            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
+          : "",
+      neftAccountHolderName: selectedPolicy.paymentMode?.modeCode === "NEFT" && targetBankCustomer
+        ? getFullName(targetBankCustomer)
         : "",
       neftSubmissionDate: getPolicyAttr("neftSubmissionDate") || "",
     });
-  }, [selectedPolicy, reset]);
+  }, [selectedPolicy, reset, masterCustomers]);
 
   const sectionRefs = {
     "policy-holder": useRef<HTMLDivElement>(null),
@@ -560,6 +498,7 @@ export default function ViewLICPolicyPage() {
   ];
 
   return (
+    <FormProvider {...methods}>
     <div className="max-w-7xl mx-auto pb-20">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -849,36 +788,88 @@ export default function ViewLICPolicyPage() {
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                     />
                   </div>
+                  {(selectedProduct?.planNumber === "774" || (watch("age") && parseFloat(String(watch("age"))) < 18) || !!watch("proposerId")) && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer's Name
+                        </label>
+                        <input
+                          type="text"
+                          value={
+                            masterCustomers.find(
+                              (c: any) => c.id === watch("proposerId")
+                            )
+                              ? getFullName(
+                                  masterCustomers.find(
+                                    (c: any) => c.id === watch("proposerId")
+                                  )
+                                )
+                              : ""
+                          }
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer DOB
+                        </label>
+                        <input
+                          type="date"
+                          value={watch("proposerDob") || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer Age
+                        </label>
+                        <input
+                          type="number"
+                          value={watch("proposerAge") || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                    </>
+                  )}
 
-                  {(selectedProduct?.planNumber === "881" ||
-                    selectedProduct?.planNumber === "912" ||
-                    selectedProduct?.planNumber === "887" ||
-                    selectedProduct?.planNumber === "888" ||
-                    selectedProduct?.planNumber === "889" ||
-                    selectedProduct?.planNumber === "774") && (
+                  {(selectedProduct?.planNumber === "881" || selectedProduct?.planNumber === "912" || selectedProduct?.planNumber === "887") && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Option
-                        {(selectedProduct?.planNumber === "881" ||
-                          selectedProduct?.planNumber === "912" ||
-                          selectedProduct?.planNumber === "887" ||
-                          selectedProduct?.planNumber === "888" ||
-                          selectedProduct?.planNumber === "889" ||
-                          selectedProduct?.planNumber === "774") && (
-                          <span className="text-red-500"> *</span>
-                        )}
+                        Option <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={watch("option") ?? ""}
-                        disabled
+                      <input
+                        type="text"
+                        value={watch("option") ? `Option ${watch("option")}` : ""}
+                        readOnly
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                      >
-                        <option value="">Select Option</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                        <option value="3">Option 3</option>
-                        <option value="4">Option 4</option>
-                      </select>
+                      />
+                    </div>
+                  )}
+                  {(selectedProduct?.planNumber === "888" || selectedProduct?.planNumber === "889") && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Spouse's Name
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          masterCustomers.find(
+                            (c: any) => c.id === watch("spouseId")
+                          )
+                            ? getFullName(
+                                masterCustomers.find(
+                                  (c: any) => c.id === watch("spouseId")
+                                )
+                              )
+                            : ""
+                        }
+                        readOnly
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                      />
                     </div>
                   )}
 
@@ -1287,200 +1278,206 @@ export default function ViewLICPolicyPage() {
                   </div>
                   <div className="p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Bank Name
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("bankName") || ""}
-                          placeholder="Bank Name"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Account Number
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("accountNumber") || ""}
-                          placeholder="Account Number"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          IFSC Code
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("ifscCode") || ""}
-                          placeholder="IFSC Code"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Account Holder Name
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("accountHolderName") || ""}
-                          placeholder="Account Holder Name"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Bank Branch
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("bankBranch") || ""}
-                          placeholder="Bank Branch"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          City
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("city") || ""}
-                          placeholder="City"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Account Type
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("accountType") || ""}
-                          placeholder="Account Type"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Debt Date
-                        </label>
-                        <input
-                          value={watch("fupDate") || ""}
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          MICR Number
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("micrNumber") || ""}
-                          placeholder="MICR Number"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
+                      {Boolean(watch("bankName") || watch("accountNumber") || watch("ifscCode")) && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Name
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("bankName") || ""}
+                              placeholder="Bank Name"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Number
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("accountNumber") || ""}
+                              placeholder="Account Number"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              IFSC Code
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("ifscCode") || ""}
+                              placeholder="IFSC Code"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Holder Name
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("accountHolderName") || ""}
+                              placeholder="Account Holder Name"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Bank Branch
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("bankBranch") || ""}
+                              placeholder="Bank Branch"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              City
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("city") || ""}
+                              placeholder="City"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Account Type
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("accountType") || ""}
+                              placeholder="Account Type"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Debt Date
+                            </label>
+                            <input
+                              value={watch("fupDate") || ""}
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              MICR Number
+                            </label>
+                            <input
+                              type="text"
+                              value={watch("micrNumber") || ""}
+                              placeholder="MICR Number"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                        </>
+                      )}
 
                       {/* NEFT Section */}
-                      <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT Bank Name
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            watch("neftBankName") || watch("bankName") || ""
-                          }
-                          placeholder="Bank Name"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT Account Number
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            watch("neftAccountNumber") ||
-                            watch("accountNumber") ||
-                            ""
-                          }
-                          placeholder="Account Number"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT IFSC Code
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            watch("neftIfscCode") || watch("ifscCode") || ""
-                          }
-                          placeholder="IFSC Code"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT Account Holder Name
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            watch("neftAccountHolderName") ||
-                            watch("accountHolderName") ||
-                            ""
-                          }
-                          placeholder="Account Holder Name"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT Bank Branch
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            watch("neftBankBranch") || watch("bankBranch") || ""
-                          }
-                          placeholder="Bank Branch"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          NEFT Submission Date
-                        </label>
-                        <input
-                          type="date"
-                          value={watch("neftSubmissionDate") || ""}
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
+                      {Boolean(watch("neftBankName") || watch("neftAccountNumber") || watch("neftIfscCode")) && (
+                        <>
+                          <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT Bank Name
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                watch("neftBankName") || ""
+                              }
+                              placeholder="Bank Name"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT Account Number
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                watch("neftAccountNumber") ||
+                                ""
+                              }
+                              placeholder="Account Number"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT IFSC Code
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                watch("neftIfscCode") || ""
+                              }
+                              placeholder="IFSC Code"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT Account Holder Name
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                watch("neftAccountHolderName") ||
+                                ""
+                              }
+                              placeholder="Account Holder Name"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT Bank Branch
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                watch("neftBankBranch") || ""
+                              }
+                              placeholder="Bank Branch"
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              NEFT Submission Date
+                            </label>
+                            <input
+                              type="date"
+                              value={watch("neftSubmissionDate") || ""}
+                              readOnly
+                              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1721,7 +1718,7 @@ export default function ViewLICPolicyPage() {
                           Notes
                         </label>
                         <textarea
-                          value={watch("notes") || ""}
+                          value={watch("otherInformation") || ""}
                           rows={4}
                           placeholder="Enter Notes..."
                           readOnly
@@ -1737,5 +1734,6 @@ export default function ViewLICPolicyPage() {
         </div>
       </div>
     </div>
+    </FormProvider>
   );
 }
