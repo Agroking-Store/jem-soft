@@ -73,13 +73,13 @@ export default function BankDetailsRecordsEditor({
     const newDetail: CustomerBankDetail = {
       id: editingIndex !== null ? bankDetails[editingIndex]?.id : undefined,
       isDefault: isDefault || bankDetails.length === 0,
-      bankName: bankName.trim() || null,
-      accountNumber: accountNumber.trim() || null,
-      accountType: accountType || null,
-      ifscCode: ifscCode.trim().toUpperCase() || null,
-      bankBranch: bankBranch.trim() || null,
-      city: city.trim() || null,
-      micrNumber: micrNumber.trim() || null,
+      bankName: bankName.trim() || "",
+      accountNumber: accountNumber.trim() || "",
+      accountType: accountType || "",
+      ifscCode: ifscCode.trim().toUpperCase() || "",
+      bankBranch: bankBranch.trim() || "",
+      city: city.trim() || "",
+      micrNumber: micrNumber.trim() || "",
     };
 
     let updated = [...bankDetails];
@@ -293,11 +293,10 @@ export default function BankDetailsRecordsEditor({
                       setMicrNumber(b.micrNumber || "");
                       setErrors({});
                     }}
-                    className={`transition-colors cursor-pointer ${
-                      isCurrentlyEditing
+                    className={`transition-colors cursor-pointer ${isCurrentlyEditing
                         ? "bg-[#1877F2]/15 hover:bg-[#1877F2]/10 font-semibold"
                         : "hover:bg-slate-50/40"
-                    }`}
+                      }`}
                     title="Click to edit this entry"
                   >
                     <td

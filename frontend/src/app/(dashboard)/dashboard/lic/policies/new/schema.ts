@@ -1,29 +1,30 @@
 import { z } from "zod";
 
 export const riderSchema = z.object({
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional().nullable(),
 
   sum: z.preprocess(
     (val) => (val === "" ? null : val),
-    z.coerce.number().positive("Must be positive").nullable(),
+    z.coerce.number().positive("Must be positive").nullable().optional(),
   ),
 
   term: z.preprocess(
     (val) => (val === "" ? null : val),
-    z.coerce.number().int().positive("Must be positive").nullable(),
+    z.coerce.number().int().positive("Must be positive").nullable().optional(),
   ),
 
   ppt: z.preprocess(
     (val) => (val === "" ? null : val),
-    z.coerce.number().int().positive("Must be positive").nullable(),
+    z.coerce.number().int().positive("Must be positive").nullable().optional(),
   ),
 
   premium: z.preprocess(
     (val) => (val === "" ? null : val),
-    z.coerce.number().positive("Must be positive").nullable(),
+    z.coerce.number().positive("Must be positive").nullable().optional(),
   ),
   mode: z.string().optional(),
   option: z.string().optional(),
+  selected: z.boolean().optional(),
 });
 
 export const nomineeSchema = z.object({

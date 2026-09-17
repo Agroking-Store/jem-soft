@@ -4,6 +4,7 @@ import { seedPremiumRates881 } from "./seedPremiumRates881";
 import { seedPremiumRates774 } from "./seedPremiumRates774";
 import { seedPremiumRates888 } from "./seedPremiumRates888";
 import { seedPremiumRates889 } from "./seedPremiumRates889";
+import { seedPremiumRates880 } from "./seedPremiumRates880";
 import { seedPlan912PremiumRates } from "./seedPremiumRate912";
 import { seedPremiumRates887 } from "./seedPremiumRates887";
 import { seedRiderPremium714 } from "./seedRider714Rates";
@@ -50,6 +51,7 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates774(prisma);
   await seedPremiumRates888(prisma);
   await seedPremiumRates889(prisma);
+  await seedPremiumRates880(prisma);
   await seedPlan912PremiumRates(prisma);
   await seedPremiumRates887(prisma);
   await seedRiderPremium714(prisma);

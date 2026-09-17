@@ -60,6 +60,9 @@ interface PolicyData {
   nominees?: NomineeData[];
   gender?: string;
   smoker?: boolean;
+  proposerId?: string;
+  spouseId?: string;
+  paymentMethod?: string;
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
@@ -110,8 +113,8 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   const status = statusId
     ? await prisma.policyStatusMaster.findUnique({ where: { id: statusId } })
     : await prisma.policyStatusMaster.findFirst({
-        where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
-      });
+      where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
+    });
 
   const premiumMode = await prisma.premiumModeMaster.findFirst({
     where: { modeName: { equals: data.mode, mode: "insensitive" } },
@@ -122,8 +125,10 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     where: { statusCode: { equals: "PAID" } },
   });
 
-  //Payment Mode By Default
+  const paymentMethodCode = data.paymentMethod || "CHQ";
   const paymentMode = await prisma.paymentModeMaster.findFirst({
+    where: { modeCode: { equals: paymentMethodCode } },
+  }) || await prisma.paymentModeMaster.findFirst({
     where: { modeCode: { equals: "CHQ" } },
   });
 
@@ -162,9 +167,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         agentCode: data.agentCode,
         branchId: data.branchId,
 
+        proposerId: data.proposerId || null,
+        spouseId: data.spouseId || null,
+
         statusId: status.id,
         premiumModeId: premiumMode.id,
-        paymentModeId: paymentMode?.id,
+        paymentModeId: paymentMode!.id,
 
         commencementDate: new Date(data.commencementDate),
         maturityDate: data.completionDate
@@ -180,15 +188,34 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     if (riders && riders.length > 0) {
       for (const riderData of riders) {
         const riderMaster = await tx.riderMaster.findFirst({
-          where: { riderName: riderData.description },
+          where: {
+            OR: [
+              { riderName: riderData.description },
+              { riderCode: riderData.description },
+              ...(riderData.description?.toLowerCase().includes("waiver") ||
+              riderData.description?.toLowerCase().includes("pwb")
+                ? [{ riderCode: "WOP" }]
+                : []),
+            ],
+          },
         });
         if (riderMaster) {
           await tx.policyRider.create({
             data: {
               policyId: newPolicy.id,
               riderId: riderMaster.id,
-              riderAmount: riderData.sum,
-              riderPremium: riderData.premium,
+              riderAmount:
+                riderData.sum !== null &&
+                riderData.sum !== undefined &&
+                !isNaN(Number(riderData.sum))
+                  ? Number(riderData.sum)
+                  : null,
+              riderPremium:
+                riderData.premium !== null &&
+                riderData.premium !== undefined &&
+                !isNaN(Number(riderData.premium))
+                  ? Number(riderData.premium)
+                  : null,
             },
           });
         }
@@ -365,119 +392,119 @@ export const getAllPolicies = async (
     AND: [
       normalizedSearch
         ? {
+          OR: [
+            {
+              policyNumber: {
+                contains: normalizedSearch,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              CustomerMaster: {
+                AND: customerNameConditions(normalizedSearch),
+              },
+            },
+            {
+              customer: {
+                OR: [
+                  {
+                    groupName: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    groupCode: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              product: {
+                OR: [
+                  {
+                    planNumber: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    productName: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              status: {
+                OR: [
+                  {
+                    statusName: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    statusCode: {
+                      contains: normalizedSearch,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }
+        : undefined,
+      normalizedHolderName
+        ? {
+          CustomerMaster: {
+            AND: customerNameConditions(normalizedHolderName),
+          },
+        }
+        : undefined,
+      normalizedPolicyNumber
+        ? {
+          policyNumber: {
+            contains: normalizedPolicyNumber,
+            mode: "insensitive" as const,
+          },
+        }
+        : undefined,
+      normalizedPlanName
+        ? {
+          product: {
             OR: [
               {
-                policyNumber: {
-                  contains: normalizedSearch,
+                productName: {
+                  contains: normalizedPlanName,
                   mode: "insensitive" as const,
                 },
               },
               {
-                CustomerMaster: {
-                  AND: customerNameConditions(normalizedSearch),
-                },
-              },
-              {
-                customer: {
-                  OR: [
-                    {
-                      groupName: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                    {
-                      groupCode: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                product: {
-                  OR: [
-                    {
-                      planNumber: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                    {
-                      productName: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                status: {
-                  OR: [
-                    {
-                      statusName: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                    {
-                      statusCode: {
-                        contains: normalizedSearch,
-                        mode: "insensitive" as const,
-                      },
-                    },
-                  ],
+                planNumber: {
+                  contains: normalizedPlanName,
+                  mode: "insensitive" as const,
                 },
               },
             ],
-          }
-        : undefined,
-      normalizedHolderName
-        ? {
-            CustomerMaster: {
-              AND: customerNameConditions(normalizedHolderName),
-            },
-          }
-        : undefined,
-      normalizedPolicyNumber
-        ? {
-            policyNumber: {
-              contains: normalizedPolicyNumber,
-              mode: "insensitive" as const,
-            },
-          }
-        : undefined,
-      normalizedPlanName
-        ? {
-            product: {
-              OR: [
-                {
-                  productName: {
-                    contains: normalizedPlanName,
-                    mode: "insensitive" as const,
-                  },
-                },
-                {
-                  planNumber: {
-                    contains: normalizedPlanName,
-                    mode: "insensitive" as const,
-                  },
-                },
-              ],
-            },
-          }
+          },
+        }
         : undefined,
       normalizedGroupCode
         ? {
-            customer: {
-              groupCode: {
-                contains: normalizedGroupCode,
-                mode: "insensitive" as const,
-              },
+          customer: {
+            groupCode: {
+              contains: normalizedGroupCode,
+              mode: "insensitive" as const,
             },
-          }
+          },
+        }
         : undefined,
       numericPremium !== undefined && Number.isFinite(numericPremium)
         ? { premium: { installmentPremium: numericPremium } }
@@ -487,27 +514,27 @@ export const getAllPolicies = async (
         : undefined,
       dueDateStart && dueDateEnd && !Number.isNaN(dueDateStart.getTime())
         ? {
-            nextPremiumDueDate: {
-              gte: dueDateStart,
-              lt: dueDateEnd,
-            },
-          }
+          nextPremiumDueDate: {
+            gte: dueDateStart,
+            lt: dueDateEnd,
+          },
+        }
         : undefined,
       status
         ? {
-            status: {
-              statusName: {
-                equals: status,
-                mode: "insensitive" as const,
-              },
+          status: {
+            statusName: {
+              equals: status,
+              mode: "insensitive" as const,
             },
-          }
+          },
+        }
         : undefined,
     ].filter(Boolean),
   };
 
   return prisma.policy.findMany({
-    where,
+    where: where as any,
     include: {
       CustomerMaster: {
         include: {
@@ -528,6 +555,7 @@ export const getAllPolicies = async (
       product: true,
       status: true,
       premiumMode: true,
+      paymentMode: true,
       premium: true,
       branch: true,
       advisor: {
@@ -546,7 +574,7 @@ export const getAllPolicies = async (
           attribute: true,
         },
       },
-      policyRiders : true,
+      policyRiders: true,
     },
     orderBy: { commencementDate: "desc" },
   });
@@ -690,6 +718,7 @@ export const getPolicyById = async (id: string): Promise<any> => {
       product: true,
       status: true,
       premiumMode: true,
+      paymentMode: true,
       premium: true,
       branch: true,
       advisor: {
@@ -779,7 +808,17 @@ export const updatePolicy = async (
         agentCode: data.agentCode,
         branchId: data.branchId || null,
 
+        proposerId: data.proposerId || null,
+        spouseId: data.spouseId || null,
+
         premiumModeId: premiumMode.id,
+        paymentModeId: (
+          await tx.paymentModeMaster.findFirst({
+            where: { modeCode: { equals: data.paymentMethod || "CHQ" } },
+          }) || await tx.paymentModeMaster.findFirst({
+            where: { modeCode: { equals: "CHQ" } },
+          })
+        )!.id,
 
         commencementDate: new Date(data.commencementDate),
 
@@ -809,7 +848,14 @@ export const updatePolicy = async (
       for (const riderData of riders) {
         const riderMaster = await tx.riderMaster.findFirst({
           where: {
-            riderName: riderData.description,
+            OR: [
+              { riderName: riderData.description },
+              { riderCode: riderData.description },
+              ...(riderData.description?.toLowerCase().includes("waiver") ||
+              riderData.description?.toLowerCase().includes("pwb")
+                ? [{ riderCode: "WOP" }]
+                : []),
+            ],
           },
         });
 
@@ -818,8 +864,18 @@ export const updatePolicy = async (
             data: {
               policyId: id,
               riderId: riderMaster.id,
-              riderAmount: riderData.sum,
-              riderPremium: riderData.premium,
+              riderAmount:
+                riderData.sum !== null &&
+                riderData.sum !== undefined &&
+                !isNaN(Number(riderData.sum))
+                  ? Number(riderData.sum)
+                  : null,
+              riderPremium:
+                riderData.premium !== null &&
+                riderData.premium !== undefined &&
+                !isNaN(Number(riderData.premium))
+                  ? Number(riderData.premium)
+                  : null,
             },
           });
         }
