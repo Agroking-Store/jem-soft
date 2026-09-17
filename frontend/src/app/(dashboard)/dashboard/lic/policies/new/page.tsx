@@ -428,12 +428,31 @@ export default function NewLICPolicyPage() {
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
 
-    // Auto-fill bank details from the selected customer's default bank account
-    if (member && member.bankDetails && member.bankDetails.length > 0) {
+    if (member) {
+      let targetMember = member;
+      if (watchProposerId) {
+        const proposer = masterCustomers.find((m) => m.id === watchProposerId);
+        if (proposer) targetMember = proposer;
+      }
+      setValue("accountHolderName", getFullName(targetMember));
+      setValue("neftAccountHolderName", getFullName(targetMember));
+    } else {
+      setValue("accountHolderName", "");
+      setValue("neftAccountHolderName", "");
+    }
+  }, [watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, setValue]);
+
+  useEffect(() => {
+    let member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (watchProposerId) {
+      const proposer = masterCustomers.find((m) => m.id === watchProposerId);
+      if (proposer) member = proposer;
+    }
+
+    if (useNach && member) {
       const defaultBank =
-        member.bankDetails.find((b) => b.isDefault) || member.bankDetails[0];
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
       if (defaultBank) {
-        // NACH fields
         setValue("bankName", defaultBank.bankName || "");
         setValue("bankBranch", defaultBank.bankBranch || "");
         setValue("city", defaultBank.city || "");
@@ -441,36 +460,30 @@ export default function NewLICPolicyPage() {
         setValue("accountNumber", defaultBank.accountNumber || "");
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(member));
+      }
+    }
+  }, [useNach, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, setValue]);
 
-        // NEFT fields
+  useEffect(() => {
+    let member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (watchProposerId) {
+      const proposer = masterCustomers.find((m) => m.id === watchProposerId);
+      if (proposer) member = proposer;
+    }
+
+    if (useNeft && member) {
+      const defaultBank =
+        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+      if (defaultBank) {
         setValue("neftBankName", defaultBank.bankName || "");
         setValue("neftBankBranch", defaultBank.bankBranch || "");
         setValue("neftAccountNumber", defaultBank.accountNumber || "");
         setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(member));
       }
-    } else {
-      // Clear all bank fields if no bank details exist
-      setValue("bankName", "");
-      setValue("bankBranch", "");
-      setValue("city", "");
-      setValue("accountType", "");
-      setValue("accountNumber", "");
-      setValue("ifscCode", "");
-      setValue("micrNumber", "");
-      setValue("neftBankName", "");
-      setValue("neftBankBranch", "");
-      setValue("neftAccountNumber", "");
-      setValue("neftIfscCode", "");
     }
-
-    if (member) {
-      setValue("accountHolderName", getFullName(member));
-      setValue("neftAccountHolderName", getFullName(member));
-    } else {
-      setValue("accountHolderName", "");
-      setValue("neftAccountHolderName", "");
-    }
-  }, [watchLifeAssuredId, masterCustomers, setValue]);
+  }, [useNeft, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, setValue]);
 
   useEffect(() => {
     const spouse = masterCustomers.find((m) => m.id === watchSpouseId);
@@ -508,40 +521,7 @@ export default function NewLICPolicyPage() {
     }
   }, [watchProposerId, masterCustomers, setValue]);
 
-  useEffect(() => {
-    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    if (useNach && member) {
-      const defaultBank =
-        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
-      if (defaultBank) {
-        setValue("bankName", defaultBank.bankName || "");
-        setValue("bankBranch", defaultBank.bankBranch || "");
-        setValue("city", defaultBank.city || "");
-        setValue("accountType", defaultBank.accountType || "");
-        setValue("accountNumber", defaultBank.accountNumber || "");
-        setValue("ifscCode", defaultBank.ifscCode || "");
-        setValue("micrNumber", defaultBank.micrNumber || "");
-        setValue("accountHolderName", getFullName(member));
-      }
-    }
-    // Do NOT clear fields when NACH is unchecked - user may have edited them manually
-  }, [useNach, watchLifeAssuredId, masterCustomers, setValue]);
 
-  useEffect(() => {
-    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    if (useNeft && member) {
-      const defaultBank =
-        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
-      if (defaultBank) {
-        setValue("neftBankName", defaultBank.bankName || "");
-        setValue("neftBankBranch", defaultBank.bankBranch || "");
-        setValue("neftAccountNumber", defaultBank.accountNumber || "");
-        setValue("neftIfscCode", defaultBank.ifscCode || "");
-        setValue("neftAccountHolderName", getFullName(member));
-      }
-    }
-    // Do NOT clear fields when NEFT is unchecked - user may have edited them manually
-  }, [useNeft, watchLifeAssuredId, masterCustomers, setValue]);
 
   const productOptions = useMemo(() => {
     const filteredProducts = [...products].filter((product) => {
@@ -640,10 +620,10 @@ export default function NewLICPolicyPage() {
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
   const ridersPreviewKey = Array.isArray(watchRiders)
-    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.option}`).join('|')
+    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.premium}-${r.option}-${r.selected}`).join('|')
     : "";
 
-  // Auto-fill Term Rider and CIR fields
+  // Auto-fill Term Rider and CIR fields, and Plan 774 defaults
   useEffect(() => {
     if (Array.isArray(watchRiders)) {
       const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
@@ -651,6 +631,23 @@ export default function NewLICPolicyPage() {
 
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
+
+        if (selectedPlan === "774") {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (r.selected && (r.term == null || r.ppt == null || r.sum == null)) {
+            updateRider(index, {
+              ...r,
+              sum: r.sum != null ? r.sum : expectedSum,
+              term: r.term != null ? r.term : expectedTerm,
+              ppt: r.ppt != null ? r.ppt : expectedPpt,
+            });
+          }
+          return;
+        }
+
         if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
           let expectedTerm = watchTerm ? Number(watchTerm) : null;
@@ -707,84 +704,105 @@ export default function NewLICPolicyPage() {
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
-    if (Array.isArray(watchRiders) && watchProductId && watchAge && watchMode) {
-      const controller = new AbortController();
-      const timeoutId = window.setTimeout(async () => {
-        let totalInstallmentRiderPremium = 0;
+    if (Array.isArray(watchRiders)) {
+      const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
 
-        const updatedRiders = await Promise.all(
-          watchRiders.map(async (rider, index) => {
-            const sum = parseFloat(String(rider.sum)) || 0;
-            const term = parseFloat(String(rider.term)) || 0;
-            const ppt = parseFloat(String(rider.ppt)) || 0;
-            const mode = watchMode;
-            const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
-            const riderId = riderRecord?.id;
-            const currentPremium = parseFloat(String(rider.premium)) || 0;
-
-            if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
-              try {
-                const response = await axios.post(
-                  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/rider-premium-preview`,
-                  {
-                    riderId,
-                    age: watchAge,
-                    riderTerm: term,
-                    premiumPayingTerm: ppt,
-                    sumAssured: sum,
-                    premiumMode: mode,
-                    productId: watchProductId,
-                    option: rider.option,
-                    gender: watchGender
-                  },
-                  {
-                    signal: controller.signal,
-                    headers: {
-                      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-                    },
-                  }
-                );
-                const finalRiderPremium = response.data?.data?.premium || 0;
-                if (response.data?.data?.rate) {
-                  console.log(`Rider Premium Rate for index ${index}:`, response.data.data.rate);
-                }
-                return { index, newPremium: finalRiderPremium, currentPremium, isValid: true };
-              } catch (error) {
-                if (!axios.isCancel(error)) {
-                  console.error("Failed to fetch rider premium preview", error);
-                }
-                return { index, newPremium: 0, currentPremium, isValid: true };
-              }
-            }
-            return { index, newPremium: 0, currentPremium, isValid: true };
-          })
-        );
-
-        updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
-          totalInstallmentRiderPremium += newPremium;
-          if (isValid && newPremium !== currentPremium) {
-            updateRider(index, {
-              ...watchRiders[index],
-              premium: newPremium
-            });
+      if (selectedPlan === "774") {
+        let totalManualRiderPremium = 0;
+        watchRiders.forEach((rider: any) => {
+          if (rider?.selected) {
+            totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
           }
         });
-
         setValue(
           "totalRiderPremium",
-          totalInstallmentRiderPremium > 0
-            ? totalInstallmentRiderPremium
-            : undefined,
+          totalManualRiderPremium > 0 ? totalManualRiderPremium : undefined,
+          { shouldValidate: true, shouldDirty: true }
         );
+        return;
+      }
 
-      }, 300);
+      if (watchProductId && watchAge && watchMode) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(async () => {
+          let totalInstallmentRiderPremium = 0;
 
-      return () => {
-        controller.abort();
-        clearTimeout(timeoutId);
-      };
+          const updatedRiders = await Promise.all(
+            watchRiders.map(async (rider, index) => {
+              const sum = parseFloat(String(rider.sum)) || 0;
+              const term = parseFloat(String(rider.term)) || 0;
+              const ppt = parseFloat(String(rider.ppt)) || 0;
+              const mode = watchMode;
+              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
+              const riderId = riderRecord?.id;
+              const currentPremium = parseFloat(String(rider.premium)) || 0;
+
+              if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
+                try {
+                  const response = await axios.post(
+                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/rider-premium-preview`,
+                    {
+                      riderId,
+                      age: watchAge,
+                      riderTerm: term,
+                      premiumPayingTerm: ppt,
+                      sumAssured: sum,
+                      premiumMode: mode,
+                      productId: watchProductId,
+                      option: rider.option,
+                      gender: watchGender
+                    },
+                    {
+                      signal: controller.signal,
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                      },
+                    }
+                  );
+                  const finalRiderPremium = response.data?.data?.premium || 0;
+                  if (response.data?.data?.rate) {
+                    console.log(`Rider Premium Rate for index ${index}:`, response.data.data.rate);
+                  }
+                  return { index, newPremium: finalRiderPremium, currentPremium, isValid: true };
+                } catch (error) {
+                  if (!axios.isCancel(error)) {
+                    console.error("Failed to fetch rider premium preview", error);
+                  }
+                  return { index, newPremium: 0, currentPremium, isValid: true };
+                }
+              }
+              return { index, newPremium: 0, currentPremium, isValid: true };
+            })
+          );
+
+          updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
+            if (watchRiders[index]?.selected) {
+              totalInstallmentRiderPremium += newPremium;
+            }
+            if (isValid && newPremium !== currentPremium) {
+              updateRider(index, {
+                ...watchRiders[index],
+                premium: newPremium
+              });
+            }
+          });
+
+          setValue(
+            "totalRiderPremium",
+            totalInstallmentRiderPremium > 0
+              ? totalInstallmentRiderPremium
+              : undefined,
+          );
+
+        }, 300);
+
+        return () => {
+          controller.abort();
+          clearTimeout(timeoutId);
+        };
+      }
     }
-  }, [ridersPreviewKey, watchProductId, watchAge, watchMode, riders, setValue]);
+  }, [ridersPreviewKey, watchProductId, watchAge, watchMode, riders, setValue, products]);
 
   // Auto-calculate Completion Date
   useEffect(() => {
@@ -949,7 +967,7 @@ export default function NewLICPolicyPage() {
   useEffect(() => {
     if (!selectedProduct) return;
 
-    if (["771", "745", "883", "887"].includes(selectedProduct.planNumber) && watchAge) {
+    if (["771", "745", "883", "887"].includes(selectedProduct.planNumber ?? "") && watchAge) {
       setValue("term", String(100 - Number(watchAge)) as any, {
         shouldValidate: true,
         shouldDirty: true,
@@ -969,35 +987,53 @@ export default function NewLICPolicyPage() {
           ppt: null,
           premium: null,
           mode: "",
+          selected: false,
         }));
         replaceRiders(newRiders);
       } else {
-        // Fallback: If DB hasn't mapped riders to this product yet, show Term Rider by default
+        // Fallback: If DB hasn't mapped riders to this product yet, show appropriate default riders
         const termRider = riders.find((r) => r.riderName.toLowerCase().includes("term"));
         const cirRider = riders.find((r) => r.riderName.toLowerCase().includes("critical illness") || r.riderName.toLowerCase().includes("cir"));
+        const wopRider = riders.find((r) => r.riderCode === "WOP" || r.riderCode === "PWB" || r.riderName.toLowerCase().includes("waiver") || r.riderName.toLowerCase().includes("pwb"));
 
         const defaultRiders = [];
 
-        if (termRider) {
-          defaultRiders.push({
-            description: termRider.riderName,
-            sum: null,
-            term: null,
-            ppt: null,
-            premium: null,
-            mode: "",
-          });
-        }
+        if (selectedProduct.planNumber === "774") {
+          if (wopRider) {
+            defaultRiders.push({
+              description: wopRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+              selected: false,
+            });
+          }
+        } else {
+          if (termRider) {
+            defaultRiders.push({
+              description: termRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+              selected: false,
+            });
+          }
 
-        if ((selectedProduct.planNumber === "714" || selectedProduct.planNumber === "715" || selectedProduct.planNumber === "889") && cirRider) {
-          defaultRiders.push({
-            description: cirRider.riderName,
-            sum: null,
-            term: null,
-            ppt: null,
-            premium: null,
-            mode: "",
-          });
+          if ((selectedProduct.planNumber === "714" || selectedProduct.planNumber === "715" || selectedProduct.planNumber === "889") && cirRider) {
+            defaultRiders.push({
+              description: cirRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+              selected: false,
+            });
+          }
         }
 
         replaceRiders(defaultRiders);
@@ -1090,7 +1126,7 @@ export default function NewLICPolicyPage() {
             const product = products.find((p) => p.id === watchProductId);
             if (!["771", "745", "883", "887"].includes(product?.planNumber ?? "")) {
               const minTerm = Math.min(...response.data.data.terms);
-              setValue("term", String(minTerm), { shouldValidate: true, shouldDirty: true });
+              setValue("term", minTerm as any, { shouldValidate: true, shouldDirty: true });
             }
           }
         }
@@ -1129,6 +1165,8 @@ export default function NewLICPolicyPage() {
 
       const payload = {
         ...data,
+        paymentMethod: useNach ? "NACH" : useNeft ? "NEFT" : "CHQ",
+        riders: data.riders?.filter(r => r.selected) || [],
         spouseAge:
           selectedProduct?.planNumber === "774"
             ? normalizeNumber(data.proposerAge)
@@ -1664,7 +1702,7 @@ export default function NewLICPolicyPage() {
                           </div>
                         </>
                       )}
-                    {selectedProduct?.planNumber === "774" && (
+                    {(selectedProduct?.planNumber === "774" || (watchAge && parseFloat(String(watchAge)) < 18)) && (
                       <>
                         <div>
                           <Controller
@@ -1718,10 +1756,13 @@ export default function NewLICPolicyPage() {
                             </p>
                           )}
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Option <span className="text-red-500">*</span>
-                          </label>
+                      </>
+                    )}
+                    {selectedProduct?.planNumber === "774" && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Option <span className="text-red-500">*</span>
+                        </label>
                           <select
                             {...register("option")}
                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
@@ -1745,7 +1786,6 @@ export default function NewLICPolicyPage() {
                             </p>
                           )}
                         </div>
-                      </>
                     )}
                   </div>
                 </CustomerSectionCard>
@@ -1767,6 +1807,7 @@ export default function NewLICPolicyPage() {
                           term: null,
                           ppt: null,
                           premium: null,
+                          selected: true,
                         })
                       }
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
@@ -1780,6 +1821,19 @@ export default function NewLICPolicyPage() {
                     <table className="w-full">
                       <thead className="bg-slate-50">
                         <tr>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase w-12">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                riderFields.forEach((_, idx) => {
+                                  setValue(`riders.${idx}.selected`, checked, { shouldValidate: true, shouldDirty: true });
+                                });
+                              }}
+                              checked={riderFields.length > 0 && riderFields.every((_, idx) => watchRiders?.[idx]?.selected)}
+                            />
+                          </th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
                             Rider Description
                           </th>
@@ -1812,11 +1866,19 @@ export default function NewLICPolicyPage() {
                           </tr>
                         ) : (
                           riderFields.map((field, index) => (
-                            <tr key={field.id}>
+                            <tr key={field.id} className={watchRiders?.[index]?.selected ? "bg-white" : "bg-slate-50"}>
+                              <td className="px-4 py-1.5 text-center">
+                                <input
+                                  type="checkbox"
+                                  {...register(`riders.${index}.selected`)}
+                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                />
+                              </td>
                               <td className="px-2 py-1.5 w-1/3">
                                 <select
                                   {...register(`riders.${index}.description`)}
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 >
                                   <option value="">Select Rider</option>
                                   {riders.map((rider) => (
@@ -1842,7 +1904,8 @@ export default function NewLICPolicyPage() {
                                   type="text"
                                   {...register(`riders.${index}.sum`)}
                                   placeholder="Sum"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 />
                                 {errors.riders?.[index]?.sum && (
                                   <p className="text-xs text-red-500 mt-1">
@@ -1855,7 +1918,8 @@ export default function NewLICPolicyPage() {
                                   type="text"
                                   {...register(`riders.${index}.term`)}
                                   placeholder="Term"
-                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 />
                                 {errors.riders?.[index]?.term && (
                                   <p className="text-xs text-red-500 mt-1">
@@ -1869,7 +1933,8 @@ export default function NewLICPolicyPage() {
                                   type="text"
                                   {...register(`riders.${index}.ppt`)}
                                   placeholder="PPT"
-                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 />
                                 {errors.riders?.[index]?.ppt && (
                                   <p className="text-xs text-red-500 mt-1">
@@ -1882,8 +1947,13 @@ export default function NewLICPolicyPage() {
                                   type="text"
                                   {...register(`riders.${index}.premium`)}
                                   placeholder="Premium"
-                                  readOnly
-                                  className="w-20 text-sm border-slate-200 rounded-md bg-slate-50 cursor-not-allowed focus:outline-none"
+                                  readOnly={selectedProduct?.planNumber !== "774"}
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className={`w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${
+                                    selectedProduct?.planNumber !== "774"
+                                      ? "bg-slate-50 cursor-not-allowed text-slate-500"
+                                      : "bg-white text-slate-800"
+                                  } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
                                 />
                               </td>
                               <td className="px-2 py-1.5 text-center">
@@ -2159,123 +2229,120 @@ export default function NewLICPolicyPage() {
                               id="useNachCheckbox"
                               type="checkbox"
                               checked={useNach}
-                              onChange={(e) => setUseNach(e.target.checked)}
+                              onChange={(e) => {
+                                setUseNach(e.target.checked);
+                                if (e.target.checked) setUseNeft(false);
+                              }}
                               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                             />
                             <label
                               htmlFor="useNachCheckbox"
                               className="text-sm font-medium text-slate-700 cursor-pointer"
                             >
-                              Premiums will be paid through NACH
+                              NACH Details
                             </label>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Bank Name"
-                              {...register("bankName")}
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Number
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Account Number"
-                              {...register("accountNumber")}
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              IFSC Code
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="IFSC Code"
-                              {...register("ifscCode")}
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Account Holder Name"
-                              {...register("accountHolderName")}
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Branch
-                            </label>
-                            <input
-                              {...register("bankBranch")}
-                              type="text"
-                              placeholder="Bank Branch"
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              City
-                            </label>
-                            <input
-                              {...register("city")}
-                              type="text"
-                              placeholder="City"
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Type
-                            </label>
-                            <input
-                              {...register("accountType")}
-                              placeholder="Account Type"
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="bolck text-sm font-medium mb-2">
-                              Debt Date
-                            </label>
-                            <input
-                              value={watchFupDate || ""}
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              MICR Number
-                            </label>
-                            <input
-                              {...register("micrNumber")}
-                              type="text"
-                              placeholder="MICR Number"
-                              readOnly={!useNach}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNach ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
+                          {useNach && (
+                            <>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Bank Name
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Bank Name"
+                                  {...register("bankName")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Account Number
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Account Number"
+                                  {...register("accountNumber")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  IFSC Code
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="IFSC Code"
+                                  {...register("ifscCode")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Account Holder Name
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Account Holder Name"
+                                  {...register("accountHolderName")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Bank Branch
+                                </label>
+                                <input
+                                  {...register("bankBranch")}
+                                  type="text"
+                                  placeholder="Bank Branch"
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  City
+                                </label>
+                                <input
+                                  {...register("city")}
+                                  type="text"
+                                  placeholder="City"
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Account Type
+                                </label>
+                                <input
+                                  {...register("accountType")}
+                                  placeholder="Account Type"
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="bolck text-sm font-medium mb-2">
+                                  Debt Date
+                                </label>
+                                <input
+                                  value={watchFupDate || ""}
+                                  readOnly
+                                  className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  MICR Number
+                                </label>
+                                <input
+                                  {...register("micrNumber")}
+                                  type="text"
+                                  placeholder="MICR Number"
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                            </>
+                          )}
 
                           {/* NEFT Section */}
                           <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
@@ -2285,101 +2352,102 @@ export default function NewLICPolicyPage() {
                               id="useNeftCheckbox"
                               type="checkbox"
                               checked={useNeft}
-                              onChange={(e) => setUseNeft(e.target.checked)}
+                              onChange={(e) => {
+                                setUseNeft(e.target.checked);
+                                if (e.target.checked) setUseNach(false);
+                              }}
                               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                             />
                             <label
                               htmlFor="useNeftCheckbox"
                               className="text-sm font-medium text-slate-700 cursor-pointer"
                             >
-                              NEFT details are available
+                              NEFT Details
                             </label>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Bank Name"
-                              {...register("neftBankName")}
-                              readOnly={!useNeft}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Number
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Account Number"
-                              {...register("neftAccountNumber")}
-                              readOnly={!useNeft}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              IFSC Code
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="IFSC Code"
-                              {...register("neftIfscCode")}
-                              readOnly={!useNeft}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Account Holder Name"
-                              {...register("neftAccountHolderName")}
-                              readOnly={!useNeft}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Branch
-                            </label>
-                            <input
-                              {...register("neftBankBranch")}
-                              type="text"
-                              placeholder="Bank Branch"
-                              readOnly={!useNeft}
-                              className={`w-full rounded-lg border border-slate-300 px-3 py-2.5 ${!useNeft ? "bg-slate-100 text-slate-500 cursor-not-allowed" : "bg-white"}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Submission Date
-                            </label>
-                            <Controller
-                              control={control}
-                              name="neftSubmissionDate"
-                              render={({ field }) => (
-                                <DatePicker
-                                  value={
-                                    field.value
-                                      ? new Date(field.value)
-                                      : undefined
-                                  }
-                                  onChange={(date) =>
-                                    field.onChange(
-                                      date ? format(date, "yyyy-MM-dd") : "",
-                                    )
-                                  }
-                                  readOnly={!useNeft}
+                          {useNeft && (
+                            <>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Bank Name
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Bank Name"
+                                  {...register("neftBankName")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
                                 />
-                              )}
-                            />
-                          </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Account Number
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Account Number"
+                                  {...register("neftAccountNumber")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  IFSC Code
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="IFSC Code"
+                                  {...register("neftIfscCode")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Account Holder Name
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Account Holder Name"
+                                  {...register("neftAccountHolderName")}
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Bank Branch
+                                </label>
+                                <input
+                                  {...register("neftBankBranch")}
+                                  type="text"
+                                  placeholder="Bank Branch"
+                                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-2">
+                                  Submission Date
+                                </label>
+                                <Controller
+                                  control={control}
+                                  name="neftSubmissionDate"
+                                  render={({ field }) => (
+                                    <DatePicker
+                                      value={
+                                        field.value
+                                          ? new Date(field.value)
+                                          : undefined
+                                      }
+                                      onChange={(date) =>
+                                        field.onChange(
+                                          date ? format(date, "yyyy-MM-dd") : "",
+                                        )
+                                      }
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2395,7 +2463,11 @@ export default function NewLICPolicyPage() {
                       </h3>
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          if (watchAge && Number(watchAge) < 18) {
+                            toast.error("Insurer age is under 18. Nominee cannot be added.");
+                            return;
+                          }
                           appendNominee({
                             nomineeName: "",
                             relationship: "",
@@ -2403,8 +2475,8 @@ export default function NewLICPolicyPage() {
                             percentage: null,
                             phone: "",
                             email: "",
-                          })
-                        }
+                          });
+                        }}
                         className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                       >
                         <Plus size={16} />
@@ -2419,9 +2491,10 @@ export default function NewLICPolicyPage() {
                       ) : (
                         <div className="space-y-4">
                           {nomineeFields.map((field, index) => (
-                            <div
+                            <fieldset
                               key={field.id}
-                              className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
+                              disabled={Boolean(watchAge && Number(watchAge) < 18)}
+                              className="border border-slate-200 rounded-lg p-4 space-y-3 relative disabled:opacity-60"
                             >
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -2542,7 +2615,7 @@ export default function NewLICPolicyPage() {
                               >
                                 <Trash2 size={14} />
                               </button>
-                            </div>
+                            </fieldset>
                           ))}
                         </div>
                       )}
