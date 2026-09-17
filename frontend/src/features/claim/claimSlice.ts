@@ -103,6 +103,7 @@ export interface ClaimCalculation {
     surrenderValue: number;
     basicPremium: number;
     numberOfPremiumsPaid: number;
+    totalPaidPremium?: number;
     gsvPercentage: number;
     ssvPercentage: number;
   } | null;
