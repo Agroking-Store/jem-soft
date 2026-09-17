@@ -4,7 +4,7 @@ import { getReminderSettings, sendPolicyDueReminder } from "./communicationServi
 import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
 import { renderTemplateText, seedDefaultTemplates } from "./templateService.js";
-import { CommunicationChannel } from "@prisma/client";
+import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
 
 /**
  * Scan all policies and trigger due date reminders and birthday wishes
@@ -223,51 +223,73 @@ export const runSchedulerScan = async () => {
             templateVars
           );
 
-          if (allowsWhatsapp && phone) {
-            const waRes = await sendWhatsapp({
-              recipientPhone: phone,
-              message: messageText,
-            });
-            await prisma.communicationLog.create({
-              data: {
-                customerId: cm.id,
-                customerName,
-                channel: CommunicationChannel.WHATSAPP,
-                recipient: phone,
-                content: messageText,
-                status: waRes.status,
-                errorMessage: waRes.errorMessage,
-                triggerType: "AUTOMATED_CRON",
-                metadata: JSON.stringify({ event: "BIRTHDAY" }),
-              },
-            });
-          }
+          // Duplicate check: Don't re-send if already SENT today
+          const alreadySentBirthday = await prisma.communicationLog.findFirst({
+            where: {
+              customerId: cm.id,
+              status: DeliveryStatus.SENT,
+              createdAt: { gte: today },
+              metadata: { contains: "BIRTHDAY" },
+            },
+          });
 
-          if (allowsEmail && email) {
-            const emailRes = await sendEmail({
-              to: email,
-              subject: emailSubject,
-              html: emailHtml,
-              text: messageText,
-            });
-            await prisma.communicationLog.create({
-              data: {
-                customerId: cm.id,
-                customerName,
-                channel: CommunicationChannel.EMAIL,
-                recipient: email,
-                subject: emailSubject,
-                content: emailHtml,
-                status: emailRes.status,
-                errorMessage: emailRes.errorMessage,
-                triggerType: "AUTOMATED_CRON",
-                metadata: JSON.stringify({ event: "BIRTHDAY" }),
-              },
-            });
-          }
+          if (!alreadySentBirthday) {
+            if (allowsWhatsapp && phone) {
+              try {
+                const waRes = await sendWhatsapp({
+                  recipientPhone: phone,
+                  message: messageText,
+                });
+                const waStatus = waRes?.status || DeliveryStatus.FAILED;
+                await prisma.communicationLog.create({
+                  data: {
+                    customerId: cm.id,
+                    customerName,
+                    channel: CommunicationChannel.WHATSAPP,
+                    recipient: phone,
+                    content: messageText,
+                    status: waStatus,
+                    errorMessage: waRes?.errorMessage || null,
+                    triggerType: "AUTOMATED_CRON",
+                    metadata: JSON.stringify({ event: "BIRTHDAY" }),
+                  },
+                });
+              } catch (waErr: any) {
+                console.error(`❌ [SCHEDULER] WhatsApp birthday error for ${customerName}:`, waErr.message);
+              }
+            }
 
-          birthdaysDispatched++;
-          console.log(`🎂 [SCHEDULER] Dispatched birthday wishes to ${customerName}`);
+            if (allowsEmail && email) {
+              try {
+                const emailRes = await sendEmail({
+                  to: email,
+                  subject: emailSubject,
+                  html: emailHtml,
+                  text: messageText,
+                });
+                const emStatus = emailRes?.status || DeliveryStatus.FAILED;
+                await prisma.communicationLog.create({
+                  data: {
+                    customerId: cm.id,
+                    customerName,
+                    channel: CommunicationChannel.EMAIL,
+                    recipient: email,
+                    subject: emailSubject,
+                    content: emailHtml,
+                    status: emStatus,
+                    errorMessage: emailRes?.errorMessage || null,
+                    triggerType: "AUTOMATED_CRON",
+                    metadata: JSON.stringify({ event: "BIRTHDAY" }),
+                  },
+                });
+              } catch (emErr: any) {
+                console.error(`❌ [SCHEDULER] Email birthday error for ${customerName}:`, emErr.message);
+              }
+            }
+
+            birthdaysDispatched++;
+            console.log(`🎂 [SCHEDULER] Dispatched birthday wishes to ${customerName}`);
+          }
         } catch (err: any) {
           console.error(`❌ [SCHEDULER] Error sending birthday wish to ${customerName}:`, err.message);
         }
@@ -308,51 +330,73 @@ export const runSchedulerScan = async () => {
             templateVars
           );
 
-          if (allowsWhatsapp && phone) {
-            const waRes = await sendWhatsapp({
-              recipientPhone: phone,
-              message: messageText,
-            });
-            await prisma.communicationLog.create({
-              data: {
-                customerId: cm.id,
-                customerName,
-                channel: CommunicationChannel.WHATSAPP,
-                recipient: phone,
-                content: messageText,
-                status: waRes.status,
-                errorMessage: waRes.errorMessage,
-                triggerType: "AUTOMATED_CRON",
-                metadata: JSON.stringify({ event: "ANNIVERSARY" }),
-              },
-            });
-          }
+          // Duplicate check: Don't re-send if already SENT today
+          const alreadySentAnniv = await prisma.communicationLog.findFirst({
+            where: {
+              customerId: cm.id,
+              status: DeliveryStatus.SENT,
+              createdAt: { gte: today },
+              metadata: { contains: "ANNIVERSARY" },
+            },
+          });
 
-          if (allowsEmail && email) {
-            const emailRes = await sendEmail({
-              to: email,
-              subject: emailSubject,
-              html: emailHtml,
-              text: messageText,
-            });
-            await prisma.communicationLog.create({
-              data: {
-                customerId: cm.id,
-                customerName,
-                channel: CommunicationChannel.EMAIL,
-                recipient: email,
-                subject: emailSubject,
-                content: emailHtml,
-                status: emailRes.status,
-                errorMessage: emailRes.errorMessage,
-                triggerType: "AUTOMATED_CRON",
-                metadata: JSON.stringify({ event: "ANNIVERSARY" }),
-              },
-            });
-          }
+          if (!alreadySentAnniv) {
+            if (allowsWhatsapp && phone) {
+              try {
+                const waRes = await sendWhatsapp({
+                  recipientPhone: phone,
+                  message: messageText,
+                });
+                const waStatus = waRes?.status || DeliveryStatus.FAILED;
+                await prisma.communicationLog.create({
+                  data: {
+                    customerId: cm.id,
+                    customerName,
+                    channel: CommunicationChannel.WHATSAPP,
+                    recipient: phone,
+                    content: messageText,
+                    status: waStatus,
+                    errorMessage: waRes?.errorMessage || null,
+                    triggerType: "AUTOMATED_CRON",
+                    metadata: JSON.stringify({ event: "ANNIVERSARY" }),
+                  },
+                });
+              } catch (waErr: any) {
+                console.error(`❌ [SCHEDULER] WhatsApp anniversary error for ${customerName}:`, waErr.message);
+              }
+            }
 
-          anniversariesDispatched++;
-          console.log(`💐 [SCHEDULER] Dispatched anniversary wishes to ${customerName}`);
+            if (allowsEmail && email) {
+              try {
+                const emailRes = await sendEmail({
+                  to: email,
+                  subject: emailSubject,
+                  html: emailHtml,
+                  text: messageText,
+                });
+                const emStatus = emailRes?.status || DeliveryStatus.FAILED;
+                await prisma.communicationLog.create({
+                  data: {
+                    customerId: cm.id,
+                    customerName,
+                    channel: CommunicationChannel.EMAIL,
+                    recipient: email,
+                    subject: emailSubject,
+                    content: emailHtml,
+                    status: emStatus,
+                    errorMessage: emailRes?.errorMessage || null,
+                    triggerType: "AUTOMATED_CRON",
+                    metadata: JSON.stringify({ event: "ANNIVERSARY" }),
+                  },
+                });
+              } catch (emErr: any) {
+                console.error(`❌ [SCHEDULER] Email anniversary error for ${customerName}:`, emErr.message);
+              }
+            }
+
+            anniversariesDispatched++;
+            console.log(`💐 [SCHEDULER] Dispatched anniversary wishes to ${customerName}`);
+          }
         } catch (err: any) {
           console.error(`❌ [SCHEDULER] Error sending anniversary wish to ${customerName}:`, err.message);
         }

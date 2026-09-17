@@ -88,8 +88,56 @@ export const sendWhatsapp = async (
       } else {
         const errText = await response.text();
         console.warn(`[WhatsApp Gateway Warning (${response.status})]: ${errText}`);
+
+        // Auto-refresh token if expired (401) and secret key is present
+        if (response.status === 401 && process.env.WPPCONNECT_SECRET_KEY) {
+          try {
+            console.log(`[WhatsApp Gateway] Refreshing token for session ${session}...`);
+            const refreshRes = await fetch(
+              `${rawUrl}/api/${session}/${process.env.WPPCONNECT_SECRET_KEY}/generate-token`,
+              { method: "POST" }
+            );
+            const refreshData: any = await refreshRes.json().catch(() => ({}));
+            if (refreshData?.token) {
+              const freshToken = refreshData.token;
+              headers["Authorization"] = `Bearer ${freshToken}`;
+              headers["x-api-key"] = freshToken;
+
+              const retryRes = await fetch(targetUrl, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                  phone: cleanPhone,
+                  number: `${cleanPhone}@c.us`,
+                  message,
+                  text: message,
+                }),
+              });
+
+              if (retryRes.ok) {
+                const retryData: any = await retryRes.json().catch(() => ({}));
+                return {
+                  status: DeliveryStatus.SENT,
+                  messageId: retryData.id || retryData.messageId || retryData?.response?.[0]?.id || `WA_GW_${Date.now()}`,
+                };
+              }
+            }
+          } catch (refreshErr) {
+            console.error("[WhatsApp Gateway] Auto-refresh token failed:", refreshErr);
+          }
+        }
+
+        return {
+          status: DeliveryStatus.FAILED,
+          errorMessage: `WhatsApp Gateway returned HTTP ${response.status}: ${errText}`,
+        };
       }
     }
+
+    return {
+      status: DeliveryStatus.FAILED,
+      errorMessage: "WhatsApp gateway URL is not configured.",
+    };
   } catch (error: any) {
     console.error("WhatsApp Dispatch Error:", error);
     return {

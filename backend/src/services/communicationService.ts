@@ -178,32 +178,43 @@ export const sendPolicyDueReminder = async (options: SendReminderOptions) => {
     channel === "WHATSAPP" || channel === "ALL" || (channel as any) === "SMS";
 
   if (sendWhatsappChannel && allowsWhatsapp && recipientPhone) {
-    const waResult = await sendWhatsapp({
-      recipientPhone,
-      message: messageText,
-    });
+    try {
+      const waResult = await sendWhatsapp({
+        recipientPhone,
+        message: messageText,
+      });
 
-    results.whatsapp = {
-      status: waResult.status,
-      message: waResult.errorMessage || "WhatsApp Sent",
-    };
+      const waStatus = waResult?.status || DeliveryStatus.FAILED;
+      const waError = waResult?.errorMessage || (waStatus === DeliveryStatus.SENT ? undefined : "WhatsApp dispatch failed");
 
-    await prisma.communicationLog.create({
-      data: {
-        customerId: customerMaster?.id || policy.customer?.id,
-        customerName,
-        policyId: policy.id,
-        policyNumber: policy.policyNumber,
-        channel: CommunicationChannel.WHATSAPP,
-        recipient: recipientPhone,
-        subject: null,
-        content: messageText,
-        status: waResult.status,
-        errorMessage: waResult.errorMessage,
-        triggerType,
-        metadata: JSON.stringify({ templateCode, dueDays, mode: premiumModeName }),
-      },
-    });
+      results.whatsapp = {
+        status: waStatus,
+        message: waError || "WhatsApp Sent",
+      };
+
+      await prisma.communicationLog.create({
+        data: {
+          customerId: customerMaster?.id || policy.customer?.id,
+          customerName,
+          policyId: policy.id,
+          policyNumber: policy.policyNumber,
+          channel: CommunicationChannel.WHATSAPP,
+          recipient: recipientPhone,
+          subject: null,
+          content: messageText,
+          status: waStatus,
+          errorMessage: waError || null,
+          triggerType,
+          metadata: JSON.stringify({ templateCode, dueDays, mode: premiumModeName }),
+        },
+      });
+    } catch (waErr: any) {
+      console.error("[sendPolicyDueReminder] WhatsApp Dispatch Error:", waErr);
+      results.whatsapp = {
+        status: DeliveryStatus.FAILED,
+        message: waErr.message || "WhatsApp dispatch error",
+      };
+    }
   } else if (!allowsWhatsapp && sendWhatsappChannel) {
     results.whatsapp = { status: DeliveryStatus.SKIPPED, message: "Customer opted out of WhatsApp" };
     await prisma.communicationLog.create({
