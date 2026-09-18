@@ -212,12 +212,12 @@ export default function ChildEducationNeedsCalculator() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-slate-900">Child Education Needs Analysis</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Child Education Needs Analysis</h1>
         <div className="flex items-center gap-2">
-          <button onClick={handleReset} title="Reset" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+          <button onClick={handleReset} title="Reset" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
             <RotateCcw size={16} />
           </button>
-          <button onClick={() => router.back()} title="Back" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+          <button onClick={() => router.back()} title="Back" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
             <ArrowLeft size={16} />
           </button>
         </div>
@@ -227,9 +227,9 @@ export default function ChildEducationNeedsCalculator() {
 
       {/* ── Child Info ─────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="border-b border-slate-200 bg-slate-50/90 px-5 py-3.5">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Child Info</h2>
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Child Info</h2>
         </div>
 
         <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-4">
@@ -240,14 +240,14 @@ export default function ChildEducationNeedsCalculator() {
               </div>
               <div className="flex-1">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Child Name<span className="ml-0.5 text-rose-500">*</span></label>
-                <input value={childName} onChange={(e) => setChildName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+                <input value={childName} onChange={(e) => setChildName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
               </div>
             </div>
           </div>
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Date of Birth<span className="ml-0.5 text-rose-500">*</span></label>
             <div className="flex gap-2">
-              <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
               <input readOnly value={age} title="Age" className="w-16 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2.5 text-center text-sm text-slate-500" />
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function ChildEducationNeedsCalculator() {
                 type="number"
                 value={inflation}
                 onChange={(e) => setInflation(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
               />
               <span className="text-sm text-slate-500">%</span>
             </div>
@@ -271,7 +271,7 @@ export default function ChildEducationNeedsCalculator() {
                 type="number"
                 value={savingRate}
                 onChange={(e) => setSavingRate(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
               />
               <span className="text-sm text-slate-500">%</span>
             </div>
@@ -282,9 +282,9 @@ export default function ChildEducationNeedsCalculator() {
       {/* ── Expense Categories ─────────────────────────────────────────── */}
       {categories.map((cat) => (
         <div key={cat.key} className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <div className="border-b border-slate-200 bg-slate-50/90 px-5 py-3.5">
-            <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">{cat.label}</h2>
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">{cat.label}</h2>
           </div>
           <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
             <div className="min-w-0">
@@ -297,14 +297,14 @@ export default function ChildEducationNeedsCalculator() {
                     type="number"
                     value={cat.years}
                     onChange={(e) => updateCategory(cat.key, { years: e.target.value === "" ? "" : Number(e.target.value) })}
-                    className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+                    className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
                   />
                 ) : (
                   <input
                     type="number"
                     value={cat.targetAge}
                     onChange={(e) => updateCategory(cat.key, { targetAge: e.target.value === "" ? "" : Number(e.target.value) })}
-                    className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+                    className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
                   />
                 )}
                 <span className="text-sm text-slate-500">Yrs.</span>
@@ -319,7 +319,7 @@ export default function ChildEducationNeedsCalculator() {
                   type="number"
                   value={cat.cost}
                   onChange={(e) => updateCategory(cat.key, { cost: e.target.value === "" ? "" : Number(e.target.value) })}
-                  className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15"
+                  className="w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
                 />
                 <span className="text-sm text-slate-500">Rs.</span>
               </div>
@@ -337,9 +337,9 @@ export default function ChildEducationNeedsCalculator() {
 
       {/* ── Result ─────────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="border-b border-slate-200 bg-slate-50/90 px-5 py-3.5">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Result</h2>
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Result</h2>
         </div>
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 min-w-0">
@@ -358,7 +358,7 @@ export default function ChildEducationNeedsCalculator() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || previewing}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#16294D] disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {downloading ? "Generating..." : "Create PDF"}
@@ -376,9 +376,9 @@ export default function ChildEducationNeedsCalculator() {
       {/* ── REPORT PREVIEW / PDF CAPTURE TEMPLATE ─────────────────────────── */}
       {showResults && (
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <div className="border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-            <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Report Preview</h2>
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Report Preview</h2>
             <p className="mt-1 text-sm text-slate-500">This is exactly what your downloaded PDF will look like.</p>
           </div>
           <div className="overflow-x-auto bg-slate-100 p-4 sm:p-6">

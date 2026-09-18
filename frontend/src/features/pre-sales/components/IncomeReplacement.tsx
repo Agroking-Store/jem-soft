@@ -232,12 +232,12 @@ export default function IncomeReplacementCalculator() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-slate-900">Income Replacement Analysis</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Income Replacement Analysis</h1>
         <div className="flex items-center gap-2">
-          <button onClick={handleReset} title="Reset" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+          <button onClick={handleReset} title="Reset" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
             <RotateCcw size={16} />
           </button>
-          <button onClick={() => router.back()} title="Back" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+          <button onClick={() => router.back()} title="Back" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
             <ArrowLeft size={16} />
           </button>
         </div>
@@ -246,16 +246,16 @@ export default function IncomeReplacementCalculator() {
       <PreSalesModuleNav />
 
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-          <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+          <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
             Income Replacement Analysis
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleViewPDF}
               disabled={previewing || downloading}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
             >
               {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
               {previewing ? "Preparing..." : "View PDF"}
@@ -263,7 +263,7 @@ export default function IncomeReplacementCalculator() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || previewing}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0B1220] px-4 py-2 text-xs font-semibold text-white hover:bg-[#16294D] disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {downloading ? "Generating..." : "Download PDF"}
@@ -284,14 +284,14 @@ export default function IncomeReplacementCalculator() {
               </div>
               <div className="flex-1">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Name<span className="ml-0.5 text-rose-500">*</span></label>
-                <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+                <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
               </div>
             </div>
 
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">D.O.B.<span className="ml-0.5 text-rose-500">*</span></label>
-                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
               </div>
               <div className="w-20">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Age</label>
@@ -301,17 +301,17 @@ export default function IncomeReplacementCalculator() {
 
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Retirement Age<span className="ml-0.5 text-rose-500">*</span></label>
-              <input type="number" value={retirement} onChange={(e) => setRetirement(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="number" value={retirement} onChange={(e) => setRetirement(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
             </div>
 
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Annual Income<span className="ml-0.5 text-rose-500">*</span></label>
-              <input type="number" value={annualIncome} onChange={(e) => setAnnualIncome(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="number" value={annualIncome} onChange={(e) => setAnnualIncome(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
             </div>
 
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Expenses (on self)<span className="ml-0.5 text-rose-500">*</span></label>
-              <input type="number" value={expenses} onChange={(e) => setExpenses(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="number" value={expenses} onChange={(e) => setExpenses(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
             </div>
           </div>
 
@@ -319,7 +319,7 @@ export default function IncomeReplacementCalculator() {
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Extd. Growth in Income<span className="ml-0.5 text-rose-500">*</span></label>
               <div className="flex items-center gap-2">
-                <input type="number" value={incomeGrowth} onChange={(e) => setIncomeGrowth(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+                <input type="number" value={incomeGrowth} onChange={(e) => setIncomeGrowth(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                 <span className="text-sm text-slate-500 whitespace-nowrap">% p.a</span>
               </div>
             </div>
@@ -342,12 +342,12 @@ export default function IncomeReplacementCalculator() {
 
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Present Liquidable Savings</label>
-              <input type="number" value={presentSavings} onChange={(e) => setPresentSavings(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="number" value={presentSavings} onChange={(e) => setPresentSavings(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
             </div>
 
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Existing Life Insurance Cover</label>
-              <input type="number" value={existingCover} onChange={(e) => setExistingCover(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/15" />
+              <input type="number" value={existingCover} onChange={(e) => setExistingCover(e.target.value === "" ? "" : Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
             </div>
           </div>
         </div>
@@ -360,7 +360,7 @@ export default function IncomeReplacementCalculator() {
         )}
 
         <div className="border-t border-slate-200 px-5 py-4">
-          <button onClick={calculate} className="rounded-xl bg-[#0B1220] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#16294D]">
+          <button onClick={calculate} className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]">
             Calculate
           </button>
         </div>
@@ -368,17 +368,20 @@ export default function IncomeReplacementCalculator() {
 
       {showResults && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+          <div className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] to-blue-200" />
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Total Net Wealth</p>
-            <p className="mt-1 break-words font-serif text-xl font-semibold text-slate-900">₹ {fmt(totalNetWealth)}</p>
+            <p className="mt-1 break-words text-xl font-bold text-slate-900">₹ {fmt(totalNetWealth)}</p>
           </div>
-          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+          <div className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-slate-300 to-slate-200" />
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Insurance Recommended</p>
-            <p className="mt-1 break-words font-serif text-xl font-semibold text-slate-900">₹ {fmt(insuranceRecommended)}</p>
+            <p className="mt-1 break-words text-xl font-bold text-slate-900">₹ {fmt(insuranceRecommended)}</p>
           </div>
-          <div className="min-w-0 rounded-2xl border border-[#B8873A]/30 bg-[#B8873A]/5 p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#B8873A]">Additional Insurance Needed</p>
-            <p className="mt-1 break-words font-serif text-xl font-semibold text-[#0B1220]">₹ {fmt(additionalInsurance)}</p>
+          <div className="relative min-w-0 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-amber-400 to-amber-200" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Additional Insurance Needed</p>
+            <p className="mt-1 break-words text-xl font-bold text-amber-800">₹ {fmt(additionalInsurance)}</p>
           </div>
         </div>
       )}
@@ -386,9 +389,9 @@ export default function IncomeReplacementCalculator() {
       {/* ── REPORT PREVIEW / PDF CAPTURE TEMPLATE ─────────────────────────── */}
       {showResults && (
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-          <div className="border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-            <h2 className="font-serif text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Report Preview</h2>
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Report Preview</h2>
             <p className="mt-1 text-sm text-slate-500">This is exactly what your downloaded PDF will look like.</p>
           </div>
           <div className="overflow-x-auto bg-slate-100 p-4 sm:p-6">
