@@ -361,7 +361,7 @@ export default function ChildEducationNeedsCalculator() {
               className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              {downloading ? "Generating..." : "Create PDF"}
+              {downloading ? "Generating..." : "Download PDF"}
             </button>
           </div>
         </div>
