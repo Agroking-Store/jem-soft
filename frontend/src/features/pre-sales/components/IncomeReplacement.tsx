@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, RotateCcw, Download, Eye, AlertCircle, Loader2 } from "lucide-react";
 import PreSalesModuleNav from "./PreSalesModuleNav";
 import { SearchableSelect } from "@/features/customers/components/CustomerUi";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 interface WealthRow {
   year: number;
@@ -291,7 +293,10 @@ export default function IncomeReplacementCalculator() {
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">D.O.B.<span className="ml-0.5 text-rose-500">*</span></label>
-                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
+                <DatePicker
+                  value={dob ? new Date(dob) : undefined}
+                  onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                />
               </div>
               <div className="w-20">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Age</label>

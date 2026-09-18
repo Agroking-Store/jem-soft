@@ -15,6 +15,8 @@ import {
   User,
 } from "lucide-react";
 import PreSalesModuleNav from "./PreSalesModuleNav";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 interface HlvRow {
   year: number;
@@ -427,8 +429,10 @@ export default function QuickHlvCalculator() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">D.O.B. <span className="text-rose-500">*</span></label>
-                      <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.75 text-sm bg-white outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
+                      <DatePicker
+                        value={dob ? new Date(dob) : undefined}
+                        onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
                     </div>
                     <div>
                       <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Age (Auto)</label>

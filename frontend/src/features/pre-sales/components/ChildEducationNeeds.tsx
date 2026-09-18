@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, RotateCcw, Download, Eye, AlertCircle, Loader2 } from "lucide-react";
 import PreSalesModuleNav from "./PreSalesModuleNav";
 import { SearchableSelect } from "@/features/customers/components/CustomerUi";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 // "years" categories: user enters years-remaining directly (School Education).
 // "age" categories: user enters the child's age at which the goal occurs,
@@ -247,7 +249,12 @@ export default function ChildEducationNeedsCalculator() {
           <div className="md:col-span-2">
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Date of Birth<span className="ml-0.5 text-rose-500">*</span></label>
             <div className="flex gap-2">
-              <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
+              <div className="flex-1">
+                <DatePicker
+                  value={dob ? new Date(dob) : undefined}
+                  onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                />
+              </div>
               <input readOnly value={age} title="Age" className="w-16 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2.5 text-center text-sm text-slate-500" />
             </div>
           </div>
@@ -361,7 +368,7 @@ export default function ChildEducationNeedsCalculator() {
               className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              {downloading ? "Generating..." : "Download PDF"}
+              {downloading ? "Generating..." : "Create PDF"}
             </button>
           </div>
         </div>
