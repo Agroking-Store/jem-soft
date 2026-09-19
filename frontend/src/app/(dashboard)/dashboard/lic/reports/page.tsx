@@ -47,6 +47,7 @@ import LoanSurrenderQuotationForm, { LoanSurrenderQuotationFormData } from "@/fe
 import LoanSurrenderQuotationReportView from "@/features/lic/reports/LoanSurrenderQuotationReportView";
 import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
 import {
+  BarChart3,
   Search,
   ArrowRight,
   CheckCircle2,
@@ -294,55 +295,44 @@ export default function LICReportsPage() {
       {/* Top Shared Nav */}
       <LicModuleNav />
 
-      {/* VIEW 1: All 16 Cards Grid */}
+      {/* VIEW 1: All Cards Grid */}
       {currentView === "cards" && (
-        <div className="space-y-6">
-          {/* Header Banner */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-blue-900/30">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
-                <span className="text-xs font-bold text-blue-100 uppercase tracking-widest block">
-                  LIC Reports & Analytics Engine
-                </span>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                  LIC Reports Overview
-                </h1>
-                <p className="text-blue-100 text-xs sm:text-sm leading-relaxed">
-                  Generate groupwise policy registers, premium statements, due lists, cash flow projections, and financial charts.
-                </p>
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* Top Banner Card */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+                <BarChart3 size={26} />
               </div>
-
-              <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
-                <div className="text-center px-2">
-                  <span className="block text-2xl font-bold text-white">{LIC_REPORT_CARDS.length}</span>
-                  <span className="text-blue-100 text-[10px] uppercase tracking-wider">Reports</span>
-                </div>
-              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">LIC Reports</h1>
             </div>
+          </div>
 
-            {/* Search & Category Filter Bar */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10">
-              <div className="relative w-full sm:w-80">
+          {/* Search + Category Filter */}
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+              <div className="relative min-w-0 flex-1 sm:max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
                   placeholder="Search report title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/10 border border-white/15 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
                 />
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-200" />
               </div>
-
-              <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
+            </div>
+            <div className="inline-flex max-w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-1">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition uppercase tracking-wider ${activeCategory === cat
-                      ? "bg-white text-[#1877F2] shadow-md"
-                      : "bg-white/10 text-blue-100 hover:bg-white/20 hover:text-white"
-                      }`}
+                    className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-all duration-200 select-none ${
+                      activeCategory === cat
+                        ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                        : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
+                    }`}
                   >
                     {cat}
                   </button>
