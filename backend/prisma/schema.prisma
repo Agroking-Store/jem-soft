@@ -1100,6 +1100,7 @@ enum CommunicationChannel {
   EMAIL
   IN_APP
   ALL
+  WHATSAPP
 }
 
 enum DeliveryStatus {

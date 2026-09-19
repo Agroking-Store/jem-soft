@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import {
   triggerPolicyReminder,
   triggerDirectMessage,
@@ -8,6 +8,7 @@ import {
   fetchTemplates,
   editTemplate,
   runManualSchedulerScan,
+  fetchUpcomingCelebrations,
 } from "../controllers/communicationController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
@@ -16,6 +17,7 @@ const router = Router();
 // Apply auth middleware
 router.use(protect);
 
+router.get("/upcoming-celebrations", fetchUpcomingCelebrations);
 router.post("/send-reminder", triggerPolicyReminder);
 router.post("/send-direct", triggerDirectMessage);
 router.get("/logs", fetchCommunicationLogs);

@@ -1,4 +1,4 @@
-export type CommunicationChannel = "SMS" | "EMAIL" | "IN_APP" | "ALL";
+export type CommunicationChannel = "WHATSAPP" | "EMAIL" | "IN_APP" | "ALL" | "SMS";
 export type DeliveryStatus = "PENDING" | "SENT" | "FAILED" | "SKIPPED";
 export type TemplateCategory = "PREMIUM_DUE" | "POLICY_LAPSED" | "BIRTHDAY" | "ANNIVERSARY" | "MARKETING" | "CUSTOM";
 
@@ -10,6 +10,7 @@ export interface NotificationTemplate {
   channel: CommunicationChannel;
   subject?: string;
   smsBody?: string;
+  whatsappBody?: string;
   emailBody?: string;
   isActive: boolean;
   variables?: string;
@@ -38,6 +39,7 @@ export interface ReminderSetting {
   id: string;
   isAutoReminderEnabled: boolean;
   dueDaysBefore: string;
+  sendWhatsapp?: boolean;
   sendSms: boolean;
   sendEmail: boolean;
   sendInApp: boolean;
@@ -72,7 +74,7 @@ export interface SendReminderPayload {
   templateCode?: string;
   customMessage?: string;
   customSubject?: string;
-  channel?: "SMS" | "EMAIL" | "ALL";
+  channel?: "WHATSAPP" | "EMAIL" | "ALL" | "SMS";
 }
 
 export interface DirectMessagePayload {
@@ -82,3 +84,21 @@ export interface DirectMessagePayload {
   message: string;
   policyId?: string;
 }
+
+export interface CelebrationItem {
+  id: string;
+  customerId: string;
+  customerName: string;
+  phone?: string;
+  email?: string;
+  type: "BIRTHDAY" | "ANNIVERSARY";
+  originalDate: string;
+  upcomingDate: string;
+  daysRemaining: number;
+  isToday: boolean;
+  alreadySentToday?: boolean;
+  whatsappOptedIn?: boolean;
+  smsOptedIn: boolean;
+  emailOptedIn: boolean;
+}
+

@@ -28,9 +28,9 @@ function PreSalesModuleNavInner() {
   return (
     <nav
       aria-label="Pre-Sales module navigation"
-      className="inline-flex max-w-full bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1"
+      className="inline-flex max-w-full bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100"
     >
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
         {TABS.map(({ key, label, icon: Icon, href }) => {
           const isActive = activeTab === key;
           return (
@@ -39,13 +39,13 @@ function PreSalesModuleNavInner() {
               href={href}
               aria-current={isActive ? "page" : undefined}
               className={`
-                relative flex items-center gap-2 px-4 py-2 rounded-xl
+                relative flex items-center gap-2 px-4 py-2.5 rounded-[14px]
                 text-[13px] font-bold whitespace-nowrap
                 transition-all duration-200 select-none
                 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md shadow-black/30"
-                    : "text-white/55 hover:text-white hover:bg-white/[0.07] active:bg-white/10"
+                    ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                    : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
                 }
               `}
             >
@@ -63,7 +63,7 @@ export default function PreSalesModuleNav() {
   return (
     <Suspense
       fallback={
-        <div className="inline-block bg-[#0B1220] rounded-2xl shadow-lg shadow-[#0B1220]/20 p-1 h-[48px] w-[500px] max-w-full animate-pulse" />
+        <div className="inline-block bg-white rounded-2xl shadow-sm border border-slate-100 p-1.5 h-[52px] w-[500px] max-w-full animate-pulse" />
       }
     >
       <PreSalesModuleNavInner />
