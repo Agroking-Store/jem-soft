@@ -330,48 +330,45 @@ export default function LoanSurrenderQuotationForm({
   return (
     <div className="space-y-6">
       {/* Top Header & Action Bar matching Policy Register */}
-      <div className="relative overflow-hidden bg-[#0B1220] rounded-2xl p-4 sm:p-5 text-white shadow-xl border border-slate-800">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider cursor-pointer"
-            >
-              <ChevronLeft size={16} />
-              <span>Reports</span>
-            </button>
-            <div className="h-6 w-px bg-white/15" />
-            <h1 className="font-serif text-lg sm:text-xl font-bold text-[#E8C77A] tracking-wider uppercase">
-              Loan / Surrender / Maturity Value Calculation
-            </h1>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider cursor-pointer"
+          >
+            <ChevronLeft size={16} />
+            <span>Reports</span>
+          </button>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+            Loan / Surrender / Maturity Value Calculation
+          </h1>
+        </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
-              title="Reset Form"
-            >
-              <RotateCcw size={19} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onGenerateReport(formData)}
-              className="p-2 text-[#E8C77A] hover:bg-white/10 rounded-xl transition cursor-pointer"
-              title="Generate Quotation Report"
-            >
-              <FileText size={19} />
-            </button>
-          </div>
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
+            title="Reset Form"
+          >
+            <RotateCcw size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onGenerateReport(formData)}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"
+            title="Generate Quotation Report"
+          >
+            <FileText size={15} />
+            <span>Generate</span>
+          </button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Top Type Selector & Search Policy Bar matching Screenshot 4 */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
           {/* Quotation Type Radios */}
           <div className="flex items-center gap-8 pb-4 border-b border-slate-100">
@@ -382,7 +379,7 @@ export default function LoanSurrenderQuotationForm({
                 value="loan"
                 checked={formData.quotationType === "loan"}
                 onChange={() => setFormData((prev) => ({ ...prev, quotationType: "loan" }))}
-                className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
               />
               <span>Loan Quotation</span>
             </label>
@@ -394,7 +391,7 @@ export default function LoanSurrenderQuotationForm({
                 value="surrender"
                 checked={formData.quotationType === "surrender"}
                 onChange={() => setFormData((prev) => ({ ...prev, quotationType: "surrender" }))}
-                className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
               />
               <span>Surrender Value Quotation</span>
             </label>
@@ -403,13 +400,13 @@ export default function LoanSurrenderQuotationForm({
           {/* Search Policy Select Dropdown */}
           <div className="pt-4 max-w-lg">
             <div className="relative">
-              <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+              <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                 Search By Policy Number / Name
               </span>
               <select
                 value={formData.policyId}
                 onChange={(e) => handleSelectPolicy(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-semibold bg-white outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 cursor-pointer appearance-none pr-10"
+                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-semibold bg-white outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 cursor-pointer appearance-none pr-10"
               >
                 <option value="">-- Search By Policy Number / Name --</option>
                 {policyOptions.map((opt) => (
@@ -431,9 +428,9 @@ export default function LoanSurrenderQuotationForm({
           {/* LEFT: Policy Details Card */}
           <div className="lg:col-span-7">
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
               <div className="flex items-center gap-2 mb-2">
-                <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
                   Policy Details
                 </h2>
               </div>
@@ -448,7 +445,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, clientName: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     placeholder="Name"
                   />
                 </div>
@@ -461,7 +458,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, dob: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
@@ -476,7 +473,7 @@ export default function LoanSurrenderQuotationForm({
                         commencementDate: e.target.value,
                       }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
               </div>
@@ -491,7 +488,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, plan: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     placeholder="Plan"
                   />
                 </div>
@@ -503,7 +500,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, mode: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A] cursor-pointer"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2] cursor-pointer"
                   >
                     <option value="Y">Yearly (Y)</option>
                     <option value="H">Half-Yearly (H)</option>
@@ -522,7 +519,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, term: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
@@ -534,7 +531,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, ppt: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
               </div>
@@ -542,7 +539,7 @@ export default function LoanSurrenderQuotationForm({
               {/* Sum Assured, Basic Premium, Rider Premium, Riders Button */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                 <div className="sm:col-span-3 relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Sum Assured
                   </span>
                   <input
@@ -551,12 +548,12 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, sumAssured: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
                 <div className="sm:col-span-3 relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Basic Premium
                   </span>
                   <input
@@ -565,12 +562,12 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, basicPremium: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
                 <div className="sm:col-span-3 relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Rider Premium
                   </span>
                   <input
@@ -579,7 +576,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, riderPremium: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
@@ -587,7 +584,7 @@ export default function LoanSurrenderQuotationForm({
                   <button
                     type="button"
                     onClick={() => setIsRidersModalOpen(true)}
-                    className="w-full py-2 px-3 bg-[#0B1220] hover:bg-[#1a253a] text-[#E8C77A] text-xs font-bold rounded-xl border border-[#B8873A]/40 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white text-xs font-bold rounded-xl transition shadow-sm shadow-blue-200 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Shield size={14} />
                     <span>Riders</span>
@@ -598,7 +595,7 @@ export default function LoanSurrenderQuotationForm({
               {/* Premium & Premium Sub Year */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Premium
                   </span>
                   <input
@@ -607,12 +604,12 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, premium: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
                 <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Premium Sub Year
                   </span>
                   <input
@@ -624,7 +621,7 @@ export default function LoanSurrenderQuotationForm({
                         premiumSubYear: Number(e.target.value),
                       }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-semibold font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
               </div>
@@ -632,7 +629,7 @@ export default function LoanSurrenderQuotationForm({
               {/* Fup Date & Loan Taken */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Fup Date
                   </span>
                   <input
@@ -641,12 +638,12 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, fupDate: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
                 <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Loan taken
                   </span>
                   <input
@@ -655,7 +652,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, loanTaken: Number(e.target.value) }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium font-mono bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
               </div>
@@ -663,7 +660,7 @@ export default function LoanSurrenderQuotationForm({
               {/* Date of Calculation, Remarks, Calculate Button */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                 <div className="sm:col-span-4 relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Date of Calculation
                   </span>
                   <input
@@ -675,7 +672,7 @@ export default function LoanSurrenderQuotationForm({
                         dateOfCalculation: e.target.value,
                       }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
@@ -687,7 +684,7 @@ export default function LoanSurrenderQuotationForm({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, remarks: e.target.value }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#B8873A]"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     placeholder="Remarks"
                   />
                 </div>
@@ -696,7 +693,7 @@ export default function LoanSurrenderQuotationForm({
                   <button
                     type="button"
                     onClick={handleCalculate}
-                    className="w-full py-2.5 px-3 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] text-xs font-bold rounded-xl shadow-md hover:brightness-105 transition flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                    className="w-full py-2.5 px-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
                   >
                     <Calculator size={15} />
                     <span>Calculate</span>
@@ -709,10 +706,10 @@ export default function LoanSurrenderQuotationForm({
           {/* RIGHT: Calculation Summary */}
           <div className="lg:col-span-5">
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-full flex flex-col justify-between">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
                     Calculation
                   </h2>
                 </div>
@@ -746,7 +743,7 @@ export default function LoanSurrenderQuotationForm({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center gap-2 font-bold bg-[#B8873A]/10 p-1.5 rounded-lg">
+                  <div className="grid grid-cols-12 items-center gap-2 font-bold bg-blue-50 p-1.5 rounded-lg">
                     <span className="col-span-7 text-slate-900 font-bold">Total :</span>
                     <div className="col-span-5 text-right font-mono text-slate-900 font-bold">
                       {Number(formData.totalSV).toLocaleString("en-IN")}
@@ -767,7 +764,7 @@ export default function LoanSurrenderQuotationForm({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center gap-2 font-bold bg-[#B8873A]/10 p-1.5 rounded-lg">
+                  <div className="grid grid-cols-12 items-center gap-2 font-bold bg-blue-50 p-1.5 rounded-lg">
                     <span className="col-span-7 text-slate-900 font-bold">Total :</span>
                     <div className="col-span-5 text-right font-mono text-slate-900 font-bold">
                       {Number(formData.totalLoan).toLocaleString("en-IN")}
@@ -802,9 +799,9 @@ export default function LoanSurrenderQuotationForm({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-12 items-center gap-2 font-bold text-[#B8873A] bg-[#0B1220] p-1.5 rounded-lg">
+                  <div className="grid grid-cols-12 items-center gap-2 font-bold text-white bg-[#1877F2] p-1.5 rounded-lg">
                     <span className="col-span-7 text-white font-bold">Loan Available :</span>
-                    <div className="col-span-5 text-right font-mono font-bold text-[#E8C77A]">
+                    <div className="col-span-5 text-right font-mono font-bold text-white">
                       {Number(formData.loanAvailable).toLocaleString("en-IN")}
                     </div>
                   </div>
@@ -825,7 +822,7 @@ export default function LoanSurrenderQuotationForm({
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="px-8 py-3 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition flex items-center gap-2 cursor-pointer"
+            className="px-8 py-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
           >
             <span>Generate Value Quotation Report</span>
             <ArrowRight size={16} />
@@ -835,13 +832,13 @@ export default function LoanSurrenderQuotationForm({
 
       {/* Riders Modal */}
       {isRidersModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden space-y-4">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <div className="flex items-center justify-between px-6 py-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white">
               <div className="flex items-center gap-2">
-                <Shield size={18} className="text-[#E8C77A]" />
-                <h3 className="font-serif text-sm font-bold tracking-wider text-[#E8C77A] uppercase">
+                <Shield size={18} className="text-white" />
+                <h3 className="text-sm font-bold tracking-wider text-white uppercase">
                   Policy Riders Details
                 </h3>
               </div>
@@ -887,7 +884,7 @@ export default function LoanSurrenderQuotationForm({
               <button
                 type="button"
                 onClick={() => setIsRidersModalOpen(false)}
-                className="px-5 py-2 bg-[#0B1220] text-[#E8C77A] font-bold text-xs rounded-xl uppercase tracking-wider hover:brightness-110 transition cursor-pointer"
+                className="px-5 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl uppercase tracking-wider hover:brightness-110 transition cursor-pointer"
               >
                 Close
               </button>

@@ -277,21 +277,21 @@ export default function FilterOptionsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-        {/* Website Gold Line */}
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+        {/* Accent Bar */}
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white">
           <div>
-            <h2 className="font-serif text-lg font-bold tracking-wider text-[#E8C77A] uppercase">
+            <h2 className="text-lg font-bold tracking-wider text-white uppercase">
               Filter Options
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
             title="Close"
           >
             <X size={20} />
@@ -301,7 +301,7 @@ export default function FilterOptionsModal({
         {/* Controls Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               Filter Options :
             </span>
             <div className="relative">
@@ -311,7 +311,7 @@ export default function FilterOptionsModal({
                   setFilterCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="appearance-none bg-white border border-slate-300 rounded-lg px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20"
+                className="appearance-none bg-white border border-slate-300 rounded-lg px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#1877F2] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
               >
                 <option value="Groups Wise">Groups Wise</option>
                 <option value="Agencies">Agencies</option>
@@ -337,7 +337,7 @@ export default function FilterOptionsModal({
                 setSearchText(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#B8873A]"
+              className="w-full bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1877F2]"
             />
             <Search size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
@@ -350,12 +350,12 @@ export default function FilterOptionsModal({
             <div className="overflow-y-auto">
               <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
                 {/* Header Row */}
-                <label className="flex items-center gap-3 px-4 py-3 bg-slate-100/90 border-b border-slate-200 font-serif text-xs font-bold text-slate-800 uppercase tracking-wider cursor-pointer">
+                <label className="flex items-center gap-3 px-4 py-3 bg-slate-100/90 border-b border-slate-200 text-xs font-bold text-slate-800 uppercase tracking-wider cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isCategoryAllSelected}
                     onChange={toggleSelectAllCategory}
-                    className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                    className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                   />
                   <span>{filterCategory}</span>
                 </label>
@@ -371,13 +371,13 @@ export default function FilterOptionsModal({
                     return (
                       <label
                         key={item.id}
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-slate-800 hover:bg-[#B8873A]/5 cursor-pointer transition"
+                        className="flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-slate-800 hover:bg-blue-50 cursor-pointer transition"
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleItem(item.id, item.name)}
-                          className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                          className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                         />
                         <span>{item.name}</span>
                       </label>
@@ -395,7 +395,7 @@ export default function FilterOptionsModal({
 
             {/* Left Footer Pagination */}
             <div className="flex items-center justify-between pt-4 text-xs text-slate-600 border-t border-slate-100 mt-2">
-              <span className="bg-[#B8873A]/10 text-[#B8873A] px-3 py-1 rounded-md font-bold text-[11px]">
+              <span className="bg-blue-50 text-[#1877F2] px-3 py-1 rounded-md font-bold text-[11px]">
                 {filteredList.length > 0
                   ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                       currentPage * pageSize,
@@ -419,7 +419,7 @@ export default function FilterOptionsModal({
                 >
                   Prev
                 </button>
-                <span className="px-3 py-1 bg-[#0B1220] text-white rounded-md font-bold text-[11px]">
+                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px]">
                   {currentPage}
                 </span>
                 <button
@@ -443,7 +443,7 @@ export default function FilterOptionsModal({
           {/* Right Panel: Selected Filter */}
           <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60 relative">
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white h-full flex flex-col shadow-xs">
-              <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+              <div className="bg-[#1877F2] px-4 py-2.5 border-b border-slate-200 text-xs font-bold text-white uppercase tracking-wider">
                 Selected Filter
               </div>
               <div className="p-3 flex-1 overflow-y-auto space-y-2">
@@ -459,7 +459,7 @@ export default function FilterOptionsModal({
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-800">{type}</span>
-                        <span className="bg-[#B8873A]/10 text-[#B8873A] px-2 py-0.5 rounded-full font-extrabold text-[11px]">
+                        <span className="bg-blue-50 text-[#1877F2] px-2 py-0.5 rounded-full font-extrabold text-[11px]">
                           {items.length}
                         </span>
                       </div>
@@ -467,7 +467,7 @@ export default function FilterOptionsModal({
                         <button
                           type="button"
                           onClick={() => setViewingCategory(type)}
-                          className="text-[#B8873A] border border-[#B8873A]/30 px-2 py-0.5 rounded text-[11px] font-bold bg-[#B8873A]/10 hover:bg-[#B8873A]/20 transition"
+                          className="text-[#1877F2] border border-blue-200 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 hover:bg-blue-100 transition"
                         >
                           View
                         </button>
@@ -488,7 +488,7 @@ export default function FilterOptionsModal({
             {/* View Popover Sub-Overlay */}
             {viewingCategory && groupedSelected[viewingCategory] && (
               <div className="absolute inset-4 bg-white rounded-xl border border-slate-300 shadow-2xl flex flex-col z-20 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
-                <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 flex items-center justify-between font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="bg-[#1877F2] px-4 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs font-bold text-white uppercase tracking-wider">
                   <span>{viewingCategory}</span>
                   <button
                     onClick={() => setViewingCategory(null)}
@@ -524,7 +524,7 @@ export default function FilterOptionsModal({
         <div className="flex items-center justify-end px-6 py-3 border-t border-slate-200 bg-white">
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-lg shadow-md hover:brightness-105 transition"
+            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition"
           >
             Apply Filter
           </button>

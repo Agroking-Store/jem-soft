@@ -404,21 +404,21 @@ export default function SortingFilterModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Top Website Theme Gold Line */}
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
-        {/* Header (Website Navy `#0B1220` with Gold `#E8C77A`) */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white">
           <div>
-            <h2 className="font-serif text-lg font-bold tracking-wider text-[#E8C77A] uppercase">
+            <h2 className="text-lg font-bold tracking-wider text-white uppercase">
               Filter Options
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
             title="Close"
           >
             <X size={20} />
@@ -428,7 +428,7 @@ export default function SortingFilterModal({
         {/* Controls Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-2">
-            <span className="font-serif text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
               {modalConfig.title}
             </span>
           </div>
@@ -442,7 +442,7 @@ export default function SortingFilterModal({
                 setSearchText(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#B8873A]"
+              className="w-full bg-white border border-slate-300 rounded-lg py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1877F2]"
             />
             <Search size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
@@ -455,13 +455,13 @@ export default function SortingFilterModal({
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-100/90 border-b border-slate-200 font-serif text-[11px] font-bold text-slate-800 uppercase tracking-wider">
+                  <tr className="bg-slate-100/90 border-b border-slate-200 text-[11px] font-bold text-slate-800 uppercase tracking-wider">
                     <th className="py-3 px-3 w-10 text-center">
                       <input
                         type="checkbox"
                         checked={isAllPaginatedSelected}
                         onChange={toggleSelectAll}
-                        className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                        className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                       />
                     </th>
                     <th className="py-3 px-3">{modalConfig.col1}</th>
@@ -476,14 +476,14 @@ export default function SortingFilterModal({
                       <tr
                         key={item.id}
                         onClick={() => toggleItem(item)}
-                        className="hover:bg-[#B8873A]/5 cursor-pointer transition"
+                        className="hover:bg-blue-50 cursor-pointer transition"
                       >
                         <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleItem(item)}
-                            className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A]"
+                            className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                           />
                         </td>
                         <td className="py-2.5 px-3 font-mono font-semibold text-slate-700">
@@ -519,7 +519,7 @@ export default function SortingFilterModal({
 
             {/* Pagination Bar */}
             <div className="flex items-center justify-between pt-3 text-xs text-slate-600 border-t border-slate-100 mt-2">
-              <span className="bg-[#B8873A]/10 text-[#B8873A] px-3 py-1 rounded-md font-bold text-[11px]">
+              <span className="bg-blue-50 text-[#1877F2] px-3 py-1 rounded-md font-bold text-[11px]">
                 {totalItems > 0
                   ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                       currentPage * pageSize,
@@ -552,7 +552,7 @@ export default function SortingFilterModal({
                       onClick={() => setCurrentPage(pNum)}
                       className={`px-3 py-1 rounded-md text-[11px] font-bold ${
                         currentPage === pNum
-                          ? "bg-[#0B1220] text-white"
+                          ? "bg-[#1877F2] text-white"
                           : "border border-slate-200 text-slate-700 hover:bg-slate-50"
                       }`}
                     >
@@ -582,9 +582,9 @@ export default function SortingFilterModal({
           {/* Right Selected Filter Panel */}
           <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60">
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white h-full flex flex-col shadow-xs">
-              <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider flex items-center justify-between">
+              <div className="bg-[#1877F2] px-4 py-2.5 border-b border-slate-200 text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
                 <span>Selected Filter</span>
-                <span className="text-[11px] bg-[#B8873A]/20 text-[#E8C77A] px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[11px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">
                   {selectedItems.length} Selected
                 </span>
               </div>
@@ -598,11 +598,11 @@ export default function SortingFilterModal({
                   selectedItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between border border-slate-200 rounded-lg p-2 bg-white text-xs hover:border-[#B8873A] transition"
+                      className="flex items-center justify-between border border-slate-200 rounded-lg p-2 bg-white text-xs hover:border-[#1877F2] transition"
                     >
                       <div>
                         {item.code && (
-                          <span className="font-mono font-bold text-[#B8873A] mr-2">{item.code}</span>
+                          <span className="font-mono font-bold text-[#1877F2] mr-2">{item.code}</span>
                         )}
                         <span className="font-semibold text-slate-800">{item.name}</span>
                       </div>
@@ -625,7 +625,7 @@ export default function SortingFilterModal({
         <div className="flex items-center justify-end px-6 py-3 border-t border-slate-200 bg-white">
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-lg shadow-md hover:brightness-105 transition"
+            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition"
           >
             Apply Filter
           </button>

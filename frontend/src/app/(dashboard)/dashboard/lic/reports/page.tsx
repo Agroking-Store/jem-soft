@@ -297,26 +297,26 @@ export default function LICReportsPage() {
       {/* VIEW 1: All 16 Cards Grid */}
       {currentView === "cards" && (
         <div className="space-y-6">
-          {/* Header Banner matching Website Theme `#0B1220` with `#E8C77A` */}
-          <div className="relative overflow-hidden bg-[#0B1220] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+          {/* Header Banner */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-blue-900/30">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-2xl">
-                <span className="font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-widest block">
+                <span className="text-xs font-bold text-blue-100 uppercase tracking-widest block">
                   LIC Reports & Analytics Engine
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
                   LIC Reports Overview
                 </h1>
-                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                <p className="text-blue-100 text-xs sm:text-sm leading-relaxed">
                   Generate groupwise policy registers, premium statements, due lists, cash flow projections, and financial charts.
                 </p>
               </div>
 
               <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 text-xs">
                 <div className="text-center px-2">
-                  <span className="block text-2xl font-bold text-[#E8C77A]">18</span>
-                  <span className="text-slate-300 font-serif text-[10px] uppercase tracking-wider">Reports</span>
+                  <span className="block text-2xl font-bold text-white">{LIC_REPORT_CARDS.length}</span>
+                  <span className="text-blue-100 text-[10px] uppercase tracking-wider">Reports</span>
                 </div>
               </div>
             </div>
@@ -329,9 +329,9 @@ export default function LICReportsPage() {
                   placeholder="Search report title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/10 border border-white/15 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#B8873A]"
+                  className="w-full bg-white/10 border border-white/15 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/40"
                 />
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-200" />
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
@@ -340,8 +340,8 @@ export default function LICReportsPage() {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition uppercase tracking-wider ${activeCategory === cat
-                      ? "bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] shadow-md"
-                      : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                      ? "bg-white text-[#1877F2] shadow-md"
+                      : "bg-white/10 text-blue-100 hover:bg-white/20 hover:text-white"
                       }`}
                   >
                     {cat}
@@ -360,21 +360,21 @@ export default function LICReportsPage() {
                   key={card.id}
                   onClick={() => handleCardClick(card)}
                   className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${card.isFeatured
-                    ? "border-[#B8873A]/60 ring-1 ring-[#B8873A]/30"
-                    : "border-slate-200 hover:border-[#B8873A]"
+                    ? "border-[#1877F2]/60 ring-1 ring-[#1877F2]/30"
+                    : "border-slate-200 hover:border-[#1877F2]"
                     }`}
                 >
-                  {/* Top Brass Gold Accent Bar */}
-                  <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+                  {/* Top Accent Bar */}
+                  <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
                   <div className="space-y-3 pt-1">
                     <div className="flex items-center justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A] group-hover:bg-[#B8873A] group-hover:text-[#0B1220] transition">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white transition">
                         <Icon size={20} />
                       </div>
 
                       {card.isFeatured && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#B8873A]/15 text-[#B8873A] font-serif font-bold text-[10px] uppercase tracking-wider border border-[#B8873A]/30">
+                        <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1877F2] font-bold text-[10px] uppercase tracking-wider border border-blue-200">
                           Featured Report
                         </span>
                       )}
@@ -387,10 +387,10 @@ export default function LICReportsPage() {
                     </div>
 
                     <div className="space-y-1">
-                      <span className="text-[10px] font-serif font-bold text-[#B8873A] uppercase tracking-widest block">
+                      <span className="text-[10px] font-bold text-[#1877F2] uppercase tracking-widest block">
                         {card.category}
                       </span>
-                      <h3 className="font-bold text-base text-slate-900 group-hover:text-[#B8873A] transition">
+                      <h3 className="font-bold text-base text-slate-900 group-hover:text-[#1877F2] transition">
                         {card.title}
                       </h3>
                     </div>
@@ -400,7 +400,7 @@ export default function LICReportsPage() {
                     </p>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0B1220] group-hover:text-[#B8873A] uppercase tracking-wider">
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-[#1877F2] uppercase tracking-wider">
                     <span>
                       {card.id === "policy-register" ||
                         card.id === "premium-due" ||
@@ -846,17 +846,17 @@ export default function LICReportsPage() {
 
       {/* Modal for previewing secondary report cards */}
       {previewModalCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
           <div className="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B1220] text-[#E8C77A]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
                   <previewModalCard.icon size={20} />
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900">{previewModalCard.title}</h3>
-                  <span className="text-[10px] text-[#B8873A] font-serif font-bold uppercase tracking-wider">
+                  <span className="text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     {previewModalCard.category}
                   </span>
                 </div>
@@ -895,7 +895,7 @@ export default function LICReportsPage() {
                   setPreviewModalCard(null);
                   setCurrentView("policy-register-form");
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] text-xs font-bold rounded-xl uppercase tracking-wider shadow-md hover:brightness-105"
+                className="px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
               >
                 Open Policy Register Form
               </button>

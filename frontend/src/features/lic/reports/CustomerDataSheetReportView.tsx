@@ -203,16 +203,16 @@ export default function CustomerDataSheetReportView({
   return (
     <div className="space-y-6 w-full">
       {/* Top Action Control Bar — FULL WIDTH matching Policy Register */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220] p-4 rounded-2xl border border-slate-800 shadow-xl print:hidden w-full">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden w-full">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToForm}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider cursor-pointer"
           >
             <ArrowLeft size={16} />
             <span>Edit Filters</span>
           </button>
-          <span className="text-xs bg-[#B8873A]/20 text-[#E8C77A] font-bold px-3 py-1.5 rounded-full border border-[#B8873A]/40 uppercase tracking-wider">
+          <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1.5 rounded-full border border-blue-200 uppercase tracking-wider">
             Customer Data Sheet Statement
           </span>
         </div>
@@ -221,7 +221,7 @@ export default function CustomerDataSheetReportView({
           <button
             type="button"
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider cursor-pointer"
           >
             <Printer size={16} />
             <span>Print</span>
@@ -229,7 +229,7 @@ export default function CustomerDataSheetReportView({
           <button
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl shadow-lg hover:brightness-105 transition disabled:opacity-50 uppercase tracking-wider cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-50 uppercase tracking-wider cursor-pointer"
           >
             <Download size={16} />
             <span>{isExporting ? "Exporting PDF..." : "Download PDF"}</span>
@@ -447,7 +447,7 @@ export default function CustomerDataSheetReportView({
 
               {/* SECTION: Personal Information */}
               <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
                   Personal Information
                 </div>
                 <div className="p-3 grid grid-cols-12 gap-x-4 gap-y-2 bg-white">
@@ -486,7 +486,7 @@ export default function CustomerDataSheetReportView({
 
               {/* SECTION: Medical Detail */}
               <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
                   Medical Detail
                 </div>
                 <div className="grid grid-cols-12 divide-x divide-slate-300 bg-white">
@@ -556,7 +556,7 @@ export default function CustomerDataSheetReportView({
 
               {/* SECTION: Family History */}
               <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
                   Family History
                 </div>
                 <div className="p-3 space-y-2 bg-white">
@@ -605,7 +605,7 @@ export default function CustomerDataSheetReportView({
               {/* Bank Details Section */}
               {formData.reportOptions.printBankDetails && (
                 <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                  <div className="bg-[#0B1220] px-4 py-1.5 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                  <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
                     Bank Details
                   </div>
                   <div className="p-3 grid grid-cols-12 gap-2 text-[10px] bg-white">
@@ -633,7 +633,7 @@ export default function CustomerDataSheetReportView({
                   formData.reportOptions.printPolicyOnNewPage ? "page-break-before pt-4" : ""
                 }`}
               >
-                <div className="bg-[#0B1220] px-4 py-1.5 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
                   Policy Details
                 </div>
                 <table className="w-full text-left text-[9px] border-collapse bg-white">
