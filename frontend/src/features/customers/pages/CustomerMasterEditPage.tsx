@@ -5,7 +5,7 @@ import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
-import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
+import { useForm, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,11 +33,12 @@ import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistor
 import BankDetailsRecordsEditor from "@/features/customers/forms/BankDetailsRecordsEditor";
 import {
   ArrowLeft, User, Phone, MapPin, CreditCard, Info, Settings,
-  ChevronRight, Plus, Trash2, Star, Search, X, Heart, Activity,
+  ChevronRight, Plus, Star, Search, X, Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
+import type { CustomerBankDetail } from "@/features/customers/types";
 
 const SALUTATIONS = ["Mr.", "Mrs.", "Ms.", "Dr.", "Prof.", "Er.", "CA", "Adv."];
 const GENDERS = ["Male", "Female", "Other"];
@@ -54,17 +55,17 @@ const RELIGIONS = ["Hindu","Muslim","Christian","Sikh","Buddhist","Jain","Other"
 // const INCOME_SLABS = ["Below 1L","1L-2.5L","2.5L-5L","5L-10L","10L-25L","25L-50L","50L-1Cr","Above 1Cr"];
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
-const ACCOUNT_TYPES = ["Saving", "Current"];
 const ADDRESS_TYPES = ["Residence","Office","Other"];
 
 const bankDetailSchema = z.object({
+  id: z.string().optional().or(z.literal("")),
   isDefault: z.boolean().default(false),
-  ifscCode: z.string().optional().or(z.literal("")),
-  bankName: z.string().optional().or(z.literal("")),
+  ifscCode: z.string().trim().min(1, "IFSC Code is required"),
+  bankName: z.string().trim().min(1, "Bank Name is required"),
   bankBranch: z.string().optional().or(z.literal("")),
   city: z.string().optional().or(z.literal("")),
-  accountType: z.string().optional().or(z.literal("")),
-  accountNumber: z.string().optional().or(z.literal("")),
+  accountType: z.string().trim().min(1, "Account Type is required"),
+  accountNumber: z.string().trim().min(1, "Account Number is required"),
   micrNumber: z.string().optional().or(z.literal("")),
 });
 
@@ -108,7 +109,7 @@ const schema = z.object({
   emailBusiness: z.string().email("Invalid email").optional().or(z.literal("")),
   skypeId: z.string().optional().or(z.literal("")),
   addresses: z.array(addressSchema).default([]),
-  bankDetails: z.array(bankDetailSchema).default([]),
+  bankDetails: z.array(bankDetailSchema).min(1, "At least one bank account is required").default([]),
   relationToGroup: z.string().optional().or(z.literal("")),
   dobForGreetings: z.string().optional().or(z.literal("")),
   marriageDate: z.string().optional().or(z.literal("")),
@@ -193,20 +194,6 @@ function FormSelect({
   );
 }
 
-function BankAccountTypeCell({ index }: { index: number }) {
-  const { control } = useFormContext();
-  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
-  return (
-    <SearchableSelect
-      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
-      value={String(field.value ?? "")}
-      onChange={field.onChange}
-      placeholder="Select"
-      searchPlaceholder="Search account type..."
-    />
-  );
-}
-
 function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string; required?: boolean }) {
   return (
     <div>
@@ -215,6 +202,34 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
+}
+
+function getBankDetailsErrorMessage(error: unknown) {
+  if (!error || typeof error !== "object") return "";
+  const bankError = error as { message?: unknown; root?: { message?: unknown } };
+  if (typeof bankError.message === "string") return bankError.message;
+  if (typeof bankError.root?.message === "string") return bankError.root.message;
+  return "";
+}
+
+function getToastError(err: unknown, fallback: string) {
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
+function toBankFormDetails(bankDetails: CustomerBankDetail[]): FormInputValues["bankDetails"] {
+  return bankDetails.map((bank) => ({
+    id: bank.id || "",
+    isDefault: bank.isDefault ?? false,
+    ifscCode: bank.ifscCode || "",
+    bankName: bank.bankName || "",
+    bankBranch: bank.bankBranch || "",
+    city: bank.city || "",
+    accountType: bank.accountType || "",
+    accountNumber: bank.accountNumber || "",
+    micrNumber: bank.micrNumber || "",
+  }));
 }
 
 function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -317,7 +332,7 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
-  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
+  onOpenModal?: (type: unknown, id?: string, extraId?: string) => void;
 }
 
 export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
@@ -347,12 +362,9 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
 
   const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", qualification: "", addresses: [], bankDetails: [] },
+    defaultValues: { isGroupHead: false, isMarried: false, isDead: false, smsMarketing: true, emailMarketing: true, nationality: "Indian", qualification: "", addresses: [{ addressType: "Residence", country: "India", useGroupAddress: false }], bankDetails: [] },
   });
   const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = methods;
-
-  const { fields: addrFields, append: appendAddr, remove: removeAddr } = useFieldArray({ control, name: "addresses" });
-  const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
   useEffect(() => {
     setIsMounted(true);
@@ -456,8 +468,8 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         faxStd: ci?.faxStd || "", faxNumber: ci?.faxNumber || "",
         emailPersonal: ci?.emailPersonal || "", emailBusiness: ci?.emailBusiness || "",
         skypeId: ci?.skypeId || "",
-        addresses: (c.addresses || []).map((a) => ({ addressType: a.addressType, addressLine1: a.addressLine1 || "", addressLine2: a.addressLine2 || "", addressLine3: a.addressLine3 || "", addressLine4: a.addressLine4 || "", city: a.city || "", pin: a.pin || "", country: a.country || "India", state: a.state || "", area: a.area || "", useGroupAddress: a.useGroupAddress ?? false })),
-        bankDetails: (c.bankDetails || []).map((b) => ({ isDefault: b.isDefault ?? false, ifscCode: b.ifscCode || "", bankName: b.bankName || "", bankBranch: b.bankBranch || "", city: b.city || "", accountType: b.accountType || "", accountNumber: b.accountNumber || "", micrNumber: b.micrNumber || "" })),
+        addresses: (c.addresses && c.addresses.length > 0 ? c.addresses.slice(0, 1) : [{ addressType: "Residence", country: "India", useGroupAddress: false }]).map((a) => ({ addressType: a.addressType || "Residence", addressLine1: a.addressLine1 || "", addressLine2: a.addressLine2 || "", addressLine3: a.addressLine3 || "", addressLine4: a.addressLine4 || "", city: a.city || "", pin: a.pin || "", country: a.country || "India", state: a.state || "", area: a.area || "", useGroupAddress: a.useGroupAddress ?? false })),
+        bankDetails: (c.bankDetails || []).map((b) => ({ id: b.id, isDefault: b.isDefault ?? false, ifscCode: b.ifscCode || "", bankName: b.bankName || "", bankBranch: b.bankBranch || "", city: b.city || "", accountType: b.accountType || "", accountNumber: b.accountNumber || "", micrNumber: b.micrNumber || "" })),
         relationToGroup: misc?.relationToGroup || "",
         dobForGreetings: formatDateForInput(misc?.dobForGreetings),
         marriageDate: formatDateForInput(misc?.marriageDate),
@@ -528,8 +540,8 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
 
   const buildMedicalPayloadRecord = (): MedicalHistoryRecordItem => ({
     ...medicalRecord,
-    age: calcAgeFromDob(currentCustomer?.dob),
-    gender: currentCustomer?.gender || null,
+    age: calcAgeFromDob(watch("dob")),
+    gender: watch("gender") || null,
     medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate || new Date()).toISOString(),
   });
 
@@ -563,18 +575,18 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             id: familyHistoryRecordId,
             payload: { groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords },
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to update family history");
+          toast.error(getToastError(err, "Failed to update family history"));
         }
       } else if (familyRecords.length > 0) {
         try {
           await dispatch(createFamilyHistory({
             groupId, memberId: id, date: new Date(familyHistoryDate).toISOString(), records: familyRecords,
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to save family history");
+          toast.error(getToastError(err, "Failed to save family history"));
         }
       }
 
@@ -586,18 +598,18 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             id: medicalHistoryRecordId,
             payload: { memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord] },
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to update medical history");
+          toast.error(getToastError(err, "Failed to update medical history"));
         }
       } else if (medicalRecord.bloodGroup && medicalRecord.medicalHistoryDate) {
         try {
           await dispatch(createMedicalHistory({
             memberId: id, date: medRecord.medicalHistoryDate, records: [medRecord],
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to save medical history");
+          toast.error(getToastError(err, "Failed to save medical history"));
         }
       }
 
@@ -609,8 +621,8 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
 
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers?tab=master");
-    } catch (err: any) {
-      toast.error(err || "Failed to update customer");
+    } catch (err: unknown) {
+      toast.error(getToastError(err, "Failed to update customer"));
     } finally {
       setIsSubmitting(false);
     }
@@ -694,6 +706,9 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               <FormInput label="Aadhaar Number" placeholder="1234 5678 9012" {...register("aadhaarNumber")} />
               <FormInput label="Salutation Letter" placeholder="Dear Mr. Sharma" {...register("salutationLetter")} />
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormSelect label="Relation to Group" {...register("relationToGroup")}><option value="">Select relation</option>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
+            </div>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2.5 cursor-pointer">
                 <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
@@ -727,46 +742,31 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           </div>
         </div>
 
-        {/* Addresses */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-[#1877F2]"><MapPin size={16} /></span>
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Addresses</h2>
+        {/* Address */}
+        <SectionCard title="Address" icon={<MapPin size={16} />}>
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={Boolean(watch("addresses.0.useGroupAddress"))}
+                onChange={(e) => handleToggleGroupAddress(0, e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
+              />
+              Use Group Address
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormInput label="Address Line 1" placeholder="House / Flat No." {...register(`addresses.0.addressLine1`)} />
+              <FormInput label="Address Line 2" placeholder="Street / Colony" {...register(`addresses.0.addressLine2`)} />
+              <FormInput label="Address Line 3" placeholder="Area / Locality" {...register(`addresses.0.addressLine3`)} />
+              <FormInput label="Address Line 4" placeholder="Landmark" {...register(`addresses.0.addressLine4`)} />
+              <FormInput label="City" placeholder="City" {...register(`addresses.0.city`)} />
+              <FormInput label="Pin Code" placeholder="400001" {...register(`addresses.0.pin`)} />
+              <FormSelect label="Country" {...register(`addresses.0.country`)}><option>India</option><option>Other</option></FormSelect>
+              <FormSelect label="State" {...register(`addresses.0.state`)}><option value="">Select state</option>{INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}</FormSelect>
+              <FormInput label="Area" placeholder="Zone / Area" {...register(`addresses.0.area`)} />
+            </div>
           </div>
-          <div className="p-5 space-y-5">
-            {addrFields.map((field, idx) => (
-              <div key={field.id} className="border border-slate-200 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1"><FormSelect label="Address Type" {...register(`addresses.${idx}.addressType`)}>{ADDRESS_TYPES.map((t) => <option key={t}>{t}</option>)}</FormSelect></div>
-                  <button type="button" onClick={() => removeAddr(idx)} className="mt-5 inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><Trash2 size={14} /></button>
-                </div>
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(watch(`addresses.${idx}.useGroupAddress`))}
-                    onChange={(e) => handleToggleGroupAddress(idx, e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
-                  />
-                  Use Group Address
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormInput label="Address Line 1" placeholder="House / Flat No." {...register(`addresses.${idx}.addressLine1`)} />
-                  <FormInput label="Address Line 2" placeholder="Street / Colony" {...register(`addresses.${idx}.addressLine2`)} />
-                  <FormInput label="Address Line 3" placeholder="Area / Locality" {...register(`addresses.${idx}.addressLine3`)} />
-                  <FormInput label="Address Line 4" placeholder="Landmark" {...register(`addresses.${idx}.addressLine4`)} />
-                  <FormInput label="City" placeholder="City" {...register(`addresses.${idx}.city`)} />
-                  <FormInput label="Pin Code" placeholder="400001" {...register(`addresses.${idx}.pin`)} />
-                  <FormSelect label="Country" {...register(`addresses.${idx}.country`)}><option>India</option><option>Other</option></FormSelect>
-                  <FormSelect label="State" {...register(`addresses.${idx}.state`)}><option value="">Select state</option>{INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}</FormSelect>
-                  <FormInput label="Area" placeholder="Zone / Area" {...register(`addresses.${idx}.area`)} />
-                </div>
-              </div>
-            ))}
-            <button type="button" onClick={() => appendAddr({ addressType: "Residence", country: "India", useGroupAddress: false, addressLine1: "", addressLine2: "", addressLine3: "", addressLine4: "", city: "", pin: "", state: "", area: "" })} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1877F2] bg-blue-50 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors">
-              <Plus size={14} /> Add Address
-            </button>
-          </div>
-        </div>
+        </SectionCard>
 
         {/* Bank Details */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -777,8 +777,13 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           <div className="p-5">
             <BankDetailsRecordsEditor
               bankDetails={watch("bankDetails") || []}
-              onChange={(banks) => setValue("bankDetails", banks as any, { shouldDirty: true, shouldValidate: true })}
+              onChange={(banks) => setValue("bankDetails", toBankFormDetails(banks), { shouldDirty: true, shouldValidate: true })}
             />
+            {errors.bankDetails && (
+              <p className="mt-3 text-xs text-rose-600">
+                {getBankDetailsErrorMessage(errors.bankDetails)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -809,8 +814,8 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
             <MedicalHistoryInlineEditor
               record={medicalRecord}
               onChange={setMedicalRecord}
-              derivedAge={calcAgeFromDob(currentCustomer?.dob)}
-              derivedGender={currentCustomer?.gender || null}
+              derivedAge={calcAgeFromDob(watch("dob"))}
+              derivedGender={watch("gender") || null}
             />
           </div>
         </div>
@@ -823,20 +828,6 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           </div>
           <div className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormSelect label="Relation to Group" {...register("relationToGroup")}><option value="">Select relation</option>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
-              <div>
-                <FieldLabel label="D.O.B (Greetings)" />
-                <Controller
-                  control={control}
-                  name="dobForGreetings"
-                  render={({ field }) => (
-                    <DatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                    />
-                  )}
-                />
-              </div>
               <FormInput label="Referred By" placeholder="Name of referrer" {...register("referredBy")} />
               <div className="space-y-2">
                 <div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -56,7 +58,12 @@ export function CustomerModalShell({
   children: ReactNode;
   onClose: () => void;
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const modal = (
     <div
       aria-hidden={!isTop}
       className="fixed inset-0 flex items-center justify-center px-3 py-4 sm:px-5 sm:py-6"
@@ -77,7 +84,7 @@ export function CustomerModalShell({
         }`}
       >
         <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-        <header className="flex items-center justify-between gap-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] px-5 py-4">
+        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] px-5 py-4">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#93c5fd]">
               Customer Module
@@ -95,10 +102,13 @@ export function CustomerModalShell({
             <X size={18} />
           </button>
         </header>
-        <div className="overflow-y-auto bg-[#f8faff] px-4 py-5 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#f8faff] px-4 py-5 sm:px-6">
           {children}
         </div>
       </section>
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }

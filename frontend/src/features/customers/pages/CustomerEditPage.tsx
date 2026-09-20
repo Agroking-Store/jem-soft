@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { RootState, AppDispatch } from "@/store/store";
+import type { CustomerUpdatePayload } from "@/features/customers/types";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomer, updateCustomer } from "@/features/customers/customerSlice";
 import { Button } from "@/shared/components/ui/Button";
@@ -227,6 +228,12 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
   );
 }
 
+function getToastError(err: unknown, fallback: string) {
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 // ─── Main Component ───────────────────────────────────────────────
 export default function CustomerEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
@@ -251,6 +258,7 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
       email: "", phone: "", password: "",
     },
   });
+  const preferredAddress = watch("prefCommAddress");
 
   useEffect(() => {
     setIsMounted(true);
@@ -303,7 +311,7 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      const payload: any = {
+      const payload: CustomerUpdatePayload = {
         name: data.groupName,
         email: data.email,
         phone: data.phone,
@@ -343,8 +351,8 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
       toast.success("Customer group updated successfully!");
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers");
-    } catch (err: any) {
-      toast.error(err || "Failed to update");
+    } catch (err: unknown) {
+      toast.error(getToastError(err, "Failed to update"));
     } finally {
       setIsSubmitting(false);
     }
@@ -433,12 +441,13 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
 
         {/* ── Section 3: Addresses ── */}
         <SectionCard title="Addresses" icon={<MapPin size={16} />}>
+          {/* Preferred Communication Address */}
           <div className="mb-5">
             <FieldLabel label="Preferred Communication Address" />
             <div className="flex gap-3">
               {["Residence", "Office"].map((opt) => (
                 <label key={opt} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all
-                  ${watch("prefCommAddress") === opt ? "border-[#1877F2] bg-blue-50 text-[#1877F2]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                  ${preferredAddress === opt ? "border-[#1877F2] bg-blue-50 text-[#1877F2]" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
                   <input type="radio" value={opt} {...register("prefCommAddress")} className="sr-only" />
                   {opt === "Residence" ? <Home size={14} /> : <Building size={14} />}
                   {opt}
@@ -446,50 +455,88 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Residence */}
+
+          {/* Residence */}
+          {preferredAddress === "Residence" && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Home size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Residence</h3>
               </div>
-              <FormInput label="Address Line 1" required placeholder="House / Flat No." error={errors.resAddressLine1?.message} {...register("resAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Colony" error={errors.resAddressLine2?.message} {...register("resAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.resAddressLine3?.message} {...register("resAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" error={errors.resAddressLine4?.message} {...register("resAddressLine4")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" required placeholder="House / Flat No." error={errors.resAddressLine1?.message} {...register("resAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Colony" error={errors.resAddressLine2?.message} {...register("resAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.resAddressLine3?.message} {...register("resAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" error={errors.resAddressLine4?.message} {...register("resAddressLine4")} />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" required placeholder="City" error={errors.resCity?.message} {...register("resCity")} />
                 <FormInput label="Pin Code" required placeholder="400001" error={errors.resPin?.message} {...register("resPin")} />
               </div>
-              <FormSelect label="Country" value={watch("resCountry") || ""} onChange={(value) => setValue("resCountry", value, { shouldValidate: true })}><option>India</option><option>Other</option></FormSelect>
-              <FormSelect label="State" value={watch("resState") || ""} onChange={(value) => setValue("resState", value, { shouldValidate: true })}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
-              </FormSelect>
-              <FormInput label="Area" placeholder="Area / Zone" {...register("resArea")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormSelect
+                  label="State"
+                  value={watch("resState") || ""}
+                  onChange={(value) => setValue("resState", value, { shouldValidate: true })}
+                  placeholder="Select state"
+                  options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                />
+                <FormSelect
+                  label="Country"
+                  value={watch("resCountry") || ""}
+                  onChange={(value) => setValue("resCountry", value, { shouldValidate: true })}
+                  options={["India", "Other"].map((c) => ({ value: c, label: c }))}
+                />
+              </div>
             </div>
-            {/* Office */}
+          )}
+
+          {/* Office */}
+          {preferredAddress === "Office" && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Building size={14} className="text-slate-400" />
                 <h3 className="text-sm font-bold text-slate-700">Office</h3>
               </div>
-              <FormInput label="Address Line 1" required placeholder="Office / Building No." error={errors.offAddressLine1?.message} {...register("offAddressLine1")} />
-              <FormInput label="Address Line 2" placeholder="Street / Road" error={errors.offAddressLine2?.message} {...register("offAddressLine2")} />
-              <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.offAddressLine3?.message} {...register("offAddressLine3")} />
-              <FormInput label="Address Line 4" placeholder="Landmark" error={errors.offAddressLine4?.message} {...register("offAddressLine4")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 1" required placeholder="Office / Building No." error={errors.offAddressLine1?.message} {...register("offAddressLine1")} />
+                <FormInput label="Address Line 2" placeholder="Street / Road" error={errors.offAddressLine2?.message} {...register("offAddressLine2")} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormInput label="Address Line 3" placeholder="Area / Locality" error={errors.offAddressLine3?.message} {...register("offAddressLine3")} />
+                <FormInput label="Address Line 4" placeholder="Landmark" error={errors.offAddressLine4?.message} {...register("offAddressLine4")} />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <FormInput label="City" required placeholder="City" error={errors.offCity?.message} {...register("offCity")} />
                 <FormInput label="Pin Code" required placeholder="400001" error={errors.offPin?.message} {...register("offPin")} />
               </div>
-              <FormSelect label="Country" value={watch("offCountry") || ""} onChange={(value) => setValue("offCountry", value, { shouldValidate: true })}><option>India</option><option>Other</option></FormSelect>
-              <FormSelect label="State" value={watch("offState") || ""} onChange={(value) => setValue("offState", value, { shouldValidate: true })}>
-                <option value="">Select state</option>
-                {INDIAN_STATES.map((s) => <option key={s}>{s}</option>)}
-              </FormSelect>
-              <FormInput label="Area" placeholder="Area / Zone" {...register("offArea")} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormSelect
+                  label="State"
+                  value={watch("offState") || ""}
+                  onChange={(value) => setValue("offState", value, { shouldValidate: true })}
+                  placeholder="Select state"
+                  options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                />
+                <FormSelect
+                  label="Country"
+                  value={watch("offCountry") || ""}
+                  onChange={(value) => setValue("offCountry", value, { shouldValidate: true })}
+                  options={["India", "Other"].map((c) => ({ value: c, label: c }))}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </SectionCard>
 
         {/* ── Section 4: Portal Access ── */}
