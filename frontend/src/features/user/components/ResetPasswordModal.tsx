@@ -95,7 +95,7 @@ export default function ResetPasswordModal({ user, onClose }: Props) {
                   ${
                     errors.newPassword
                       ? "border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
-                      : "border-slate-200 bg-slate-50 focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+                      : "border-slate-200 bg-slate-50 focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
                   }`}
               />
               <button
@@ -128,7 +128,7 @@ export default function ResetPasswordModal({ user, onClose }: Props) {
                   ${
                     errors.confirmPassword
                       ? "border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
-                      : "border-slate-200 bg-slate-50 focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+                      : "border-slate-200 bg-slate-50 focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
                   }`}
               />
               <button
@@ -158,7 +158,7 @@ export default function ResetPasswordModal({ user, onClose }: Props) {
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? "Resetting..." : "Reset Password"}
             </button>

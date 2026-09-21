@@ -41,7 +41,7 @@ function Seal({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
-      className="flex shrink-0 items-center justify-center rounded-full bg-[#0B1220] font-semibold text-[#E8C77A] ring-2 ring-[#B8873A]/40 ring-offset-2 ring-offset-white"
+      className="flex shrink-0 items-center justify-center rounded-full bg-[#1877F2] font-semibold text-white ring-2 ring-blue-200 ring-offset-2 ring-offset-white"
     >
       <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>
         {getInitials(name)}
@@ -192,24 +192,27 @@ export default function UserListPage() {
       </nav>
 
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] px-8 py-8">
+      <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white px-6 py-6 sm:px-8 shadow-sm">
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">User Management</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Manage system users, roles, and access permissions
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1e3a8a] to-[#2563eb] text-white shadow-md shadow-blue-200">
+              <Users size={20} />
+            </span>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">User Management</h1>
+              <p className="mt-0.5 text-sm text-slate-500">
+                Manage system users, roles, and access permissions
+              </p>
+            </div>
           </div>
           <Link
             href="/dashboard/users/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#E8C77A] px-4 py-2.5 text-sm font-semibold text-[#0B1220] transition-colors hover:bg-[#d8b65a] self-start sm:self-auto"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] self-start sm:self-auto"
           >
             <Plus size={16} />
             Add User
           </Link>
         </div>
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/[0.03]" />
-        <div className="absolute -bottom-6 right-20 h-24 w-24 rounded-full bg-white/[0.03]" />
       </div>
 
       {/* Stats */}
@@ -224,23 +227,24 @@ export default function UserListPage() {
           return (
             <div
               key={stat.label}
-              className="bg-gradient-to-r from-[#0B1220] via-[#132342] to-[#16294D] rounded-xl border border-slate-200 p-5 shadow-sm"
+              className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
             >
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] to-blue-200" />
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-[#E8C77A]">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                     {stat.label}
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-[#E8C77A]">
+                  <p className="mt-1 text-2xl font-bold text-slate-900">
                     {isLoading ? (
-                      <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-700" />
+                      <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-100" />
                     ) : (
                       stat.value
                     )}
                   </p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-800">
-                  <Icon className="h-6 w-6 text-[#E8C77A]" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
+                  <Icon className="h-6 w-6 text-[#1877F2]" />
                 </div>
               </div>
             </div>
@@ -260,14 +264,14 @@ export default function UserListPage() {
             placeholder="Search by name, email or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
           />
         </div>
 
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
         >
           <option value="">All Roles</option>
           <option value="ADMIN">Admin</option>
@@ -277,7 +281,7 @@ export default function UserListPage() {
 
         <Link
           href="/dashboard/users/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#16294D]"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
         >
           <Plus size={16} />
           New User
@@ -285,17 +289,18 @@ export default function UserListPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
         {isLoading && users.length === 0 ? (
           <div className="flex min-h-[18rem] items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#0B1220]" />
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
           </div>
         ) : error && users.length === 0 ? (
           <div className="flex min-h-[18rem] flex-col items-center justify-center gap-3 text-center px-6">
             <p className="text-slate-500">{error}</p>
             <button
               onClick={() => dispatch(fetchAllUsers())}
-              className="rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#16294D]"
+              className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
             >
               Try Again
             </button>
@@ -312,7 +317,7 @@ export default function UserListPage() {
             {!searchTerm && !roleFilter && (
               <Link
                 href="/dashboard/users/new"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#16294D]"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
               >
                 <Plus size={16} />
                 Add First User
@@ -340,7 +345,7 @@ export default function UserListPage() {
                       onDoubleClick={() =>
                         router.push(`/dashboard/users/${user.id}/edit`)
                       }
-                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-[#0B1220]/[0.025] ${
+                      className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
                         index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
                       }`}
                     >
@@ -349,12 +354,12 @@ export default function UserListPage() {
                           <Seal name={user.name} size={36} />
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900 group-hover:text-[#0B1220]">
+                              <span className="font-semibold text-slate-900 group-hover:text-[#1877F2]">
                                 {user.name}
                               </span>
                               <ChevronRight
                                 size={13}
-                                className="text-[#B8873A] opacity-0 transition-opacity group-hover:opacity-100"
+                                className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                               />
                             </div>
                             <p className="text-xs text-slate-400 mt-0.5">
@@ -388,7 +393,7 @@ export default function UserListPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setResetTarget(user)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
                             title="Reset Password"
                           >
                             <KeyRound size={14} />
@@ -396,7 +401,7 @@ export default function UserListPage() {
 
                           <Link
                             href={`/dashboard/users/${user.id}/edit`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-[#0B1220]/5 hover:text-[#0B1220]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[#1877F2] transition-colors hover:bg-blue-100"
                             title="Edit"
                           >
                             <Edit size={14} />
@@ -406,7 +411,7 @@ export default function UserListPage() {
                             onClick={() =>
                               setDeleteTarget({ id: user.id, name: user.name })
                             }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
                             title="Delete"
                           >
                             <Trash2 size={14} />
