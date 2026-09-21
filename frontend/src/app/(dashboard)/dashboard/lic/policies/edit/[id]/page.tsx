@@ -212,6 +212,26 @@ export default function EditLICPolicyPage() {
           path: ["option"],
         });
       }
+      if (selectedProductPlan === "887") {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.option), {
+            message: "Option is required for this plan.",
+            path: ["option"],
+          })
+          .refine(
+            (data) => {
+              if (!data.term || !data.age) return true;
+              const term = Number(data.term);
+              const age = Number(data.age);
+              const maxAllowed = Math.min(82, 100 - age);
+              return term >= 10 && term <= maxAllowed;
+            },
+            {
+              message: "Term must be between 10 and 100 minus age (maximum 82).",
+              path: ["term"],
+            },
+          );
+      }
 
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
       const maxSum = getAttributeValue("MAX_SUM_ASSURED");
@@ -543,6 +563,31 @@ export default function EditLICPolicyPage() {
                   selected: false,
                 },
               ]
+            : (selectedPolicy.product?.planNumber === "717" || selectedPolicy.product?.planNumber === "733" || selectedPolicy.product?.planNumber === "736" || selectedPolicy.product?.planNumber === "745" || selectedPolicy.product?.planNumber === "760" || selectedPolicy.product?.planNumber === "771" || selectedPolicy.product?.planNumber === "881" || selectedPolicy.product?.planNumber === "883" || selectedPolicy.product?.planNumber === "888" || selectedPolicy.product?.planNumber === "912")
+              ? [
+                  ...(riders.find((r) => r.riderName.toLowerCase().includes("term"))
+                    ? [{
+                        description: riders.find((r) => r.riderName.toLowerCase().includes("term"))!.riderName,
+                        sum: null,
+                        premium: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        selected: false,
+                      }]
+                    : []),
+                  ...(riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"))
+                    ? [{
+                        description: riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"))!.riderName,
+                        sum: null,
+                        premium: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        selected: false,
+                      }]
+                    : []),
+                ]
             : [],
 
       nominees:
@@ -785,7 +830,14 @@ export default function EditLICPolicyPage() {
 
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
-        if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
+        const isAddb = desc.includes("accidental death") || desc.includes("addb");
+
+        if (
+          desc.includes("term") ||
+          desc.includes("critical illness") ||
+          desc.includes("cir") ||
+          ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
+        ) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
           let expectedTerm = watchTerm ? Number(watchTerm) : null;
           let expectedPpt = watchPpt ? Number(watchPpt) : null;
@@ -820,8 +872,19 @@ export default function EditLICPolicyPage() {
                   console.error("Failed to fetch rider options", error);
                 }
               };
-              if (String(r.sum || "") !== String(expectedSum || "") || !r.term || !r.ppt || String(r.ppt || "") !== String(expectedPpt || "")) {
-                 fetchOptions();
+              if (String(r.sum || "") !== String(expectedSum || "")) {
+                if (r.term && r.ppt) {
+                  const updatedRiders = [...watchRiders];
+                  updatedRiders[index] = {
+                    ...r,
+                    sum: expectedSum,
+                  };
+                  setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+                } else {
+                  fetchOptions();
+                }
+              } else if (!r.term || !r.ppt) {
+                fetchOptions();
               }
               return;
             }
@@ -1416,7 +1479,8 @@ export default function EditLICPolicyPage() {
                             if (currentTerm && !allowed.includes(currentTerm)) {
                               allowed.push(currentTerm);
                             }
-                            optionsToRender = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                            const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                            optionsToRender = filtered.length > 0 ? filtered : allowed;
                           }
                         }
                         return optionsToRender.map(p => (

@@ -48,7 +48,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "./DatePicker";
-import { format, addYears, differenceInYears } from "date-fns";
+import { format, addYears, differenceInYears, isValid } from "date-fns";
 
 import { getFullName, GroupAutoComplete, AdvisorAutoComplete, LifeAssuredAutoComplete, BranchAutoComplete } from "./components/AutoCompleteSelects";
 import { PolicyHolderSection } from "./components/PolicyHolderSection";
@@ -253,7 +253,20 @@ export default function NewLICPolicyPage() {
           .refine((data) => Boolean(data.option), {
             message: "Option is required for this plan.",
             path: ["option"],
-          });
+          })
+          .refine(
+            (data) => {
+              if (!data.term || !data.age) return true;
+              const term = Number(data.term);
+              const age = Number(data.age);
+              const maxAllowed = Math.min(82, 100 - age);
+              return term >= 10 && term <= maxAllowed;
+            },
+            {
+              message: "Term must be between 10 and 100 minus age (maximum 82).",
+              path: ["term"],
+            },
+          );
       }
 
       const minSum = getAttributeValue("MIN_SUM_ASSURED");
@@ -388,6 +401,11 @@ export default function NewLICPolicyPage() {
     [watchGroupId, groups],
   );
 
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === watchProductId),
+    [watchProductId, products],
+  );
+
   const groupMembers = useMemo(() => {
     if (!watchGroupId) return [];
     return masterCustomers.filter((m) => m.groupId === watchGroupId);
@@ -423,7 +441,7 @@ export default function NewLICPolicyPage() {
     );
     setValue(
       "age",
-      member?.dob ? differenceInYears(new Date(), new Date(member.dob)) : undefined,
+      member?.dob ? differenceInYears(new Date(), new Date(member.dob)) : (undefined as any),
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -539,7 +557,6 @@ export default function NewLICPolicyPage() {
       .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""))
       .map(p => ({
         value: p.id,
-        label: p.productName,
         label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
         sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
       }));
@@ -549,7 +566,6 @@ export default function NewLICPolicyPage() {
       .sort((a, b) => a.productName.localeCompare(b.productName))
       .map(p => ({
         value: p.id,
-        label: p.productName,
         label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
         sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
       }));
@@ -648,7 +664,14 @@ export default function NewLICPolicyPage() {
           return;
         }
 
-        if (desc.includes("term") || desc.includes("critical illness") || desc.includes("cir")) {
+        const isAddb = desc.includes("accidental death") || desc.includes("addb");
+
+        if (
+          desc.includes("term") ||
+          desc.includes("critical illness") ||
+          desc.includes("cir") ||
+          ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
+        ) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
           let expectedTerm = watchTerm ? Number(watchTerm) : null;
           let expectedPpt = watchPpt ? Number(watchPpt) : null;
@@ -681,8 +704,16 @@ export default function NewLICPolicyPage() {
                   console.error("Failed to fetch rider options", error);
                 }
               };
-              // Only fetch if sum doesn't match or term/ppt are empty/not matching the base ppt, to avoid infinite loops when it settles
-              if (String(r.sum || "") !== String(expectedSum || "") || !r.term || !r.ppt || String(r.ppt || "") !== String(expectedPpt || "")) {
+              if (String(r.sum || "") !== String(expectedSum || "")) {
+                if (r.term && r.ppt) {
+                  updateRider(index, {
+                    ...r,
+                    sum: expectedSum,
+                  });
+                } else {
+                  fetchOptions();
+                }
+              } else if (!r.term || !r.ppt) {
                 fetchOptions();
               }
               return;
@@ -810,27 +841,36 @@ export default function NewLICPolicyPage() {
     if (watchCommencementDate && term > 0) {
       try {
         const startDate = new Date(watchCommencementDate);
-        const completionDate = addYears(startDate, term);
-        setValue("completionDate", format(completionDate, "yyyy-MM-dd"));
+        if (isValid(startDate)) {
+          const completionDate = addYears(startDate, term);
+          const formatted = format(completionDate, "yyyy-MM-dd");
+          if (watchCompletionDate !== formatted) {
+            setValue("completionDate", formatted, { shouldValidate: true, shouldDirty: true });
+          }
+        }
       } catch (e) {
         // Do nothing if the date is invalid
       }
     }
-  }, [watchCommencementDate, watchTerm, setValue]);
+  }, [watchCommencementDate, watchTerm, watchCompletionDate, setValue]);
 
-  // Auto-calculate Term from dates
+  // Auto-calculate Term from dates only if term is not set
   useEffect(() => {
-    if (watchCommencementDate && watchCompletionDate) {
+    if (watchCommencementDate && watchCompletionDate && !watchTerm) {
       try {
         const startDate = new Date(watchCommencementDate);
         const endDate = new Date(watchCompletionDate);
-        const term = differenceInYears(endDate, startDate);
-        if (term >= 0) setValue("term", term);
+        if (isValid(startDate) && isValid(endDate)) {
+          const calculatedTerm = differenceInYears(endDate, startDate);
+          if (calculatedTerm > 0) {
+            setValue("term", String(calculatedTerm) as any, { shouldValidate: true, shouldDirty: true });
+          }
+        }
       } catch (e) {
         // Do nothing if dates are invalid
       }
     }
-  }, [watchCommencementDate, watchCompletionDate, setValue]);
+  }, [watchCommencementDate, watchCompletionDate, watchTerm, setValue]);
 
   // Auto-select PPT when Term is selected
   useEffect(() => {
@@ -840,19 +880,47 @@ export default function NewLICPolicyPage() {
       const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
       if (matchingCombs.length === 1) {
         // Only one possible PPT for this term, auto select it
-        setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+        if (Number(watchPpt) !== matchingCombs[0].ppt) {
+          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+        }
       } else if (matchingCombs.length > 0 && watchPpt) {
         // If current PPT is not in the valid list for this term, clear or reset it
         const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
         if (!isValid) {
-          setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
         }
       } else if (matchingCombs.length > 0 && !watchPpt) {
-        // If multiple and none selected, just pick the first or leave empty
-        // setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+        setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
       }
     }
   }, [watchTerm, productOptionsData.combinations, setValue, watchPpt]);
+
+  // Auto-select Term and PPT when product options load
+  useEffect(() => {
+    if (!selectedProduct || productOptionsData.terms.length === 0) return;
+
+    if (!["771", "745", "883", "887"].includes(selectedProduct.planNumber ?? "")) {
+      const currentTerm = watchTerm ? Number(watchTerm) : null;
+      let effectiveTerm = currentTerm;
+      if (!currentTerm || !productOptionsData.terms.includes(currentTerm)) {
+        effectiveTerm = Math.min(...productOptionsData.terms);
+        if (Number(watchTerm) !== effectiveTerm) {
+          setValue("term", String(effectiveTerm) as any, { shouldValidate: true, shouldDirty: true });
+        }
+      }
+
+      if (effectiveTerm && productOptionsData.combinations.length > 0) {
+        const matchingCombs = productOptionsData.combinations.filter(c => c.term === effectiveTerm && c.ppt !== null);
+        if (matchingCombs.length > 0) {
+          const currentPpt = watchPpt ? Number(watchPpt) : null;
+          const isValidPpt = currentPpt && matchingCombs.some(c => c.ppt === currentPpt);
+          if (!isValidPpt) {
+            setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+          }
+        }
+      }
+    }
+  }, [productOptionsData, selectedProduct, setValue, watchTerm, watchPpt]);
 
   useEffect(() => {
     const sum = parseFloat(String(watchSumAssured)) || 0;
@@ -959,21 +1027,24 @@ export default function NewLICPolicyPage() {
     };
   }, [premiumPreviewKey, products, setValue, watchAge, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium, watchSmoker, watchGender]);
 
-  const selectedProduct = useMemo(
-    () => products.find((p) => p.id === watchProductId),
-    [watchProductId, products],
-  );
+
 
   useEffect(() => {
     if (!selectedProduct) return;
 
     if (["771", "745", "883", "887"].includes(selectedProduct.planNumber ?? "") && watchAge) {
-      setValue("term", String(100 - Number(watchAge)) as any, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+      const defaultTerm =
+        selectedProduct.planNumber === "887"
+          ? Math.min(82, 100 - Number(watchAge))
+          : 100 - Number(watchAge);
+      if (Number(watchTerm) !== defaultTerm) {
+        setValue("term", String(defaultTerm) as any, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
     }
-  }, [watchProductId, watchAge, selectedProduct, setValue]);
+  }, [watchProductId, watchAge, selectedProduct, setValue, watchTerm]);
 
   // Auto-populate riders when a product is selected
   useEffect(() => {
@@ -989,12 +1060,30 @@ export default function NewLICPolicyPage() {
           mode: "",
           selected: false,
         }));
+
+        if (selectedProduct.planNumber === "717" || selectedProduct.planNumber === "733" || selectedProduct.planNumber === "736" || selectedProduct.planNumber === "745" || selectedProduct.planNumber === "760" || selectedProduct.planNumber === "771" || selectedProduct.planNumber === "881" || selectedProduct.planNumber === "883" || selectedProduct.planNumber === "888" || selectedProduct.planNumber === "912") {
+          const addbRider = riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"));
+          const hasAddb = newRiders.some((r: any) => r.description.toLowerCase().includes("accidental death") || r.description.toLowerCase().includes("addb"));
+          if (addbRider && !hasAddb) {
+            newRiders.push({
+              description: addbRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+              selected: false,
+            });
+          }
+        }
+
         replaceRiders(newRiders);
       } else {
         // Fallback: If DB hasn't mapped riders to this product yet, show appropriate default riders
         const termRider = riders.find((r) => r.riderName.toLowerCase().includes("term"));
         const cirRider = riders.find((r) => r.riderName.toLowerCase().includes("critical illness") || r.riderName.toLowerCase().includes("cir"));
         const wopRider = riders.find((r) => r.riderCode === "WOP" || r.riderCode === "PWB" || r.riderName.toLowerCase().includes("waiver") || r.riderName.toLowerCase().includes("pwb"));
+        const addbRider = riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"));
 
         const defaultRiders = [];
 
@@ -1014,6 +1103,18 @@ export default function NewLICPolicyPage() {
           if (termRider) {
             defaultRiders.push({
               description: termRider.riderName,
+              sum: null,
+              term: null,
+              ppt: null,
+              premium: null,
+              mode: "",
+              selected: false,
+            });
+          }
+
+          if ((selectedProduct.planNumber === "717" || selectedProduct.planNumber === "733" || selectedProduct.planNumber === "736" || selectedProduct.planNumber === "745" || selectedProduct.planNumber === "760" || selectedProduct.planNumber === "771" || selectedProduct.planNumber === "881" || selectedProduct.planNumber === "883" || selectedProduct.planNumber === "888" || selectedProduct.planNumber === "912") && addbRider) {
+            defaultRiders.push({
+              description: addbRider.riderName,
               sum: null,
               term: null,
               ppt: null,
@@ -1066,6 +1167,10 @@ export default function NewLICPolicyPage() {
     const isPlan889 = selectedProduct?.planNumber === "889";
     const minTerm = getAttributeValue("MIN_POLICY_TERM") || (isPlan889 ? "10" : undefined);
     const maxTerm = getAttributeValue("MAX_POLICY_TERM") || (isPlan889 ? "25" : undefined);
+    const effectiveMaxTerm =
+      selectedProduct?.planNumber === "887" && watchAge
+        ? String(Math.min(82, 100 - Number(watchAge)))
+        : maxTerm;
     const minPpt = getAttributeValue("MIN_PPT") || (isPlan889 ? "5" : undefined);
     const maxPpt = getAttributeValue("MAX_PPT") || (isPlan889 ? "15" : undefined);
     const minSum = getAttributeValue("MIN_SUM_ASSURED") || (isPlan889 ? "300000" : undefined);
@@ -1075,20 +1180,17 @@ export default function NewLICPolicyPage() {
 
     // For plan 771, the term is calculated, not pre-filled from attributes.
     if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
-      if (minTerm) setValue("term", minTerm as any);
-      else setValue("term", undefined);
+      if (minTerm && !watchTerm) setValue("term", minTerm as any);
     }
 
-    if (minPpt) setValue("ppt", minPpt as any);
-    else setValue("ppt", undefined);
+    if (minPpt && !watchPpt) setValue("ppt", minPpt as any);
 
-    if (minSum) setValue("sumAssured", minSum as any);
-    else setValue("sumAssured", undefined);
+    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as any);
 
     setAttributeHints({
       term:
-        minTerm || maxTerm
-          ? `Range: ${minTerm || "N/A"} - ${maxTerm || "N/A"}`
+        minTerm || effectiveMaxTerm
+          ? `Range: ${minTerm || "N/A"} - ${effectiveMaxTerm || "N/A"}`
           : "",
       ppt:
         minPpt || maxPpt
@@ -1103,7 +1205,7 @@ export default function NewLICPolicyPage() {
           ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
           : "",
     });
-  }, [watchProductId, productAttributeValues, products, setValue]);
+  }, [watchProductId, productAttributeValues, products, setValue, watchAge]);
 
   useEffect(() => {
     if (!watchProductId) {
@@ -1414,7 +1516,7 @@ export default function NewLICPolicyPage() {
                         name="commencementDate"
                         render={({ field }) => (
                           <DatePicker
-                            value={field.value ? new Date(field.value) : undefined}
+                            value={field.value}
                             onChange={(date) =>
                               field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                             }
@@ -1460,7 +1562,7 @@ export default function NewLICPolicyPage() {
                         name="completionDate"
                         render={({ field }) => (
                           <DatePicker
-                            value={field.value ? new Date(field.value) : undefined}
+                            value={field.value}
                             onChange={(date) =>
                               field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                             }
@@ -1479,12 +1581,27 @@ export default function NewLICPolicyPage() {
                       </label>
                       <select
                         {...register("term")}
+                        value={watchTerm != null && String(watchTerm) !== "" ? String(watchTerm) : ""}
+                        onChange={(e) => {
+                          register("term").onChange(e);
+                        }}
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                        disabled={["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")}
+                        disabled={["771", "745", "883"].includes(selectedProduct?.planNumber ?? "")}
                       >
                         <option value="">Select Term</option>
-                        {["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
+                        {["771", "745", "883"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
                           <option value={String(100 - Number(watchAge))}>{100 - Number(watchAge)}</option>
+                        ) : selectedProduct?.planNumber === "887" ? (
+                          (() => {
+                            const maxTerm = watchAge ? Math.min(82, 100 - Number(watchAge)) : 82;
+                            const optionsList: number[] = [];
+                            for (let t = 10; t <= maxTerm; t++) {
+                              optionsList.push(t);
+                            }
+                            return optionsList.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ));
+                          })()
                         ) : (
                           productOptionsData.terms.map(t => (
                             <option key={t} value={t}>{t}</option>
@@ -1513,6 +1630,10 @@ export default function NewLICPolicyPage() {
                       </label>
                       <select
                         {...register("ppt")}
+                        value={watchPpt != null && String(watchPpt) !== "" ? String(watchPpt) : ""}
+                        onChange={(e) => {
+                          register("ppt").onChange(e);
+                        }}
                         disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
                       >
@@ -1520,7 +1641,7 @@ export default function NewLICPolicyPage() {
                           {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
                         </option>
                         {(() => {
-                          let optionsToRender = productOptionsData.ppts;
+                          let optionsToRender: (number | string)[] = productOptionsData.ppts;
                           if (selectedProduct?.planNumber === "887") {
                             if (watchMode === "Single") {
                               optionsToRender = ["1"];
@@ -1530,7 +1651,8 @@ export default function NewLICPolicyPage() {
                               if (currentTerm && !allowed.includes(currentTerm)) {
                                 allowed.push(currentTerm);
                               }
-                              optionsToRender = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                              const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                              optionsToRender = filtered.length > 0 ? filtered : allowed;
                             }
                           }
                           return optionsToRender.map(p => (
@@ -2142,9 +2264,7 @@ export default function NewLICPolicyPage() {
                             name="fupDate"
                             render={({ field }) => (
                               <DatePicker
-                                value={
-                                  field.value ? new Date(field.value) : undefined
-                                }
+                                value={field.value}
                                 onChange={(date) =>
                                   field.onChange(
                                     date ? format(date, "yyyy-MM-dd") : "",
@@ -2196,9 +2316,7 @@ export default function NewLICPolicyPage() {
                             name="fuliDate"
                             render={({ field }) => (
                               <DatePicker
-                                value={
-                                  field.value ? new Date(field.value) : undefined
-                                }
+                                value={field.value}
                                 onChange={(date) =>
                                   field.onChange(
                                     date ? format(date, "yyyy-MM-dd") : "",
@@ -2427,24 +2545,20 @@ export default function NewLICPolicyPage() {
                                 <label className="block text-sm font-medium mb-2">
                                   Submission Date
                                 </label>
-                                <Controller
-                                  control={control}
-                                  name="neftSubmissionDate"
-                                  render={({ field }) => (
-                                    <DatePicker
-                                      value={
-                                        field.value
-                                          ? new Date(field.value)
-                                          : undefined
-                                      }
-                                      onChange={(date) =>
-                                        field.onChange(
-                                          date ? format(date, "yyyy-MM-dd") : "",
-                                        )
-                                      }
-                                    />
-                                  )}
-                                />
+                                  <Controller
+                                    control={control}
+                                    name="neftSubmissionDate"
+                                    render={({ field }) => (
+                                      <DatePicker
+                                        value={field.value}
+                                        onChange={(date) =>
+                                          field.onChange(
+                                            date ? format(date, "yyyy-MM-dd") : "",
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  />
                               </div>
                             </>
                           )}
@@ -2544,11 +2658,7 @@ export default function NewLICPolicyPage() {
                                     name={`nominees.${index}.dateOfBirth`}
                                     render={({ field }) => (
                                       <DatePicker
-                                        value={
-                                          field.value
-                                            ? new Date(field.value)
-                                            : undefined
-                                        }
+                                        value={field.value}
                                         onChange={(date) =>
                                           field.onChange(
                                             date
