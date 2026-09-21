@@ -264,18 +264,18 @@ export default function PolicyMaturityReportView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0B1220] p-4 rounded-2xl border border-slate-800 shadow-xl print:hidden">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
-          <button onClick={onBackToForm} className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-300 bg-white/10 rounded-xl hover:bg-white/20 transition uppercase tracking-wider">
+          <button onClick={onBackToForm} className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider">
             <ArrowLeft size={16} />
             <span>Edit Filters</span>
           </button>
-          <span className="text-xs bg-[#B8873A]/20 text-[#E8C77A] font-bold px-3 py-1 rounded-full border border-[#B8873A]/30 uppercase tracking-wider">{getReportHeaderTitle()}</span>
+          <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">{getReportHeaderTitle()}</span>
         </div>
         <button
           onClick={handleDownloadPDF}
           disabled={isExporting}
-          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl shadow-lg hover:brightness-105 transition disabled:opacity-50 uppercase tracking-wider"
+          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-50 uppercase tracking-wider"
         >
           <Download size={16} />
           <span>{isExporting ? "Exporting..." : "Download PDF"}</span>
@@ -292,12 +292,12 @@ export default function PolicyMaturityReportView({
             <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
           </div>
           <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-serif font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
+            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
           </div>
         </div>
 
         <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-serif font-bold text-[#E8C77A] uppercase tracking-wider">Policy Maturity Statement</h2>
+          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Policy Maturity Statement</h2>
           <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">{getReportHeaderTitle()}</span>
         </div>
 

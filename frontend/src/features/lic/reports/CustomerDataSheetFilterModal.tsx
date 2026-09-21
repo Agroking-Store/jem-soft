@@ -261,22 +261,22 @@ export default function CustomerDataSheetFilterModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B1220]/75 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Accent Gold Bar */}
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+        {/* Accent Bar */}
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#0B1220] text-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white">
           <div className="flex items-center gap-2">
-            <h2 className="font-serif text-base font-bold tracking-wider text-[#E8C77A] uppercase">
+            <h2 className="text-base font-bold tracking-wider text-white uppercase">
               Filter Options
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
             title="Close"
           >
             <X size={18} />
@@ -286,7 +286,7 @@ export default function CustomerDataSheetFilterModal({
         {/* Filter Controls Row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="font-serif text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
               Filter Options :
             </span>
             <div className="relative">
@@ -296,7 +296,7 @@ export default function CustomerDataSheetFilterModal({
                   setFilterCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="appearance-none bg-white border border-slate-300 rounded-xl px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#B8873A] focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 shadow-xs cursor-pointer"
+                className="appearance-none bg-white border border-slate-300 rounded-xl px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#1877F2] focus:outline-none focus:ring-2 focus:ring-[#1877F2]/20 shadow-xs cursor-pointer"
               >
                 <option value="Group Memberwise">Group Memberwise</option>
                 <option value="Groups Wise">Groups Wise</option>
@@ -319,7 +319,7 @@ export default function CustomerDataSheetFilterModal({
                 setSearchText(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-white border border-slate-300 rounded-xl py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl py-1.5 pl-3 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-[#1877F2]/20 shadow-xs"
             />
             <Search size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
@@ -332,13 +332,13 @@ export default function CustomerDataSheetFilterModal({
             <div className="overflow-y-auto flex-1 border border-slate-200 rounded-xl shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 font-serif text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10">
+                  <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10">
                     <th className="py-2.5 px-3 w-10 text-center">
                       <input
                         type="checkbox"
                         checked={isAllPageSelected}
                         onChange={toggleSelectAll}
-                        className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                        className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
                       />
                     </th>
                     <th className="py-2.5 px-3 w-28">
@@ -369,8 +369,8 @@ export default function CustomerDataSheetFilterModal({
                       <tr
                         key={item.id}
                         onClick={() => toggleItem(item)}
-                        className={`hover:bg-[#B8873A]/5 cursor-pointer transition ${
-                          isChecked ? "bg-[#B8873A]/10 font-semibold" : ""
+                        className={`hover:bg-[#1877F2]/5 cursor-pointer transition ${
+                          isChecked ? "bg-[#1877F2]/10 font-semibold" : ""
                         }`}
                       >
                         <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -378,7 +378,7 @@ export default function CustomerDataSheetFilterModal({
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleItem(item)}
-                            className="w-4 h-4 rounded border-slate-300 text-[#B8873A] focus:ring-[#B8873A] cursor-pointer"
+                            className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
                           />
                         </td>
                         <td className="py-2 px-3 text-slate-700 font-mono text-[11px]">
@@ -405,7 +405,7 @@ export default function CustomerDataSheetFilterModal({
 
             {/* Pagination Controls */}
             <div className="flex items-center justify-between pt-3 text-xs text-slate-600 border-t border-slate-100 mt-2">
-              <span className="bg-[#B8873A]/10 text-[#B8873A] px-3 py-1 rounded-md font-bold text-[11px]">
+              <span className="bg-[#1877F2]/10 text-[#1877F2] px-3 py-1 rounded-md font-bold text-[11px]">
                 {filteredList.length > 0
                   ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                       currentPage * pageSize,
@@ -431,7 +431,7 @@ export default function CustomerDataSheetFilterModal({
                 >
                   Prev
                 </button>
-                <span className="px-3 py-1 bg-[#0B1220] text-white rounded-md font-bold text-[11px]">
+                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px]">
                   {currentPage}
                 </span>
                 <button
@@ -457,7 +457,7 @@ export default function CustomerDataSheetFilterModal({
           {/* Right Selected Items Panel */}
           <div className="md:col-span-5 p-4 flex flex-col justify-between bg-slate-50/60 overflow-hidden">
             <div className="border border-slate-200 rounded-xl overflow-hidden bg-white h-full flex flex-col shadow-xs">
-              <div className="bg-[#0B1220] px-4 py-2.5 border-b border-slate-200 font-serif text-xs font-bold text-[#E8C77A] uppercase tracking-wider flex items-center justify-between">
+              <div className="bg-[#1877F2] px-4 py-2.5 border-b border-slate-200 text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
                 <span>Selected Filter ({selectedItems.length})</span>
                 {selectedItems.length > 0 && (
                   <button
@@ -512,7 +512,7 @@ export default function CustomerDataSheetFilterModal({
           <button
             type="button"
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-105 transition cursor-pointer"
+            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition cursor-pointer"
           >
             Apply Filter
           </button>

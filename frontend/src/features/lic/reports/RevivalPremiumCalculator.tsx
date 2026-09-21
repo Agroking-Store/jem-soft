@@ -312,38 +312,27 @@ export default function RevivalPremiumCalculator({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 text-white border border-slate-800 shadow-xl">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      {/* Top Header Banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider">
+            <ChevronLeft size={18} />
+            <span>Reports</span>
+          </button>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Revival Premium Calculator</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Reset"><RotateCcw size={17} /></button>
+          {calculated && (
             <button
-              onClick={onBack}
-              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+              onClick={handleDownloadPDF}
+              disabled={isExporting}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
             >
-              <ChevronLeft size={18} />
-              <span>Reports</span>
+              <Download size={15} />
+              <span>{isExporting ? "Exporting..." : "Download PDF"}</span>
             </button>
-            <div className="h-6 w-px bg-white/15" />
-            <h1 className="font-serif text-xl font-bold text-[#E8C77A] tracking-wider uppercase">
-              Revival Premium Calculator
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={handleReset} className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition" title="Reset">
-              <RotateCcw size={20} />
-            </button>
-            {calculated && (
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs rounded-xl hover:brightness-105 transition disabled:opacity-50"
-              >
-                <Download size={16} />
-                {isExporting ? "Exporting..." : "Download PDF"}
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -353,19 +342,19 @@ export default function RevivalPremiumCalculator({
           <div className="lg:col-span-3 space-y-4">
             {/* Revival Type */}
             <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-              <label className="flex items-center gap-2.5 text-xs font-bold text-[#0B1220] cursor-pointer w-fit">
-                <input type="radio" defaultChecked className="w-4 h-4 text-[#B8873A] focus:ring-[#B8873A]" />
-                <span className="font-serif text-sm uppercase tracking-wider text-[#0B1220]">Ordinary Revival</span>
+              <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-900 cursor-pointer w-fit">
+                <input type="radio" defaultChecked className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2]" />
+                <span className="text-sm uppercase tracking-wider text-slate-900">Ordinary Revival</span>
               </label>
 
               {/* Policy No Dropdown */}
               <div className="mt-4 relative">
                 <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider z-10">
+                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider z-10">
                     Policy No.
                   </span>
-                  <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:border-[#B8873A] focus-within:ring-2 focus-within:ring-[#B8873A]/20 transition bg-white">
+                  <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-[#1877F2]/20 transition bg-white">
                     <Search size={15} className="ml-3 text-slate-400 shrink-0" />
                     <input
                       type="text"
@@ -399,9 +388,9 @@ export default function RevivalPremiumCalculator({
                           key={p.id}
                           type="button"
                           onClick={() => handlePolicySelect(p)}
-                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#B8873A]/10 transition text-left border-b border-slate-100 last:border-none"
+                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 transition text-left border-b border-slate-100 last:border-none"
                         >
-                          <span className="font-mono font-bold text-xs text-[#0B1220]">{p.policyNumber}</span>
+                          <span className="font-mono font-bold text-xs text-slate-900">{p.policyNumber}</span>
                           <span className="text-xs text-slate-600 truncate ml-3 max-w-[200px]">{getMemberName(p)}</span>
                           <span className="text-[10px] text-slate-400 ml-2 whitespace-nowrap">
                             {p.status?.statusName || ""}
@@ -430,8 +419,8 @@ export default function RevivalPremiumCalculator({
 
             {/* Policy Details */}
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
-              <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-5">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-5">
                 Policy Details
               </h2>
 
@@ -444,14 +433,14 @@ export default function RevivalPremiumCalculator({
                     { label: "Comm. Date", value: commDate, set: setCommDate, type: "date" },
                   ].map(({ label, value, set, type }) => (
                     <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
                         type={type}
                         value={value}
                         onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                       />
                     </div>
                   ))}
@@ -466,14 +455,14 @@ export default function RevivalPremiumCalculator({
                     { label: "PPT", value: ppt, set: setPpt },
                   ].map(({ label, value, set }) => (
                     <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
                         type="text"
                         value={value}
                         onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                       />
                     </div>
                   ))}
@@ -488,14 +477,14 @@ export default function RevivalPremiumCalculator({
                     { label: "FUP Date", value: fupDate, set: setFupDate, type: "date" },
                   ].map(({ label, value, set, type }) => (
                     <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
                         type={type}
                         value={value}
                         onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                       />
                     </div>
                   ))}
@@ -509,14 +498,14 @@ export default function RevivalPremiumCalculator({
                     { label: "Rider Premium", value: riderPremium, set: setRiderPremium },
                   ].map(({ label, value, set }) => (
                     <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
                         type="number"
                         value={value}
                         onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A] font-mono"
+                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
                       />
                     </div>
                   ))}
@@ -530,14 +519,14 @@ export default function RevivalPremiumCalculator({
                     { label: "Date of Calculation", value: dateOfCalc, set: setDateOfCalc, type: "date" },
                   ].map(({ label, value, set, type }) => (
                     <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
                         type={type}
                         value={value}
                         onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A] font-mono"
+                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
                       />
                     </div>
                   ))}
@@ -546,20 +535,20 @@ export default function RevivalPremiumCalculator({
                 {/* Remarks + Calculate */}
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#B8873A] font-bold uppercase tracking-wider">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       Remarks
                     </span>
                     <input
                       type="text"
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#B8873A]"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={handleCalculate}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#0B1220] to-[#1A2942] text-[#E8C77A] font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition uppercase tracking-wider whitespace-nowrap"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition uppercase tracking-wider whitespace-nowrap"
                   >
                     <Calculator size={16} />
                     Calculate
@@ -572,16 +561,16 @@ export default function RevivalPremiumCalculator({
           {/* RIGHT: Calculation Panel */}
           <div className="lg:col-span-2">
             <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sticky top-4">
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
               <div className="p-5">
-                <h2 className="font-serif text-sm font-bold uppercase tracking-wider text-slate-900 mb-5">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-5">
                   Calculation
                 </h2>
 
                 {!calculated ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-                    <div className="w-14 h-14 rounded-full bg-[#B8873A]/10 flex items-center justify-center">
-                      <Calculator size={28} className="text-[#B8873A]" />
+                    <div className="w-14 h-14 rounded-full bg-[#1877F2]/10 flex items-center justify-center">
+                      <Calculator size={28} className="text-[#1877F2]" />
                     </div>
                     <p className="text-xs text-slate-500 max-w-[180px]">
                       Select a policy and click <strong>Calculate</strong> to see the revival quote
@@ -609,9 +598,9 @@ export default function RevivalPremiumCalculator({
                       ) : (
                         <div
                           key={i}
-                          className={`flex items-center justify-between py-1.5 px-2 rounded-lg ${row.highlight ? "bg-[#0B1220] text-white" : "hover:bg-slate-50"}`}
+                          className={`flex items-center justify-between py-1.5 px-2 rounded-lg ${row.highlight ? "bg-[#1877F2] text-white" : "hover:bg-slate-50"}`}
                         >
-                          <span className={`text-xs font-semibold ${row.highlight ? "text-[#E8C77A]" : "text-slate-600"}`}>
+                          <span className={`text-xs font-semibold ${row.highlight ? "text-blue-100" : "text-slate-600"}`}>
                             {row.label}
                           </span>
                           <span className={`text-xs font-bold ${row.mono ? "font-mono" : ""} ${row.highlight ? "text-white text-sm" : "text-slate-900"}`}>
@@ -664,13 +653,13 @@ export default function RevivalPremiumCalculator({
               <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
             </div>
             <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-              <span className="text-[10px] font-serif font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
+              <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
             </div>
           </div>
 
           {/* Title bar */}
           <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-            <h2 className="text-base font-serif font-bold text-[#E8C77A] uppercase tracking-wider">Revival Premium Quotation</h2>
+            <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Revival Premium Quotation</h2>
             <span className="text-xs font-bold text-slate-200">As on {fmtDate(dateOfCalc) || fmtDate(new Date())}</span>
           </div>
 

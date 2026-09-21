@@ -459,7 +459,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               {["Residence", "Office"].map((opt) => (
                 <label
                   key={opt}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${watch("prefCommAddress") === opt
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium cursor-pointer transition-all ${preferredAddress === opt
                     ? "border-[#1877F2] bg-blue-50 text-[#1877F2]"
                     : "border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
@@ -637,8 +637,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
         <Button
           type="submit"
           isLoading={isSubmitting}
-          variant="primary"
-          className="w-auto px-6 py-2.5"
+          className="w-auto rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
         >
           Create Customer Group
         </Button>

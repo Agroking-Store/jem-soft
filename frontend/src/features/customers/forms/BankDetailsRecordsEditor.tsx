@@ -60,9 +60,10 @@ export default function BankDetailsRecordsEditor({
 
   const handleAddOrUpdate = () => {
     const errs: Record<string, string> = {};
-    if (!bankName.trim() && !accountNumber.trim() && !ifscCode.trim()) {
-      errs.bankName = "Please enter Bank Name or Account Number";
-    }
+    if (!bankName.trim()) errs.bankName = "Bank Name is required";
+    if (!accountNumber.trim()) errs.accountNumber = "Account Number is required";
+    if (!accountType) errs.accountType = "Account Type is required";
+    if (!ifscCode.trim()) errs.ifscCode = "IFSC Code is required";
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -108,7 +109,7 @@ export default function BankDetailsRecordsEditor({
   };
 
   const handleRemove = (index: number) => {
-    let updated = bankDetails.filter((_, i) => i !== index);
+    const updated = bankDetails.filter((_, i) => i !== index);
     if (updated.length > 0 && !updated.some((b) => b.isDefault)) {
       updated[0].isDefault = true;
     }
@@ -139,7 +140,7 @@ export default function BankDetailsRecordsEditor({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <FieldLabel label="Bank Name" />
+            <FieldLabel label="Bank Name" required />
             <input
               type="text"
               placeholder="e.g. State Bank of India"
@@ -155,37 +156,49 @@ export default function BankDetailsRecordsEditor({
           </div>
 
           <div>
-            <FieldLabel label="Account Number" />
+            <FieldLabel label="Account Number" required />
             <input
               type="text"
               placeholder="e.g. 123456789012"
               value={accountNumber}
               onChange={(e) => {
                 setAccountNumber(e.target.value);
-                setErrors((p) => ({ ...p, bankName: "" }));
+                setErrors((p) => ({ ...p, accountNumber: "" }));
               }}
-              className="w-full border border-slate-200 bg-white hover:border-slate-300 rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]"
+              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
+                ${errors.accountNumber ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
             />
+            {errors.accountNumber && <p className="text-xs text-red-500 mt-1">{errors.accountNumber}</p>}
           </div>
 
           <SearchableSelect
             label="Account Type"
+            required
             placeholder="Select Account Type"
             searchPlaceholder="Search account types..."
+            error={errors.accountType}
             value={accountType}
-            onChange={(val) => setAccountType(val)}
+            onChange={(val) => {
+              setAccountType(val);
+              setErrors((p) => ({ ...p, accountType: "" }));
+            }}
             options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
           />
 
           <div>
-            <FieldLabel label="IFSC Code" />
+            <FieldLabel label="IFSC Code" required />
             <input
               type="text"
               placeholder="e.g. SBIN0001234"
               value={ifscCode}
-              onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-              className="w-full border border-slate-200 bg-white hover:border-slate-300 rounded-lg py-2 px-3 text-sm text-slate-900 uppercase placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]"
+              onChange={(e) => {
+                setIfscCode(e.target.value.toUpperCase());
+                setErrors((p) => ({ ...p, ifscCode: "" }));
+              }}
+              className={`w-full border rounded-lg py-2 px-3 text-sm text-slate-900 uppercase placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
+                ${errors.ifscCode ? "border-red-300 bg-red-50/30" : "border-slate-200 bg-white hover:border-slate-300"}`}
             />
+            {errors.ifscCode && <p className="text-xs text-red-500 mt-1">{errors.ifscCode}</p>}
           </div>
 
           <div>

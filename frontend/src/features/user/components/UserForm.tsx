@@ -41,6 +41,40 @@ const ROLES: { value: UserRole; label: string; description: string }[] = [
   },
 ];
 
+function SectionCard({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+      <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+          {icon}
+        </span>
+        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          {title}
+        </h2>
+      </div>
+      <div className="p-5 sm:p-6">{children}</div>
+    </div>
+  );
+}
+
+function FieldLabel({ label, required }: { label: string; required?: boolean }) {
+  return (
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      {label}
+      {required && <span className="ml-0.5 text-rose-500">*</span>}
+    </label>
+  );
+}
+
 export default function UserForm({ mode, initialData }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -130,27 +164,20 @@ export default function UserForm({ mode, initialData }: Props) {
   };
 
   const fieldClass = (key: keyof FormState) =>
-    `w-full rounded-xl border px-4 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 ${
+    `w-full rounded-xl border px-3.5 py-2.75 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 ${
       errors[key]
-        ? "border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
-        : "border-slate-200 bg-slate-50 focus:border-[#B8873A] focus:bg-white focus:ring-2 focus:ring-[#B8873A]/20"
+        ? "border-rose-300 bg-rose-50/30 focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
+        : "border-slate-200 bg-white hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
     }`;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {/* Basic Info Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-5 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <User size={18} className="text-[#B8873A]" />
-          Basic Information
-        </h2>
-
+      <SectionCard title="Basic Information" icon={<User size={16} />}>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* Name */}
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Full Name <span className="text-rose-500">*</span>
-            </label>
+          <div>
+            <FieldLabel label="Full Name" required />
             <input
               type="text"
               name="name"
@@ -165,14 +192,12 @@ export default function UserForm({ mode, initialData }: Props) {
           </div>
 
           {/* Email */}
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Email Address <span className="text-rose-500">*</span>
-            </label>
+          <div>
+            <FieldLabel label="Email Address" required />
             <div className="relative">
               <Mail
                 size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
               <input
                 type="email"
@@ -190,10 +215,8 @@ export default function UserForm({ mode, initialData }: Props) {
 
           {/* Password — only on create */}
           {mode === "create" && (
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Password <span className="text-rose-500">*</span>
-              </label>
+            <div>
+              <FieldLabel label="Password" required />
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -219,27 +242,20 @@ export default function UserForm({ mode, initialData }: Props) {
             </div>
           )}
         </div>
-      </div>
+      </SectionCard>
 
       {/* Role & Access Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-5 flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Shield size={18} className="text-[#B8873A]" />
-          Role & Access
-        </h2>
-
+      <SectionCard title="Role & Access" icon={<Shield size={16} />}>
         {/* Role selector */}
         <div className="space-y-3">
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            System Role <span className="text-rose-500">*</span>
-          </label>
+          <FieldLabel label="System Role" required />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {ROLES.map((r) => (
               <label
                 key={r.value}
                 className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-4 transition-all ${
                   form.role === r.value
-                    ? "border-[#B8873A] bg-[#B8873A]/5 ring-2 ring-[#B8873A]/20"
+                    ? "border-[#1877F2] bg-blue-50 ring-2 ring-blue-500/15"
                     : "border-slate-200 bg-slate-50 hover:border-slate-300"
                 }`}
               >
@@ -253,7 +269,7 @@ export default function UserForm({ mode, initialData }: Props) {
                     value={r.value}
                     checked={form.role === r.value}
                     onChange={handleChange}
-                    className="accent-[#B8873A]"
+                    className="accent-[#1877F2]"
                   />
                 </div>
                 <p className="text-xs text-slate-500">{r.description}</p>
@@ -287,11 +303,11 @@ export default function UserForm({ mode, initialData }: Props) {
                 onChange={handleChange}
                 className="peer sr-only"
               />
-              <div className="peer h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-[#0B1220] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#B8873A]/20 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-full" />
+              <div className="peer h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-[#1877F2] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/20 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-full" />
             </label>
           </div>
         )}
-      </div>
+      </SectionCard>
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
@@ -305,7 +321,7 @@ export default function UserForm({ mode, initialData }: Props) {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-xl bg-[#0B1220] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16294D] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading
             ? mode === "create"

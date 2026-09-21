@@ -242,26 +242,22 @@ export default function PremiumDueReportView({
   return (
     <div className="space-y-6 pb-12">
       {/* ── Header Banner ─────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 text-white border border-slate-800 shadow-xl">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#E8C77A] to-transparent" />
+      <div className="relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToForm}
-              className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} />
               <span>Edit Filters</span>
             </button>
-            <div className="h-6 w-px bg-white/15" />
-            <h1 className="font-serif text-xl font-bold text-[#E8C77A] tracking-wider uppercase">
-              Premium Due Report
-            </h1>
+            <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">Premium Due Report</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition border border-white/10"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider"
             >
               <Printer size={16} />
               <span>Print</span>
@@ -269,7 +265,7 @@ export default function PremiumDueReportView({
             <button
               onClick={handleDownloadPDF}
               disabled={isExporting}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] rounded-xl hover:brightness-105 transition disabled:opacity-60"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-60 uppercase tracking-wider"
             >
               <Download size={16} />
               <span>{isExporting ? "Exporting…" : "Download PDF"}</span>
@@ -287,9 +283,9 @@ export default function PremiumDueReportView({
           ].map((chip) => (
             <span
               key={chip.label}
-              className="px-3 py-1 rounded-full bg-white/10 border border-white/15 font-semibold"
+              className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-800 font-semibold"
             >
-              <span className="text-[#E8C77A]">{chip.label}: </span>
+              <span className="text-[#1877F2]">{chip.label}: </span>
               {chip.value}
             </span>
           ))}
@@ -334,7 +330,7 @@ export default function PremiumDueReportView({
               key={kpi.label}
               className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
-              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#B8873A] via-[#B8873A]/40 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
               <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${kpi.bg} ${kpi.color} mb-3`}>
                 <Icon size={20} />
               </div>
@@ -531,7 +527,7 @@ export default function PremiumDueReportView({
           <button
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition disabled:opacity-60"
+            className="flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-110 transition disabled:opacity-60"
           >
             <Download size={15} />
             {isExporting ? "Exporting…" : "Download PDF"}

@@ -5,7 +5,7 @@ import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
+import { useForm, Controller, FormProvider, useFormContext, useController } from "react-hook-form";
 import { format } from "date-fns";
 import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,9 +26,10 @@ import {
 import FamilyHistoryRecordsEditor from "@/features/customers/forms/FamilyHistoryRecordsEditor";
 import MedicalHistoryInlineEditor from "@/features/customers/forms/MedicalHistoryInlineEditor";
 import BankDetailsRecordsEditor from "@/features/customers/forms/BankDetailsRecordsEditor";
+import type { CustomerBankDetail } from "@/features/customers/types";
 import {
   ArrowLeft, User, Phone, MapPin, Building, CreditCard, Info,
-  Settings, ChevronRight, Plus, Trash2, Star, Search, X,
+  Settings, ChevronRight, Plus, Star, Search, X,
   Heart, Activity,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,17 +53,16 @@ const INCOME_SLABS = [
 ];
 const OCCUPATION_TYPES = ["Salaried","Business","Professional","Agriculture","Retired","Homemaker","Student","Other"];
 const RELATIONS = ["Self","Spouse","Son","Daughter","Father","Mother","Brother","Sister","Guardian","Other","Not Mapped"];
-const ACCOUNT_TYPES = ["Saving", "Current"];
-
 // ─── Schema ───────────────────────────────────────────────────────
 const bankDetailSchema = z.object({
+  id: z.string().optional().or(z.literal("")),
   isDefault: z.boolean().default(false),
-  ifscCode: z.string().optional().or(z.literal("")),
-  bankName: z.string().optional().or(z.literal("")),
+  ifscCode: z.string().trim().min(1, "IFSC Code is required"),
+  bankName: z.string().trim().min(1, "Bank Name is required"),
   bankBranch: z.string().optional().or(z.literal("")),
   city: z.string().optional().or(z.literal("")),
-  accountType: z.string().optional().or(z.literal("")),
-  accountNumber: z.string().optional().or(z.literal("")),
+  accountType: z.string().trim().min(1, "Account Type is required"),
+  accountNumber: z.string().trim().min(1, "Account Number is required"),
   micrNumber: z.string().optional().or(z.literal("")),
 });
 
@@ -109,7 +109,7 @@ const schema = z.object({
   // Addresses (dynamic)
   addresses: z.array(addressSchema).default([]),
   // Bank Details (dynamic)
-  bankDetails: z.array(bankDetailSchema).default([]),
+  bankDetails: z.array(bankDetailSchema).min(1, "At least one bank account is required").default([]),
   // Misc Info
   relationToGroup: z.string().optional().or(z.literal("")),
   dobForGreetings: z.string().optional().or(z.literal("")),
@@ -201,20 +201,6 @@ function FormSelect({
   );
 }
 
-function BankAccountTypeCell({ index }: { index: number }) {
-  const { control } = useFormContext();
-  const { field } = useController({ name: `bankDetails.${index}.accountType`, control });
-  return (
-    <SearchableSelect
-      options={ACCOUNT_TYPES.map((t) => ({ value: t, label: t }))}
-      value={String(field.value ?? "")}
-      onChange={field.onChange}
-      placeholder="Select"
-      searchPlaceholder="Search account type..."
-    />
-  );
-}
-
 function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string; required?: boolean }) {
   return (
     <div>
@@ -223,6 +209,34 @@ function FormTextarea({ label, error, required, ...props }: React.TextareaHTMLAt
       {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
     </div>
   );
+}
+
+function getBankDetailsErrorMessage(error: unknown) {
+  if (!error || typeof error !== "object") return "";
+  const bankError = error as { message?: unknown; root?: { message?: unknown } };
+  if (typeof bankError.message === "string") return bankError.message;
+  if (typeof bankError.root?.message === "string") return bankError.root.message;
+  return "";
+}
+
+function getToastError(err: unknown, fallback: string) {
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
+function toBankFormDetails(bankDetails: CustomerBankDetail[]): FormInputValues["bankDetails"] {
+  return bankDetails.map((bank) => ({
+    id: bank.id || "",
+    isDefault: bank.isDefault ?? false,
+    ifscCode: bank.ifscCode || "",
+    bankName: bank.bankName || "",
+    bankBranch: bank.bankBranch || "",
+    city: bank.city || "",
+    accountType: bank.accountType || "",
+    accountNumber: bank.accountNumber || "",
+    micrNumber: bank.micrNumber || "",
+  }));
 }
 
 function SectionCard({ title, icon, children, accent }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string }) {
@@ -355,12 +369,10 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       nationality: "Indian",
       qualification: "" ,
       addresses: [{ addressType: "Residence", country: "India", useGroupAddress: false }],
-      bankDetails: [{ isDefault: true, ifscCode: "", bankName: "", bankBranch: "", city: "", accountType: "", accountNumber: "", micrNumber: "" }],
+      bankDetails: [],
     },
   });
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = methods;
-
-  const { fields: bankFields, append: appendBank, remove: removeBank } = useFieldArray({ control, name: "bankDetails" });
 
   // Inline Family History + Medical History (first record) captured at create time.
   const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
@@ -501,9 +513,9 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             date: new Date(familyHistoryDate).toISOString(),
             records: familyRecords,
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to save family history");
+          toast.error(getToastError(err, "Failed to save family history"));
         }
       }
 
@@ -520,9 +532,9 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               medicalHistoryDate: new Date(medicalRecord.medicalHistoryDate).toISOString(),
             }],
           })).unwrap();
-        } catch (err: any) {
+        } catch (err: unknown) {
           secondaryFailed = true;
-          toast.error(err || "Failed to save medical history");
+          toast.error(getToastError(err, "Failed to save medical history"));
         }
       }
 
@@ -534,8 +546,8 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
 
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers?tab=master");
-    } catch (err: any) {
-      toast.error(err || "Failed to create customer");
+    } catch (err: unknown) {
+      toast.error(getToastError(err, "Failed to create customer"));
     } finally {
       setIsSubmitting(false);
     }
@@ -628,6 +640,13 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               <FormInput label="Salutation Letter" placeholder="Dear Mr. Sharma" {...register("salutationLetter")} />
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormSelect label="Relation to Group" {...register("relationToGroup")}>
+                <option value="">Select relation</option>
+                {RELATIONS.map((r) => <option key={r}>{r}</option>)}
+              </FormSelect>
+            </div>
+
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2.5 cursor-pointer">
                 <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
@@ -712,8 +731,13 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         <SectionCard title="Bank Details" icon={<CreditCard size={16} />}>
           <BankDetailsRecordsEditor
             bankDetails={watch("bankDetails") || []}
-            onChange={(banks) => setValue("bankDetails", banks as any, { shouldDirty: true, shouldValidate: true })}
+            onChange={(banks) => setValue("bankDetails", toBankFormDetails(banks), { shouldDirty: true, shouldValidate: true })}
           />
+          {errors.bankDetails && (
+            <p className="mt-3 text-xs text-rose-600">
+              {getBankDetailsErrorMessage(errors.bankDetails)}
+            </p>
+          )}
         </SectionCard>
 
         {/* ── Section: Family History ── */}
@@ -736,30 +760,13 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             derivedGender={watch("gender") || null}
           />
           <p className="mt-4 text-xs text-slate-400">
-            This captures the member's first medical record. After saving, use the Member Details page to view the full log or add additional past checkups.
+            This captures the member&apos;s first medical record. After saving, use the Member Details page to view the full log or add additional past checkups.
           </p>
         </SectionCard>
 
         {/* ── Section 5: Miscellaneous Info ── */}
         <SectionCard title="Miscellaneous Information" icon={<Info size={16} />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <FormSelect label="Relation to Group" {...register("relationToGroup")}>
-              <option value="">Select relation</option>
-              {RELATIONS.map((r) => <option key={r}>{r}</option>)}
-            </FormSelect>
-            <div>
-              <FieldLabel label="D.O.B (Greetings)" />
-              <Controller
-                control={control}
-                name="dobForGreetings"
-                render={({ field }) => (
-                  <DatePicker
-                    value={field.value ? new Date(field.value) : undefined}
-                    onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                  />
-                )}
-              />
-            </div>
             <FormInput label="Referred By" placeholder="Name of referrer" {...register("referredBy")} />
             <div className="space-y-2">
               <div>
