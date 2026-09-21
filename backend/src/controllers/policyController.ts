@@ -182,6 +182,11 @@ export const previewRiderPremium = catchAsync(
     // PLANS THAT USE PPT FOR RIDER RATES
     // =========================================================
 
+    const rider = await prisma.riderMaster.findUnique({
+      where: { id: riderId },
+      select: { riderCode: true },
+    });
+
     const usesRiderPPT = [
       "771",
       "745",
@@ -190,7 +195,7 @@ export const previewRiderPremium = catchAsync(
       "881",
       "889",
       "912"
-    ].includes(product.planNumber);
+    ].includes(product.planNumber || "") || (product.planNumber === "736" && rider?.riderCode === "ADDB");
 
     let riderRate = null;
 
@@ -221,6 +226,10 @@ export const previewRiderPremium = catchAsync(
         queriesToTry.push({ ...whereClause, gender: normalizedGender, premiumPayingTerm: queryPPT });
       }
       queriesToTry.push({ ...whereClause, gender: null, premiumPayingTerm: queryPPT });
+      if (normalizedGender) {
+        queriesToTry.push({ ...whereClause, gender: normalizedGender, premiumPayingTerm: null });
+      }
+      queriesToTry.push({ ...whereClause, gender: null, premiumPayingTerm: null });
     } else {
       if (normalizedGender) {
         queriesToTry.push({ ...whereClause, gender: normalizedGender, premiumPayingTerm: null });
@@ -237,6 +246,19 @@ export const previewRiderPremium = catchAsync(
         where: query,
       });
       if (riderRate) break;
+    }
+
+    // =========================================================
+    // FALLBACK FOR AGE-INDEPENDENT RIDER RATES (entryAge: 0)
+    // (e.g., ADDB rider rates where rates do not vary by age)
+    // =========================================================
+    if (!riderRate) {
+      for (const query of queriesToTry) {
+        riderRate = await prisma.riderPremiumRate.findFirst({
+          where: { ...query, entryAge: 0 },
+        });
+        if (riderRate) break;
+      }
     }
 
     // =========================================================

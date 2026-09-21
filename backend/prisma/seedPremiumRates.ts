@@ -42,6 +42,16 @@ import { seedPPT883 } from "./seedPPT883";
 import { seedPPT887 } from "./seedPPT887";
 import { seedPPT751 } from "./seedPPT751";
 import { seedPPT880 } from "./seedPPT880";
+import { seedADDB717 } from "./seedADDB717";
+import { seedADDB733 } from "./seedADDB733";
+import { seedADDB736 } from "./seedADDB736";
+import { seedADDB745 } from "./seedADDB745";
+import { seedADDB760 } from "./seedADDB760";
+import { seedADDB771 } from "./seedADDB771";
+import { seedADDB881 } from "./seedADDBB881";
+import { seedADDB883 } from "./seedADDB883";
+import { seedADDB888 } from "./seedADDB888";
+import { seedADDB912 } from "./seedADDB912";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -89,6 +99,16 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPPT887(prisma);
   await seedPPT751(prisma);
   await seedPPT880(prisma);
+  await seedADDB717(prisma);
+  await seedADDB733(prisma);
+  await seedADDB736(prisma);
+  await seedADDB745(prisma);
+  await seedADDB760(prisma);
+  await seedADDB771(prisma);
+  await seedADDB881(prisma);
+  await seedADDB883(prisma);
+  await seedADDB888(prisma);
+  await seedADDB912(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

@@ -196,6 +196,10 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               riderData.description?.toLowerCase().includes("pwb")
                 ? [{ riderCode: "WOP" }]
                 : []),
+              ...(riderData.description?.toLowerCase().includes("accidental") ||
+              riderData.description?.toLowerCase().includes("addb")
+                ? [{ riderCode: "ADDB" }]
+                : []),
             ],
           },
         });
@@ -854,6 +858,10 @@ export const updatePolicy = async (
               ...(riderData.description?.toLowerCase().includes("waiver") ||
               riderData.description?.toLowerCase().includes("pwb")
                 ? [{ riderCode: "WOP" }]
+                : []),
+              ...(riderData.description?.toLowerCase().includes("accidental") ||
+              riderData.description?.toLowerCase().includes("addb")
+                ? [{ riderCode: "ADDB" }]
                 : []),
             ],
           },

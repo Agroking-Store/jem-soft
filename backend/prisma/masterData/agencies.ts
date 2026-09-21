@@ -19,7 +19,7 @@ export const agenciesData = [
   },
   {
     agencyCode: 'AG003',
-    agencyName: 'Manisha Y Mahabole',
+    agencyName: 'Manish Y Mahabole',
     licenseNo: 'LIC-AG-11224',
     branchCode: '951',
     address: '123 Kothrud, Pune',

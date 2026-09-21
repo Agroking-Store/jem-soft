@@ -238,159 +238,125 @@ export const seedPremiumRates887 = async (
                 }
 
                 // ------------------------------------------------
-                // Plan 887
-                //
-                // Policy Term = 100 - Entry Age
+                // Process every Policy Term from 10 to 82
                 // ------------------------------------------------
 
-                const policyTerm = 100 - age;
+                for (let policyTerm = 10; policyTerm <= 82; policyTerm++) {
 
-                if (
-                    policyTerm < 10 ||
-                    policyTerm > 82
-                ) {
-                    continue;
-                }
+                    // ------------------------------------------------
+                    // Validate Age + Policy Term
+                    //
+                    // Maximum maturity age = 100
+                    // Therefore:
+                    //
+                    // Age + Policy Term <= 100
+                    // ------------------------------------------------
 
-                // ------------------------------------------------
-                // Determine PPT
-                // ------------------------------------------------
+                    if (age + policyTerm > 100) {
+                        continue;
+                    }
 
-                let premiumPayingTerm: number;
+                    // ------------------------------------------------
+                    // Determine PPT
+                    // ------------------------------------------------
 
-                if (premiumType === "RP") {
-                    premiumPayingTerm = policyTerm;
-                } else {
-                    premiumPayingTerm = fixedPPT!;
-                }
+                    let premiumPayingTerm: number;
 
-                // ------------------------------------------------
-                // Find premium column
-                //
-                // Plan 887 has mixed formats:
-                //
-                // T10, T11, T12...
-                //
-                // AND
-                //
-                // 10, 11, 12...
-                //
-                // Therefore check both.
-                // ------------------------------------------------
+                    if (premiumType === "RP") {
+                        premiumPayingTerm = policyTerm;
+                    } else {
+                        premiumPayingTerm = fixedPPT!;
+                    }
 
-                const tColumn = `T${policyTerm}`;
-                const numericColumn = `${policyTerm}`;
+                    // ------------------------------------------------
+                    // Find premium column
+                    // ------------------------------------------------
 
-                let premiumColumn: string | null = null;
+                    const tColumn = `T${policyTerm}`;
+                    const numericColumn = `${policyTerm}`;
 
-                if (columnNames.includes(tColumn)) {
-                    premiumColumn = tColumn;
-                } else if (
-                    columnNames.includes(numericColumn)
-                ) {
-                    premiumColumn = numericColumn;
-                }
+                    let premiumColumn: string | null = null;
 
-                // ------------------------------------------------
-                // Column not found
-                // ------------------------------------------------
+                    if (columnNames.includes(tColumn)) {
+                        premiumColumn = tColumn;
+                    } else if (columnNames.includes(numericColumn)) {
+                        premiumColumn = numericColumn;
+                    }
 
-                if (!premiumColumn) {
-                    console.log(
-                        `⚠️ ${tableName}: Term ${policyTerm} not found as ${tColumn} or ${numericColumn}`
-                    );
+                    if (!premiumColumn) {
+                        continue;
+                    }
 
-                    invalid++;
-                    continue;
-                }
+                    // ------------------------------------------------
+                    // Get rate
+                    // ------------------------------------------------
 
-                // ------------------------------------------------
-                // Get raw rate
-                // ------------------------------------------------
+                    const rawRate = row[premiumColumn];
 
-                const rawRate = row[premiumColumn];
+                    if (
+                        rawRate == null ||
+                        rawRate === "" ||
+                        typeof rawRate === "object"
+                    ) {
+                        invalid++;
+                        continue;
+                    }
 
-                if (
-                    rawRate == null ||
-                    rawRate === "" ||
-                    typeof rawRate === "object"
-                ) {
-                    invalid++;
-                    continue;
-                }
+                    const rate = Number(rawRate);
 
-                const rate = Number(rawRate);
+                    if (!Number.isFinite(rate)) {
+                        invalid++;
+                        continue;
+                    }
 
-                if (!Number.isFinite(rate)) {
-                    invalid++;
-                    continue;
-                }
+                    // 0 = no valid premium
+                    if (rate === 0) {
+                        continue;
+                    }
 
-                // ------------------------------------------------
-                // Zero means no valid premium
-                // ------------------------------------------------
+                    // ------------------------------------------------
+                    // Check duplicate
+                    // ------------------------------------------------
 
-                if (rate === 0) {
-                    continue;
-                }
+                    const existing =
+                        await prisma.productPremiumRate.findFirst({
+                            where: {
+                                productId: product.id,
+                                entryAge: age,
+                                secondaryAge: null,
+                                gender,
+                                smoker,
+                                policyTerm,
+                                premiumPayingTerm,
+                                option,
+                            },
+                        });
 
-                // ------------------------------------------------
-                // Check duplicate
-                // ------------------------------------------------
+                    if (existing) {
+                        skipped++;
+                        continue;
+                    }
 
-                const existing =
-                    await prisma.productPremiumRate.findFirst({
-                        where: {
+                    // ------------------------------------------------
+                    // Insert
+                    // ------------------------------------------------
+
+                    await prisma.productPremiumRate.create({
+                        data: {
                             productId: product.id,
-
                             entryAge: age,
-
                             secondaryAge: null,
-
                             gender,
-
                             smoker,
-
                             policyTerm,
-
                             premiumPayingTerm,
-
                             option,
+                            tabularRate: rate,
                         },
                     });
 
-                if (existing) {
-                    skipped++;
-                    continue;
+                    inserted++;
                 }
-
-                // ------------------------------------------------
-                // Insert
-                // ------------------------------------------------
-
-                await prisma.productPremiumRate.create({
-                    data: {
-                        productId: product.id,
-
-                        entryAge: age,
-
-                        secondaryAge: null,
-
-                        gender,
-
-                        smoker,
-
-                        policyTerm,
-
-                        premiumPayingTerm,
-
-                        option,
-
-                        tabularRate: rate,
-                    },
-                });
-
-                inserted++;
             }
 
             // ---------------------------------------------------
@@ -473,3 +439,5 @@ export const seedPremiumRates887 = async (
         );
     }
 };
+
+
