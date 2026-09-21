@@ -124,7 +124,6 @@ export default function DatePicker({
         disabled={readOnly}
         portalId="datepicker-portal"
         popperPlacement="bottom-start"
-        popperContainer={PortalContainer}
         className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/20"
         calendarClassName="shadow-xl border rounded-lg"
       />
