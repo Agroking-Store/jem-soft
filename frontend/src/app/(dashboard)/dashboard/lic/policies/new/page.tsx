@@ -643,7 +643,7 @@ export default function NewLICPolicyPage() {
   useEffect(() => {
     if (Array.isArray(watchRiders)) {
       const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
-      const isWholeLife = ["771", "745", "883", "887", "912"].includes(selectedPlan || "");
+      const isWholeLife = ["771", "745", "883", "887"].includes(selectedPlan || "");
 
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
