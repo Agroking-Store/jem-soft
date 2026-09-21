@@ -964,12 +964,12 @@ export const LicProductAttributeValues = [
   {
     productCode: "LIC Bima Kavach",
     attributeCode: "MIN_PPT",
-    value: "1",
+    value: "5",
   },
   {
     productCode: "LIC Bima Kavach",
     attributeCode: "MAX_PPT",
-    value: "30",
+    value: "15",
   },
   {
     productCode: "LIC Bima Kavach",

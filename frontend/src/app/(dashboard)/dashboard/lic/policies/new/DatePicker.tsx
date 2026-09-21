@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
 import { format, isValid } from "date-fns";
 
 interface Props {
-  value?: Date;
+  value?: Date | string | null;
   onChange: (date?: Date) => void;
   placeholder?: string;
   readOnly?: boolean;
@@ -22,6 +21,18 @@ function ensurePopperZIndexStyle() {
   const style = document.createElement("style");
   style.id = POPPER_Z_INDEX_STYLE_ID;
   style.textContent = `
+    #datepicker-portal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 2147483647 !important;
+      pointer-events: none;
+    }
+    #datepicker-portal .react-datepicker-popper {
+      pointer-events: auto;
+      z-index: 2147483647 !important;
+    }
     .react-datepicker-popper { z-index: 2147483647 !important; }
     .react-datepicker-wrapper { width: 100% !important; display: block !important; }
     .react-datepicker__input-container { width: 100% !important; }
@@ -37,14 +48,6 @@ function ensurePopperZIndexStyle() {
   document.head.appendChild(style);
 }
 
-const PortalContainer = ({ children }: { children?: React.ReactNode }) => {
-  if (typeof document === "undefined") return null;
-  return createPortal(
-    <div className="z-[1000]">{children}</div>,
-    document.body,
-  );
-};
-
 export default function DatePicker({
   value,
   onChange,
@@ -58,19 +61,30 @@ export default function DatePicker({
     ensurePopperZIndexStyle();
   }, []);
 
+  const timestamp = useMemo(() => {
+    if (!value) return null;
+    if (value instanceof Date) {
+      return isValid(value) ? value.getTime() : null;
+    }
+    const d = new Date(value);
+    return isValid(d) ? d.getTime() : null;
+  }, [value instanceof Date ? value.getTime() : value]);
+
+  const selectedDate = useMemo(() => {
+    return timestamp !== null ? new Date(timestamp) : null;
+  }, [timestamp]);
+
   const handleDateChange = useCallback(
     (date: Date | null) => {
       const newDate = date ?? undefined;
+      const newTime = newDate && isValid(newDate) ? newDate.getTime() : undefined;
 
-      if (newDate?.getTime() !== value?.getTime()) {
+      if (newTime !== (timestamp ?? undefined)) {
         onChange(newDate);
       }
     },
-    [onChange, value],
+    [onChange, timestamp],
   );
-
-  const selectedDate =
-    value && isValid(new Date(value)) ? new Date(value) : null;
 
   if (!mounted) {
     return (
@@ -108,6 +122,7 @@ export default function DatePicker({
         yearDropdownItemNumber={100}
         scrollableYearDropdown
         disabled={readOnly}
+        portalId="datepicker-portal"
         popperPlacement="bottom-start"
         popperContainer={PortalContainer}
         className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/20"

@@ -69,6 +69,11 @@ export const getRiderOptions = async (riderId: string, age: number, ppt?: number
     });
 
     if (product) {
+      const rider = await prisma.riderMaster.findUnique({
+        where: { id: riderId },
+        select: { riderCode: true },
+      });
+
       const usesRiderPPT = [
         "771",
         "745",
@@ -77,7 +82,7 @@ export const getRiderOptions = async (riderId: string, age: number, ppt?: number
         "881",
         "889",
         "912"
-      ].includes(product.planNumber || "");
+      ].includes(product.planNumber || "") || (product.planNumber === "736" && rider?.riderCode === "ADDB");
 
       if (usesRiderPPT) {
         if (product.planNumber === "883") {
@@ -91,11 +96,19 @@ export const getRiderOptions = async (riderId: string, age: number, ppt?: number
     }
   }
 
-  const rates = await prisma.riderPremiumRate.findMany({
+  let rates = await prisma.riderPremiumRate.findMany({
     where: whereClause,
     select: { riderTerm: true, premiumPayingTerm: true },
     distinct: ['riderTerm', 'premiumPayingTerm']
   });
+
+  if (rates.length === 0 && whereClause.entryAge !== 0) {
+    rates = await prisma.riderPremiumRate.findMany({
+      where: { ...whereClause, entryAge: 0 },
+      select: { riderTerm: true, premiumPayingTerm: true },
+      distinct: ['riderTerm', 'premiumPayingTerm']
+    });
+  }
 
   const terms = [...new Set(rates.map(r => r.riderTerm))].sort((a, b) => a - b);
   const ppts = [...new Set(rates.map(r => r.premiumPayingTerm).filter(Boolean) as number[])].sort((a, b) => a - b);
