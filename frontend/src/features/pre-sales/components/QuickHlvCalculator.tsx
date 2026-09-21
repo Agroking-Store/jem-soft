@@ -12,8 +12,11 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  User,
 } from "lucide-react";
 import PreSalesModuleNav from "./PreSalesModuleNav";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 interface HlvRow {
   year: number;
@@ -322,7 +325,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => router.push("/dashboard")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
           >
             <ArrowLeft size={16} />
           </button>
@@ -332,7 +335,7 @@ export default function QuickHlvCalculator() {
               <span>/</span>
               <span className="text-slate-600 font-medium">Pre-Sales Tools</span>
             </nav>
-            <h1 className="font-serif text-xl font-bold text-[#0B1220]">Quick HLV Calculator</h1>
+            <h1 className="text-xl font-bold text-slate-900">Quick HLV Calculator</h1>
           </div>
         </div>
 
@@ -340,7 +343,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => calculate()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0B1220] hover:bg-[#16294D] text-white font-semibold text-sm rounded-lg transition"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <Play size={14} className="fill-current" />
             Calculate
@@ -348,7 +351,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-semibold text-sm rounded-lg transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
           >
             <RotateCcw size={14} />
             Reset
@@ -357,7 +360,7 @@ export default function QuickHlvCalculator() {
             type="button"
             onClick={handleViewPDF}
             disabled={previewing || downloading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-semibold text-sm rounded-lg transition disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60"
           >
             {previewing
               ? <Loader2 size={14} className="animate-spin" />
@@ -368,7 +371,7 @@ export default function QuickHlvCalculator() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={downloading || previewing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 border border-amber-600/30 bg-amber-50 text-amber-800 hover:bg-amber-100 font-semibold text-sm rounded-lg transition disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm font-semibold text-[#1877F2] transition-colors hover:bg-blue-100 disabled:opacity-60"
           >
             {downloading
               ? <Loader2 size={14} className="animate-spin" />
@@ -385,15 +388,21 @@ export default function QuickHlvCalculator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-2">
         {/* Left */}
         <div className="lg:col-span-8">
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h2 className="font-serif font-semibold text-slate-800">Client Information</h2>
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <div className="flex items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+                  <User size={16} />
+                </span>
+                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Client Information</h2>
+              </div>
               <span className="text-xs text-slate-400 font-medium">* Required fields</span>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); calculate(); }} className="p-6 space-y-5">
+            <form onSubmit={(e) => { e.preventDefault(); calculate(); }} className="p-5 sm:p-6 space-y-5">
               {validationError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg flex items-center gap-2">
                   <AlertCircle size={14} className="flex-shrink-0" />
                   {validationError}
                 </div>
@@ -404,59 +413,61 @@ export default function QuickHlvCalculator() {
                 <div className="space-y-4">
                   {/* Name */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Name *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Name <span className="text-rose-500">*</span></label>
                     <div className="flex gap-2">
                       <select value={salutation} onChange={(e) => setSalutation(e.target.value)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none">
+                        className="rounded-xl border border-slate-200 px-2.5 py-2.75 text-sm bg-white cursor-pointer outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15">
                         {["Mr.", "Mrs.", "Ms.", "Dr."].map((s) => <option key={s}>{s}</option>)}
                       </select>
                       <input type="text" placeholder="Breadwinner Name" value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="flex-1 rounded-lg border border-slate-200 px-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                        className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                     </div>
                   </div>
 
                   {/* DOB + Age */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">D.O.B. *</label>
-                      <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">D.O.B. <span className="text-rose-500">*</span></label>
+                      <DatePicker
+                        value={dob ? new Date(dob) : undefined}
+                        onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Age (Auto)</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Age (Auto)</label>
                       <input type="text" readOnly value={age} placeholder="Age"
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 font-semibold focus:outline-none" />
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.75 text-sm text-slate-500 font-semibold outline-none" />
                     </div>
                   </div>
 
                   {/* Retirement */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Expected Retirement Age *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Expected Retirement Age <span className="text-rose-500">*</span></label>
                     <input type="number" placeholder="e.g. 65" value={retirement}
                       onChange={(e) => setRetirement(e.target.value ? Number(e.target.value) : "")}
-                      className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                      className="w-full rounded-xl border border-slate-200 px-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                   </div>
 
                   {/* Income */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Annual Income (Post Tax) *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Annual Income (Post Tax) <span className="text-rose-500">*</span></label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">₹</span>
+                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                       <input type="number" placeholder="e.g. 1200000" value={annualIncome}
                         onChange={(e) => setAnnualIncome(e.target.value ? Number(e.target.value) : "")}
-                        className="w-full rounded-lg border border-slate-200 pl-8 pr-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                        className="w-full rounded-xl border border-slate-200 pl-8 pr-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                     </div>
                   </div>
 
                   {/* Expenses */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Family Annual Expenses *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Family Annual Expenses <span className="text-rose-500">*</span></label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">₹</span>
+                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                       <input type="number" placeholder="e.g. 900000" value={expenses}
                         onChange={(e) => setExpenses(e.target.value ? Number(e.target.value) : "")}
-                        className="w-full rounded-lg border border-slate-200 pl-8 pr-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                        className="w-full rounded-xl border border-slate-200 pl-8 pr-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                     </div>
                   </div>
                 </div>
@@ -465,47 +476,47 @@ export default function QuickHlvCalculator() {
                 <div className="space-y-4">
                   {/* Inflation */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Inflation Rate (% p.a.)</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Inflation Rate (% p.a.)</label>
                     <select value={inflation} onChange={(e) => setInflation(Number(e.target.value))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none">
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.75 text-sm bg-white cursor-pointer outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15">
                       {[4, 5, 6, 7, 8].map((v) => <option key={v} value={v}>{v}% p.a.</option>)}
                     </select>
                   </div>
 
                   {/* Saving rate */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Saving Rate (% p.a.)</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Saving Rate (% p.a.)</label>
                     <select value={savingRate} onChange={(e) => setSavingRate(Number(e.target.value))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none">
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.75 text-sm bg-white cursor-pointer outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15">
                       {[4, 4.5, 5, 5.5, 6, 6.5, 7].map((v) => <option key={v} value={v}>{v.toFixed(1)}% p.a.</option>)}
                     </select>
                   </div>
 
                   {/* Savings */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Present Liquidable Savings</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Present Liquidable Savings</label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">₹</span>
+                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                       <input type="number" placeholder="e.g. 3000" value={presentSavings}
                         onChange={(e) => setPresentSavings(e.target.value ? Number(e.target.value) : "")}
-                        className="w-full rounded-lg border border-slate-200 pl-8 pr-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                        className="w-full rounded-xl border border-slate-200 pl-8 pr-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                     </div>
                   </div>
 
                   {/* Existing cover */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Existing Life Cover</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Existing Life Cover</label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">₹</span>
+                      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
                       <input type="number" placeholder="e.g. 2000" value={existingCover}
                         onChange={(e) => setExistingCover(e.target.value ? Number(e.target.value) : "")}
-                        className="w-full rounded-lg border border-slate-200 pl-8 pr-3.5 py-2 text-sm bg-white focus:border-blue-500 focus:outline-none" />
+                        className="w-full rounded-xl border border-slate-200 pl-8 pr-3.5 py-2.75 text-sm bg-white placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15" />
                     </div>
                   </div>
 
                   {/* What If */}
                   <div className="pt-1">
-                    <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                       <div>
                         <span className="block text-xs font-bold text-slate-700">What If Scenario</span>
                         <span className="block text-[10px] text-slate-400">Model alternate parameters</span>
@@ -513,7 +524,7 @@ export default function QuickHlvCalculator() {
                       <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 border border-slate-200">
                         {[true, false].map((v) => (
                           <button key={String(v)} type="button" onClick={() => setWhatIf(v)}
-                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${whatIf === v ? "bg-[#0B1220] text-white" : "text-slate-500 hover:text-slate-800"}`}>
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${whatIf === v ? "bg-[#1877F2] text-white" : "text-slate-500 hover:text-slate-800"}`}>
                             {v ? "Yes" : "No"}
                           </button>
                         ))}
@@ -530,42 +541,42 @@ export default function QuickHlvCalculator() {
 
         {/* ── Right sidebar card ── */}
         <div className="lg:col-span-4">
-          <div className="bg-gradient-to-br from-[#0B1220] to-[#1A2536] text-white border border-slate-800 rounded-xl shadow-lg p-6 h-full">
-            <h3 className="font-serif font-bold text-lg text-[#D9AE63] mb-4">Calculation Summary</h3>
+          <div className="bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white border border-blue-900/30 rounded-2xl shadow-lg p-6 h-full">
+            <h3 className="font-bold text-lg text-white mb-4">Calculation Summary</h3>
             <div className="space-y-3 text-sm">
               {[
                 { label: "Annual Income",        value: `₹ ${fmt(incomeNum)}`,    color: "" },
                 { label: "Household Expenses",   value: `₹ ${fmt(expensesNum)}`,  color: "" },
-                { label: "Investment Margin",     value: `₹ ${fmt(investMargin)}`, color: "text-emerald-400" },
-                { label: "Existing Protection",  value: `₹ ${fmt(totalProtect)}`, color: "text-amber-400" },
-                { label: "Productive Years",     value: prodYears > 0 ? `${prodYears} yrs` : "--", color: "text-blue-400" },
+                { label: "Investment Margin",     value: `₹ ${fmt(investMargin)}`, color: "text-emerald-300" },
+                { label: "Existing Protection",  value: `₹ ${fmt(totalProtect)}`, color: "text-amber-300" },
+                { label: "Productive Years",     value: prodYears > 0 ? `${prodYears} yrs` : "--", color: "text-blue-200" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="flex justify-between border-b border-white/10 pb-2">
-                  <span className="text-white/60 text-xs">{label}:</span>
-                  <span className={`font-bold ${color}`}>{value}</span>
+                <div key={label} className="flex justify-between border-b border-white/15 pb-2">
+                  <span className="text-white/65 text-xs">{label}:</span>
+                  <span className={`font-bold ${color || "text-white"}`}>{value}</span>
                 </div>
               ))}
 
               {whatIf && (
-                <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs rounded-lg flex items-start gap-2">
+                <div className="mt-2 p-3 bg-white/10 border border-white/20 text-amber-200 text-xs rounded-xl flex items-start gap-2">
                   <Info size={13} className="flex-shrink-0 mt-0.5" />
                   <span><strong className="block mb-0.5">What If Analysis — Active</strong>The report will include a secondary table showing fund depletion without additional insurance.</span>
                 </div>
               )}
 
               <button type="button" onClick={() => calculate()}
-                className="w-full mt-4 py-2.5 bg-gradient-to-r from-[#B8873A] to-[#D9AE63] text-[#0B1220] font-bold text-sm rounded-lg hover:shadow-md transition">
+                className="w-full mt-4 py-2.5 bg-white text-[#1877F2] font-bold text-sm rounded-xl hover:shadow-md transition">
                 Compute Human Life Value
               </button>
 
               <button type="button" onClick={handleViewPDF} disabled={previewing || downloading}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50">
                 {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
                 {previewing ? "Preparing…" : "View PDF Report"}
               </button>
 
               <button type="button" onClick={handleDownloadPDF} disabled={downloading || previewing}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-lg transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50">
                 {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {downloading ? "Generating PDF…" : "Download PDF Report"}
               </button>
@@ -580,19 +591,21 @@ export default function QuickHlvCalculator() {
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { label: "Human Life Value (HLV)", value: `₹ ${fmt(hlv)}`, cls: "text-[#0B1220]", bg: "bg-white" },
-              { label: "Cash Flow Arrangement",  value: `₹ ${fmt(cashFlow)}`, cls: "text-slate-600", bg: "bg-white" },
-              { label: "Additional Cover Required", value: `₹ ${fmt(addInsurance)}`, cls: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
-            ].map(({ label, value, cls, bg }) => (
-              <div key={label} className={`${bg} border border-slate-200 rounded-xl shadow-sm p-6 text-center min-w-0`}>
+              { label: "Human Life Value (HLV)", value: `₹ ${fmt(hlv)}`, cls: "text-slate-900", bar: "from-[#1877F2] to-blue-200" },
+              { label: "Cash Flow Arrangement",  value: `₹ ${fmt(cashFlow)}`, cls: "text-slate-600", bar: "from-slate-300 to-slate-200" },
+              { label: "Additional Cover Required", value: `₹ ${fmt(addInsurance)}`, cls: "text-amber-700", bar: "from-amber-400 to-amber-200" },
+            ].map(({ label, value, cls, bar }) => (
+              <div key={label} className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm p-6 text-center min-w-0">
+                <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${bar}`} />
                 <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</span>
-                <span className={`block break-words text-2xl font-serif font-extrabold ${cls}`}>{value}</span>
+                <span className={`block break-words text-2xl font-extrabold ${cls}`}>{value}</span>
               </div>
             ))}
           </div>
 
           {/* Narrative */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
             <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-1.5">
               <Check size={16} className="text-emerald-500" /> Evaluation Narrative
             </h3>
@@ -607,15 +620,15 @@ export default function QuickHlvCalculator() {
           </div>
 
           {/* Table */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-              <h3 className="font-serif font-semibold text-slate-800">Year-by-Year Financial Rollover</h3>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">Year-by-Year Financial Rollover</h3>
               <span className="text-xs text-slate-400 font-semibold">{tableData.length} productive years</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-slate-600 border-collapse">
                 <thead>
-                  <tr className="bg-slate-100/60 text-xs font-bold text-slate-700 border-b border-slate-200">
+                  <tr className="bg-slate-50/70 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 border-b border-slate-100">
                     <th className="py-3 px-5 text-left">Year</th>
                     <th className="py-3 px-5 text-right">Opening Balance</th>
                     <th className="py-3 px-5 text-right">Amt. Required</th>
@@ -644,7 +657,7 @@ export default function QuickHlvCalculator() {
           {whatIf && whatIfTableData.length > 0 && (
             <>
               {/* What-If Narrative */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl shadow-sm p-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm p-6">
                 <h3 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-1.5">
                   <Info size={16} className="text-amber-600" /> What If Analysis
                 </h3>
@@ -657,9 +670,9 @@ export default function QuickHlvCalculator() {
               </div>
 
               {/* What-If Table */}
-              <div className="bg-white border border-amber-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-white border border-amber-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-amber-100 bg-amber-50/50 flex items-center justify-between">
-                  <h3 className="font-serif font-semibold text-amber-900">What If — Year-by-Year Fund Depletion</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-amber-900">What If — Year-by-Year Fund Depletion</h3>
                   <span className="text-xs text-amber-600 font-semibold">{whatIfTableData.length} row{whatIfTableData.length !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="overflow-x-auto">

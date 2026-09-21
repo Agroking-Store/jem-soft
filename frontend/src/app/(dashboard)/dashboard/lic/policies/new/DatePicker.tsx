@@ -34,10 +34,12 @@ function ensurePopperZIndexStyle() {
       z-index: 2147483647 !important;
     }
     .react-datepicker-popper { z-index: 2147483647 !important; }
+    .react-datepicker-wrapper { width: 100% !important; display: block !important; }
+    .react-datepicker__input-container { width: 100% !important; }
     .react-datepicker__day--today,
     .react-datepicker__day--selected,
     .react-datepicker__day--keyboard-selected {
-      background-color: #0B1220 !important;
+      background-color: #1877F2 !important;
       color: #fff !important;
       font-weight: 600 !important;
       border-radius: 0.375rem !important;
@@ -86,7 +88,7 @@ export default function DatePicker({
 
   if (!mounted) {
     return (
-      <div className="relative">
+      <div className="relative w-full">
         <Calendar
           size={16}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none"
@@ -103,7 +105,7 @@ export default function DatePicker({
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <Calendar
         size={16}
         className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none"
@@ -122,7 +124,8 @@ export default function DatePicker({
         disabled={readOnly}
         portalId="datepicker-portal"
         popperPlacement="bottom-start"
-        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20"
+        popperContainer={PortalContainer}
+        className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/20"
         calendarClassName="shadow-xl border rounded-lg"
       />
     </div>

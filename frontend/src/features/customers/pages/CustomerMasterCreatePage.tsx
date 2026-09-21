@@ -873,8 +873,8 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
               <label className="flex items-center gap-2.5 cursor-pointer">
                 <input type="checkbox" {...register("smsMarketing")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2]" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">SMS Marketing</p>
-                  <p className="text-xs text-slate-400">Allow SMS notifications</p>
+                  <p className="text-sm font-semibold text-slate-700">WhatsApp Marketing</p>
+                  <p className="text-xs text-slate-400">Allow WhatsApp notifications</p>
                 </div>
               </label>
               <label className="flex items-center gap-2.5 cursor-pointer">

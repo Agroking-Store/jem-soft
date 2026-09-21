@@ -4,3 +4,9 @@ node_modules/
 dist/
 build/
 .vscode/
+
+# WPPConnect & WhatsApp Gateway Temporary Files
+userDataDir/
+tokens/
+WhatsAppImages/
+log/
