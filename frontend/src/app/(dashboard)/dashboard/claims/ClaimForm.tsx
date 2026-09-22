@@ -479,18 +479,18 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
   /* ── Styles ─────────────────────────────────────────── */
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15";
   const disabledInputClass =
     "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 cursor-not-allowed";
   const selectClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15";
   const labelClass =
-    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+    "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.16em] text-[#8E99AF]";
 
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pb-8">
       <CustomerBreadcrumbs
         items={[
           { label: "Claims", href: "/dashboard/claims" },
@@ -499,10 +499,10 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       />
 
       <div>
-        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
           {mode === "create" ? "New Claim" : "Edit Claim"}
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+        <p className="mt-1 text-sm font-medium text-slate-500">
           {mode === "create"
             ? "Record a new claim against a policy."
             : "Update the claim details below."}
@@ -652,7 +652,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                     {...register("reasonForClaim")}
                     rows={3}
                     placeholder="Enter reason (min. 10 characters)"
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 resize-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 resize-none"
                   />
                   {errors.reasonForClaim?.message && (
                     <p className="mt-1 text-xs text-rose-600">
@@ -932,7 +932,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                         setNomineeOpen((o) => !o)
                       }
                       disabled={!selectedPolicy || nomineeList.length === 0}
-                      className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"} ${nomineeOpen ? "border-[#B8873A] ring-2 ring-[#B8873A]/15" : "border-slate-200"}`}
+                      className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 px-3 text-sm outline-none transition-all ${!selectedPolicy || nomineeList.length === 0 ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900 hover:border-slate-300"} ${nomineeOpen ? "border-[#1877F2] ring-2 ring-blue-500/15" : "border-slate-200"}`}
                     >
                       <span
                         className={`truncate text-left ${!selectedNominee ? "text-slate-400" : ""}`}
@@ -945,7 +945,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                       </span>
                       <ChevronDown
                         size={15}
-                        className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180" : ""}`}
+                        className={`shrink-0 text-slate-400 transition-transform ${nomineeOpen ? "rotate-180 text-[#1877F2]" : ""}`}
                       />
                     </button>
 
@@ -960,7 +960,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                                 setSelectedNominee(n);
                                 setNomineeOpen(false);
                               }}
-                              className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-[#B8873A]/8 ${selectedNominee?.id === n.id ? "bg-[#B8873A]/10 font-semibold text-[#0B1220]" : "text-slate-700"}`}
+                              className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-blue-50/80 transition-colors ${selectedNominee?.id === n.id ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"}`}
                             >
                               <span className="min-w-0">
                                 <span className="block truncate">
@@ -1125,68 +1125,66 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={() => router.push("/dashboard/claims")}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             disabled={isSubmitting}
             type="button"
-            variant="primary"
-            leftIcon={
-              isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )
-            }
             onClick={handleSubmit(onValid as any)}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
           >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
             {mode === "create" ? "Create Claim" : "Save Changes"}
-          </Button>
+          </button>
         </div>
       </form>
 
       {/* Confirmation Modal */}
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-50 rounded-xl">
-                <AlertCircle size={22} className="text-red-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.28)]">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+                <AlertCircle size={20} />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-slate-900">
                   {mode === "create" ? "Raise Claim" : "Update Claim"}
                 </h3>
-                <p className="text-xs text-slate-400">
-                  This action cannot be undone
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  {mode === "create"
+                    ? "Are you sure you want to raise this claim? The policy status will change to CLAIMED."
+                    : "Are you sure you want to update this claim?"}
+                </p>
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  This action cannot be undone.
                 </p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 mb-6">
-              {mode === "create"
-                ? "Are you sure you want to raise this claim? The policy status will change to CLAIMED."
-                : "Are you sure you want to update this claim?"}
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <Button
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setConfirmOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="primary"
                 onClick={handleSubmit(onSubmit as any)}
+                className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110"
               >
-                {mode === "create" ? "Create" : "Save"}
-              </Button>
+                {mode === "create" ? "Confirm & Create" : "Confirm & Save"}
+              </button>
             </div>
           </div>
         </div>

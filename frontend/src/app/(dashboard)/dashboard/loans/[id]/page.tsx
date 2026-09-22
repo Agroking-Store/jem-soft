@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchLoanById, clearSelectedLoan } from "@/features/loans/loanSlice";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { Edit, FileText, HandCoins, Receipt } from "lucide-react";
+import { FileText, HandCoins, Receipt, SquarePen } from "lucide-react";
 import {
   CustomerBreadcrumbs,
   CustomerSectionCard,
@@ -34,7 +34,7 @@ export default function LoanDetailsPage() {
   if (isLoading || !selectedLoan) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1877F2] mx-auto" />
         <p className="mt-4 text-sm text-slate-500">Loading loan...</p>
       </div>
     );
@@ -57,7 +57,7 @@ export default function LoanDetailsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pb-8">
       <CustomerBreadcrumbs
         items={[
           { label: "Loans", href: "/dashboard/loans" },
@@ -67,10 +67,10 @@ export default function LoanDetailsPage() {
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
             Loan Details
           </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+          <p className="mt-1 text-sm font-medium text-slate-500">
             View complete loan information and repayment history.
           </p>
         </div>
@@ -79,9 +79,9 @@ export default function LoanDetailsPage() {
             onClick={() =>
               router.push(`/dashboard/loans/repay?loanId=${selectedLoan.id}`)
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
-            <HandCoins size={18} /> Record Repayment
+            <HandCoins size={16} /> Record Repayment
           </button>
         )}
       </div>
@@ -90,7 +90,7 @@ export default function LoanDetailsPage() {
         {/* LEFT: Loan Info */}
         <div className="lg:col-span-2 space-y-6">
           <CustomerSectionCard title="Loan Information" icon={FileText}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field
                 label="Policy Number"
                 value={selectedLoan.policy?.policyNumber}
@@ -132,38 +132,43 @@ export default function LoanDetailsPage() {
             {repayments.length === 0 ? (
               <div className="text-center py-8">
                 <Receipt size={40} className="mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-400 font-medium">
                   No repayments recorded yet.
                 </p>
               </div>
             ) : (
-              <div className="mt-3 border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50">
+              <div className="overflow-hidden rounded-xl border border-slate-200">
+                <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+                  <thead className="bg-slate-50/70 border-b border-slate-100">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Date
                       </th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Amount
                       </th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Principal
                       </th>
-                      <th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Interest
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Mode
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Ref #
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {repayments.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50">
+                  <tbody className="divide-y divide-slate-100">
+                    {repayments.map((r, index) => (
+                      <tr
+                        key={r.id}
+                        className={`transition-colors hover:bg-blue-50/40 ${
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                        }`}
+                      >
                         <td className="px-4 py-3 text-slate-700">
                           {new Date(r.repaymentDate).toLocaleDateString(
                             "en-IN",
@@ -172,11 +177,11 @@ export default function LoanDetailsPage() {
                         <td className="px-4 py-3 text-right font-semibold text-slate-900">
                           ₹{Number(r.repaymentAmount).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-4 py-3 text-right text-slate-700">
+                        <td className="px-4 py-3 text-right font-medium text-slate-700">
                           ₹
                           {Number(r.principalComponent).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-4 py-3 text-right text-amber-700">
+                        <td className="px-4 py-3 text-right font-semibold text-amber-700">
                           ₹{Number(r.interestComponent).toLocaleString("en-IN")}
                         </td>
                         <td className="px-4 py-3 text-slate-700">
@@ -197,7 +202,7 @@ export default function LoanDetailsPage() {
         {/* RIGHT: Summary */}
         <div>
           <CustomerSectionCard title="Loan Summary" icon={HandCoins}>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <SummaryRow
                 label="Total Repaid"
                 value={`₹${Number(summary?.totalRepaid || 0).toLocaleString("en-IN")}`}
@@ -210,7 +215,7 @@ export default function LoanDetailsPage() {
                 label="Interest Paid"
                 value={`₹${Number(summary?.totalInterestPaid || 0).toLocaleString("en-IN")}`}
               />
-              <div className="border-t border-slate-200 pt-4">
+              <div className="border-t border-slate-100 pt-3 space-y-3">
                 <SummaryRow
                   label="Outstanding Principal"
                   value={`₹${Number(summary?.outstandingPrincipal || 0).toLocaleString("en-IN")}`}
@@ -221,11 +226,11 @@ export default function LoanDetailsPage() {
                   value={`₹${Number(summary?.accruedInterest || 0).toLocaleString("en-IN")}`}
                   amber
                 />
-                <div className="mt-3 p-3 bg-slate-900 rounded-lg">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E8C77A] mb-1">
+                <div className="mt-4 rounded-2xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] p-5 text-white shadow-lg shadow-blue-200/50">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-200 mb-1">
                     Total Due (as of today)
                   </p>
-                  <p className="text-xl font-bold text-white">
+                  <p className="text-2xl font-bold tracking-tight text-white">
                     ₹{Number(summary?.totalDue || 0).toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -236,10 +241,10 @@ export default function LoanDetailsPage() {
       </div>
 
       {/* Footer */}
-      <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+      <div className="pt-4 flex justify-end gap-3">
         <button
           onClick={() => router.push("/dashboard/loans")}
-          className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
         >
           Back
         </button>
@@ -248,9 +253,9 @@ export default function LoanDetailsPage() {
             onClick={() =>
               router.push(`/dashboard/loans/edit/${selectedLoan.id}`)
             }
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
-            <Edit className="w-4 h-4" />
+            <SquarePen size={16} />
             Edit Loan
           </button>
         )}
@@ -273,28 +278,30 @@ function Field({
   badge?: string;
 }) {
   const badgeColors: Record<string, string> = {
-    ACTIVE: "bg-green-100 text-green-700",
-    PAID_OFF: "bg-blue-100 text-blue-700",
-    DEFAULTED: "bg-red-100 text-red-700",
-    CLOSED: "bg-slate-100 text-slate-600",
+    ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    PAID_OFF: "bg-blue-50 text-[#1877F2] border-blue-200",
+    DEFAULTED: "bg-rose-50 text-rose-700 border-rose-200",
+    CLOSED: "bg-slate-50 text-slate-600 border-slate-200",
   };
   return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+    <div className="flex flex-col rounded-xl border border-[#F1F3F6] bg-[#F8F9FB] p-3.5 transition-all duration-200 hover:border-blue-100 hover:bg-white hover:shadow-sm">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E99AF] mb-1">
         {label}
-      </p>
+      </span>
       {badge ? (
+        <div>
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeColors[badge] || "bg-slate-50 text-slate-700 border-slate-200"}`}
+          >
+            {value || "—"}
+          </span>
+        </div>
+      ) : (
         <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${badgeColors[badge] || "bg-slate-100"}`}
+          className={`text-[13px] font-semibold break-words text-[#2D3748] ${mono ? "font-mono" : ""}`}
         >
           {value || "—"}
         </span>
-      ) : (
-        <p
-          className={`font-semibold text-slate-900 ${mono ? "font-mono" : ""}`}
-        >
-          {value || "—"}
-        </p>
       )}
     </div>
   );
@@ -312,21 +319,21 @@ function SummaryRow({
   amber?: boolean;
 }) {
   return (
-    <div className="flex justify-between items-center">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <div className="flex justify-between items-center py-1">
+      <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8E99AF]">
         {label}
-      </p>
-      <p
-        className={`font-semibold text-sm ${
+      </span>
+      <span
+        className={`text-sm font-semibold ${
           highlight
-            ? "text-slate-900"
+            ? "text-[#0f172a] font-bold"
             : amber
-              ? "text-amber-700"
+              ? "text-amber-700 font-bold"
               : "text-slate-700"
         }`}
       >
         {value}
-      </p>
+      </span>
     </div>
   );
 }

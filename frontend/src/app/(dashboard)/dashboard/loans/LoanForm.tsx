@@ -205,12 +205,12 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-slate-200 py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15";
   const labelClass =
-    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+    "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.16em] text-[#8E99AF]";
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pb-8">
       <CustomerBreadcrumbs
         items={[
           { label: "Loans", href: "/dashboard/loans" },
@@ -219,10 +219,10 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
       />
 
       <div>
-        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
           {mode === "create" ? "New Loan" : "Edit Loan"}
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+        <p className="mt-1 text-sm font-medium text-slate-500">
           {mode === "create"
             ? "Create a new loan against a policy."
             : "Update the loan details below."}
@@ -244,11 +244,11 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
                 const p = policies.find((p) => p.id === e.target.value) || null;
                 setSelectedPolicy(p);
               }}
-              className={`mt-1.5 w-full px-3 py-2.5 text-sm border rounded-xl outline-none transition-all ${
+              className={`mt-1.5 w-full px-3 py-2.75 text-sm border rounded-xl outline-none transition-all ${
                 errors.policyId
                   ? "border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/15"
-                  : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              } ${mode === "edit" ? "bg-slate-50 cursor-not-allowed" : ""}`}
+                  : "border-slate-200 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+              } ${mode === "edit" ? "bg-slate-50 cursor-not-allowed" : "bg-white"}`}
             >
               <option value="">Select a policy</option>
               {policies.map((p) => (
@@ -424,7 +424,7 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
                   placeholder="Enter any remarks..."
                   value={form.remarks}
                   onChange={(e) => handleChange("remarks", e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.75 text-sm outline-none resize-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
                 />
               </div>
             </div>
@@ -433,18 +433,18 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
 
         {/* Footer */}
         {eligible && !hasActiveLoan && (
-          <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+          <div className="pt-4 flex justify-end gap-3">
             <button
               type="button"
               onClick={() => router.push("/dashboard/loans")}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

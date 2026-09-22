@@ -50,9 +50,9 @@ const emptyForm: FormState = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 py-2.5 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+  "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15";
 const labelClass =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+  "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.16em] text-[#8E99AF]";
 
 function RepayFormInner() {
   const router = useRouter();
@@ -172,7 +172,7 @@ function RepayFormInner() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pb-8">
       <CustomerBreadcrumbs
         items={[
           { label: "Loans", href: "/dashboard/loans" },
@@ -181,10 +181,10 @@ function RepayFormInner() {
       />
 
       <div>
-        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
           Record Loan Repayment
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+        <p className="mt-1 text-sm font-medium text-slate-500">
           Record a repayment against an active loan. Interest is auto-calculated
           from the last payment date.
         </p>
@@ -225,26 +225,26 @@ function RepayFormInner() {
           {/* Loan Info */}
           {currentLoan && (
             <>
-              <div className="mt-5 border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
+              <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
+                <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+                  <thead className="bg-slate-50/70 border-b border-slate-100">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Policy #
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Loan Amount
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Outstanding
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Accrued Interest
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Total Due
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                      <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         Rate
                       </th>
                     </tr>
@@ -376,7 +376,7 @@ function RepayFormInner() {
                     placeholder="Enter any notes..."
                     value={form.remarks}
                     onChange={(e) => handleChange("remarks", e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.75 text-sm outline-none resize-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
                   />
                 </div>
               </div>
@@ -427,18 +427,18 @@ function RepayFormInner() {
         </CustomerSectionCard>
 
         {currentLoan && (
-          <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+          <div className="pt-4 flex justify-end gap-3">
             <button
               type="button"
               onClick={() => router.push("/dashboard/loans")}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -465,15 +465,15 @@ function PreviewCell({
 }) {
   const colors = {
     amber: "text-amber-700",
-    blue: "text-blue-700",
+    blue: "text-[#1877F2]",
     emerald: "text-emerald-700",
   };
   return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">
+    <div className="flex flex-col rounded-xl border border-[#F1F3F6] bg-white p-3.5 shadow-sm">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E99AF] mb-1">
         {label}
-      </p>
-      <p className={`font-bold text-lg ${colors[color]}`}>{value}</p>
+      </span>
+      <span className={`text-lg font-bold ${colors[color]}`}>{value}</span>
     </div>
   );
 }
