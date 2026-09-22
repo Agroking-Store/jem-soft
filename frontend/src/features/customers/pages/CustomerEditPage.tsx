@@ -422,10 +422,9 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
               label="Category"
               value={watch("category") || ""}
               onChange={(value) => setValue("category", value, { shouldValidate: true })}
-            >
-              <option value="">Select category</option>
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-            </FormSelect>
+              placeholder="Select category"
+              options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+            />
           </div>
         </SectionCard>
 
