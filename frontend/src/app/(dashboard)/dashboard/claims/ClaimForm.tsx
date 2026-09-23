@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
 import { useForm } from "react-hook-form";
@@ -30,10 +30,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { Policy } from "@/features/policy/policySlice";
-import { Button } from "@/shared/components/ui/Button";
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
+  SearchableSelect,
 } from "@/features/customers/components/CustomerUi";
 
 interface ClaimFormProps {
@@ -479,13 +479,28 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
 
   /* ── Styles ─────────────────────────────────────────── */
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
   const disabledInputClass =
-    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.75 px-3 text-sm text-slate-500 cursor-not-allowed";
+    "w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-sm text-slate-500 cursor-not-allowed";
   const selectClass =
-    "w-full rounded-xl border border-slate-200 bg-white py-2.75 px-3 text-sm text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
+    "w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
   const labelClass =
-    "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+    "block text-sm font-medium text-slate-700 mb-1";
+
+  const policyOptions = useMemo(
+    () =>
+      policies.map((p) => {
+        const cust = p.CustomerMaster
+          ? `${p.CustomerMaster.firstName} ${p.CustomerMaster.lastName ?? ""}`.trim()
+          : "";
+        return {
+          value: p.id,
+          label: `${p.policyNumber}${cust ? ` - ${cust}` : ""}`,
+          sublabel: p.product?.productName || "Policy",
+        };
+      }),
+    [policies],
+  );
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -520,18 +535,16 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 <label className={labelClass}>
                   Policy <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  className={selectClass}
-                  {...register("policyId")}
+                <SearchableSelect
+                  placeholder="Select Policy"
+                  searchPlaceholder="Search by policy # or customer name..."
+                  options={policyOptions}
+                  value={selectedPolicyId || ""}
+                  onChange={(val) => {
+                    setValue("policyId", val, { shouldValidate: true });
+                  }}
                   disabled={mode === "edit"}
-                >
-                  <option value="">Select Policy</option>
-                  {policies.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.policyNumber} - {p.product?.productName}
-                    </option>
-                  ))}
-                </select>
+                />
                 {errors.policyId?.message && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.policyId.message}
@@ -1124,29 +1137,27 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         </CustomerSectionCard>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3">
-          <Button
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button
             type="button"
-            variant="outline"
             onClick={() => router.push("/dashboard/claims")}
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             disabled={isSubmitting}
             type="button"
-            variant="primary"
-            leftIcon={
-              isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )
-            }
             onClick={handleSubmit(onValid as any)}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-60"
           >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
             {mode === "create" ? "Create Claim" : "Save Changes"}
-          </Button>
+          </button>
         </div>
       </form>
 
@@ -1173,20 +1184,20 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                 : "Are you sure you want to update this claim?"}
             </p>
             <div className="flex items-center justify-end gap-3">
-              <Button
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setConfirmOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="primary"
                 onClick={handleSubmit(onSubmit as any)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
               >
                 {mode === "create" ? "Create" : "Save"}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

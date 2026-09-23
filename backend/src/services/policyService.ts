@@ -63,6 +63,20 @@ interface PolicyData {
   proposerId?: string;
   spouseId?: string;
   paymentMethod?: string;
+  bankName?: string;
+  bankBranch?: string;
+  city?: string;
+  accountType?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  micrNumber?: string;
+  accountHolderName?: string;
+  neftBankName?: string;
+  neftBankBranch?: string;
+  neftAccountNumber?: string;
+  neftIfscCode?: string;
+  neftAccountHolderName?: string;
+  neftSubmissionDate?: string;
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
@@ -135,7 +149,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   //Get next premium due date
   const monthsToAdd = premiumMode?.months;
   const dueDate = new Date(data.commencementDate);
-  const nextPremiumDueDate = addMonths(dueDate, monthsToAdd!);
+  const nextPremiumDueDate = fupDate ? new Date(fupDate) : addMonths(dueDate, monthsToAdd!);
 
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
@@ -306,6 +320,86 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           address: nominee.address,
         })),
       });
+    }
+
+    // If NACH/NEFT details were provided, save or update them in CustomerBankDetails
+    const targetCustomerId = data.proposerId || data.lifeAssuredId;
+    if (data.paymentMethod === "NACH" && (data.accountNumber || data.bankName)) {
+      const existingBank = await tx.customerBankDetails.findFirst({
+        where: {
+          customerId: targetCustomerId,
+          OR: [
+            ...(data.accountNumber ? [{ accountNumber: data.accountNumber }] : []),
+            ...(data.ifscCode ? [{ ifscCode: data.ifscCode }] : []),
+          ],
+        },
+      });
+
+      if (existingBank) {
+        await tx.customerBankDetails.update({
+          where: { id: existingBank.id },
+          data: {
+            bankName: data.bankName || existingBank.bankName,
+            bankBranch: data.bankBranch || existingBank.bankBranch,
+            city: data.city || existingBank.city,
+            accountType: data.accountType || existingBank.accountType,
+            accountNumber: data.accountNumber || existingBank.accountNumber,
+            ifscCode: data.ifscCode || existingBank.ifscCode,
+            micrNumber: data.micrNumber || existingBank.micrNumber,
+            accountHolderName: data.accountHolderName || existingBank.accountHolderName,
+          },
+        });
+      } else {
+        await tx.customerBankDetails.create({
+          data: {
+            customerId: targetCustomerId,
+            bankName: data.bankName || null,
+            bankBranch: data.bankBranch || null,
+            city: data.city || null,
+            accountType: data.accountType || null,
+            accountNumber: data.accountNumber || null,
+            ifscCode: data.ifscCode || null,
+            micrNumber: data.micrNumber || null,
+            accountHolderName: data.accountHolderName || null,
+            isDefault: true,
+          },
+        });
+      }
+    } else if (data.paymentMethod === "NEFT" && (data.neftAccountNumber || data.neftBankName)) {
+      const existingBank = await tx.customerBankDetails.findFirst({
+        where: {
+          customerId: targetCustomerId,
+          OR: [
+            ...(data.neftAccountNumber ? [{ accountNumber: data.neftAccountNumber }] : []),
+            ...(data.neftIfscCode ? [{ ifscCode: data.neftIfscCode }] : []),
+          ],
+        },
+      });
+
+      if (existingBank) {
+        await tx.customerBankDetails.update({
+          where: { id: existingBank.id },
+          data: {
+            bankName: data.neftBankName || existingBank.bankName,
+            bankBranch: data.neftBankBranch || existingBank.bankBranch,
+            accountNumber: data.neftAccountNumber || existingBank.accountNumber,
+            ifscCode: data.neftIfscCode || existingBank.ifscCode,
+            accountHolderName: data.neftAccountHolderName || existingBank.accountHolderName,
+          },
+        });
+      } else {
+        await tx.customerBankDetails.create({
+          data: {
+            customerId: targetCustomerId,
+            bankName: data.neftBankName || null,
+            bankBranch: data.neftBankBranch || null,
+            accountNumber: data.neftAccountNumber || null,
+            ifscCode: data.neftIfscCode || null,
+            accountHolderName: data.neftAccountHolderName || null,
+            isDefault: true,
+          },
+        });
+      }
     }
 
     await createNotification(tx, {
@@ -573,6 +667,12 @@ export const getAllPolicies = async (
         },
       },
       nominees: true,
+      proposer: {
+        include: {
+          bankDetails: true,
+        },
+      },
+      spouse: true,
       policyAttributes: {
         include: {
           attribute: true,
@@ -717,6 +817,12 @@ export const getPolicyById = async (id: string): Promise<any> => {
           bankDetails: true,
         },
       },
+      proposer: {
+        include: {
+          bankDetails: true,
+        },
+      },
+      spouse: true,
       customer: true,
       provider: true,
       product: true,
@@ -994,6 +1100,88 @@ export const updatePolicy = async (
           },
           create: attribute,
         });
+      }
+    }
+
+    // If NACH/NEFT details were updated, update CustomerBankDetails
+    const targetCustomerId = data.proposerId || data.lifeAssuredId;
+    if (targetCustomerId) {
+      if (data.paymentMethod === "NACH" && (data.accountNumber || data.bankName)) {
+        const existingBank = await tx.customerBankDetails.findFirst({
+          where: {
+            customerId: targetCustomerId,
+            OR: [
+              ...(data.accountNumber ? [{ accountNumber: data.accountNumber }] : []),
+              ...(data.ifscCode ? [{ ifscCode: data.ifscCode }] : []),
+            ],
+          },
+        });
+
+        if (existingBank) {
+          await tx.customerBankDetails.update({
+            where: { id: existingBank.id },
+            data: {
+              bankName: data.bankName || existingBank.bankName,
+              bankBranch: data.bankBranch || existingBank.bankBranch,
+              city: data.city || existingBank.city,
+              accountType: data.accountType || existingBank.accountType,
+              accountNumber: data.accountNumber || existingBank.accountNumber,
+              ifscCode: data.ifscCode || existingBank.ifscCode,
+              micrNumber: data.micrNumber || existingBank.micrNumber,
+              accountHolderName: data.accountHolderName || existingBank.accountHolderName,
+            },
+          });
+        } else {
+          await tx.customerBankDetails.create({
+            data: {
+              customerId: targetCustomerId,
+              bankName: data.bankName || null,
+              bankBranch: data.bankBranch || null,
+              city: data.city || null,
+              accountType: data.accountType || null,
+              accountNumber: data.accountNumber || null,
+              ifscCode: data.ifscCode || null,
+              micrNumber: data.micrNumber || null,
+              accountHolderName: data.accountHolderName || null,
+              isDefault: true,
+            },
+          });
+        }
+      } else if (data.paymentMethod === "NEFT" && (data.neftAccountNumber || data.neftBankName)) {
+        const existingBank = await tx.customerBankDetails.findFirst({
+          where: {
+            customerId: targetCustomerId,
+            OR: [
+              ...(data.neftAccountNumber ? [{ accountNumber: data.neftAccountNumber }] : []),
+              ...(data.neftIfscCode ? [{ ifscCode: data.neftIfscCode }] : []),
+            ],
+          },
+        });
+
+        if (existingBank) {
+          await tx.customerBankDetails.update({
+            where: { id: existingBank.id },
+            data: {
+              bankName: data.neftBankName || existingBank.bankName,
+              bankBranch: data.neftBankBranch || existingBank.bankBranch,
+              accountNumber: data.neftAccountNumber || existingBank.accountNumber,
+              ifscCode: data.neftIfscCode || existingBank.ifscCode,
+              accountHolderName: data.neftAccountHolderName || existingBank.accountHolderName,
+            },
+          });
+        } else {
+          await tx.customerBankDetails.create({
+            data: {
+              customerId: targetCustomerId,
+              bankName: data.neftBankName || null,
+              bankBranch: data.neftBankBranch || null,
+              accountNumber: data.neftAccountNumber || null,
+              ifscCode: data.neftIfscCode || null,
+              accountHolderName: data.neftAccountHolderName || null,
+              isDefault: true,
+            },
+          });
+        }
       }
     }
 

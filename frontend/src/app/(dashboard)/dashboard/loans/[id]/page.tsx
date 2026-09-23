@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchLoanById, clearSelectedLoan } from "@/features/loans/loanSlice";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { Edit, FileText, HandCoins, Receipt } from "lucide-react";
+import { Edit, FileText, HandCoins, Receipt, Landmark } from "lucide-react";
 import {
   CustomerBreadcrumbs,
   CustomerSectionCard,
@@ -65,25 +65,42 @@ export default function LoanDetailsPage() {
         ]}
       />
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
-            Loan Details
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-            View complete loan information and repayment history.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <Landmark size={24} />
+          </span>
+          <div>
+            <h1 className="font-serif text-2xl font-semibold text-slate-900">
+              Loan #{selectedLoan.policy?.policyNumber || id.slice(0, 8)}
+            </h1>
+            <p className="text-sm text-slate-500">
+              View complete loan information and repayment history.
+            </p>
+          </div>
         </div>
-        {isActive && canEdit && (
-          <button
-            onClick={() =>
-              router.push(`/dashboard/loans/repay?loanId=${selectedLoan.id}`)
-            }
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
-          >
-            <HandCoins size={18} /> Record Repayment
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {canEdit && (
+            <button
+              onClick={() =>
+                router.push(`/dashboard/loans/edit/${selectedLoan.id}`)
+              }
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
+            >
+              <Edit size={16} /> Edit Loan
+            </button>
+          )}
+          {isActive && canEdit && (
+            <button
+              onClick={() =>
+                router.push(`/dashboard/loans/repay?loanId=${selectedLoan.id}`)
+              }
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+            >
+              <HandCoins size={18} /> Record Repayment
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -236,10 +253,10 @@ export default function LoanDetailsPage() {
       </div>
 
       {/* Footer */}
-      <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+      <div className="px-6 pb-6 pt-4 flex justify-end gap-3 border-t border-slate-100">
         <button
           onClick={() => router.push("/dashboard/loans")}
-          className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+          className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
         >
           Back
         </button>
@@ -248,7 +265,7 @@ export default function LoanDetailsPage() {
             onClick={() =>
               router.push(`/dashboard/loans/edit/${selectedLoan.id}`)
             }
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Edit className="w-4 h-4" />
             Edit Loan

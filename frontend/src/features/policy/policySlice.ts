@@ -69,6 +69,8 @@ export interface Policy {
   premiumMode?: {
     id: string;
     modeName: string;
+    modeCode?: string;
+    months?: number;
   } | null;
   premium?: {
     id: string;
