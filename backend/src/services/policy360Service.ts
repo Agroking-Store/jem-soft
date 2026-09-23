@@ -78,6 +78,14 @@ const isSuccessfulPayment = (payment: PaymentLike): boolean =>
   PAID_PAYMENT_STATUS_CODES.includes(payment.paymentStatus?.statusCode ?? "");
 
 /**
+ * True when the policy's own status record says it is already Lapsed.
+ * Used by getOutstandingPremiums to exclude those regardless of the
+ * day-count math below (which getLapsedPolicies uses instead).
+ */
+const isStatusLapsed = (status: { statusName: string } | null): boolean =>
+  (status?.statusName ?? "").trim().toLowerCase() === "lapsed";
+
+/**
  * Total number of premium installments of the policy, derived from the
  * premium paying term (years) and the premium mode interval (months).
  * e.g. Monthly (1) with PPT 15 -> 180 installments; Half-Yearly (6) with
@@ -368,6 +376,10 @@ export const getOutstandingPremiums = async (
   const outstandingPolicies: OutstandingPremiumRow[] = [];
 
   for (const policy of policies) {
+    // Explicit status check — a policy already marked Lapsed never shows up
+    // here, no matter what the day-count below works out to.
+    if (isStatusLapsed(policy.status)) continue;
+
     const monthsInterval = policy.premiumMode?.months ?? 0;
     if (!monthsInterval || monthsInterval <= 0) continue;
 
@@ -417,9 +429,10 @@ export const getOutstandingPremiums = async (
       (today.getTime() - startOfDay(oldestUnpaid.dueDate).getTime()) / MS_PER_DAY,
     );
 
-    // All past-due (pending) installments show up here — not capped at the
-    // lapsed threshold. `isRecent` (<= RECENT_OVERDUE_DAYS) is used below to
-    // sort/highlight the newest pending items above older ones.
+    // All past-due (pending) installments show up here — no day-count cap.
+    // `isRecent` (<= RECENT_OVERDUE_DAYS) is used below to sort/highlight the
+    // newest pending items above older ones. Lapsed exclusion is purely by
+    // the policy's own status (checked above), not by days overdue.
     if (daysUnpaid < 1) continue;
 
     const explicitPayment = policy.premiumPayments.find(
