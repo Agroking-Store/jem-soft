@@ -108,8 +108,9 @@ const schema = z.object({
   skypeId: z.string().optional().or(z.literal("")),
   // Addresses (dynamic)
   addresses: z.array(addressSchema).default([]),
-  // Bank Details (dynamic)
-  bankDetails: z.array(bankDetailSchema).min(1, "At least one bank account is required").default([]),
+  // Bank Details (dynamic) — required for everyone EXCEPT Minor customers
+  // (see superRefine below, which makes the .min(1) conditional on customerType).
+  bankDetails: z.array(bankDetailSchema).default([]),
   // Misc Info
   relationToGroup: z.string().optional().or(z.literal("")),
   dobForGreetings: z.string().optional().or(z.literal("")),
@@ -140,6 +141,15 @@ const schema = z.object({
   preferredCommAddress: z.string().optional().or(z.literal("")),
   smsMarketing: z.boolean().default(true),
   emailMarketing: z.boolean().default(true),
+}).superRefine((data, ctx) => {
+  // Minor customers aren't required to have their own bank account on file.
+  if (data.customerType !== "Minor" && data.bankDetails.length < 1) {
+    ctx.addIssue({
+      path: ["bankDetails"],
+      code: z.ZodIssueCode.custom,
+      message: "At least one bank account is required",
+    });
+  }
 });
 
 type FormInputValues = z.input<typeof schema>;
