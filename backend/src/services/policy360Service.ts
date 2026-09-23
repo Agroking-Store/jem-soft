@@ -9,6 +9,10 @@ import {
 
 const MS_PER_DAY = 86_400_000;
 
+// Outstanding rows within this window are flagged `isRecent` so the frontend
+// can sort/highlight them above older-but-still-pending installments.
+const RECENT_OVERDUE_DAYS = 30;
+
 export interface LapsedPolicyRow {
   policyId: string;
   policyNumber: string;
@@ -34,6 +38,7 @@ export interface OutstandingPremiumRow {
   outstandingAmount: number;
   premiumDueDate: string;
   daysOverdue: number;
+  isRecent: boolean;
   mobileNumber: string | null;
   status: string;
 }
@@ -412,8 +417,10 @@ export const getOutstandingPremiums = async (
       (today.getTime() - startOfDay(oldestUnpaid.dueDate).getTime()) / MS_PER_DAY,
     );
 
-    // Only 1–59 days overdue (outstanding but not yet lapsed)
-    if (daysUnpaid < 1 || daysUnpaid >= LAPSED_THRESHOLD_DAYS) continue;
+    // All past-due (pending) installments show up here — not capped at the
+    // lapsed threshold. `isRecent` (<= RECENT_OVERDUE_DAYS) is used below to
+    // sort/highlight the newest pending items above older ones.
+    if (daysUnpaid < 1) continue;
 
     const explicitPayment = policy.premiumPayments.find(
       (payment) =>
@@ -438,6 +445,7 @@ export const getOutstandingPremiums = async (
       outstandingAmount: premiumAmount,
       premiumDueDate: toDateString(oldestUnpaid.dueDate),
       daysOverdue: daysUnpaid,
+      isRecent: daysUnpaid <= RECENT_OVERDUE_DAYS,
       mobileNumber: policy.CustomerMaster?.contactInfo?.mobile1 ?? null,
       status: policy.status?.statusName ?? 'Active',
     };
@@ -457,6 +465,11 @@ export const getOutstandingPremiums = async (
     outstandingPolicies.push(row);
   }
 
-  outstandingPolicies.sort((a, b) => b.daysOverdue - a.daysOverdue);
+  // Recent (<= RECENT_OVERDUE_DAYS) pending items first; within each group,
+  // most-overdue first.
+  outstandingPolicies.sort((a, b) => {
+    if (a.isRecent !== b.isRecent) return a.isRecent ? -1 : 1;
+    return b.daysOverdue - a.daysOverdue;
+  });
   return outstandingPolicies;
 };

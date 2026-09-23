@@ -12,6 +12,7 @@ export interface OutstandingPremiumPolicy {
   outstandingAmount: number;
   premiumDueDate: string;
   daysOverdue: number;
+  isRecent: boolean;
   mobileNumber: string | null;
   status: string;
 }
