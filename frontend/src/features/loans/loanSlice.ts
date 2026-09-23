@@ -53,14 +53,14 @@ export interface Loan {
       dob?: string | null;
       contactInfo?: {
         mobile1?: string | null;
-        email1?: string | null;
+        emailPersonal?: string | null;
       } | null;
       addresses?: {
         addressType?: string;
         addressLine1?: string;
         addressLine2?: string;
         city?: string;
-        pinCode?: string;
+        pin?: string;
       }[];
     } | null;
     customer?: {
@@ -79,9 +79,12 @@ export interface Loan {
     } | null;
     advisor?: {
       id: string;
+      advisorName?: string;
+      advisorCode?: string;
       name?: string;
       agentCode?: string;
     } | null;
+    agentCode?: string;
     branch?: {
       id: string;
       branchName: string;

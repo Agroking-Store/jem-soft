@@ -17,8 +17,8 @@ const loanInclude = {
       id: true,
       policyNumber: true,
       commencementDate: true,
-      fupDate: true,
       nextPremiumDueDate: true,
+      agentCode: true,
       CustomerMaster: {
         select: {
           id: true,
@@ -30,7 +30,7 @@ const loanInclude = {
           contactInfo: {
             select: {
               mobile1: true,
-              email1: true,
+              emailPersonal: true,
             },
           },
           addresses: {
@@ -39,7 +39,7 @@ const loanInclude = {
               addressLine1: true,
               addressLine2: true,
               city: true,
-              pinCode: true,
+              pin: true,
             },
           },
         },
@@ -65,8 +65,8 @@ const loanInclude = {
       advisor: {
         select: {
           id: true,
-          name: true,
-          agentCode: true,
+          advisorName: true,
+          advisorCode: true,
         },
       },
       branch: {
@@ -216,7 +216,7 @@ export const createLoan = async (data: LoanData) => {
     }
   }
 
-  return await prisma.policyLoan.create({
+  const newLoan = await prisma.policyLoan.create({
     data: {
       policyId: data.policyId,
       loanAmount: data.loanAmount,
@@ -230,10 +230,13 @@ export const createLoan = async (data: LoanData) => {
       repayments: { orderBy: { repaymentDate: "desc" } },
     },
   });
+
+  const summary = computeSummary(newLoan);
+  return { ...newLoan, summary };
 };
 
 export const updateLoanById = async (id: string, data: Partial<LoanData>) => {
-  return await prisma.policyLoan.update({
+  const updatedLoan = await prisma.policyLoan.update({
     where: { id },
     data: {
       loanAmount: data.loanAmount,
@@ -247,6 +250,9 @@ export const updateLoanById = async (id: string, data: Partial<LoanData>) => {
       repayments: { orderBy: { repaymentDate: "desc" } },
     },
   });
+
+  const summary = computeSummary(updatedLoan);
+  return { ...updatedLoan, summary };
 };
 
 export const deleteLoanById = async (id: string) => {
