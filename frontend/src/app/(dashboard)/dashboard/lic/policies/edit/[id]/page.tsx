@@ -50,6 +50,10 @@ import {
   Banknote,
   Building,
   Home,
+  Activity,
+  Building2,
+  Calendar,
+  Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "../../new/DatePicker";
@@ -322,6 +326,7 @@ export default function EditLICPolicyPage() {
 
   const watchGroupId = watch("groupId");
   const watchLifeAssuredId = watch("lifeAssuredId");
+  const watchProposerId = watch("proposerId");
   const watchAdvisorId = watch("advisorId");
   const watchBasicYearlyPremium = watch("basicYearlyPremium");
   const watchBranchId = watch("branchId");
@@ -369,9 +374,19 @@ export default function EditLICPolicyPage() {
 
     let targetBankCustomer = selectedPolicy.CustomerMaster;
     if ((selectedPolicy as any).proposerId) {
-      const proposer = masterCustomers.find((m: any) => m.id === (selectedPolicy as any).proposerId);
+      const proposer = (selectedPolicy as any).proposer || masterCustomers.find((m: any) => m.id === (selectedPolicy as any).proposerId);
       if (proposer) targetBankCustomer = proposer;
     }
+
+    const targetBankDetails =
+      targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault) ||
+      targetBankCustomer?.bankDetails?.[0] ||
+      selectedPolicy.CustomerMaster?.bankDetails?.find((b: any) => b.isDefault) ||
+      selectedPolicy.CustomerMaster?.bankDetails?.[0];
+
+    const paymentModeCode = (selectedPolicy as any).paymentMode?.modeCode?.toUpperCase();
+    const isPolicyNach = paymentModeCode === "NACH";
+    const isPolicyNeft = paymentModeCode === "NEFT";
 
     reset({
       groupId: selectedPolicy.clientId,
@@ -473,65 +488,43 @@ export default function EditLICPolicyPage() {
       extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
       ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
 
-      bankName:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
-            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
-          : "",
-      bankBranch:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
-            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
-          : "",
-      city:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.city ??
-            targetBankCustomer?.bankDetails?.[0]?.city ?? ""
-          : "",
-      accountType:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountType ??
-            targetBankCustomer?.bankDetails?.[0]?.accountType ?? ""
-          : "",
-      accountNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
-          : "",
-      ifscCode:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
-            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
-          : "",
-      micrNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.micrNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.micrNumber ?? ""
-          : "",
+      bankName: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.bankName ?? ""
+        : "",
+      bankBranch: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.bankBranch ?? ""
+        : "",
+      city: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.city ?? ""
+        : "",
+      accountType: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.accountType ?? ""
+        : "",
+      accountNumber: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.accountNumber ?? ""
+        : "",
+      ifscCode: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.ifscCode ?? ""
+        : "",
+      micrNumber: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.micrNumber ?? ""
+        : "",
 
-      neftBankName:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
-            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
-          : "",
-      neftBankBranch:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
-            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
-          : "",
-      neftAccountNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
-          : "",
-      neftIfscCode:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
-            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
-          : "",
+      neftBankName: isPolicyNeft
+        ? targetBankDetails?.bankName ?? ""
+        : "",
+      neftBankBranch: isPolicyNeft
+        ? targetBankDetails?.bankBranch ?? ""
+        : "",
+      neftAccountNumber: isPolicyNeft
+        ? targetBankDetails?.accountNumber ?? ""
+        : "",
+      neftIfscCode: isPolicyNeft
+        ? targetBankDetails?.ifscCode ?? ""
+        : "",
       neftAccountHolderName: targetBankCustomer
         ? getFullName(targetBankCustomer)
-        : "",
+        : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : ""),
       neftSubmissionDate: "",
 
       riders:
@@ -602,10 +595,10 @@ export default function EditLICPolicyPage() {
     });
 
     // Enable NACH/NEFT based on saved policy details
-    if (selectedPolicy?.bankName || selectedPolicy?.accountNumber || selectedPolicy?.ifscCode) {
+    if (isPolicyNach || (!isPolicyNeft && (targetBankDetails?.accountNumber || targetBankDetails?.bankName))) {
       setUseNach(true);
       setUseNeft(false);
-    } else if (selectedPolicy?.neftBankName || selectedPolicy?.neftAccountNumber || selectedPolicy?.neftIfscCode) {
+    } else if (isPolicyNeft) {
       setUseNeft(true);
       setUseNach(false);
     } else {
@@ -692,8 +685,8 @@ export default function EditLICPolicyPage() {
     setValue(
       "age",
       member?.dob
-        ? String(new Date().getFullYear() - new Date(member.dob).getFullYear())
-        : "",
+        ? Number(new Date().getFullYear() - new Date(member.dob).getFullYear())
+        : (undefined as any),
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -701,7 +694,7 @@ export default function EditLICPolicyPage() {
     // Auto-fill bank details from the selected customer's default bank account
     if (member && member.bankDetails && member.bankDetails.length > 0) {
       const defaultBank =
-        member.bankDetails.find((b) => b.isDefault) || member.bankDetails[0];
+        member.bankDetails.find((b: any) => b.isDefault) || member.bankDetails[0];
       if (defaultBank) {
         // NACH fields
         setValue("bankName", defaultBank.bankName || "");
@@ -711,55 +704,33 @@ export default function EditLICPolicyPage() {
         setValue("accountNumber", defaultBank.accountNumber || "");
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(member as any));
 
         // NEFT fields
         setValue("neftBankName", defaultBank.bankName || "");
         setValue("neftBankBranch", defaultBank.bankBranch || "");
         setValue("neftAccountNumber", defaultBank.accountNumber || "");
         setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(member as any));
       }
-    } else {
-      // Clear all bank fields if no bank details exist
-      setValue("bankName", "");
-      setValue("bankBranch", "");
-      setValue("city", "");
-      setValue("accountType", "");
-      setValue("accountNumber", "");
-      setValue("ifscCode", "");
-      setValue("micrNumber", "");
-      setValue("neftBankName", "");
-      setValue("neftBankBranch", "");
-      setValue("neftAccountNumber", "");
-      setValue("neftIfscCode", "");
     }
-
-    let targetMember = member;
-    const proposerId = (selectedPolicy as any)?.proposerId;
-    if (proposerId) {
-      const proposer = masterCustomers.find((m) => m.id === proposerId);
-      if (proposer) targetMember = proposer;
-    }
-
-    if (targetMember) {
-      setValue("accountHolderName", getFullName(targetMember));
-      setValue("neftAccountHolderName", getFullName(targetMember));
-    } else {
-      setValue("accountHolderName", "");
-      setValue("neftAccountHolderName", "");
-    }
-  }, [watchLifeAssuredId, watchAge, masterCustomers, selectedPolicy, setValue]);
+  }, [watchLifeAssuredId, masterCustomers, setValue]);
 
   useEffect(() => {
-    let member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    const proposerId = (selectedPolicy as any)?.proposerId;
+    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (!member && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy.CustomerMaster;
+    }
+    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
     if (proposerId) {
-      const proposer = masterCustomers.find((m) => m.id === proposerId);
+      const proposer = (selectedPolicy as any)?.proposer || masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
-    if (useNach && member) {
+    if (useNach && (member || selectedPolicy?.CustomerMaster)) {
+      const target: any = member || selectedPolicy?.CustomerMaster;
       const defaultBank =
-        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
       if (defaultBank) {
         setValue("bankName", defaultBank.bankName || "");
         setValue("bankBranch", defaultBank.bankBranch || "");
@@ -768,37 +739,79 @@ export default function EditLICPolicyPage() {
         setValue("accountNumber", defaultBank.accountNumber || "");
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
-        setValue("accountHolderName", getFullName(member));
+        setValue("accountHolderName", getFullName(target));
       }
     }
-  }, [useNach, watchLifeAssuredId, watchAge, masterCustomers, selectedPolicy, setValue]);
+  }, [useNach, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
 
   useEffect(() => {
-    let member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    const proposerId = (selectedPolicy as any)?.proposerId;
+    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (!member && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy.CustomerMaster;
+    }
+    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
     if (proposerId) {
-      const proposer = masterCustomers.find((m) => m.id === proposerId);
+      const proposer = (selectedPolicy as any)?.proposer || masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
-    if (useNeft && member) {
+    if (useNeft && (member || selectedPolicy?.CustomerMaster)) {
+      const target: any = member || selectedPolicy?.CustomerMaster;
       const defaultBank =
-        member.bankDetails?.find((b) => b.isDefault) || member.bankDetails?.[0];
+        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
       if (defaultBank) {
         setValue("neftBankName", defaultBank.bankName || "");
         setValue("neftBankBranch", defaultBank.bankBranch || "");
         setValue("neftAccountNumber", defaultBank.accountNumber || "");
         setValue("neftIfscCode", defaultBank.ifscCode || "");
-        setValue("neftAccountHolderName", getFullName(member));
+        setValue("neftAccountHolderName", getFullName(target));
       }
     }
-  }, [useNeft, watchLifeAssuredId, watchAge, masterCustomers, selectedPolicy, setValue]);
+  }, [useNeft, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
 
   const availableProducts = useMemo(() => {
     return [...products].sort((a, b) =>
       (a.planNumber ?? "").localeCompare(b.planNumber ?? ""),
     );
   }, [products]);
+
+  const agencyOptions = useMemo(() => {
+    return agencies
+      .slice()
+      .sort((a, b) => (a.agencyCode || a.agencyName || "").localeCompare(b.agencyCode || b.agencyName || ""))
+      .map((agency) => ({
+        value: agency.id,
+        label: agency.agencyCode ? `${agency.agencyCode} - ${agency.agencyName}` : agency.agencyName,
+        sublabel: agency.agencyCode ? `Code: ${agency.agencyCode}` : undefined,
+      }));
+  }, [agencies]);
+
+  const branchOptions = useMemo(() => {
+    return branches
+      .slice()
+      .sort((a, b) => (a.branchCode || a.branchName || "").localeCompare(b.branchCode || b.branchName || ""))
+      .map((branch) => ({
+        value: branch.id,
+        label: branch.branchCode ? `${branch.branchCode} - ${branch.branchName}` : branch.branchName,
+        sublabel: branch.branchCode ? `Branch Code: ${branch.branchCode}` : undefined,
+      }));
+  }, [branches]);
+
+  const modeOptions = useMemo(() => {
+    const list = modes.map((mode) => ({
+      value: mode.modeName,
+      label: mode.modeName,
+      sublabel: mode.modeCode ? `Code: ${mode.modeCode}` : undefined,
+    }));
+    if (selectedProduct?.planNumber === "774" && !modes.find((m) => m.modeName === "SSS")) {
+      list.push({
+        value: "SSS",
+        label: "SSS",
+        sublabel: "Salary Savings Scheme",
+      });
+    }
+    return list;
+  }, [modes, selectedProduct?.planNumber]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -1385,22 +1398,23 @@ export default function EditLICPolicyPage() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Mode <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      {...register("mode")}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    >
-                      <option value="">Select Mode</option>
-                      {modes.map((mode) => (
-                        <option key={mode.id} value={mode.modeName}>
-                          {mode.modeName}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.mode && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.mode.message}
-                      </p>
-                    )}
+                    <Controller
+                      control={control}
+                      name="mode"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Select Mode"
+                          searchPlaceholder="Search mode..."
+                          options={modeOptions}
+                          value={field.value || ""}
+                          onChange={(val) => {
+                            field.onChange(val);
+                          }}
+                          error={errors.mode?.message}
+                          disabled={modesLoading}
+                        />
+                      )}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1963,669 +1977,667 @@ export default function EditLICPolicyPage() {
           </div>
         </div>
 
-        <div ref={sectionRefs["advanced"]}>
-          <CustomerSectionCard
-            title="Advanced Options"
-            icon={Settings}
-            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
-          >
-            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* ================= LEFT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Current Status ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">
-                        Current Status
-                      </h3>
-                    </div>
-                    <span className="text-sm text-slate-500">
-                      Check Current Status of Policy
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5">
-                          Policy Status
-                        </label>
-                        <select
-                          {...register("statusId")}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {statuses.map((status) => (
-                            <option key={status.id} value={status.id}>
-                              {status.statusName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Premium (F.U.P.) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fupDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={(date) =>
-                                field.onChange(
-                                  date ? format(date, "yyyy-MM-dd") : "",
-                                )
-                              }
-                            />
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Premium Adjusted
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Premium Adjusted"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div className="flex items-center pt-8">
-                        <input
-                          id="premiumDeposit"
-                          type="checkbox"
-                          className="h-5 w-5"
-                        />
-                        <label
-                          htmlFor="premiumDeposit"
-                          className="ml-3 text-sm"
-                        >
-                          Create Premium Deposit Entries
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Loan Taken
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Loan Taken"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Loan Int. (FULI) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fuliDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={(date) =>
-                                field.onChange(
-                                  date ? format(date, "yyyy-MM-dd") : "",
-                                )
-                              }
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* ================= NACH & NEFT ================= */}
-                {watchProductId && (
-                  <div className="border border-slate-200 rounded-xl">
-                    <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                      <h3 className="font-semibold text-slate-900">
-                        NACH & NEFT Details
-                      </h3>
-                      <span className="text-sm text-slate-500">
-                        Provide NACH / NEFT Details for Bank Transactions
-                      </span>
-                    </div>
-                    <div className="p-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="md:col-span-2 flex items-center gap-3">
-                          <input
-                            id="useNachCheckbox"
-                            type="checkbox"
-                            checked={useNach}
-                            onChange={(e) => {
-                              setUseNach(e.target.checked);
-                              if (e.target.checked) setUseNeft(false);
-                            }}
-                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="useNachCheckbox"
-                            className="text-sm font-medium text-slate-700 cursor-pointer"
-                          >
-                            Premiums will be paid through NACH
-                          </label>
-                        </div>
-                        {useNach && (
-                          <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Bank Name
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Bank Name"
-                                {...register("bankName")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Account Number
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Account Number"
-                                {...register("accountNumber")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                IFSC Code
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="IFSC Code"
-                                {...register("ifscCode")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Account Holder Name
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Account Holder Name"
-                                {...register("accountHolderName")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Bank Branch
-                              </label>
-                              <input
-                                {...register("bankBranch")}
-                                type="text"
-                                placeholder="Bank Branch"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                City
-                              </label>
-                              <input
-                                {...register("city")}
-                                type="text"
-                                placeholder="City"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Account Type
-                              </label>
-                              <input
-                                {...register("accountType")}
-                                placeholder="Account Type"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Debt Date
-                              </label>
-                              <input
-                                value={watchFupDate || ""}
-                                readOnly
-                                className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                MICR Number
-                              </label>
-                              <input
-                                {...register("micrNumber")}
-                                type="text"
-                                placeholder="MICR Number"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                          </div>
-                        )}
+        <div
+          ref={sectionRefs["advanced"]}
+          className={`mt-6 space-y-4 transition-all duration-500 ${glowingSection === "advanced" ? "ring-2 ring-blue-500/30 rounded-2xl p-2" : ""}`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+              <Settings size={16} />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
+                Advanced Options
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Policy status, banking, nomination, annuity and agency details
+              </p>
+            </div>
+          </div>
 
-                        {/* NEFT Section */}
-                        <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
-
-                        <div className="md:col-span-2 flex items-center gap-3">
-                          <input
-                            id="useNeftCheckbox"
-                            type="checkbox"
-                            checked={useNeft}
-                            onChange={(e) => {
-                              setUseNeft(e.target.checked);
-                              if (e.target.checked) setUseNach(false);
-                            }}
-                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="useNeftCheckbox"
-                            className="text-sm font-medium text-slate-700 cursor-pointer"
-                          >
-                            NEFT details are available
-                          </label>
-                        </div>
-
-                        {useNeft && (
-                          <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Bank Name
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Bank Name"
-                                {...register("neftBankName")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Account Number
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Account Number"
-                                {...register("neftAccountNumber")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                IFSC Code
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="IFSC Code"
-                                {...register("neftIfscCode")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Account Holder Name
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Account Holder Name"
-                                {...register("neftAccountHolderName")}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Bank Branch
-                              </label>
-                              <input
-                                {...register("neftBankBranch")}
-                                type="text"
-                                placeholder="Bank Branch"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">
-                                Submission Date
-                              </label>
-                              <Controller
-                                control={control}
-                                name="neftSubmissionDate"
-                                render={({ field }) => (
-                                  <DatePicker
-                                    value={
-                                      field.value
-                                        ? new Date(field.value)
-                                        : undefined
-                                    }
-                                    onChange={(date) =>
-                                      field.onChange(
-                                        date ? format(date, "yyyy-MM-dd") : "",
-                                      )
-                                    }
-                                  />
-                                )}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* ================= RIGHT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Nomination Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <h3 className="font-semibold text-slate-900">
-                      Nomination Details
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        appendNominee({
-                          nomineeName: "",
-                          relationship: "",
-                          dateOfBirth: "",
-                          percentage: null,
-                          phone: "",
-                          email: "",
-                        })
-                      }
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* ================= LEFT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Current Status ================= */}
+              <CustomerSectionCard
+                title="Current Status"
+                icon={Activity}
+                subtitle="Check Current Status of Policy"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Status
+                    </label>
+                    <select
+                      {...register("statusId")}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                     >
-                      <Plus size={16} />
-                      Add Nominee
-                    </button>
-                  </div>
-                  <div className="p-5">
-                    {nomineeFields.length === 0 ? (
-                      <p className="text-sm text-slate-500 text-center py-4">
-                        No nominees added. Click Add Nominee to start.
+                      {statuses.map((status) => (
+                        <option key={status.id} value={status.id}>
+                          {status.statusName}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.statusId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.statusId.message}
                       </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {nomineeFields.map((field, index) => (
-                          <div
-                            key={field.id}
-                            className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Nominee Name
-                                </label>
-                                <input
-                                  {...register(`nominees.${index}.nomineeName`)}
-                                  placeholder="Full Name"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.nomineeName && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.nomineeName
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Relationship
-                                </label>
-                                <input
-                                  {...register(
-                                    `nominees.${index}.relationship`,
-                                  )}
-                                  placeholder="e.g., Spouse, Son"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.relationship && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.relationship
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Date of Birth
-                                </label>
-                                <Controller
-                                  control={control}
-                                  name={`nominees.${index}.dateOfBirth`}
-                                  render={({ field }) => (
-                                    <DatePicker
-                                      value={
-                                        field.value
-                                          ? new Date(field.value)
-                                          : undefined
-                                      }
-                                      onChange={(date) =>
-                                        field.onChange(
-                                          date
-                                            ? format(date, "yyyy-MM-dd")
-                                            : "",
-                                        )
-                                      }
-                                    />
-                                  )}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Share %
-                                </label>
-                                <input
-                                  type="number"
-                                  {...register(`nominees.${index}.percentage`)}
-                                  placeholder="e.g., 100"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                {errors.nominees?.[index]?.percentage && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {
-                                      errors.nominees[index]?.percentage
-                                        ?.message
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Phone
-                                </label>
-                                <input
-                                  type="tel"
-                                  {...register(`nominees.${index}.phone`)}
-                                  placeholder="Mobile Number"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1">
-                                  Email
-                                </label>
-                                <input
-                                  type="email"
-                                  {...register(`nominees.${index}.email`)}
-                                  placeholder="Email Address"
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-blue-500/20 focus:border-blue-500"
-                                />
-                                {errors.nominees?.[index]?.email && (
-                                  <p className="text-xs text-red-500 mt-1">
-                                    {errors.nominees[index]?.email?.message}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeNominee(index)}
-                              className="absolute top-2 right-2 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Remove Nominee"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Premium (F.U.P.) Date
+                    </label>
+                    <Controller
+                      control={control}
+                      name="fupDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.fupDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.fupDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Premium Adjusted
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Premium Adjusted"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="premiumDeposit"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="premiumDeposit"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      Create Premium Deposit Entries
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Loan Taken
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Loan Taken"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Loan Int. (FULI) Date
+                    </label>
+                    <Controller
+                      control={control}
+                      name="fuliDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.fuliDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.fuliDate.message}
+                      </p>
                     )}
                   </div>
                 </div>
-                {/* ================= Annuity Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Annuity Details
-                    </h3>
+              </CustomerSectionCard>
+
+              {/* ================= NACH & NEFT ================= */}
+              <CustomerSectionCard
+                title="NACH & NEFT Details"
+                icon={Building2}
+                subtitle="Provide NACH / NEFT Details for Bank Transactions"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNachCheckbox"
+                      type="checkbox"
+                      checked={useNach}
+                      onChange={(e) => {
+                        setUseNach(e.target.checked);
+                        if (e.target.checked) setUseNeft(false);
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="useNachCheckbox"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      NACH Details
+                    </label>
                   </div>
-                  <div className="p-5">
-                    <p className="text-sm text-slate-500">
-                      This will be enabled for Annuity Policies.
-                    </p>
-                  </div>
-                </div>
-                {/* ================= Other Information ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Other Information
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      Agency, Branch, Notes & Other Policy Information
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {useNach && (
+                    <>
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agency <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name
                         </label>
-                        <select
-                          {...register("agencyId", {
-                            onChange: () => setValue("advisorId", ""),
-                          })}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Agency</option>
-                          {agencies.map((agency) => (
-                            <option key={agency.id} value={agency.id}>
-                              {agency.agencyName}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.agencyId && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.agencyId.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Controller
-                          name="branchId"
-                          control={control}
-                          render={({ field }) => (
-                            <BranchAutoComplete
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              branches={branches}
-                            />
-                          )}
+                        <input
+                          type="text"
+                          placeholder="Bank Name"
+                          {...register("bankName")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                         />
                       </div>
-                      <div className="relative">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Number"
+                          {...register("accountNumber")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="IFSC Code"
+                          {...register("ifscCode")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Holder Name"
+                          {...register("accountHolderName")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch
+                        </label>
+                        <input
+                          {...register("bankBranch")}
+                          type="text"
+                          placeholder="Bank Branch"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          City
+                        </label>
+                        <input
+                          {...register("city")}
+                          type="text"
+                          placeholder="City"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Type
+                        </label>
+                        <input
+                          {...register("accountType")}
+                          placeholder="Account Type"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Debt Date
+                        </label>
+                        <input
+                          value={watchFupDate || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          MICR Number
+                        </label>
+                        <input
+                          {...register("micrNumber")}
+                          type="text"
+                          placeholder="MICR Number"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* NEFT Section */}
+                  <div className="md:col-span-2 my-2 border-t border-slate-200"></div>
+
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNeftCheckbox"
+                      type="checkbox"
+                      checked={useNeft}
+                      onChange={(e) => {
+                        setUseNeft(e.target.checked);
+                        if (e.target.checked) setUseNach(false);
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="useNeftCheckbox"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      NEFT Details
+                    </label>
+                  </div>
+
+                  {useNeft && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Bank Name"
+                          {...register("neftBankName")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Number"
+                          {...register("neftAccountNumber")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="IFSC Code"
+                          {...register("neftIfscCode")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Holder Name"
+                          {...register("neftAccountHolderName")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch
+                        </label>
+                        <input
+                          {...register("neftBankBranch")}
+                          type="text"
+                          placeholder="Bank Branch"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Submission Date
+                        </label>
                         <Controller
-                          name="advisorId"
                           control={control}
+                          name="neftSubmissionDate"
                           render={({ field }) => (
-                            <AdvisorAutoComplete
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              advisors={filteredAdvisors}
-                              disabled={!watchAgencyId}
-                              placeholder={
-                                watchAgencyId
-                                  ? "Search Advisor..."
-                                  : "Select Agency First"
+                            <DatePicker
+                              value={field.value}
+                              onChange={(date) =>
+                                field.onChange(
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                )
                               }
                             />
                           )}
                         />
-                        {errors.advisorId && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.advisorId.message}
-                          </p>
-                        )}
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agent Code (Autofilled)
-                        </label>
-                        <input
-                          {...register("agentCode")}
-                          readOnly
-                          placeholder="Auto Filled"
-                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5"
+                    </>
+                  )}
+                </div>
+              </CustomerSectionCard>
+            </div>
+
+            {/* ================= RIGHT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Nomination Details ================= */}
+              <CustomerSectionCard
+                title="Nomination Details"
+                icon={Users}
+                subtitle="Assign Policy Beneficiaries"
+                actions={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (watchAge && Number(watchAge) < 18) {
+                        toast.error("Insurer age is under 18. Nominee cannot be added.");
+                        return;
+                      }
+                      appendNominee({
+                        nomineeName: "",
+                        relationship: "",
+                        dateOfBirth: "",
+                        percentage: null,
+                        phone: "",
+                        email: "",
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={14} />
+                    Add Nominee
+                  </button>
+                }
+              >
+                {nomineeFields.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-6">
+                    No nominees added. Click Add Nominee to start.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {nomineeFields.map((field, index) => (
+                      <fieldset
+                        key={field.id}
+                        disabled={Boolean(watchAge && Number(watchAge) < 18)}
+                        className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 relative disabled:opacity-60 space-y-3"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Nominee Name
+                            </label>
+                            <input
+                              {...register(`nominees.${index}.nomineeName`)}
+                              placeholder="Full Name"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.nomineeName && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.nomineeName?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Relationship
+                            </label>
+                            <input
+                              {...register(`nominees.${index}.relationship`)}
+                              placeholder="e.g., Spouse, Son"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.relationship && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.relationship?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Date of Birth
+                            </label>
+                            <Controller
+                              control={control}
+                              name={`nominees.${index}.dateOfBirth`}
+                              render={({ field }) => (
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    field.onChange(
+                                      date ? format(date, "yyyy-MM-dd") : "",
+                                    )
+                                  }
+                                />
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Share %
+                            </label>
+                            <input
+                              type="number"
+                              {...register(`nominees.${index}.percentage`)}
+                              placeholder="e.g., 100"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            {errors.nominees?.[index]?.percentage && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.percentage?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              {...register(`nominees.${index}.phone`)}
+                              placeholder="Mobile Number"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              {...register(`nominees.${index}.email`)}
+                              placeholder="Email Address"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.email && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.email?.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeNominee(index)}
+                          className="absolute top-2.5 right-2.5 inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-colors shadow-sm"
+                          title="Remove Nominee"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </fieldset>
+                    ))}
+                  </div>
+                )}
+              </CustomerSectionCard>
+
+              {/* ================= Annuity Details ================= */}
+              <CustomerSectionCard
+                title="Annuity Details"
+                icon={Calendar}
+                subtitle="Annuity Policy Configuration"
+              >
+                <div className="py-2">
+                  <p className="text-sm text-slate-500">
+                    This will be enabled for Annuity Policies.
+                  </p>
+                </div>
+              </CustomerSectionCard>
+
+              {/* ================= Other Information ================= */}
+              <CustomerSectionCard
+                title="Other Information"
+                icon={FileText}
+                subtitle="Agency, Branch, Notes & Other Policy Information"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agency <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="agencyId"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search agency..."
+                          searchPlaceholder="Search by name or agency code"
+                          options={agencyOptions}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            setValue("advisorId", "");
+                          }}
+                          error={errors.agencyId?.message}
+                          disabled={agenciesLoading}
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Medical
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Medical Details"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Branch
+                    </label>
+                    <Controller
+                      name="branchId"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search branch..."
+                          searchPlaceholder="Search by name or branch code"
+                          options={branchOptions}
+                          value={field.value || ""}
+                          onChange={(val) => {
+                            field.onChange(val);
+                          }}
+                          error={errors.branchId?.message}
+                          disabled={branchesLoading}
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Tax Beneficiary
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Tax Beneficiary"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                      )}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Controller
+                      name="advisorId"
+                      control={control}
+                      render={({ field }) => (
+                        <AdvisorAutoComplete
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          advisors={filteredAdvisors}
+                          disabled={!watchAgencyId}
+                          placeholder={
+                            watchAgencyId
+                              ? "Search Advisor..."
+                              : "Select Agency First"
+                          }
                         />
-                      </div>
-                      <div className="flex items-center mt-8">
-                        <input
-                          id="ageAdmitted"
-                          type="checkbox"
-                          className="h-5 w-5"
-                        />
-                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">
-                          Age Admitted
-                        </label>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2">
-                          Notes
-                        </label>
-                        <textarea
-                          rows={4}
-                          placeholder="Enter Notes..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
+                      )}
+                    />
+                    {errors.advisorId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.advisorId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agent Code (Autofilled)
+                    </label>
+                    <input
+                      {...register("agentCode")}
+                      readOnly
+                      placeholder="Auto Filled"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Medical
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Medical Details"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Tax Beneficiary
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Tax Beneficiary"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="ageAdmitted"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="ageAdmitted"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      Age Admitted
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Notes
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder="Enter Notes..."
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm resize-none"
+                    />
                   </div>
                 </div>
-              </div>
+              </CustomerSectionCard>
             </div>
-          </CustomerSectionCard>
+          </div>
         </div>
       </form>
     </div>

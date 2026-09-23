@@ -21,6 +21,7 @@ import {
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
+  SearchableSelect,
 } from "@/features/customers/components/CustomerUi";
 
 const PAYMENT_MODES = [
@@ -52,7 +53,7 @@ const emptyForm: FormState = {
 const inputClass =
   "w-full rounded-xl border border-slate-200 py-2.5 px-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20";
 const labelClass =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+  "block text-sm font-medium text-slate-700 mb-1";
 
 function RepayFormInner() {
   const router = useRouter();
@@ -90,6 +91,21 @@ function RepayFormInner() {
   const activeLoans = useMemo(
     () => loans.filter((l) => l.loanStatus?.statusCode === "ACTIVE"),
     [loans],
+  );
+
+  const activeLoanOptions = useMemo(
+    () =>
+      activeLoans.map((l) => {
+        const cust = l.policy?.CustomerMaster
+          ? `${l.policy.CustomerMaster.firstName} ${l.policy.CustomerMaster.lastName ?? ""}`.trim()
+          : "";
+        return {
+          value: l.id,
+          label: `${l.policy?.policyNumber || "Loan"}${cust ? ` — ${cust}` : ""} (₹${Number(l.loanAmount).toLocaleString("en-IN")})`,
+          sublabel: (l.policy as any)?.product?.productName || `Policy #${l.policy?.policyNumber || ""}`,
+        };
+      }),
+    [activeLoans],
   );
 
   const currentLoan: Loan | null =
@@ -158,8 +174,8 @@ function RepayFormInner() {
             repaymentDate: form.repaymentDate,
             repaymentAmount: repayAmountNum,
             paymentMode: form.paymentMode,
-            referenceNumber: form.referenceNumber || undefined,
-            remarks: form.remarks || undefined,
+            referenceNumber: form.referenceNumber.trim() || undefined,
+            remarks: form.remarks.trim() || undefined,
           },
         }),
       ).unwrap();
@@ -176,7 +192,7 @@ function RepayFormInner() {
       <CustomerBreadcrumbs
         items={[
           { label: "Loans", href: "/dashboard/loans" },
-          { label: "Record Repayment" },
+          { label: "Repay Loan" },
         ]}
       />
 
@@ -185,8 +201,7 @@ function RepayFormInner() {
           Record Loan Repayment
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          Record a repayment against an active loan. Interest is auto-calculated
-          from the last payment date.
+          Record a principal and interest repayment against an active loan.
         </p>
       </div>
 
@@ -196,22 +211,14 @@ function RepayFormInner() {
             <label className={labelClass}>
               Active Loan <span className="text-rose-500">*</span>
             </label>
-            <select
+            <SearchableSelect
+              placeholder="Select an active loan"
+              searchPlaceholder="Search active loan by policy # or customer..."
+              options={activeLoanOptions}
               value={form.loanId}
-              onChange={(e) => handleChange("loanId", e.target.value)}
-              className={inputClass}
+              onChange={(val) => handleChange("loanId", val)}
               disabled={!!preselectedLoanId}
-            >
-              <option value="">Select an active loan</option>
-              {activeLoans.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.policy?.policyNumber} —{" "}
-                  {l.policy?.CustomerMaster?.firstName}{" "}
-                  {l.policy?.CustomerMaster?.lastName} (₹
-                  {Number(l.loanAmount).toLocaleString("en-IN")})
-                </option>
-              ))}
-            </select>
+            />
             {errors.loanId && (
               <p className="mt-1 text-xs text-rose-600">{errors.loanId}</p>
             )}
@@ -427,18 +434,18 @@ function RepayFormInner() {
         </CustomerSectionCard>
 
         {currentLoan && (
-          <div className="px-6 pb-6 pt-4 flex justify-end gap-3">
+          <div className="px-6 pb-6 pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6">
             <button
               type="button"
               onClick={() => router.push("/dashboard/loans")}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

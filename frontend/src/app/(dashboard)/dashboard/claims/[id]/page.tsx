@@ -16,6 +16,7 @@ import {
   XCircle,
   Clock,
   Edit,
+  ShieldUser,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -96,21 +97,26 @@ export default function ViewClaimPage() {
         ]}
       />
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
-            Claim Details
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-            View complete claim information.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <ShieldUser size={24} />
+          </span>
+          <div>
+            <h1 className="font-serif text-2xl font-semibold text-slate-900">
+              Claim #{selectedClaim.policy?.policyNumber || id.slice(0, 8)}
+            </h1>
+            <p className="text-sm text-slate-500">
+              View complete claim information and status.
+            </p>
+          </div>
         </div>
         {canEdit && (
           <button
             onClick={() =>
               router.push(`/dashboard/claims/edit/${selectedClaim.id}`)
             }
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Edit size={16} /> Edit Claim
           </button>

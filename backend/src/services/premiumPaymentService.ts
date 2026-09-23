@@ -129,7 +129,7 @@ export const createPayment = async (data: PremiumPaymentData) => {
   
   const status = await validatePaymentStatus(data.paymentStatusId) ?? await getStatus(data.paidDate ? "PAID" : "UNPAID");
   const formattedDueDate = new Date(data.dueDate);
-  const formattedPaidDate = new Date(data.paidDate);
+  const formattedPaidDate = data.paidDate ? new Date(data.paidDate) : null;
 
   const payment = await prisma.premiumPayment.create({
     data: {
@@ -146,7 +146,14 @@ export const createPayment = async (data: PremiumPaymentData) => {
     include: paymentInclude,
   });
 
-  await prisma.policy.update({where : {id : data.policyId} , data :{ nextPremiumDueDate : new Date(data.futureDueDate) }} );
+  const parsedFutureDueDate =
+    data.futureDueDate && !isNaN(new Date(data.futureDueDate).getTime())
+      ? new Date(data.futureDueDate)
+      : null;
+  await prisma.policy.update({
+    where: { id: data.policyId },
+    data: { nextPremiumDueDate: parsedFutureDueDate },
+  });
 
   //Create Notification
   prisma.$transaction(async (tx) => {
