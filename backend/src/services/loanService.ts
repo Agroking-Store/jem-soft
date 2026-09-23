@@ -14,12 +14,73 @@ export interface LoanData {
 const loanInclude = {
   policy: {
     select: {
+      id: true,
       policyNumber: true,
       commencementDate: true,
+      fupDate: true,
+      nextPremiumDueDate: true,
       CustomerMaster: {
         select: {
+          id: true,
           firstName: true,
+          middleName: true,
           lastName: true,
+          salutation: true,
+          dob: true,
+          contactInfo: {
+            select: {
+              mobile1: true,
+              email1: true,
+            },
+          },
+          addresses: {
+            select: {
+              addressType: true,
+              addressLine1: true,
+              addressLine2: true,
+              city: true,
+              pinCode: true,
+            },
+          },
+        },
+      },
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          groupCode: true,
+          groupName: true,
+          phone: true,
+          resArea: true,
+          resCity: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          productName: true,
+          planNumber: true,
+        },
+      },
+      advisor: {
+        select: {
+          id: true,
+          name: true,
+          agentCode: true,
+        },
+      },
+      branch: {
+        select: {
+          id: true,
+          branchName: true,
+          branchCode: true,
+        },
+      },
+      status: {
+        select: {
+          id: true,
+          statusName: true,
+          statusCode: true,
         },
       },
       premium: {
@@ -31,6 +92,7 @@ const loanInclude = {
   },
   loanStatus: {
     select: {
+      id: true,
       statusName: true,
       statusCode: true,
     },
@@ -40,41 +102,40 @@ const loanInclude = {
 function computeSummary(loan: any) {
   const repayments = loan.repayments || [];
   const totalPrincipalRepaid = repayments.reduce(
-    (sum: number, r: any) => sum + Number(r.principalComponent),
+    (sum: number, r: any) => sum + Number(r.principalComponent || 0),
     0,
   );
   const totalInterestPaid = repayments.reduce(
-    (sum: number, r: any) => sum + Number(r.interestComponent),
+    (sum: number, r: any) => sum + Number(r.interestComponent || 0),
     0,
   );
   const totalRepaid = repayments.reduce(
-    (sum: number, r: any) => sum + Number(r.repaymentAmount),
+    (sum: number, r: any) => sum + Number(r.repaymentAmount || 0),
     0,
   );
   const outstandingPrincipal = Math.max(
     0,
-    Number(loan.loanAmount) - totalPrincipalRepaid,
+    Number(loan.loanAmount || 0) - totalPrincipalRepaid,
   );
 
   const lastPaymentDate =
-    repayments.length > 0
+    repayments.length > 0 && repayments[0]?.repaymentDate
       ? new Date(repayments[0].repaymentDate)
       : new Date(loan.loanDate);
 
   const now = new Date();
-  const daysSince = Math.max(
-    0,
-    Math.floor(
-      (now.getTime() - lastPaymentDate.getTime()) / (1000 * 60 * 60 * 24),
-    ),
-  );
+  const validLastDate = isNaN(lastPaymentDate.getTime()) ? new Date(loan.loanDate) : lastPaymentDate;
+  const daysSince = isNaN(validLastDate.getTime())
+    ? 0
+    : Math.max(
+        0,
+        Math.floor((now.getTime() - validLastDate.getTime()) / (1000 * 60 * 60 * 24)),
+      );
+
+  const annualRate = Number(loan.interestRate || 0);
   const accruedInterest =
-    loan.loanStatus?.statusCode === "ACTIVE"
-      ? Math.round(
-          ((outstandingPrincipal * Number(loan.interestRate) * daysSince) /
-            36500) *
-            100,
-        ) / 100
+    loan.loanStatus?.statusCode === "ACTIVE" && outstandingPrincipal > 0
+      ? Math.round(((outstandingPrincipal * annualRate * daysSince) / 36500) * 100) / 100
       : 0;
 
   return {
@@ -84,6 +145,8 @@ function computeSummary(loan: any) {
     outstandingPrincipal: Math.round(outstandingPrincipal * 100) / 100,
     accruedInterest,
     totalDue: Math.round((outstandingPrincipal + accruedInterest) * 100) / 100,
+    daysSinceLastPayment: daysSince,
+    lastPaymentDate: validLastDate.toISOString(),
   };
 }
 
@@ -93,10 +156,18 @@ export const getAllLoans = async () => {
       ...loanInclude,
       repayments: {
         select: {
+          id: true,
+          loanId: true,
+          repaymentDate: true,
+          repaymentAmount: true,
           principalComponent: true,
           interestComponent: true,
-          repaymentAmount: true,
+          paymentMode: true,
+          referenceNumber: true,
+          remarks: true,
+          createdAt: true,
         },
+        orderBy: { repaymentDate: "desc" },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -104,8 +175,7 @@ export const getAllLoans = async () => {
 
   return loans.map((loan) => {
     const summary = computeSummary(loan);
-    const { repayments, ...rest } = loan;
-    return { ...rest, summary };
+    return { ...loan, summary };
   });
 };
 

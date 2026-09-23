@@ -17,6 +17,7 @@ import {
   HandCoins,
   Banknote,
   Activity,
+  FileSpreadsheet,
 } from "lucide-react";
 import { fetchLoans, deleteLoan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
@@ -167,6 +168,12 @@ export default function LoansPage() {
         </div>
         {isClient && canEdit && (
           <div className="flex gap-4">
+            <button
+              onClick={() => router.push("/dashboard/lic/reports")}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-200 cursor-pointer"
+            >
+              <FileSpreadsheet size={18} /> Loan Reports
+            </button>
             <button
               onClick={() => router.push("/dashboard/loans/new")}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#16294D] cursor-pointer"

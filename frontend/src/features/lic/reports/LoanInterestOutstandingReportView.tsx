@@ -9,8 +9,9 @@ import toast from "react-hot-toast";
 
 interface LoanInterestOutstandingReportViewProps {
   formData: LoanInterestOutstandingFormData;
-  policies: any[];
-  customers: any[];
+  policies?: any[];
+  customers?: any[];
+  loans?: any[];
   onBackToForm: () => void;
 }
 
@@ -21,31 +22,30 @@ function fmtDate(d: Date | string | null | undefined) {
   return date.toLocaleDateString("en-GB");
 }
 
-function getPolicyMemberName(p: any): string {
-  if (p.lifeAssured) {
-    if (typeof p.lifeAssured === "string") return p.lifeAssured;
-    const salutation = p.lifeAssured.salutation ? `${p.lifeAssured.salutation} ` : "";
-    const fullName = [p.lifeAssured.firstName, p.lifeAssured.middleName, p.lifeAssured.lastName]
+function getPolicyMemberName(loanOrPolicy: any): string {
+  const custMaster = loanOrPolicy.policy?.CustomerMaster || loanOrPolicy.CustomerMaster;
+  if (custMaster) {
+    const salutation = custMaster.salutation ? `${custMaster.salutation} ` : "";
+    const fullName = [custMaster.firstName, custMaster.middleName, custMaster.lastName]
       .filter(Boolean)
       .join(" ");
     if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.lifeAssured.name) return p.lifeAssured.name;
+    if (custMaster.name) return custMaster.name;
   }
 
-  if (p.CustomerMaster) {
-    const salutation = p.CustomerMaster.salutation ? `${p.CustomerMaster.salutation} ` : "";
-    const fullName = [p.CustomerMaster.firstName, p.CustomerMaster.middleName, p.CustomerMaster.lastName]
+  const lifeAssured = loanOrPolicy.policy?.lifeAssured || loanOrPolicy.lifeAssured;
+  if (lifeAssured) {
+    if (typeof lifeAssured === "string") return lifeAssured;
+    const salutation = lifeAssured.salutation ? `${lifeAssured.salutation} ` : "";
+    const fullName = [lifeAssured.firstName, lifeAssured.middleName, lifeAssured.lastName]
       .filter(Boolean)
       .join(" ");
     if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.CustomerMaster.name) return p.CustomerMaster.name;
+    if (lifeAssured.name) return lifeAssured.name;
   }
 
-  if (p.lifeAssuredName && typeof p.lifeAssuredName === "string") return p.lifeAssuredName;
-  if (p.holderName && typeof p.holderName === "string") return p.holderName;
-  if (p.insuredName && typeof p.insuredName === "string") return p.insuredName;
-
-  if (p.customer?.name) return p.customer.name;
+  const custObj = loanOrPolicy.policy?.customer || loanOrPolicy.customer;
+  if (custObj?.name) return custObj.name;
 
   return "Policy Holder";
 }
@@ -54,75 +54,201 @@ export default function LoanInterestOutstandingReportView({
   formData,
   policies: rawPolicies = [],
   customers: rawCustomers = [],
+  loans = [],
   onBackToForm,
 }: LoanInterestOutstandingReportViewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const groupData = useMemo(() => {
-    const calculationDate = formData.calculationDate ? new Date(formData.calculationDate) : new Date();
+    const calculationDate = formData.calculationDate
+      ? new Date(formData.calculationDate)
+      : new Date();
     calculationDate.setHours(23, 59, 59, 999);
 
-    const selectedAgencies = (formData.appliedFilters || []).filter((f) => f.type === "Agencies").map((f) => f.name.toLowerCase());
-    const selectedStatuses = (formData.appliedFilters || []).filter((f) => f.type === "Policy Status").map((f) => f.name.toLowerCase());
-    const selectedBranches = (formData.appliedFilters || []).filter((f) => f.type === "Branches").map((f) => f.name.toLowerCase());
+    const selectedAgencies = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Agencies")
+      .map((f) => f.name.toLowerCase());
+    const selectedStatuses = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Policy Status")
+      .map((f) => f.name.toLowerCase());
+    const selectedBranches = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Branches")
+      .map((f) => f.name.toLowerCase());
+    const selectedGroupCodesOrNames = (formData.selectedGroups || []).map((g) =>
+      g.groupCode.toLowerCase()
+    );
 
-    const selectedGroupCodesOrNames = (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase());
+    // Prefer loans from loans state; fallback to policies if loans array is empty
+    let sourceItems: any[] = [];
 
-    const validPolicies = rawPolicies.filter((p) => {
-      // Basic Filters
-      const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
-      if (selectedStatuses.length > 0 && !selectedStatuses.some((st) => rawStatus.includes(st))) return false;
+    if (loans && loans.length > 0) {
+      sourceItems = loans.map((loan) => {
+        const policyObj = loan.policy || {};
+        const custMaster = policyObj.CustomerMaster || {};
+        const custObj = policyObj.customer || {};
 
-      const agencyName = (p.agentCode || p.agency?.agencyName || p.agencyName || "").toLowerCase();
-      if (selectedAgencies.length > 0 && !selectedAgencies.some((ag) => agencyName.includes(ag))) return false;
+        const repayments = loan.repayments || [];
+        // Repayments up to calculation date
+        const relevantRepayments = repayments.filter(
+          (r: any) => new Date(r.repaymentDate) <= calculationDate
+        );
 
-      const branchName = (p.branch?.branchName || p.branchName || "").toLowerCase();
-      if (selectedBranches.length > 0 && !selectedBranches.some((b) => branchName.includes(b))) return false;
+        const totalPrincipalRepaid = relevantRepayments.reduce(
+          (sum: number, r: any) => sum + Number(r.principalComponent || 0),
+          0
+        );
+        const totalInterestPaid = relevantRepayments.reduce(
+          (sum: number, r: any) => sum + Number(r.interestComponent || 0),
+          0
+        );
 
-      if (selectedGroupCodesOrNames.length > 0) {
-        const gCode = (p.customer?.groupCode || "").toLowerCase();
-        if (!selectedGroupCodesOrNames.some((sc) => gCode.includes(sc))) return false;
+        const originalLoanAmount = Number(loan.loanAmount || 0);
+        // Formula: Outstanding Due = Total Loan Amount - Principal Paid
+        const outstandingDue = Math.max(0, originalLoanAmount - totalPrincipalRepaid);
+
+        const isPaidOff =
+          outstandingDue <= 0.01 || loan.loanStatus?.statusCode === "PAID_OFF";
+
+        return {
+          id: loan.id,
+          policyNumber: policyObj.policyNumber || "N/A",
+          policy: policyObj,
+          customer: custObj,
+          CustomerMaster: custMaster,
+          planName: policyObj.product?.productName || "Life Insurance Policy",
+          loanDate: loan.loanDate,
+          loanAmount: originalLoanAmount,
+          principalPaid: totalPrincipalRepaid,
+          outstandingDue,
+          interestRate: Number(loan.interestRate || 0),
+          totalInterestPaid,
+          isPaidOff,
+          loanStatus: isPaidOff ? "Paid Off" : loan.loanStatus?.statusName || "Active",
+          agencyName: policyObj.advisor?.agentCode || policyObj.advisor?.name || "",
+          branchName: policyObj.branch?.branchName || "",
+          statusName: policyObj.status?.statusName || "Inforce",
+        };
+      });
+    } else {
+      sourceItems = rawPolicies
+        .filter((p) => p.loans?.length > 0 || Number(p.loanAmount) > 0)
+        .map((p, idx) => {
+          const loanAmt = Number(p.loanAmount || 80000);
+          const principalPaid = Number(p.principalPaid || 20000);
+          const outstandingDue = Math.max(0, loanAmt - principalPaid);
+          const loanDate = new Date(p.commencementDate || new Date());
+          return {
+            id: `mock-${idx}`,
+            policyNumber: p.policyNumber || `98${1000000 + idx}`,
+            policy: p,
+            customer: p.customer || {},
+            CustomerMaster: p.CustomerMaster || {},
+            planName: p.product?.productName || "Endowment Plan",
+            loanDate: loanDate.toISOString(),
+            loanAmount: loanAmt,
+            principalPaid,
+            outstandingDue,
+            interestRate: 9.5,
+            totalInterestPaid: 0,
+            isPaidOff: outstandingDue <= 0.01,
+            loanStatus: outstandingDue <= 0.01 ? "Paid Off" : "Active",
+            agencyName: p.agentCode || p.agency?.agencyName || "",
+            branchName: p.branch?.branchName || "",
+            statusName: p.status?.statusName || "Inforce",
+          };
+        });
+    }
+
+    // Apply filters
+    const validItems = sourceItems.filter((item) => {
+      // Status filter
+      if (
+        selectedStatuses.length > 0 &&
+        !selectedStatuses.some((st) => item.statusName.toLowerCase().includes(st))
+      ) {
+        return false;
       }
 
-      // Must have loan
-      const hasLoan = p.loan || p.loans?.length > 0 || Number(p.loanAmount) > 0 || (p.loanDetails && p.loanDetails.amount > 0);
-      if (!hasLoan) return false;
+      // Agency filter
+      if (
+        selectedAgencies.length > 0 &&
+        !selectedAgencies.some((ag) => item.agencyName.toLowerCase().includes(ag))
+      ) {
+        return false;
+      }
 
-      // Logic for Outstanding: Loan Due Date must be BEFORE calculationDate
-      const loanDueDateStr = p.loanInterestDueDate || p.fupDate || p.nextPremiumDueDate || new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString();
-      const loanDueDate = new Date(loanDueDateStr);
-      if (loanDueDate >= calculationDate) return false; // Not outstanding yet
+      // Branch filter
+      if (
+        selectedBranches.length > 0 &&
+        !selectedBranches.some((b) => item.branchName.toLowerCase().includes(b))
+      ) {
+        return false;
+      }
+
+      // Group filter
+      if (selectedGroupCodesOrNames.length > 0) {
+        const gCode = (item.customer?.groupCode || "").toLowerCase();
+        if (!selectedGroupCodesOrNames.some((sc) => gCode.includes(sc))) {
+          return false;
+        }
+      }
+
+      // Calculation Date: loan must have been disbursed on or before calculationDate
+      if (new Date(item.loanDate) > calculationDate) {
+        return false;
+      }
+
+      // Only show active loans with remaining balance
+      if (item.outstandingDue <= 0) {
+        return false;
+      }
 
       return true;
     });
 
     const groupMap: { [key: string]: any } = {};
 
-    validPolicies.forEach((p, idx) => {
-      const custObj = p.customer;
-      
-      let gCode = custObj?.groupCode || `A-${(p.clientId || "01").toString().padStart(3, "0")}`;
+    validItems.forEach((item, idx) => {
+      const custObj = item.customer;
+      const custMaster = item.CustomerMaster;
+
+      let gCode = custObj?.groupCode || `A-${(idx + 1).toString().padStart(3, "0")}`;
       let gHeadName = custObj?.groupName || custObj?.name || "Loan Holder Group";
-      const memberName = getPolicyMemberName(p);
-      const memberMobile = p.lifeAssured?.mobile || p.CustomerMaster?.contactInfo?.mobile1 || custObj?.mobile || custObj?.mobile1 || "";
-      const memberAddress = custObj?.address || "";
-      const memberDOB = custObj?.dob || p.lifeAssured?.dob || "";
-      const policyNo = p.policyNumber || `98${1000000 + idx}`;
+      const memberName = getPolicyMemberName(item);
+
+      const contact = custMaster?.contactInfo;
+      const memberMobile =
+        contact?.mobile1 || custObj?.phone || custObj?.mobile || "";
+      const addresses = custMaster?.addresses;
+      const memberAddress =
+        custObj?.resArea ||
+        custObj?.resCity ||
+        (addresses && addresses.length > 0
+          ? `${addresses[0].addressLine1 || ""} ${addresses[0].city || ""}`.trim()
+          : "");
+      const memberDOB = custMaster?.dob || custObj?.dob || "";
 
       if (formData.sortingOption === "groupMemberwise") {
         gCode = `${gCode}_${memberName}`;
         gHeadName = memberName;
       } else if (formData.sortingOption === "areaWise") {
-        gCode = custObj?.area || "General Area";
-        gHeadName = `Area: ${custObj?.area || "General Area"}`;
+        gCode = custObj?.resArea || "General Area";
+        gHeadName = `Area: ${custObj?.resArea || "General Area"}`;
       } else if (formData.sortingOption === "subAreaWise") {
-        gCode = custObj?.subArea || "General Sub-Area";
-        gHeadName = `Sub-Area: ${custObj?.subArea || "General Sub-Area"}`;
+        gCode = custObj?.resCity || "General Sub-Area";
+        gHeadName = `City/Sub-Area: ${custObj?.resCity || "General Sub-Area"}`;
       }
 
       if (!groupMap[gCode]) {
-        groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, membersMap: {}, totalOutstanding: 0 };
+        groupMap[gCode] = {
+          groupCode: gCode,
+          groupHeadName: gHeadName,
+          membersMap: {},
+          totalLoanAmount: 0,
+          totalPrincipalPaid: 0,
+          totalOutstanding: 0,
+        };
       }
 
       const grp = groupMap[gCode];
@@ -133,65 +259,45 @@ export default function LoanInterestOutstandingReportView({
           address: memberAddress,
           dob: memberDOB,
           policies: [],
+          totalLoanAmount: 0,
+          totalPrincipalPaid: 0,
           totalOutstanding: 0,
         };
       }
 
       const mem = grp.membersMap[memberName];
-      
-      // Calculate Loan Amount and Outstanding Interest with penal interest
-      let loanAmount = 0;
-      if (p.loanDetails?.amount) loanAmount = Number(p.loanDetails.amount);
-      else if (p.loanAmount) loanAmount = Number(p.loanAmount);
-      else if (p.loans?.[0]?.amount) loanAmount = Number(p.loans[0].amount);
-      else loanAmount = 50000 + (idx * 5000); // fallback mock
-
-      // Base Interest
-      let interestAmount = 0;
-      if (p.loanDetails?.interestAmount) interestAmount = Number(p.loanDetails.interestAmount);
-      else if (p.loanInterestAmount) interestAmount = Number(p.loanInterestAmount);
-      else interestAmount = Math.round(loanAmount * 0.09); // 9% fallback
-
-      const loanDueDateStr = p.loanInterestDueDate || p.fupDate || p.nextPremiumDueDate || new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString();
-      const dueDateObj = new Date(loanDueDateStr);
-      
-      // Calculate months delayed
-      let monthsDelayed = 0;
-      if (dueDateObj < calculationDate) {
-        monthsDelayed = (calculationDate.getFullYear() - dueDateObj.getFullYear()) * 12 + (calculationDate.getMonth() - dueDateObj.getMonth());
-      }
-      
-      // Late Penalty: 1% per month delayed on the interest amount
-      const latePenalty = Math.round(interestAmount * 0.01 * monthsDelayed);
-      const totalOutstanding = interestAmount + latePenalty;
-
-      const dueDate = fmtDate(dueDateObj);
-      const planName = p.product?.productName || "Endowment Plan";
 
       const row = {
         sr: idx + 1,
-        policyNo,
+        policyNo: item.policyNumber,
         memberName,
-        planName,
-        loanAmount,
-        interestAmount,
-        latePenalty,
-        totalOutstanding,
-        dueDate,
-        monthsDelayed,
+        planName: item.planName,
+        loanDate: fmtDate(item.loanDate),
+        loanAmount: item.loanAmount,
+        principalPaid: item.principalPaid,
+        outstandingDue: item.outstandingDue,
+        interestRate: item.interestRate,
+        loanStatus: item.loanStatus,
       };
 
       mem.policies.push(row);
-      mem.totalOutstanding += totalOutstanding;
-      grp.totalOutstanding += totalOutstanding;
+      mem.totalLoanAmount += item.loanAmount;
+      mem.totalPrincipalPaid += item.principalPaid;
+      mem.totalOutstanding += item.outstandingDue;
+
+      grp.totalLoanAmount += item.loanAmount;
+      grp.totalPrincipalPaid += item.principalPaid;
+      grp.totalOutstanding += item.outstandingDue;
     });
 
     return Object.values(groupMap).map((grp: any) => ({
       ...grp,
       members: Object.values(grp.membersMap),
     }));
-  }, [rawPolicies, formData]);
+  }, [loans, rawPolicies, formData]);
 
+  const grandTotalLoanAmount = groupData.reduce((acc, g) => acc + g.totalLoanAmount, 0);
+  const grandTotalPrincipalPaid = groupData.reduce((acc, g) => acc + g.totalPrincipalPaid, 0);
   const grandTotalOutstanding = groupData.reduce((acc, g) => acc + g.totalOutstanding, 0);
 
   const handleDownloadPDF = async () => {
@@ -199,7 +305,13 @@ export default function LoanInterestOutstandingReportView({
     setIsExporting(true);
     const toastId = toast.loading("Generating PDF report...");
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const imgWidth = 210;
@@ -215,7 +327,9 @@ export default function LoanInterestOutstandingReportView({
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      pdf.save(`Loan_Interest_Outstanding_${formData.reportType}_${formData.reportDate || "Report"}.pdf`);
+      pdf.save(
+        `Loan_Outstanding_Due_${formData.reportType}_${formData.reportDate || "Report"}.pdf`
+      );
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
       console.error(err);
@@ -230,12 +344,15 @@ export default function LoanInterestOutstandingReportView({
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
-          <button onClick={onBackToForm} className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider">
+          <button
+            onClick={onBackToForm}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider"
+          >
             <ArrowLeft size={16} />
             <span>Edit Filters</span>
           </button>
-          <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
-            Loan Int. Outstanding {formData.reportType}
+          <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200 uppercase tracking-wider">
+            Loan Outstanding Due {formData.reportType}
           </span>
         </div>
         <button
@@ -249,18 +366,25 @@ export default function LoanInterestOutstandingReportView({
       </div>
 
       {/* Main Report View */}
-      <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none">
+      <div
+        ref={reportRef}
+        className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none"
+      >
         {/* Letterhead */}
         <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
           <div className="space-y-0.5">
             <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
             <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
+            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">
+              84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
+            </p>
             <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
             <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
           </div>
           <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
+            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">
+              LIC INDIA
+            </span>
           </div>
         </div>
 
@@ -268,27 +392,35 @@ export default function LoanInterestOutstandingReportView({
         <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
           <div className="flex flex-col">
             <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
-              Loan Interest Outstanding {formData.reportType === "Statement" ? "Report" : "Intimation Summary"}
+              Loan Outstanding Due {formData.reportType === "Statement" ? "Report" : "Intimation Summary"}
             </h2>
-            <span className="text-[10px] text-slate-400">Calculated up to {fmtDate(formData.calculationDate)}</span>
+            <span className="text-[10px] text-slate-400">
+              Calculated up to {fmtDate(formData.calculationDate)} (Principal Balance)
+            </span>
           </div>
-          <span className="text-xs font-bold text-slate-200">As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
+          <span className="text-xs font-bold text-slate-200">
+            As on {fmtDate(formData.reportDate) || fmtDate(new Date())}
+          </span>
         </div>
 
         {/* Intimation specific summary bar */}
         {formData.reportType === "Intimation" && (
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex flex-wrap justify-between gap-2 font-medium">
-            <span><strong>Purpose:</strong> {formData.intimationOptions.purpose || "Overdue Interest Recovery"}</span>
-            <span><strong>Cost per despatch:</strong> ₹{formData.intimationOptions.costPerDespatch}</span>
+            <span>
+              <strong>Purpose:</strong> {formData.intimationOptions.purpose || "Loan Principal Outstanding Recovery"}
+            </span>
+            <span>
+              <strong>Cost per despatch:</strong> ₹{formData.intimationOptions.costPerDespatch}
+            </span>
           </div>
         )}
 
         <div className="space-y-4 overflow-x-auto">
           {groupData.length === 0 ? (
             <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
-              <h3 className="font-bold text-slate-800 text-sm">No Outstanding Interest Found</h3>
+              <h3 className="font-bold text-slate-800 text-sm">No Outstanding Loan Policies Found</h3>
               <p className="text-xs text-slate-500">
-                There are no policies with outstanding loan interest matching your filter criteria.
+                There are no policy loans with outstanding principal balance matching your filter criteria.
               </p>
             </div>
           ) : (
@@ -298,11 +430,13 @@ export default function LoanInterestOutstandingReportView({
                   <th className="py-2 px-2 w-10 text-center">Sr</th>
                   <th className="py-2 px-2">Policy No</th>
                   <th className="py-2 px-2">Policy Holder</th>
-                  <th className="py-2 px-2 text-center">Due Date</th>
-                  <th className="py-2 px-2 text-right">Loan Amt (₹)</th>
-                  <th className="py-2 px-2 text-right">Base Int. (₹)</th>
-                  <th className="py-2 px-2 text-right text-red-600">Late Fee (₹)</th>
-                  <th className="py-2 px-2 text-right">Total Out. (₹)</th>
+                  <th className="py-2 px-2">Plan</th>
+                  <th className="py-2 px-2 text-center">Loan Date</th>
+                  <th className="py-2 px-2 text-right">Loan Amount (₹)</th>
+                  <th className="py-2 px-2 text-right">Principal Paid (₹)</th>
+                  <th className="py-2 px-2 text-right text-red-700">Outstanding Due (₹)</th>
+                  <th className="py-2 px-2 text-center">Rate</th>
+                  <th className="py-2 px-2 text-center">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -310,28 +444,45 @@ export default function LoanInterestOutstandingReportView({
                   <Fragment key={group.groupCode}>
                     {formData.sortingOption !== "groupMemberwise" && (
                       <tr className="border-t-2 border-slate-400">
-                        <td colSpan={8} className="bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-[#0B1220]">
-                          {group.groupHeadName} {formData.sortingOption === "groupsWise" ? `[${group.groupCode}]` : ""}
+                        <td
+                          colSpan={10}
+                          className="bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-[#0B1220]"
+                        >
+                          {group.groupHeadName}{" "}
+                          {formData.sortingOption === "groupsWise" ? `[${group.groupCode}]` : ""}
                         </td>
                       </tr>
                     )}
                     {group.members.map((member: any) => (
                       <Fragment key={member.name}>
                         <tr>
-                          <td colSpan={8} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
+                          <td
+                            colSpan={10}
+                            className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200"
+                          >
                             <div>{member.name}</div>
                             {formData.reportType === "Statement" && (
                               <div className="text-[10px] text-slate-500 font-normal mt-0.5">
                                 {[
-                                  formData.statementOptions.statementWithAddress && member.address && `Address: ${member.address}`,
-                                  formData.statementOptions.registerWithTelNos && member.mobile && `Mob: ${member.mobile}`,
-                                  formData.statementOptions.dob && member.dob && `DOB: ${fmtDate(member.dob)}`,
-                                ].filter(Boolean).join(" | ")}
+                                  formData.statementOptions.statementWithAddress &&
+                                    member.address &&
+                                    `Address: ${member.address}`,
+                                  formData.statementOptions.registerWithTelNos &&
+                                    member.mobile &&
+                                    `Mob: ${member.mobile}`,
+                                  formData.statementOptions.dob &&
+                                    member.dob &&
+                                    `DOB: ${fmtDate(member.dob)}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" | ")}
                               </div>
                             )}
                             {formData.reportType === "Intimation" && (
                               <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                {formData.intimationOptions.dob && member.dob && `DOB: ${fmtDate(member.dob)}`}
+                                {formData.intimationOptions.dob &&
+                                  member.dob &&
+                                  `DOB: ${fmtDate(member.dob)}`}
                               </div>
                             )}
                           </td>
@@ -341,26 +492,66 @@ export default function LoanInterestOutstandingReportView({
                             <td className="py-1 px-2 text-center text-slate-500">{p.sr}</td>
                             <td className="py-1 px-2 font-mono font-semibold">{p.policyNo}</td>
                             <td className="py-1 px-2">{p.memberName}</td>
-                            <td className="py-1 px-2 text-center font-mono font-medium text-slate-700">
-                              {p.dueDate}
-                              <div className="text-[9px] text-red-500 font-normal">{p.monthsDelayed} mo late</div>
+                            <td
+                              className="py-1 px-2 text-slate-600 truncate max-w-[120px]"
+                              title={p.planName}
+                            >
+                              {p.planName}
                             </td>
-                            <td className="py-1 px-2 text-right font-mono text-slate-700">{p.loanAmount.toLocaleString("en-IN")}</td>
-                            <td className="py-1 px-2 text-right font-mono">{p.interestAmount.toLocaleString("en-IN")}</td>
-                            <td className="py-1 px-2 text-right font-mono text-red-600">{p.latePenalty.toLocaleString("en-IN")}</td>
-                            <td className="py-1 px-2 text-right font-mono font-bold text-[#0B1220]">{p.totalOutstanding.toLocaleString("en-IN")}</td>
+                            <td className="py-1 px-2 text-center font-mono font-medium text-slate-700">
+                              {p.loanDate}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono text-slate-700">
+                              {p.loanAmount.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono text-emerald-700">
+                              {p.principalPaid.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono font-bold text-red-700">
+                              {p.outstandingDue.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-1 px-2 text-center font-mono text-slate-600">
+                              {p.interestRate}%
+                            </td>
+                            <td className="py-1 px-2 text-center">
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {p.loanStatus}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                         <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                          <td colSpan={7} className="text-right pr-4 py-1">Member Total Outstanding :</td>
-                          <td className="text-right py-1 font-mono text-red-700">{member.totalOutstanding.toLocaleString("en-IN")}</td>
+                          <td colSpan={5} className="text-right pr-4 py-1">
+                            Member Total :
+                          </td>
+                          <td className="text-right py-1 font-mono text-slate-800">
+                            {member.totalLoanAmount.toLocaleString("en-IN")}
+                          </td>
+                          <td className="text-right py-1 font-mono text-emerald-700">
+                            {member.totalPrincipalPaid.toLocaleString("en-IN")}
+                          </td>
+                          <td className="text-right py-1 font-mono text-red-700">
+                            {member.totalOutstanding.toLocaleString("en-IN")}
+                          </td>
+                          <td colSpan={2}></td>
                         </tr>
                       </Fragment>
                     ))}
                     {formData.sortingOption !== "groupMemberwise" && (
                       <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                        <td colSpan={7} className="px-3 py-1.5 text-right">Group Total Outstanding :</td>
-                        <td className="px-2 py-1.5 text-right font-mono text-red-700">{group.totalOutstanding.toLocaleString("en-IN")}</td>
+                        <td colSpan={5} className="px-3 py-1.5 text-right">
+                          Group Total :
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono text-[#0B1220]">
+                          {group.totalLoanAmount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono text-emerald-800">
+                          {group.totalPrincipalPaid.toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-2 py-1.5 text-right font-mono text-red-700 font-bold">
+                          {group.totalOutstanding.toLocaleString("en-IN")}
+                        </td>
+                        <td colSpan={2}></td>
                       </tr>
                     )}
                   </Fragment>
@@ -371,9 +562,27 @@ export default function LoanInterestOutstandingReportView({
         </div>
 
         {groupData.length > 0 && (
-          <div className="pt-4 border-t border-slate-300 flex justify-between items-center text-xs font-bold">
-            <span>Grand Total Interest Outstanding:</span>
-            <span className="font-mono text-base text-red-700">₹ {grandTotalOutstanding.toLocaleString("en-IN")}</span>
+          <div className="pt-4 border-t-2 border-slate-400 flex flex-wrap justify-between items-center text-xs font-bold gap-4">
+            <div className="flex items-center gap-6">
+              <div>
+                <span className="text-slate-500">Total Sanctioned: </span>
+                <span className="font-mono text-slate-900 text-sm">
+                  ₹ {grandTotalLoanAmount.toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500">Total Principal Repaid: </span>
+                <span className="font-mono text-emerald-700 text-sm">
+                  ₹ {grandTotalPrincipalPaid.toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-slate-700">Grand Total Outstanding Principal: </span>
+              <span className="font-mono text-lg text-red-700 font-black">
+                ₹ {grandTotalOutstanding.toLocaleString("en-IN")}
+              </span>
+            </div>
           </div>
         )}
       </div>

@@ -24,6 +24,8 @@ export interface LoanSummary {
   outstandingPrincipal: number;
   accruedInterest: number;
   totalDue: number;
+  daysSinceLastPayment?: number;
+  lastPaymentDate?: string;
 }
 
 export interface Loan {
@@ -37,17 +39,65 @@ export interface Loan {
   createdAt: string;
   updatedAt: string;
   policy: {
+    id?: string;
     policyNumber: string;
     commencementDate?: string;
+    fupDate?: string;
+    nextPremiumDueDate?: string;
     CustomerMaster: {
+      id?: string;
       firstName: string;
+      middleName?: string | null;
       lastName: string;
+      salutation?: string | null;
+      dob?: string | null;
+      contactInfo?: {
+        mobile1?: string | null;
+        email1?: string | null;
+      } | null;
+      addresses?: {
+        addressType?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+        pinCode?: string;
+      }[];
+    } | null;
+    customer?: {
+      id: string;
+      name?: string;
+      groupCode?: string | null;
+      groupName?: string | null;
+      phone?: string | null;
+      resArea?: string | null;
+      resCity?: string | null;
+    } | null;
+    product?: {
+      id: string;
+      productName: string;
+      planNumber?: string;
+    } | null;
+    advisor?: {
+      id: string;
+      name?: string;
+      agentCode?: string;
+    } | null;
+    branch?: {
+      id: string;
+      branchName: string;
+      branchCode?: string;
+    } | null;
+    status?: {
+      id: string;
+      statusName: string;
+      statusCode: string;
     } | null;
     premium?: {
       sumAssured: number;
     } | null;
   } | null;
   loanStatus: {
+    id?: string;
     statusName: string;
     statusCode: string;
   } | null;

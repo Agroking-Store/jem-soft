@@ -9,6 +9,7 @@ import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchLoans } from "@/features/loans/loanSlice";
 import LicModuleNav from "@/features/lic/LicModuleNav";
 import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licReportsData";
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
@@ -141,6 +142,7 @@ export default function LICReportsPage() {
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
   const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
+  const { loans } = useSelector((state: RootState) => state.loans);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -149,6 +151,7 @@ export default function LICReportsPage() {
     dispatch(fetchAgencies());
     dispatch(fetchPolicyStatuses());
     dispatch(fetchLicBranches());
+    dispatch(fetchLoans());
   }, [dispatch]);
 
   const categories = ["All", "Register", "Financial", "Due & Statements", "Calculators & Misc"];
@@ -678,6 +681,7 @@ export default function LICReportsPage() {
           customers={customers || []}
           policies={policies || []}
           branches={licBranches || []}
+          loans={loans || []}
         />
       )}
 
@@ -687,6 +691,7 @@ export default function LICReportsPage() {
           formData={selectedLoanInterestDueData}
           policies={policies || []}
           customers={customers || []}
+          loans={loans || []}
           onBackToForm={() => setCurrentView("loan-interest-due-form")}
         />
       )}
@@ -702,6 +707,7 @@ export default function LICReportsPage() {
           customers={customers || []}
           policies={policies || []}
           branches={licBranches || []}
+          loans={loans || []}
         />
       )}
 
@@ -711,6 +717,7 @@ export default function LICReportsPage() {
           formData={selectedLoanInterestOutstandingData}
           policies={policies || []}
           customers={customers || []}
+          loans={loans || []}
           onBackToForm={() => setCurrentView("loan-interest-outstanding-form")}
         />
       )}
