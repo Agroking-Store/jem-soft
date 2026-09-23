@@ -23,6 +23,21 @@ export interface LapsedPolicyRow {
   status: string;
 }
 
+export interface OutstandingPremiumRow {
+  policyId: string;
+  policyNumber: string;
+  lifeAssuredName: string;
+  groupCode: string | null;
+  planNumber: string | null;
+  planName: string;
+  premium: number;
+  outstandingAmount: number;
+  premiumDueDate: string;
+  daysOverdue: number;
+  mobileNumber: string | null;
+  status: string;
+}
+
 interface PaymentLike {
   installmentNo: number | null;
   dueDate: Date;
@@ -298,4 +313,150 @@ export const getLapsedPolicies = async (
   lapsedPolicies.sort((a, b) => b.daysUnpaid - a.daysUnpaid);
 
   return lapsedPolicies;
+};
+
+export const getOutstandingPremiums = async (
+  search?: string,
+): Promise<OutstandingPremiumRow[]> => {
+  const today = startOfDay(new Date());
+
+  const policies = await prisma.policy.findMany({
+    where: {
+      status: {
+        statusCode: { notIn: LAPSED_EXCLUDED_POLICY_STATUS_CODES },
+      },
+    },
+    select: {
+      id: true,
+      policyNumber: true,
+      commencementDate: true,
+      premiumPayingTerm: true,
+      status: { select: { statusName: true } },
+      customer: { select: { groupCode: true } },
+      CustomerMaster: {
+        select: {
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          contactInfo: { select: { mobile1: true } },
+        },
+      },
+      product: { select: { planNumber: true, productName: true } },
+      premiumMode: { select: { modeName: true, months: true } },
+      premium: {
+        select: { installmentPremium: true, totalInstallmentPremium: true },
+      },
+      premiumPayments: {
+        orderBy: [{ dueDate: 'asc' }],
+        select: {
+          installmentNo: true,
+          dueDate: true,
+          paidDate: true,
+          premiumAmount: true,
+          paymentStatus: { select: { statusCode: true } },
+        },
+      },
+    },
+  });
+
+  const normalizedSearch = search?.trim().toLowerCase();
+  const outstandingPolicies: OutstandingPremiumRow[] = [];
+
+  for (const policy of policies) {
+    const monthsInterval = policy.premiumMode?.months ?? 0;
+    if (!monthsInterval || monthsInterval <= 0) continue;
+
+    const commencement = startOfDay(policy.commencementDate);
+    if (commencement > today) continue;
+
+    const dueInstallments = generateDueInstallments(
+      commencement,
+      monthsInterval,
+      policy.premiumPayingTerm ?? null,
+      today,
+    );
+    if (dueInstallments.length === 0) continue;
+
+    const paidByNo = new Set<number>();
+    const paidByDate = new Set<string>();
+    const unpaidByNo = new Set<number>();
+    const unpaidByDate = new Set<string>();
+    for (const payment of policy.premiumPayments) {
+      if (isSuccessfulPayment(payment)) {
+        if (payment.installmentNo != null) paidByNo.add(payment.installmentNo);
+        paidByDate.add(toDateString(payment.dueDate));
+      } else {
+        if (payment.installmentNo != null) unpaidByNo.add(payment.installmentNo);
+        unpaidByDate.add(toDateString(payment.dueDate));
+      }
+    }
+
+    const isPaidInstallment = (installmentNo: number, dueDateString: string): boolean => {
+      if (paidByNo.has(installmentNo) || paidByDate.has(dueDateString)) return true;
+      if (
+        FIRST_INSTALLMENT_IMPLICITLY_PAID &&
+        installmentNo === 0 &&
+        !unpaidByNo.has(0) &&
+        !unpaidByDate.has(dueDateString)
+      ) return true;
+      return false;
+    };
+
+    const oldestUnpaid = dueInstallments.find(
+      ({ installmentNo, dueDate }) =>
+        !isPaidInstallment(installmentNo, toDateString(dueDate)),
+    );
+    if (!oldestUnpaid) continue;
+
+    const daysUnpaid = Math.floor(
+      (today.getTime() - startOfDay(oldestUnpaid.dueDate).getTime()) / MS_PER_DAY,
+    );
+
+    // Only 1–59 days overdue (outstanding but not yet lapsed)
+    if (daysUnpaid < 1 || daysUnpaid >= LAPSED_THRESHOLD_DAYS) continue;
+
+    const explicitPayment = policy.premiumPayments.find(
+      (payment) =>
+        (payment.installmentNo != null && payment.installmentNo === oldestUnpaid.installmentNo) ||
+        toDateString(payment.dueDate) === toDateString(oldestUnpaid.dueDate),
+    );
+    const fallbackPremium = Number(
+      policy.premium?.totalInstallmentPremium ?? policy.premium?.installmentPremium ?? 0,
+    );
+    const premiumAmount = explicitPayment ? Number(explicitPayment.premiumAmount) : fallbackPremium;
+
+    const lifeAssuredName = buildLifeAssuredName(policy.CustomerMaster);
+
+    const row: OutstandingPremiumRow = {
+      policyId: policy.id,
+      policyNumber: policy.policyNumber,
+      lifeAssuredName,
+      groupCode: policy.customer?.groupCode ?? null,
+      planNumber: policy.product?.planNumber ?? null,
+      planName: policy.product?.productName ?? '',
+      premium: premiumAmount,
+      outstandingAmount: premiumAmount,
+      premiumDueDate: toDateString(oldestUnpaid.dueDate),
+      daysOverdue: daysUnpaid,
+      mobileNumber: policy.CustomerMaster?.contactInfo?.mobile1 ?? null,
+      status: policy.status?.statusName ?? 'Active',
+    };
+
+    if (normalizedSearch) {
+      const searchable = [
+        row.policyNumber,
+        row.lifeAssuredName,
+        row.planNumber ?? '',
+        row.planName,
+        row.mobileNumber ?? '',
+        row.groupCode ?? '',
+      ].join(' ').toLowerCase();
+      if (!searchable.includes(normalizedSearch)) continue;
+    }
+
+    outstandingPolicies.push(row);
+  }
+
+  outstandingPolicies.sort((a, b) => b.daysOverdue - a.daysOverdue);
+  return outstandingPolicies;
 };

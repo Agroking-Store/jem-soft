@@ -4,27 +4,42 @@ import {
   Clock3,
   RotateCw,
   Search,
+  AlertTriangle,
 } from "lucide-react";
 import { FileClock } from "lucide-react";
 
 const cards = [
   {
     title: "Premium Due",
-    subtitle: "Premium due for next 30 days",
+    subtitle: "Next 30 Days",
     href: "/dashboard/policy-360/premiumDue",
     icon: FileClock,
+    accent: "from-blue-500 via-blue-500/40",
+    iconBg: "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white",
+  },
+  {
+    title: "Outstanding Premiums",
+    subtitle: "Last 30 Days",
+    href: "/dashboard/policy-360/outstanding",
+    icon: AlertTriangle,
+    accent: "from-amber-400 via-amber-400/40",
+    iconBg: "bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white",
   },
   {
     title: "Lapsed Policies",
-    subtitle: "Premium unpaid for 60 days or more",
+    subtitle: "Last 90 Days",
     href: "/dashboard/policy-360/lapsed",
     icon: Clock3,
+    accent: "from-rose-400 via-rose-400/40",
+    iconBg: "bg-rose-50 text-rose-600 group-hover:bg-rose-500 group-hover:text-white",
   },
   {
     title: "Search Policies",
     subtitle: "By Policy, Name, Mobile...",
     href: "/dashboard/policy-360/search",
     icon: Search,
+    accent: "from-[#1877F2] via-[#1877F2]/40",
+    iconBg: "bg-blue-50 text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white",
   },
 ];
 
@@ -50,16 +65,16 @@ export default function Policy360Page() {
         </div>
       </div>
 
-      {/* Compact option cards — same density/styling system as the Customers module */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {cards.map(({ title, subtitle, href, icon: Icon }) => (
+      {/* Compact option cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {cards.map(({ title, subtitle, href, icon: Icon, accent, iconBg }) => (
           <Link
             key={href}
             href={href}
             className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
           >
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2] transition-colors duration-200 group-hover:bg-[#1877F2] group-hover:text-white">
+            <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${accent} to-transparent`} />
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${iconBg}`}>
               <Icon size={18} />
             </div>
             <div className="min-w-0 flex-1">
@@ -72,7 +87,7 @@ export default function Policy360Page() {
             </div>
             <ArrowRight
               size={16}
-              className="shrink-0 text-[#1877F2] transition-transform duration-200 group-hover:translate-x-1"
+              className="shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#1877F2]"
             />
           </Link>
         ))}
