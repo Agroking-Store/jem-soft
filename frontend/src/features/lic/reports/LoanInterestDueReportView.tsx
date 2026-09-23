@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useMemo, Fragment } from "react";
-import { ArrowLeft, Download, FileSpreadsheet, Mail } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { LoanInterestDueFormData } from "./LoanInterestDueForm";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
@@ -80,20 +80,39 @@ export default function LoanInterestDueReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
+    // Target calculation date for interest computation
+    const calcDate = toDate && toDate > asOfDate ? toDate : asOfDate;
+
+    // Filter selections
     const selectedAgencies = (formData.appliedFilters || [])
       .filter((f) => f.type === "Agencies")
-      .map((f) => f.name.toLowerCase());
+      .map((f) => (f.name || f.id).toLowerCase().trim());
+
     const selectedStatuses = (formData.appliedFilters || [])
       .filter((f) => f.type === "Policy Status")
-      .map((f) => f.name.toLowerCase());
+      .map((f) => (f.name || f.id).toLowerCase().trim());
+
     const selectedBranches = (formData.appliedFilters || [])
       .filter((f) => f.type === "Branches")
-      .map((f) => f.name.toLowerCase());
-    const selectedGroupCodesOrNames = (formData.selectedGroups || []).map((g) =>
-      g.groupCode.toLowerCase()
+      .map((f) => (f.name || f.id).toLowerCase().trim());
+
+    const selectedGroupsFromFilter = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups")
+      .map((f) => (f.id || f.name).toLowerCase().trim());
+
+    const selectedAreas = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Areas")
+      .map((f) => (f.name || f.id).toLowerCase().trim());
+
+    const selectedGroupCodesModal = (formData.selectedGroups || []).map((g) =>
+      (g.groupCode || g.groupName || "").toLowerCase().trim()
     );
 
-    // Prefer loans from loans state; fallback to policies if loans array is empty
+    const sortingFilterItems = (formData.sortingFilterSelection?.selectedItems || []).map(
+      (item: any) => (item.name || item.code || item.id || "").toLowerCase().trim()
+    );
+
+    // Build raw source items
     let sourceItems: any[] = [];
 
     if (loans && loans.length > 0) {
@@ -129,7 +148,7 @@ export default function LoanInterestDueReportView({
           ? 0
           : Math.max(
               0,
-              Math.floor((asOfDate.getTime() - validLastDate.getTime()) / (1000 * 60 * 60 * 24))
+              Math.floor((calcDate.getTime() - validLastDate.getTime()) / (1000 * 60 * 60 * 24))
             );
 
         const annualRate = Number(loan.interestRate || 0);
@@ -138,7 +157,7 @@ export default function LoanInterestDueReportView({
             ? Math.round(((outstandingPrincipal * annualRate * daysSince) / 36500) * 100) / 100
             : 0;
 
-        const nextDueDate = getNextInterestDueDate(loan.loanDate, asOfDate);
+        const nextDueDate = getNextInterestDueDate(loan.loanDate, calcDate);
 
         return {
           id: loan.id,
@@ -147,7 +166,7 @@ export default function LoanInterestDueReportView({
           customer: custObj,
           CustomerMaster: custMaster,
           planName: policyObj.product?.productName || "Life Insurance Policy",
-          loanDate: loan.loanDate,
+          loanDate: loan.loanDate ? new Date(loan.loanDate) : new Date(),
           loanAmount: Number(loan.loanAmount || 0),
           interestRate: annualRate,
           outstandingPrincipal,
@@ -157,13 +176,21 @@ export default function LoanInterestDueReportView({
           lastPaymentDate: validLastDate,
           nextDueDate,
           loanStatus: loan.loanStatus?.statusName || "Active",
-          agencyName: policyObj.advisor?.agentCode || policyObj.advisor?.name || "",
-          branchName: policyObj.branch?.branchName || "",
-          statusName: policyObj.status?.statusName || "Inforce",
+          agencyName:
+            policyObj.advisor?.advisorName ||
+            policyObj.advisor?.name ||
+            policyObj.advisor?.advisorCode ||
+            policyObj.agentCode ||
+            "",
+          branchName:
+            policyObj.branch?.branchName || policyObj.branch?.branchCode || "",
+          statusName:
+            policyObj.status?.statusName ||
+            loan.loanStatus?.statusName ||
+            "Inforce",
         };
       });
     } else {
-      // Fallback if no loans in store yet
       sourceItems = rawPolicies
         .filter((p) => p.loans?.length > 0 || Number(p.loanAmount) > 0)
         .map((p, idx) => {
@@ -172,7 +199,7 @@ export default function LoanInterestDueReportView({
           const loanDate = new Date(p.commencementDate || new Date());
           const daysSince = Math.max(
             0,
-            Math.floor((asOfDate.getTime() - loanDate.getTime()) / (1000 * 60 * 60 * 24))
+            Math.floor((calcDate.getTime() - loanDate.getTime()) / (1000 * 60 * 60 * 24))
           );
           const interestDue = Math.round(((loanAmt * annualRate * daysSince) / 36500) * 100) / 100;
           return {
@@ -182,7 +209,7 @@ export default function LoanInterestDueReportView({
             customer: p.customer || {},
             CustomerMaster: p.CustomerMaster || {},
             planName: p.product?.productName || "Endowment Plan",
-            loanDate: loanDate.toISOString(),
+            loanDate,
             loanAmount: loanAmt,
             interestRate: annualRate,
             outstandingPrincipal: loanAmt,
@@ -190,7 +217,7 @@ export default function LoanInterestDueReportView({
             totalInterestPaid: 0,
             interestDue,
             lastPaymentDate: loanDate,
-            nextDueDate: getNextInterestDueDate(loanDate.toISOString(), asOfDate),
+            nextDueDate: getNextInterestDueDate(loanDate.toISOString(), calcDate),
             loanStatus: "Active",
             agencyName: p.agentCode || p.agency?.agencyName || "",
             branchName: p.branch?.branchName || "",
@@ -199,51 +226,93 @@ export default function LoanInterestDueReportView({
         });
     }
 
-    // Apply filters
+    // Filter items
     const validItems = sourceItems.filter((item) => {
+      // Must have positive outstanding principal
+      if (item.outstandingPrincipal <= 0) return false;
+
+      // Date Range Filter: loan must have been disbursed on or before toDate/calcDate
+      if (toDate && item.loanDate > toDate) return false;
+
       // Status filter
-      if (
-        selectedStatuses.length > 0 &&
-        !selectedStatuses.some((st) => item.statusName.toLowerCase().includes(st))
-      ) {
-        return false;
+      if (selectedStatuses.length > 0) {
+        const sName = (item.statusName || "Inforce").toLowerCase();
+        const matches = selectedStatuses.some(
+          (st) => sName.includes(st) || st.includes(sName)
+        );
+        if (!matches) return false;
       }
 
       // Agency filter
-      if (
-        selectedAgencies.length > 0 &&
-        !selectedAgencies.some((ag) => item.agencyName.toLowerCase().includes(ag))
-      ) {
-        return false;
+      if (selectedAgencies.length > 0) {
+        const ag = (item.agencyName || "").toLowerCase();
+        const matches = selectedAgencies.some(
+          (sel) => ag.includes(sel) || sel.includes(ag)
+        );
+        if (!matches) return false;
       }
 
       // Branch filter
-      if (
-        selectedBranches.length > 0 &&
-        !selectedBranches.some((b) => item.branchName.toLowerCase().includes(b))
-      ) {
-        return false;
+      if (selectedBranches.length > 0) {
+        const br = (item.branchName || "").toLowerCase();
+        const matches = selectedBranches.some(
+          (sel) => br.includes(sel) || sel.includes(br)
+        );
+        if (!matches) return false;
       }
 
-      // Group filter
-      if (selectedGroupCodesOrNames.length > 0) {
-        const gCode = (item.customer?.groupCode || "").toLowerCase();
-        if (!selectedGroupCodesOrNames.some((sc) => gCode.includes(sc))) {
-          return false;
+      // Customer Groups from Modal
+      const gCode = (item.customer?.groupCode || "").toLowerCase();
+      const gName = (item.customer?.groupName || "").toLowerCase();
+      if (selectedGroupCodesModal.length > 0) {
+        const matches = selectedGroupCodesModal.some(
+          (sc) =>
+            (gCode && (gCode.includes(sc) || sc.includes(gCode))) ||
+            (gName && (gName.includes(sc) || sc.includes(gName)))
+        );
+        if (!matches) return false;
+      }
+
+      // Customer Groups from Filter Modal
+      if (selectedGroupsFromFilter.length > 0) {
+        const matches = selectedGroupsFromFilter.some(
+          (sc) =>
+            (gCode && (gCode.includes(sc) || sc.includes(gCode))) ||
+            (gName && (gName.includes(sc) || sc.includes(gName)))
+        );
+        if (!matches) return false;
+      }
+
+      // Area filter
+      if (selectedAreas.length > 0) {
+        const area = (item.customer?.resArea || "").toLowerCase();
+        const city = (item.customer?.resCity || "").toLowerCase();
+        const matches = selectedAreas.some(
+          (sel) =>
+            (area && (area.includes(sel) || sel.includes(area))) ||
+            (city && (city.includes(sel) || sel.includes(city)))
+        );
+        if (!matches) return false;
+      }
+
+      // Sorting Selection Filter (Area / Branch / SubArea)
+      if (sortingFilterItems.length > 0) {
+        if (formData.sortingOption === "areaWise") {
+          const area = (item.customer?.resArea || "").toLowerCase();
+          if (!sortingFilterItems.some((s) => area.includes(s) || s.includes(area))) {
+            return false;
+          }
+        } else if (formData.sortingOption === "subAreaWise") {
+          const city = (item.customer?.resCity || "").toLowerCase();
+          if (!sortingFilterItems.some((s) => city.includes(s) || s.includes(city))) {
+            return false;
+          }
+        } else if (formData.sortingOption === "branchNoWise") {
+          const br = (item.branchName || "").toLowerCase();
+          if (!sortingFilterItems.some((s) => br.includes(s) || s.includes(br))) {
+            return false;
+          }
         }
-      }
-
-      // Must have active outstanding balance or interest due
-      if (item.outstandingPrincipal <= 0 && item.interestDue <= 0) {
-        return false;
-      }
-
-      // Date Range filter (check nextDueDate or if interest is already overdue)
-      if (fromDate && item.nextDueDate < fromDate && item.interestDue <= 0) {
-        return false;
-      }
-      if (toDate && item.nextDueDate > toDate && item.interestDue <= 0) {
-        return false;
       }
 
       return true;
@@ -261,7 +330,7 @@ export default function LoanInterestDueReportView({
 
       const contact = custMaster?.contactInfo;
       const memberMobile =
-        contact?.mobile1 || custObj?.phone || custObj?.mobile || "";
+        contact?.mobile1 || custObj?.phone || custObj?.mobilePersonal || "";
       const addresses = custMaster?.addresses;
       const memberAddress =
         custObj?.resArea ||
@@ -459,9 +528,9 @@ export default function LoanInterestDueReportView({
         <div className="space-y-4 overflow-x-auto">
           {groupData.length === 0 ? (
             <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
-              <h3 className="font-bold text-slate-800 text-sm">No Loan Policies with Interest Due Found</h3>
+              <h3 className="font-bold text-slate-800 text-sm">No Loan Policies Matching Filters Found</h3>
               <p className="text-xs text-slate-500">
-                There are no policy loans with pending interest due matching your filter criteria.
+                There are no policy loans matching the applied filter criteria. Try resetting or adjusting the filters.
               </p>
             </div>
           ) : (

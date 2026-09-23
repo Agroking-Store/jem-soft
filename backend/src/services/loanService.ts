@@ -197,11 +197,20 @@ export const getLoanById = async (id: string) => {
 };
 
 export const createLoan = async (data: LoanData) => {
-  const activeStatus = await prisma.loanStatusMaster.findUnique({
+  let activeStatus = await prisma.loanStatusMaster.findUnique({
     where: { statusCode: "ACTIVE" },
   });
 
-  if (activeStatus) {
+  if (!activeStatus) {
+    activeStatus = await prisma.loanStatusMaster.findFirst();
+  }
+
+  const statusId = data.loanStatusId || activeStatus?.id;
+  if (!statusId) {
+    throw new Error("Loan status is required.");
+  }
+
+  if (activeStatus && statusId === activeStatus.id) {
     const existingActive = await prisma.policyLoan.findFirst({
       where: {
         policyId: data.policyId,
@@ -222,7 +231,7 @@ export const createLoan = async (data: LoanData) => {
       loanAmount: data.loanAmount,
       interestRate: data.interestRate,
       loanDate: new Date(data.loanDate),
-      loanStatusId: data.loanStatusId,
+      loanStatusId: statusId,
       remarks: data.remarks,
     },
     include: {
