@@ -29,6 +29,10 @@ import {
   Settings,
   Search,
   AlertCircle,
+  Activity,
+  Building2,
+  Calendar,
+  Users,
 } from "lucide-react";
 import DatePicker from "../new/DatePicker";
 
@@ -75,7 +79,8 @@ export default function ViewLICPolicyPage() {
     },
   });
 
-  const { register, control, watch, reset } = methods;
+  const { register, control, watch, reset, getValues } = methods;
+
 
   const { customers: groups, isLoading: groupsLoading } = useSelector(
     (s: RootState) => s.customers,
@@ -203,8 +208,18 @@ export default function ViewLICPolicyPage() {
 
     const targetBankCustomer =
       (selectedPolicy as any).proposerId
-        ? masterCustomers.find((c: any) => c.id === (selectedPolicy as any).proposerId) || selectedPolicy.CustomerMaster
+        ? (selectedPolicy as any).proposer || masterCustomers.find((c: any) => c.id === (selectedPolicy as any).proposerId) || selectedPolicy.CustomerMaster
         : selectedPolicy.CustomerMaster;
+
+    const targetBankDetails =
+      targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault) ||
+      targetBankCustomer?.bankDetails?.[0] ||
+      selectedPolicy.CustomerMaster?.bankDetails?.find((b: any) => b.isDefault) ||
+      selectedPolicy.CustomerMaster?.bankDetails?.[0];
+
+    const paymentModeCode = (selectedPolicy as any).paymentMode?.modeCode?.toUpperCase();
+    const isPolicyNach = paymentModeCode === "NACH" || Boolean(targetBankDetails?.accountNumber && paymentModeCode !== "NEFT");
+    const isPolicyNeft = paymentModeCode === "NEFT";
 
     reset({
       groupId: selectedPolicy.clientId ?? "",
@@ -239,7 +254,6 @@ export default function ViewLICPolicyPage() {
         selectedPolicy.premium?.totalInstallmentPremium ?? undefined,
       gst: selectedPolicy.premium?.gst ?? undefined,
       statusId: selectedPolicy.statusId ?? "",
-      policyStatus: selectedPolicy.status?.statusName ?? "",
       fupDate: selectedPolicy.nextPremiumDueDate
         ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
         : "",
@@ -267,50 +281,21 @@ export default function ViewLICPolicyPage() {
 
       proposerId: (selectedPolicy as any).proposerId ?? "",
       spouseId: (selectedPolicy as any).spouseId ?? "",
-      smoker: (selectedPolicy as any).smoker ?? false,
       extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
       ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
 
       loanTaken: getPolicyAttr("loanTaken") || "",
       annuityDetails: getPolicyAttr("annuityDetails") || "",
       otherInformation: selectedPolicy.remarks ?? "",
-      bankName:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
-            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
-          : "",
-      bankBranch:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
-            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
-          : "",
-      city:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.city ??
-            targetBankCustomer?.bankDetails?.[0]?.city ?? ""
-          : "",
-      accountType:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountType ??
-            targetBankCustomer?.bankDetails?.[0]?.accountType ?? ""
-          : "",
-      accountNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
-          : "",
-      ifscCode:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
-            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
-          : "",
-      micrNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NACH"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.micrNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.micrNumber ?? ""
-          : "",
-      accountHolderName: selectedPolicy.paymentMode?.modeCode === "NACH" && targetBankCustomer
-        ? getFullName(targetBankCustomer)
+      bankName: isPolicyNach ? (targetBankDetails?.bankName ?? "") : "",
+      bankBranch: isPolicyNach ? (targetBankDetails?.bankBranch ?? "") : "",
+      city: isPolicyNach ? (targetBankDetails?.city ?? "") : "",
+      accountType: isPolicyNach ? (targetBankDetails?.accountType ?? "") : "",
+      accountNumber: isPolicyNach ? (targetBankDetails?.accountNumber ?? "") : "",
+      ifscCode: isPolicyNach ? (targetBankDetails?.ifscCode ?? "") : "",
+      micrNumber: isPolicyNach ? (targetBankDetails?.micrNumber ?? "") : "",
+      accountHolderName: isPolicyNach
+        ? (targetBankDetails?.accountHolderName || ((targetBankCustomer || selectedPolicy.CustomerMaster) ? getFullName((targetBankCustomer || selectedPolicy.CustomerMaster)!) : ""))
         : "",
       branchName: selectedPolicy.branch?.branchName ?? "",
       medical: getPolicyAttr("medical") || "",
@@ -332,31 +317,15 @@ export default function ViewLICPolicyPage() {
           phone: nominee.phone ?? "",
           email: nominee.email ?? "",
         })) ?? [],
-      neftBankName:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankName ??
-            targetBankCustomer?.bankDetails?.[0]?.bankName ?? ""
-          : "",
-      neftBankBranch:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.bankBranch ??
-            targetBankCustomer?.bankDetails?.[0]?.bankBranch ?? ""
-          : "",
-      neftAccountNumber:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.accountNumber ??
-            targetBankCustomer?.bankDetails?.[0]?.accountNumber ?? ""
-          : "",
-      neftIfscCode:
-        (selectedPolicy as any).paymentMode?.modeCode === "NEFT"
-          ? targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault)?.ifscCode ??
-            targetBankCustomer?.bankDetails?.[0]?.ifscCode ?? ""
-          : "",
-      neftAccountHolderName: selectedPolicy.paymentMode?.modeCode === "NEFT" && targetBankCustomer
-        ? getFullName(targetBankCustomer)
+      neftBankName: isPolicyNeft ? (targetBankDetails?.bankName ?? "") : "",
+      neftBankBranch: isPolicyNeft ? (targetBankDetails?.bankBranch ?? "") : "",
+      neftAccountNumber: isPolicyNeft ? (targetBankDetails?.accountNumber ?? "") : "",
+      neftIfscCode: isPolicyNeft ? (targetBankDetails?.ifscCode ?? "") : "",
+      neftAccountHolderName: isPolicyNeft
+        ? (targetBankDetails?.accountHolderName || ((targetBankCustomer || selectedPolicy.CustomerMaster) ? getFullName((targetBankCustomer || selectedPolicy.CustomerMaster)!) : ""))
         : "",
       neftSubmissionDate: getPolicyAttr("neftSubmissionDate") || "",
-    });
+    } as any);
   }, [selectedPolicy, reset, masterCustomers]);
 
   const sectionRefs = {
@@ -803,7 +772,7 @@ export default function ViewLICPolicyPage() {
                               ? getFullName(
                                   masterCustomers.find(
                                     (c: any) => c.id === watch("proposerId")
-                                  )
+                                  )!
                                 )
                               : ""
                           }
@@ -863,7 +832,7 @@ export default function ViewLICPolicyPage() {
                             ? getFullName(
                                 masterCustomers.find(
                                   (c: any) => c.id === watch("spouseId")
-                                )
+                                )!
                               )
                             : ""
                         }
@@ -1149,588 +1118,553 @@ export default function ViewLICPolicyPage() {
           </div>
         </div>
 
-        <div ref={sectionRefs["advanced"]}>
-          <CustomerSectionCard
-            title="Advanced Options"
-            icon={Settings}
-            className={`bg-white border border-slate-200 rounded-xl mt-6 transition-all duration-500 ${glowingSection === "advanced" ? "shadow-lg shadow-blue-500/20" : ""}`}
-          >
-            <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* ================= LEFT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Current Status ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">
-                        Current Status
-                      </h3>
-                    </div>
-                    <span className="text-sm text-slate-500">
-                      Check Current Status of Policy
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5">
-                          Policy Status
-                        </label>
-                        <select
-                          value={watch("statusId") || ""}
-                          disabled
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        >
-                          <option value="">Select Status</option>
-                          {statuses.map((status) => (
-                            <option key={status.id} value={status.id}>
-                              {status.statusName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Premium (F.U.P.) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fupDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={() => {}}
-                              readOnly={true}
-                            />
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Premium Adjusted
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("premiumAdjusted") || ""}
-                          placeholder="Premium Adjusted"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div className="flex items-center pt-8">
-                        <input
-                          id="premiumDeposit"
-                          type="checkbox"
-                          className="h-5 w-5"
-                          disabled
-                        />
-                        <label
-                          htmlFor="premiumDeposit"
-                          className="ml-3 text-sm"
-                        >
-                          Create Premium Deposit Entries
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Loan Taken
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("loanTaken") || ""}
-                          placeholder="Loan Taken"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Unpaid Loan Int. (FULI) Date
-                        </label>
-                        <Controller
-                          control={control}
-                          name="fuliDate"
-                          render={({ field }) => (
-                            <DatePicker
-                              value={
-                                field.value ? new Date(field.value) : undefined
-                              }
-                              onChange={() => {}}
-                              readOnly={true}
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* ================= NACH & NEFT ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <h3 className="font-semibold text-slate-900">
-                      NACH & NEFT Details
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      Provide NACH / NEFT Details for Bank Transactions
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {Boolean(watch("bankName") || watch("accountNumber") || watch("ifscCode")) && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("bankName") || ""}
-                              placeholder="Bank Name"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Number
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("accountNumber") || ""}
-                              placeholder="Account Number"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              IFSC Code
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("ifscCode") || ""}
-                              placeholder="IFSC Code"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("accountHolderName") || ""}
-                              placeholder="Account Holder Name"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Bank Branch
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("bankBranch") || ""}
-                              placeholder="Bank Branch"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              City
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("city") || ""}
-                              placeholder="City"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Account Type
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("accountType") || ""}
-                              placeholder="Account Type"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              Debt Date
-                            </label>
-                            <input
-                              value={watch("fupDate") || ""}
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              MICR Number
-                            </label>
-                            <input
-                              type="text"
-                              value={watch("micrNumber") || ""}
-                              placeholder="MICR Number"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {/* NEFT Section */}
-                      {Boolean(watch("neftBankName") || watch("neftAccountNumber") || watch("neftIfscCode")) && (
-                        <>
-                          <div className="md:col-span-2 my-4 border-t border-slate-200"></div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                watch("neftBankName") || ""
-                              }
-                              placeholder="Bank Name"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT Account Number
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                watch("neftAccountNumber") ||
-                                ""
-                              }
-                              placeholder="Account Number"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT IFSC Code
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                watch("neftIfscCode") || ""
-                              }
-                              placeholder="IFSC Code"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT Account Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                watch("neftAccountHolderName") ||
-                                ""
-                              }
-                              placeholder="Account Holder Name"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT Bank Branch
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                watch("neftBankBranch") || ""
-                              }
-                              placeholder="Bank Branch"
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">
-                              NEFT Submission Date
-                            </label>
-                            <input
-                              type="date"
-                              value={watch("neftSubmissionDate") || ""}
-                              readOnly
-                              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                            />
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* ================= RIGHT COLUMN ================= */}
-              <div className="space-y-6">
-                {/* ================= Nomination Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b bg-white">
-                    <h3 className="font-semibold text-slate-900">
-                      Nomination Details
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    {selectedPolicy.nominees &&
-                    selectedPolicy.nominees.length > 0 ? (
-                      <div className="space-y-4">
-                        {selectedPolicy.nominees.map(
-                          (nominee: any, index: number) => (
-                            <div
-                              key={nominee.id || index}
-                              className="border border-slate-200 rounded-lg p-4 space-y-3 relative"
-                            >
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Nominee Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={nominee.nomineeName || ""}
-                                    placeholder="Full Name"
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Relationship
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={nominee.relationship || ""}
-                                    placeholder="e.g., Spouse, Son"
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Date of Birth
-                                  </label>
-                                  <input
-                                    type="date"
-                                    value={
-                                      nominee.dateOfBirth
-                                        ? new Date(nominee.dateOfBirth)
-                                            .toISOString()
-                                            .substring(0, 10)
-                                        : ""
-                                    }
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Share %
-                                  </label>
-                                  <input
-                                    type="number"
-                                    value={nominee.percentage ?? ""}
-                                    placeholder="e.g., 100"
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Phone
-                                  </label>
-                                  <input
-                                    type="tel"
-                                    value={nominee.phone || ""}
-                                    placeholder="Mobile Number"
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1">
-                                    Email
-                                  </label>
-                                  <input
-                                    type="email"
-                                    value={nominee.email || ""}
-                                    placeholder="Email Address"
-                                    readOnly
-                                    className="w-full text-sm border-slate-200 rounded-md bg-slate-50 text-slate-500 cursor-not-allowed"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500 text-center py-4">
-                        No nominees added.
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {/* ================= Annuity Details ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Annuity Details
-                    </h3>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-sm text-slate-500">
-                      This will be enabled for Annuity Policies.
-                    </p>
-                  </div>
-                </div>
-                {/* ================= Other Information ================= */}
-                <div className="border border-slate-200 rounded-xl">
-                  <div className="flex items-center justify-between px-5 py-4 border-b">
-                    <h3 className="font-semibold text-slate-900">
-                      Other Information
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      Agency, Branch, Notes & Other Policy Information
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agency <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          value={watchAgencyId || ""}
-                          disabled
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        >
-                          <option value="">Select Agency</option>
-                          {agencies.map((agency) => (
-                            <option key={agency.id} value={agency.id}>
-                              {agency.agencyName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Branch
-                        </label>
-                        <select
-                          value={watch("branchId") || ""}
-                          disabled
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        >
-                          <option value="">Select Branch</option>
-                          {branches.map((branch) => (
-                            <option key={branch.id} value={branch.id}>
-                              [{branch.branchCode}] {branch.branchName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Advisor <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={
-                            advisors.find((a) => a.id === watchAdvisorId)
-                              ? `[${advisors.find((a) => a.id === watchAdvisorId)?.advisorCode}] ${advisors.find((a) => a.id === watchAdvisorId)?.advisorName}`
-                              : ""
-                          }
-                          placeholder="Select Advisor"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Agent Code (Autofilled)
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("agentCode") || ""}
-                          readOnly
-                          placeholder="Auto Filled"
-                          className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Medical
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("medical") || ""}
-                          placeholder="Medical Details"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Tax Beneficiary
-                        </label>
-                        <input
-                          type="text"
-                          value={watch("taxBeneficiary") || ""}
-                          placeholder="Tax Beneficiary"
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <div className="flex items-center mt-8">
-                        <input
-                          id="ageAdmitted"
-                          type="checkbox"
-                          className="h-5 w-5"
-                          disabled
-                        />
-                        <label htmlFor="ageAdmitted" className="ml-3 text-sm">
-                          Age Admitted
-                        </label>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2">
-                          Notes
-                        </label>
-                        <textarea
-                          value={watch("otherInformation") || ""}
-                          rows={4}
-                          placeholder="Enter Notes..."
-                          readOnly
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 resize-none bg-slate-50 text-slate-500 cursor-not-allowed"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div
+          ref={sectionRefs["advanced"]}
+          className={`mt-6 space-y-4 transition-all duration-500 ${glowingSection === "advanced" ? "ring-2 ring-blue-500/30 rounded-2xl p-2" : ""}`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+              <Settings size={16} />
             </div>
-          </CustomerSectionCard>
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
+                Advanced Options
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Policy status, banking, nomination, annuity and agency details
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* ================= LEFT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Current Status ================= */}
+              <CustomerSectionCard
+                title="Current Status"
+                icon={Activity}
+                subtitle="Check Current Status of Policy"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Status
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedPolicy.status?.statusName || (statuses.find(s => s.id === watch("statusId"))?.statusName) || ""}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Premium (F.U.P.) Date
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("fupDate") || ""}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Premium Adjusted
+                    </label>
+                    <input
+                      type="text"
+                      value={(selectedPolicy as any)?.premiumAdjusted || ""}
+                      placeholder="Premium Adjusted"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="premiumDeposit"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
+                      disabled
+                    />
+                    <label
+                      htmlFor="premiumDeposit"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      Create Premium Deposit Entries
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Loan Taken
+                    </label>
+                    <input
+                      type="text"
+                      value={(selectedPolicy as any)?.loanTaken || ""}
+                      placeholder="Loan Taken"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Loan Int. (FULI) Date
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("fuliDate") || ""}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+              </CustomerSectionCard>
+
+              {/* ================= NACH & NEFT ================= */}
+              <CustomerSectionCard
+                title="NACH & NEFT Details"
+                icon={Building2}
+                subtitle="Provide NACH / NEFT Details for Bank Transactions"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNachCheckbox"
+                      type="checkbox"
+                      checked={Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NACH")}
+                      disabled
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
+                    />
+                    <label
+                      htmlFor="useNachCheckbox"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      NACH Details
+                    </label>
+                  </div>
+
+                  {Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NACH") && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("bankName") || ""}
+                          placeholder="Bank Name"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("accountNumber") || ""}
+                          placeholder="Account Number"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("ifscCode") || ""}
+                          placeholder="IFSC Code"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("accountHolderName") || ""}
+                          placeholder="Account Holder Name"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("bankBranch") || ""}
+                          placeholder="Bank Branch"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("city") || ""}
+                          placeholder="City"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Type
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("accountType") || ""}
+                          placeholder="Account Type"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Debt Date
+                        </label>
+                        <input
+                          value={watch("fupDate") || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          MICR Number
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("micrNumber") || ""}
+                          placeholder="MICR Number"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* NEFT Section */}
+                  <div className="md:col-span-2 my-2 border-t border-slate-200"></div>
+
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNeftCheckbox"
+                      type="checkbox"
+                      checked={Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NEFT")}
+                      disabled
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
+                    />
+                    <label
+                      htmlFor="useNeftCheckbox"
+                      className="text-sm font-medium text-slate-700"
+                    >
+                      NEFT Details
+                    </label>
+                  </div>
+
+                  {Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NEFT") && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftBankName") || ""}
+                          placeholder="Bank Name"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftAccountNumber") || ""}
+                          placeholder="Account Number"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftIfscCode") || ""}
+                          placeholder="IFSC Code"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftAccountHolderName") || ""}
+                          placeholder="Account Holder Name"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftBankBranch") || ""}
+                          placeholder="Bank Branch"
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Submission Date
+                        </label>
+                        <input
+                          type="text"
+                          value={watch("neftSubmissionDate") || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CustomerSectionCard>
+            </div>
+
+            {/* ================= RIGHT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Nomination Details ================= */}
+              <CustomerSectionCard
+                title="Nomination Details"
+                icon={Users}
+                subtitle="Assign Policy Beneficiaries"
+              >
+                {selectedPolicy.nominees && selectedPolicy.nominees.length > 0 ? (
+                  <div className="space-y-4">
+                    {selectedPolicy.nominees.map((nominee: any, index: number) => (
+                      <div
+                        key={nominee.id || index}
+                        className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 relative space-y-3"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Nominee Name
+                            </label>
+                            <input
+                              type="text"
+                              value={nominee.nomineeName || ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Relationship
+                            </label>
+                            <input
+                              type="text"
+                              value={nominee.relationship || ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Date of Birth
+                            </label>
+                            <input
+                              type="text"
+                              value={nominee.dateOfBirth ? nominee.dateOfBirth.substring(0, 10) : ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Share %
+                            </label>
+                            <input
+                              type="text"
+                              value={nominee.percentage != null ? String(nominee.percentage) : ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              value={nominee.phone || ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              value={nominee.email || ""}
+                              readOnly
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm text-slate-700 cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 text-center py-6">
+                    No nominees added.
+                  </p>
+                )}
+              </CustomerSectionCard>
+
+              {/* ================= Annuity Details ================= */}
+              <CustomerSectionCard
+                title="Annuity Details"
+                icon={Calendar}
+                subtitle="Annuity Policy Configuration"
+              >
+                <div className="py-2">
+                  <p className="text-sm text-slate-500">
+                    This will be enabled for Annuity Policies.
+                  </p>
+                </div>
+              </CustomerSectionCard>
+
+              {/* ================= Other Information ================= */}
+              <CustomerSectionCard
+                title="Other Information"
+                icon={FileText}
+                subtitle="Agency, Branch, Notes & Other Policy Information"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agency <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={agencies.find((a) => a.id === watchAgencyId)?.agencyName || watchAgencyId || ""}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Branch
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedPolicy.branch ? `[${selectedPolicy.branch.branchCode}] ${selectedPolicy.branch.branchName}` : ((selectedPolicy as any)?.branchName || "")}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Advisor <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        advisors.find((a) => a.id === watchAdvisorId)
+                          ? `[${advisors.find((a) => a.id === watchAdvisorId)?.advisorCode}] ${advisors.find((a) => a.id === watchAdvisorId)?.advisorName}`
+                          : ""
+                      }
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agent Code (Autofilled)
+                    </label>
+                    <input
+                      type="text"
+                      value={watch("agentCode") || ""}
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Medical
+                    </label>
+                    <input
+                      type="text"
+                      value={(selectedPolicy as any)?.medical || ""}
+                      placeholder="Medical Details"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Tax Beneficiary
+                    </label>
+                    <input
+                      type="text"
+                      value={(selectedPolicy as any)?.taxBeneficiary || ""}
+                      placeholder="Tax Beneficiary"
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="ageAdmitted"
+                      type="checkbox"
+                      checked={Boolean((getValues as any)("ageAdmitted"))}
+                      disabled
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
+                    />
+                    <label htmlFor="ageAdmitted" className="text-sm font-medium text-slate-700">
+                      Age Admitted
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Notes
+                    </label>
+                    <textarea
+                      value={selectedPolicy?.remarks || (getValues as any)("notes") || ""}
+                      rows={4}
+                      placeholder="Enter Notes..."
+                      readOnly
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed resize-none"
+                    />
+                  </div>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
         </div>
       </div>
     </div>

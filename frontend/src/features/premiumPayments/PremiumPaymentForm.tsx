@@ -5,7 +5,7 @@ import { set, z } from "zod";
 import { useDispatch, useSelector} from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect, useState , useMemo } from "react";
-import { FileText, Loader2, Save, User, Search } from "lucide-react";
+import { FileText, Loader2, Save, User, Search, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchPolicies } from "@/features/policy/policySlice";
@@ -42,19 +42,48 @@ const schema = z
   })
 
 type FormValues = z.infer<typeof schema>;
-export default function PremiumPaymentForm({ paymentId, mode = "create" }: { paymentId?: string; mode?: "create" | "edit" | "view" }) {
+export default function PremiumPaymentForm({
+  paymentId,
+  mode = "create",
+  initialPolicyId,
+}: {
+  paymentId?: string;
+  mode?: "create" | "edit" | "view";
+  initialPolicyId?: string;
+}) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { policies } = useSelector((s: RootState) => s.policies);
   const { isSubmitting } = useSelector((s: RootState) => s.premiumPayments);
-  const {modes} = useSelector ((s:RootState) => s.premiumModes)
-  const [selectedPolicy,setSelectedPolicy] = useState<Policy | null>(null);
-  const {paymentModes} = useSelector((s:RootState) => s.paymentModes);
-  const [totalAmount,setTotatAmount] = useState(0);
+  const { modes } = useSelector((s: RootState) => s.premiumModes);
+  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [lastPayment, setLastPayment] = useState<any>(null);
+  const [highestPaidInstallment, setHighestPaidInstallment] = useState(0);
+  const [pendingOverdueCount, setPendingOverdueCount] = useState(0);
+  const { paymentModes } = useSelector((s: RootState) => s.paymentModes);
+  const [totalAmount, setTotatAmount] = useState(0);
 
+  const totalInstallments = useMemo(() => {
+    if (!selectedPolicy) return null;
+    const modeObj = selectedPolicy.premiumMode || modes.find((x) => x.id === selectedPolicy.premiumModeId);
+    const isSingle =
+      modeObj?.modeCode === "SIN" ||
+      modeObj?.modeName?.toLowerCase() === "single" ||
+      modeObj?.months === 0 ||
+      selectedPolicy.premiumPayingTerm === 1 ||
+      selectedPolicy.product?.planNumber === "717";
 
-  const input =`w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 ${mode === "view" ? "bg-slate-50 cursor-not-allowed" : ""}`;
-const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
+    if (isSingle) return 1;
+    if (selectedPolicy.premiumPayingTerm && selectedPolicy.premiumPayingTerm > 0) {
+      const modeMonths = Math.max(1, Number(modeObj?.months || 1));
+      const perYear = 12 / modeMonths;
+      return Math.floor(perYear * Number(selectedPolicy.premiumPayingTerm));
+    }
+    return null;
+  }, [selectedPolicy, modes]);
+
+  const input = `w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 ${mode === "view" ? "bg-slate-50 cursor-not-allowed" : ""}`;
+  const label = "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
 
   const policyOptions = useMemo(
     () =>
@@ -85,232 +114,308 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
       installmentNo: 1,
       paymentStatus: "PAID",
       dueDate: "",
-      paidDate : new Date().toDateString(),
-      gstOnLateFee : 0,
-      lateFee : 0,
-      premiumAmount :0,
-      paymentMode : "",
+      paidDate: new Date().toISOString().slice(0, 10),
+      gstOnLateFee: 0,
+      lateFee: 0,
+      premiumAmount: 0,
+      paymentMode: "",
+      futureDueDate: "",
+      paymentDetails: "",
+      gstRate: "0",
     },
   });
 
-  const [policyId , premiumAmount , lateFeeAmount ,gstRate, gstOnLateFee] = watch(["policyId" , "premiumAmount" , "lateFee" , "gstRate", "gstOnLateFee"])
-    //status = watch("paymentStatus");
+  const [policyId, premiumAmount, lateFeeAmount, gstRate, gstOnLateFee, installmentNo, dueDate] = watch([
+    "policyId",
+    "premiumAmount",
+    "lateFee",
+    "gstRate",
+    "gstOnLateFee",
+    "installmentNo",
+    "dueDate",
+  ]);
 
-
-    // load existing payment when editing
+  // Handle initialPolicyId from query param
   useEffect(() => {
-    if (!paymentId) 
-      return;
+    if (initialPolicyId && mode === "create") {
+      setValue("policyId", initialPolicyId);
+    }
+  }, [initialPolicyId, mode, setValue]);
+
+  // load existing payment when editing
+  useEffect(() => {
+    if (!paymentId) return;
     (async () => {
       const res = await dispatch(fetchPremiumPaymentById(paymentId as string));
       const p = res.payload;
-      if (p && typeof p === 'object' && 'policyId' in p) {
-        setValue("policyId",  p.policyId ?? "");
+      if (p && typeof p === "object" && "policyId" in p) {
+        setValue("policyId", p.policyId ?? "");
         setValue("installmentNo", p.installmentNo ?? 1);
-        setValue("dueDate", p.dueDate ? p.dueDate.slice(0,10) : "");
+        setValue("dueDate", p.dueDate ? p.dueDate.slice(0, 10) : "");
         setValue("premiumAmount", p.premiumAmount ?? 0);
-        setValue("paidDate", p.paidDate ? p.paidDate.slice(0,10) : "");
+        setValue("paidDate", p.paidDate ? p.paidDate.slice(0, 10) : "");
         setValue("lateFee", p.lateFee ?? 0);
-        //setValue("gstOnLateFee", p.gstOnLateFee ?? 0);
         setValue("paymentMode", p.paymentMode ?? "");
         setValue("paymentDetails", p.paymentDetails ?? "");
-        //setValue("futureDueDate", p.futureDueDate ?? "");
 
         const selectionPolicy = policies.find((x) => x.id === p.policyId);
-      
-        if(selectionPolicy)
-        setSelectedPolicy(selectionPolicy);
+        if (selectionPolicy) {
+          setSelectedPolicy(selectionPolicy);
+        }
       }
     })();
-  }, [paymentId, dispatch, setValue]);
+  }, [paymentId, dispatch, setValue, policies]);
 
   useEffect(() => {
     dispatch(fetchPolicies());
     dispatch(fetchPremiumModes());
     dispatch(fetchPaymentModes());
-
   }, [dispatch]);
 
-   useEffect(() => {
-  
-    setValue("gstOnLateFee",0);
-    
-    setValue("lateFee",0);
-    setValue("paymentDetails","");
-
-  }, [policyId]);
-
   useEffect(() => {
+    setValue("gstOnLateFee", 0);
+    setValue("lateFee", 0);
+    setValue("paymentDetails", "");
+    setHighestPaidInstallment(0);
+    setPendingOverdueCount(0);
+    setLastPayment(null);
+  }, [policyId, setValue]);
 
-      
-      if(mode === "create")
-      {
-        const p = policies.find((x) => x.id === policyId);
+  // When policy changes in create mode: setup initial values and auto-fetch due installments
+  useEffect(() => {
+    if (mode === "create" && policyId) {
+      const p = policies.find((x) => x.id === policyId);
+      if (!p) return;
 
-        if(p)
-        {
-          setSelectedPolicy(p);
-          getInstallmentNumber(policyId,1);
-          p?.policyRiders?.map((r) => {
-            console.log("Id",r.id)
-          })
-        }
+      setSelectedPolicy(p);
 
-        if (p?.nextPremiumDueDate)
-          setValue("dueDate", p.nextPremiumDueDate.slice(0, 10));
+      const modeObj = p.premiumMode || modes.find((x) => x.id === p.premiumModeId);
+      const isSinglePremium =
+        modeObj?.modeCode === "SIN" ||
+        modeObj?.modeName?.toLowerCase() === "single" ||
+        modeObj?.months === 0 ||
+        modes.find((x) => x.id === p.premiumModeId)?.modeCode === "SIN" ||
+        modes.find((x) => x.id === p.premiumModeId)?.months === 0 ||
+        p.premiumPayingTerm === 1 ||
+        p.product?.planNumber === "717";
 
-         if (p?.premium?.totalInstallmentPremium)
-           setValue("premiumAmount", Number(p.premium.totalInstallmentPremium));
+      // Fetch existing payments for sequence tracking and default due installments
+      (async () => {
+        const policyPayments = await dispatch(fetchPremiumPaymentsByPolicy(policyId));
+        const paymentsList = Array.isArray(policyPayments.payload) ? policyPayments.payload : [];
 
-        const monthsToAdd = modes.find((x) => x.id === p?.premiumModeId)?.months;
-        const futureDueDate = addMonths(p?.nextPremiumDueDate! , monthsToAdd!);
-        setValue("futureDueDate" , futureDueDate.toDateString());
-        
+        // Filter valid payments (paid or not cancelled/failed)
+        const validPayments = paymentsList.filter((payment: any) => {
+          const statusCode = payment.paymentStatus?.statusCode;
+          return statusCode !== "FAILED" && statusCode !== "CANCELLED";
+        });
 
-        if(p && p.nextPremiumDueDate! < new Date().toISOString())
-        {
+        const highestPaid = validPayments.reduce((max: number, payment: any) => {
+          const num = Number(payment.installmentNo);
+          return Number.isFinite(num) && num > max ? num : max;
+        }, 0);
 
-          const monthlyPremium = p?.premium?.installmentPremium;
+        setHighestPaidInstallment(highestPaid);
 
-
-          //New Code
-          const firstDueDate = startOfDay(new Date(p.nextPremiumDueDate!));
-
-          const today = startOfDay(new Date());
-
-          const modeMonths = Number(p.premiumMode?.months ?? 1);
-
-          let dueInstallments = 0;
-
-          if (!isBefore(today, firstDueDate)) {
-            const monthsElapsed = differenceInCalendarMonths(today,firstDueDate);
-
-            dueInstallments =
-              Math.floor(monthsElapsed / modeMonths) + 1;
-
-            const calculatedDueDate = addMonths(
-              firstDueDate,
-              (dueInstallments - 1) * modeMonths
-            );
-
-            // If the calculated installment's actual day hasn't arrived,
-            // don't count it.
-            if (isBefore(today, calculatedDueDate)) {
-              dueInstallments--;
-
-            }
-          }
-
-          // const firstDueDate = new Date(p?.nextPremiumDueDate!);
-          // const today = new Date();
-
-          // let dueInstallments = Number(((differenceInCalendarMonths(today, firstDueDate) + 1)/p?.premiumMode?.months).toFixed(0));
-          // //let dueInstallments = ((differenceInCalendarMonths(today, firstDueDate) + 1)/p?.premiumMode?.months);
-
-          // // If today's date is before this month's due date,
-          // // this month's installment isn't due yet.
-          // const currentMonthDueDate = addMonths(firstDueDate,dueInstallments - 1);
-
-          // if (isBefore(today, currentMonthDueDate)) {
-          //   dueInstallments--;
-          // }
-
-           const totalPremiumDue = Number((dueInstallments * monthlyPremium!).toFixed(2));
-
-           setValue("premiumAmount", totalPremiumDue);
-          
-           const overdueDays = Math.max(0,differenceInCalendarDays(today, firstDueDate));
-
-            console.log("Overdue days -",overdueDays)
-            console.log("Due installments -",dueInstallments)
-            console.log("Single premium - ",p?.premium?.installmentPremium)
-
-          //late fee and GST
-          const lateFeeApplicable = Number(((totalPremiumDue * 12 * overdueDays)/36500).toFixed(2));
-          const gstApplicableOnLateFee = Number(((lateFeeApplicable * gstRate)/100).toFixed(2));
-          setValue("lateFee",lateFeeApplicable);
-          setValue("gstOnLateFee",gstApplicableOnLateFee)
-
-          const newFutureDueDate = addMonths(firstDueDate, (dueInstallments*p?.premiumMode?.months));
-          setValue("futureDueDate" , newFutureDueDate.toDateString());
-
-          // console.log("GSt",gstRate)
-          // console.log(gstApplicableOnLateFee)
-          // console.log(firstDueDate)
-           //console.log("Next due ",newFutureDueDate)
-
-          
-          setValue("paymentDetails",`Payment of - ${dueInstallments} due premiums.`)        
-
-          getInstallmentNumber(policyId,dueInstallments);
-        }
-
-      }
-  }, [policyId, policies, setValue ,gstRate]);
-
-  const getInstallmentNumber = async (policyId : string, dueInstallments : number) => {
-    if(mode === "create")
-    {
-       const policyPayments =await dispatch(fetchPremiumPaymentsByPolicy(policyId));
-
-
-        const lastPayment = policyPayments.payload?.reduce((latest, payment) => {
-          const paymentDate = new Date(payment.createdAt);
-          return !latest || paymentDate > new Date(latest.createdAt) ? payment : latest;
+        const latestPayment = paymentsList.reduce((latest: any, payment: any) => {
+          if (!latest) return payment;
+          const pDate = new Date(payment.paidDate || payment.createdAt || 0);
+          const lDate = new Date(latest.paidDate || latest.createdAt || 0);
+          const pNo = Number(payment.installmentNo) || 0;
+          const lNo = Number(latest.installmentNo) || 0;
+          if (pNo !== lNo) return pNo > lNo ? payment : latest;
+          return pDate > lDate ? payment : latest;
         }, null);
 
-        if(lastPayment)
-        {
-          setValue("installmentNo",(dueInstallments + lastPayment?.installmentNo));
+        setLastPayment(latestPayment);
+
+        const modeMonths = Math.max(1, Number(modeObj?.months || 1));
+        const commencementDate = p.commencementDate ? startOfDay(new Date(p.commencementDate)) : null;
+
+        // Calculate next unpaid due date
+        let nextDueDate: Date;
+        if (isSinglePremium) {
+          if (p.nextPremiumDueDate && !isNaN(new Date(p.nextPremiumDueDate).getTime())) {
+            nextDueDate = startOfDay(new Date(p.nextPremiumDueDate));
+          } else if (commencementDate && !isNaN(commencementDate.getTime())) {
+            nextDueDate = commencementDate;
+          } else {
+            nextDueDate = startOfDay(new Date());
+          }
+          setValue("dueDate", format(nextDueDate, "yyyy-MM-dd"));
+          setValue("installmentNo", 1);
+          setPendingOverdueCount(0);
+        } else {
+          const nextSeq = highestPaid + 1;
+
+          if (p.nextPremiumDueDate && !isNaN(new Date(p.nextPremiumDueDate).getTime())) {
+            nextDueDate = startOfDay(new Date(p.nextPremiumDueDate));
+          } else if (commencementDate && !isNaN(commencementDate.getTime())) {
+            nextDueDate = addMonths(commencementDate, nextSeq * modeMonths);
+          } else {
+            nextDueDate = startOfDay(new Date());
+          }
+
+          const nextDueDateStr = format(nextDueDate, "yyyy-MM-dd");
+          setValue("dueDate", nextDueDateStr);
+
+          // installmentNo holds the installment number to pay (e.g. 5 for 5th installment, 7 for 7th)
+          setValue("installmentNo", nextSeq);
+
+          // Calculate how many installments are pending/overdue for informational display
+          const today = startOfDay(new Date());
+          let overdueCount = 0;
+          if (isBefore(nextDueDate, today)) {
+            const monthsElapsed = differenceInCalendarMonths(today, nextDueDate);
+            let count = Math.floor(monthsElapsed / modeMonths) + 1;
+            const calculatedDueDate = addMonths(nextDueDate, (count - 1) * modeMonths);
+            if (isBefore(today, calculatedDueDate)) {
+              count--;
+            }
+            overdueCount = Math.max(1, count);
+          }
+          setPendingOverdueCount(overdueCount);
         }
-        else
-        {
-          setValue("installmentNo",dueInstallments);
-        }
-       
-    } 
-  }
+      })();
+    }
+  }, [policyId, policies, modes, setValue, mode, dispatch]);
+
+  // Recalculate amounts, due dates, late fees when installmentNo (or policy/gstRate) changes
+  useEffect(() => {
+    if (!selectedPolicy || mode !== "create") return;
+
+    const modeObj = selectedPolicy.premiumMode || modes.find((x) => x.id === selectedPolicy.premiumModeId);
+    const isSinglePremium =
+      modeObj?.modeCode === "SIN" ||
+      modeObj?.modeName?.toLowerCase() === "single" ||
+      modeObj?.months === 0 ||
+      modes.find((x) => x.id === selectedPolicy.premiumModeId)?.modeCode === "SIN" ||
+      modes.find((x) => x.id === selectedPolicy.premiumModeId)?.months === 0 ||
+      selectedPolicy.premiumPayingTerm === 1 ||
+      selectedPolicy.product?.planNumber === "717";
+
+    const instNo = Number(installmentNo) || (highestPaidInstallment + 1);
+    const count = isSinglePremium
+      ? 1
+      : Math.max(1, instNo - highestPaidInstallment);
+
+    const basePrem = Number(selectedPolicy.premium?.installmentPremium ?? 0);
+    const totalPrem = Number(selectedPolicy.premium?.totalInstallmentPremium ?? basePrem ?? 0);
+    const singlePrem = totalPrem > 0 ? totalPrem : basePrem;
+
+    // Recalculate total premium based on installment count
+    const totalPremiumDue = Number((count * singlePrem).toFixed(2));
+    setValue("premiumAmount", totalPremiumDue);
+
+    const activeDueDate = dueDate ? startOfDay(new Date(dueDate)) : null;
+    const today = startOfDay(new Date());
+
+    if (isSinglePremium) {
+      setValue("futureDueDate", "");
+      setValue("paymentDetails", "Payment of Single Premium");
+
+      if (activeDueDate && !isNaN(activeDueDate.getTime()) && isBefore(activeDueDate, today)) {
+        const overdueDays = Math.max(0, differenceInCalendarDays(today, activeDueDate));
+        const lateFeeApplicable = Number(((totalPremiumDue * 12 * overdueDays) / 36500).toFixed(2));
+        const rateVal = Number(gstRate) || 0;
+        const gstApplicable = Number(((lateFeeApplicable * rateVal) / 100).toFixed(2));
+        setValue("lateFee", lateFeeApplicable);
+        setValue("gstOnLateFee", gstApplicable);
+      } else {
+        setValue("lateFee", 0);
+        setValue("gstOnLateFee", 0);
+      }
+    } else {
+      const modeMonths = Math.max(1, Number(modeObj?.months || 1));
+
+      if (activeDueDate && !isNaN(activeDueDate.getTime())) {
+        const newFutureDueDate = addMonths(activeDueDate, count * modeMonths);
+        setValue("futureDueDate", newFutureDueDate.toDateString());
+
+        const overdueDays = isBefore(activeDueDate, today)
+          ? Math.max(0, differenceInCalendarDays(today, activeDueDate))
+          : 0;
+
+        const lateFeeApplicable = overdueDays > 0
+          ? Number(((totalPremiumDue * 12 * overdueDays) / 36500).toFixed(2))
+          : 0;
+        const rateVal = Number(gstRate) || 0;
+        const gstApplicable = Number(((lateFeeApplicable * rateVal) / 100).toFixed(2));
+
+        setValue("lateFee", lateFeeApplicable);
+        setValue("gstOnLateFee", gstApplicable);
+      }
+
+      const startSeq = highestPaidInstallment + 1;
+      const endSeq = instNo;
+      setValue(
+        "paymentDetails",
+        count === 1
+          ? `Payment of installment #${startSeq}.`
+          : `Payment of ${count} installments (#${startSeq} to #${endSeq}).`,
+      );
+    }
+  }, [installmentNo, dueDate, selectedPolicy, gstRate, modes, setValue, mode, highestPaidInstallment]);
 
   useEffect(() => {
-    setTotatAmount(Number((Number(premiumAmount)+Number(lateFeeAmount!)+Number(gstOnLateFee)).toFixed(2)))
-  },[premiumAmount,lateFeeAmount,gstOnLateFee])
+    const prem = Number(premiumAmount) || 0;
+    const late = Number(lateFeeAmount) || 0;
+    const gst = Number(gstOnLateFee) || 0;
+    const total = Number((prem + late + gst).toFixed(2));
+    setTotatAmount(Number.isNaN(total) ? 0 : total);
+  }, [premiumAmount, lateFeeAmount, gstOnLateFee]);
 
   const submit = async (v: FormValues) => {
     try {
+      if (totalInstallments !== null && Number(v.installmentNo) > totalInstallments) {
+        toast.error(`Installment #${v.installmentNo} exceeds the policy's Premium Paying Term (${totalInstallments} installments for ${selectedPolicy?.premiumPayingTerm} years PPT).`);
+        return;
+      }
+
       const totalLateFee = Number(v.lateFee) + (Number(v.gstOnLateFee) || 0);
       const totalPremiumAmount = Number(v.premiumAmount);
-      if(mode === "edit") {
-        await dispatch(updatePremiumPayment({
-          id: paymentId!,
-          policyId: v.policyId,
-          installmentNo: v.installmentNo,
-          dueDate: v.dueDate,
-          premiumAmount: totalPremiumAmount,
-          paidDate: v.paidDate,
-          lateFee: totalLateFee ?? null,
-          paymentMode: v.paymentMode?.trim() || null,
-          paymentDetails : v.paymentDetails?.trim() || null,
-          futureDueDate : v.futureDueDate,}));
-          toast.success("Premium payment updated successfully");
+      const isSingle =
+        selectedPolicy?.premiumMode?.modeCode === "SIN" ||
+        selectedPolicy?.premiumMode?.months === 0 ||
+        selectedPolicy?.product?.planNumber === "717";
 
-        }
-        else{
-      await dispatch(
-        createPremiumPayment({
-          policyId: v.policyId,
-          installmentNo: v.installmentNo,
-          dueDate: v.dueDate,
-          premiumAmount: totalPremiumAmount,
-          paidDate: v.paidDate,
-          lateFee: totalLateFee ?? null,
-          paymentMode: v.paymentMode?.trim() || null,
-          paymentDetails : v.paymentDetails?.trim() || null,
-          futureDueDate : v.futureDueDate,
-        }),
-      ).unwrap();
-          //console.log(v.futureDueDate)
-       toast.success("Premium payment created successfully");
-    }
+      const effectiveInstallmentNo = isSingle
+        ? 1
+        : Number(v.installmentNo);
+
+      if (mode === "edit") {
+        await dispatch(
+          updatePremiumPayment({
+            id: paymentId!,
+            policyId: v.policyId,
+            installmentNo: v.installmentNo,
+            dueDate: v.dueDate,
+            premiumAmount: totalPremiumAmount,
+            paidDate: v.paidDate,
+            lateFee: totalLateFee ?? null,
+            paymentMode: v.paymentMode?.trim() || null,
+            paymentDetails: v.paymentDetails?.trim() || null,
+            futureDueDate: v.futureDueDate,
+          }),
+        );
+        toast.success("Premium payment updated successfully");
+      } else {
+        await dispatch(
+          createPremiumPayment({
+            policyId: v.policyId,
+            installmentNo: effectiveInstallmentNo,
+            dueDate: v.dueDate,
+            premiumAmount: totalPremiumAmount,
+            paidDate: v.paidDate,
+            lateFee: totalLateFee ?? null,
+            paymentMode: v.paymentMode?.trim() || null,
+            paymentDetails: v.paymentDetails?.trim() || null,
+            futureDueDate: v.futureDueDate,
+          }),
+        ).unwrap();
+        await dispatch(fetchPolicies());
+        toast.success("Premium payment created successfully");
+      }
       router.push("/dashboard/premium-payments");
     } catch (e) {
       toast.error(String(e || "Failed to create premium payment"));
@@ -371,18 +476,79 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
           </div>
 
           <div>
-            <label className={label}>Installment<span className="text-rose-500">*</span></label>
+            <label className={label}>
+              Installment No. <span className="text-rose-500">*</span>
+            </label>
             <input
               type="number"
+              min={mode === "create" && highestPaidInstallment > 0 ? highestPaidInstallment + 1 : 1}
+              max={totalInstallments ?? undefined}
               {...register("installmentNo")}
-              className={`${input} bg-slate-50 cursor-not-allowed`}
-              disabled
+              className={`${input} ${totalInstallments !== null && Number(installmentNo) > totalInstallments ? "!border-rose-500 !ring-2 !ring-rose-200" : ""} ${mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717")) ? "bg-slate-50 cursor-not-allowed" : ""}`}
+              disabled={mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717"))}
+              placeholder={mode === "create" && selectedPolicy ? `e.g. ${highestPaidInstallment + 1}` : "e.g. 1"}
             />
             {errors.installmentNo && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.installmentNo.message}
               </p>
             )}
+            {totalInstallments !== null && Number(installmentNo) > totalInstallments && (
+              <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+                <AlertCircle size={15} className="shrink-0 text-rose-600" />
+                <span>
+                  Warning: Installment #{Number(installmentNo)} exceeds the policy&apos;s Premium Paying Term (Total allowed: {totalInstallments} installments for {selectedPolicy?.premiumPayingTerm} yrs PPT).
+                </span>
+              </div>
+            )}
+            {totalInstallments !== null && highestPaidInstallment >= totalInstallments && (
+              <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+                <AlertCircle size={15} className="shrink-0 text-rose-600" />
+                <span>
+                  All {totalInstallments} installments for this policy have already been completed (PPT: {selectedPolicy?.premiumPayingTerm} yrs).
+                </span>
+              </div>
+            )}
+            {selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717") ? (
+              highestPaidInstallment >= 1 ? (
+                <div className="mt-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
+                  ⚠️ Single premium policy: Already paid (Installment #1 recorded).
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">Single premium policy (1 payment)</p>
+              )
+            ) : mode === "create" && highestPaidInstallment > 0 ? (
+              <div className="mt-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs text-amber-900">
+                <span className="font-semibold">Previous Paid:</span> {highestPaidInstallment} {highestPaidInstallment === 1 ? "installment" : "installments"} (#1{highestPaidInstallment > 1 ? ` to #${highestPaidInstallment}` : ""})
+                <span className="mx-1.5 text-amber-400">•</span>
+                <span className="font-semibold">Now Paying:</span> {(() => {
+                  const inst = Number(installmentNo) || (highestPaidInstallment + 1);
+                  const cnt = Math.max(1, inst - highestPaidInstallment);
+                  return cnt === 1
+                    ? `Installment #${inst} only`
+                    : `${cnt} installments (#${highestPaidInstallment + 1} to #${inst})`;
+                })()}
+                {pendingOverdueCount > 1 && (
+                  <span className="ml-2 font-normal text-amber-700">({pendingOverdueCount} installments pending)</span>
+                )}
+                {totalInstallments !== null && (
+                  <span className="ml-2 text-slate-500 font-normal">| PPT Max: #{totalInstallments}</span>
+                )}
+              </div>
+            ) : mode === "create" && selectedPolicy ? (
+              <div className="mt-1.5 rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-700">
+                <span className="font-semibold">Now Paying:</span> {(() => {
+                  const inst = Number(installmentNo) || 1;
+                  return inst === 1 ? "Installment #1 only" : `${inst} installments (#1 to #${inst})`;
+                })()}
+                {pendingOverdueCount > 1 && (
+                  <span className="ml-2 font-normal text-slate-500">({pendingOverdueCount} installments pending)</span>
+                )}
+                {totalInstallments !== null && (
+                  <span className="ml-2 text-slate-500 font-normal">| PPT Max: #{totalInstallments}</span>
+                )}
+              </div>
+            ) : null}
           </div>
           <div>
             <label className={label}>Premium Due Date  <span className="text-rose-500">*</span></label>
@@ -393,42 +559,73 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
               </p>
             )}
           </div>
-          {(selectedPolicy?.premium?.totalInstallmentPremium - selectedPolicy?.premium?.installmentPremium) > 0 &&
-            <div className="flex gap-3 col-span-2">
-            <div>
-              <label className={label}>Base Premium Amount</label>
-              <input
-                type="text"
-                value= {selectedPolicy?.premium?.installmentPremium ?? 0}
-                className={`${input} bg-slate-50 cursor-not-allowed`}
-                disabled
-              />
-            </div>  
-            <div>
-              <label className={label}>Rider Amount</label>
-              <input
-                type="text"
-                value = {(selectedPolicy?.premium?.totalInstallmentPremium - selectedPolicy?.premium?.installmentPremium ?? 0).toFixed(2)}
-                className={`${input} bg-slate-50 cursor-not-allowed`}
-                disabled
-              />
-             
-            </div>  
-            <div>
-              <label className={label}>Total Premium Amount  <span className="text-rose-500">*</span></label>
-              <input
-                type="text"
-                {...register("premiumAmount")}
-                className={`${input} bg-slate-50 cursor-not-allowed`}
-                disabled
-              />
-              {errors.premiumAmount && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.premiumAmount.message}
-              </p>
-            )}
-            </div>             
-          </div>}     
+          {(() => {
+            const isSingle = selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717");
+            const instNo = Number(installmentNo) || (highestPaidInstallment + 1);
+            const count = isSingle ? 1 : Math.max(1, instNo - highestPaidInstallment);
+            const singleBasePrem = Number(selectedPolicy?.premium?.installmentPremium ?? 0);
+            const singleTotalPrem = Number(selectedPolicy?.premium?.totalInstallmentPremium ?? selectedPolicy?.premium?.installmentPremium ?? 0);
+            const singleRiderAmt = Math.max(0, Number((singleTotalPrem - singleBasePrem).toFixed(2)));
+
+            const basePrem = Number((singleBasePrem * count).toFixed(2));
+            const riderAmt = Number((singleRiderAmt * count).toFixed(2));
+
+            if (singleRiderAmt > 0) {
+              return (
+                <div className="flex gap-3 col-span-2">
+                  <div className="flex-1">
+                    <label className={label}>Base Premium Amount {count > 1 ? `(${count}x)` : ""}</label>
+                    <input
+                      type="text"
+                      value={basePrem}
+                      className={`${input} bg-slate-50 cursor-not-allowed`}
+                      disabled
+                    />
+                  </div>  
+                  <div className="flex-1">
+                    <label className={label}>Rider Amount {count > 1 ? `(${count}x)` : ""}</label>
+                    <input
+                      type="text"
+                      value={riderAmt.toFixed(2)}
+                      className={`${input} bg-slate-50 cursor-not-allowed`}
+                      disabled
+                    />
+                  </div>  
+                  <div className="flex-1">
+                    <label className={label}>Total Premium Amount  <span className="text-rose-500">*</span></label>
+                    <input
+                      type="text"
+                      {...register("premiumAmount")}
+                      className={`${input} bg-slate-50 cursor-not-allowed`}
+                      disabled
+                    />
+                    {errors.premiumAmount && (
+                      <p className="mt-1 text-xs text-rose-600">
+                        {errors.premiumAmount.message}
+                      </p>
+                    )}
+                  </div>             
+                </div>
+              );
+            }
+
+            return (
+              <div>
+                <label className={label}>Premium Amount {count > 1 ? `(${count} installments)` : ""} <span className="text-rose-500">*</span></label>
+                <input
+                  type="text"
+                  {...register("premiumAmount")}
+                  className={`${input} bg-slate-50 cursor-not-allowed`}
+                  disabled
+                />
+                {errors.premiumAmount && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.premiumAmount.message}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {/* <div>
             <label className={label}>Payment Status *</label>
             <select {...register("paymentStatus")} className={input}>
@@ -491,15 +688,10 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
             <label className={label}>Total Amount</label>
             <input
               type="number"
-              value = {totalAmount}
+              value={Number.isNaN(totalAmount) ? 0 : totalAmount}
               className={`${input} disabled:bg-slate-50`}
               disabled
             />
-            {errors.lateFee && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.lateFee.message}
-              </p>
-            )}
           </div>
           <div>
             <label className={label}>
@@ -586,7 +778,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                 <label className={label}>Commencement Date</label>
                 <input
                   type="text"
-                  value = {new Date(selectedPolicy?.commencementDate).toLocaleDateString("en-IN")}
+                  value={selectedPolicy?.commencementDate ? new Date(selectedPolicy.commencementDate).toLocaleDateString("en-IN") : ""}
                   className={`${input} disabled:bg-slate-50`}
                   disabled
                 />
@@ -595,7 +787,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                 <label className={label}>Plan</label>
                 <input
                   type="text"
-                  value = {selectedPolicy?.product?.productName}
+                  value={selectedPolicy?.product?.productName || ""}
                   className={`${input} disabled:bg-slate-50`}
                   disabled
                 />
@@ -605,7 +797,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   <label className={label}>Mode</label>
                   <input
                     type="text"
-                    value = {selectedPolicy?.premiumMode?.modeName}
+                    value={selectedPolicy?.premiumMode?.modeName || ""}
                     className={`${input} disabled:bg-slate-50`}
                     disabled
                   />
@@ -614,7 +806,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   <label className={label}>PT</label>
                   <input
                     type="text"
-                    value = {selectedPolicy?.policyTerm || 0}
+                    value={selectedPolicy?.policyTerm || 0}
                     className={`${input} disabled:bg-slate-50`}
                     disabled
                   />
@@ -623,7 +815,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   <label className={label}>PPT</label>
                   <input
                     type="text"
-                    value = {selectedPolicy?.premiumPayingTerm || 0}
+                    value={selectedPolicy?.premiumPayingTerm || 0}
                     className={`${input} disabled:bg-slate-50`}
                     disabled
                   />
@@ -633,7 +825,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   <label className={label}>Agent Name</label>
                   <input
                     type="text"
-                    value = {selectedPolicy?.advisor?.advisorName}
+                    value={selectedPolicy?.advisor?.advisorName || ""}
                     className={`${input} disabled:bg-slate-50`}
                     disabled
                   />
@@ -642,7 +834,7 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
                   <label className={label}>Branch Code</label>
                   <input
                     type="text"
-                    value = {selectedPolicy?.branch.branchCode}
+                    value={selectedPolicy?.branch?.branchCode || ""}
                     className={`${input} disabled:bg-slate-50`}
                     disabled
                   />
@@ -659,7 +851,20 @@ const label ="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em]
             Cancel
           </button>
           <button
-            disabled={isSubmitting || !selectedPolicy}
+            disabled={
+              isSubmitting ||
+              !selectedPolicy ||
+              (totalInstallments !== null && Number(installmentNo) > totalInstallments) ||
+              (totalInstallments !== null && highestPaidInstallment >= totalInstallments) ||
+              (mode === "create" &&
+                Boolean(
+                  selectedPolicy &&
+                    (selectedPolicy.premiumMode?.modeCode === "SIN" ||
+                      selectedPolicy.premiumMode?.months === 0 ||
+                      selectedPolicy.product?.planNumber === "717") &&
+                    highestPaidInstallment >= 1,
+                ))
+            }
             type="submit"
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-[60%]"
           >
