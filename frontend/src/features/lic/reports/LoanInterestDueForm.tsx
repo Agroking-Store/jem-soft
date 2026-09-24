@@ -49,11 +49,12 @@ interface LoanInterestDueFormProps {
   customers: any[];
   policies: any[];
   branches: any[];
+  loans?: any[];
 }
 
 const defaultFormData = (): LoanInterestDueFormData => ({
-  dateFrom: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split("T")[0],
-  dateTo: new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0).toISOString().split("T")[0],
+  dateFrom: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
+  dateTo: new Date(new Date().getFullYear(), new Date().getMonth() + 3, 0).toISOString().split("T")[0],
   reportDate: new Date().toISOString().split("T")[0],
   reportType: "Statement",
   sortingOption: "groupsWise",

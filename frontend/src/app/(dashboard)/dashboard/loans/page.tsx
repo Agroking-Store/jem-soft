@@ -3,7 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Eye, Edit, Trash2, Landmark, HandCoins } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
+  AlertCircle,
+  Landmark,
+  HandCoins,
+  Banknote,
+  Activity,
+  FileSpreadsheet,
+} from "lucide-react";
 import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchLoans, deleteLoan, type Loan } from "@/features/loans/loanSlice";
@@ -143,7 +155,13 @@ export default function LoansPage() {
           </div>
         </div>
         {isClient && canEdit && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => router.push("/dashboard/lic/reports")}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-200 cursor-pointer"
+            >
+              <FileSpreadsheet size={18} /> Loan Reports
+            </button>
             <button
               onClick={() => router.push("/dashboard/loans/repay")}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
@@ -388,7 +406,6 @@ export default function LoansPage() {
 
       {/* Pagination Bar */}
       <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3">
-        {/* Left */}
         <p className="text-sm text-slate-500">
           Showing{" "}
           {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
@@ -398,9 +415,7 @@ export default function LoansPage() {
           {filtered.length} entries
         </p>
 
-        {/* Right */}
         <div className="flex items-center gap-3 mt-3 md:mt-0">
-          {/* Previous */}
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
@@ -409,7 +424,6 @@ export default function LoansPage() {
             &lt;
           </button>
 
-          {/* Page Numbers */}
           <div className="flex items-center gap-1">
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .slice(
@@ -443,7 +457,6 @@ export default function LoansPage() {
             )}
           </div>
 
-          {/* Next */}
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
@@ -452,7 +465,6 @@ export default function LoansPage() {
             &gt;
           </button>
 
-          {/* Rows Per Page */}
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}

@@ -1,12 +1,15 @@
-import express from "express";
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
-import { getLapsedPolicies } from "../controllers/policy360Controller.js";
+import express from 'express';
+import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+import { getLapsedPolicies, getOutstandingPremiums } from '../controllers/policy360Controller.js';
 
 const router = express.Router();
 
 router.use(protect);
 
 // GET /api/policy-360/lapsed
-router.get("/lapsed", restrictTo("ADMIN", "ADVISOR", "VIEWER"), getLapsedPolicies);
+router.get('/lapsed', restrictTo('ADMIN', 'ADVISOR', 'VIEWER'), getLapsedPolicies);
+
+// GET /api/policy-360/outstanding
+router.get('/outstanding', restrictTo('ADMIN', 'ADVISOR', 'VIEWER'), getOutstandingPremiums);
 
 export default router;

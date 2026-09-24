@@ -165,7 +165,11 @@ export default function LapsedPolicyReportView({
       const rawCode = (p.status?.statusCode || p.statusCode || "").toLowerCase();
 
       // Check if policy is lapsed or overdue past grace period
-      let isLapsed = rawStatus.includes("laps") || rawCode.includes("laps") || rawStatus.includes("reduced paid");
+      // isExplicitlyLapsed = true when the DB status itself is Lapsed/Reduced-Paid-Up
+      const isExplicitlyLapsed =
+        rawStatus.includes("laps") || rawCode.includes("laps") || rawStatus.includes("reduced paid");
+
+      let isLapsed = isExplicitlyLapsed;
       if (!isLapsed && (rawStatus.includes("active") || rawStatus.includes("inforce"))) {
         const fup = p.fupDate || p.nextPremiumDueDate;
         if (fup) {
@@ -177,10 +181,17 @@ export default function LapsedPolicyReportView({
 
       if (!isLapsed) return false;
 
-      const lapsedDateRaw = p.lapsedDate || p.nextPremiumDueDate || p.fupDate;
-      if (lapsedSince && lapsedDateRaw) {
-        const ld = new Date(lapsedDateRaw);
-        if (!isNaN(ld.getTime()) && ld < lapsedSince) return false;
+      // Apply the "lapsed since" date filter ONLY for inferred lapses (active policies
+      // that went overdue). Policies that are already explicitly marked Lapsed/Reduced-Paid-Up
+      // in the DB must always appear regardless of nextPremiumDueDate age, because the
+      // nextPremiumDueDate is not a reliable proxy for when an explicitly-lapsed policy
+      // first lapsed (it may be years in the past).
+      if (!isExplicitlyLapsed) {
+        const lapsedDateRaw = p.lapsedDate || p.nextPremiumDueDate || p.fupDate;
+        if (lapsedSince && lapsedDateRaw) {
+          const ld = new Date(lapsedDateRaw);
+          if (!isNaN(ld.getTime()) && ld < lapsedSince) return false;
+        }
       }
 
       if (selectedStatusNames.length > 0) {

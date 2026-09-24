@@ -9,8 +9,8 @@ import {
 import {
   getRepayments,
   createRepayment,
-} from "../controllers/loanRepaymentController.ts";
-import { protect } from "../middlewares/authMiddleware.ts";
+} from "../controllers/loanRepaymentController.js";
+import { protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 

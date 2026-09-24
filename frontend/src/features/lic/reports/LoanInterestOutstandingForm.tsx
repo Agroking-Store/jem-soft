@@ -47,6 +47,7 @@ interface LoanInterestOutstandingFormProps {
   customers: any[];
   policies: any[];
   branches: any[];
+  loans?: any[];
 }
 
 const defaultFormData = (): LoanInterestOutstandingFormData => ({
@@ -119,7 +120,7 @@ export default function LoanInterestOutstandingForm({
             <span>Reports</span>
           </button>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Loan Interest Outstanding
+            Loan Outstanding Due
           </h1>
         </div>
 

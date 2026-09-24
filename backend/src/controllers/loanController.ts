@@ -27,20 +27,13 @@ export const getLoan = async (req: Request, res: Response) => {
 
 export const addLoan = async (req: Request, res: Response) => {
   try {
-    const { policyId, loanAmount, interestRate, loanDate, loanStatusId } =
-      req.body;
+    const { policyId, loanAmount, interestRate, loanDate } = req.body;
 
-    if (
-      !policyId ||
-      !loanAmount ||
-      !interestRate ||
-      !loanDate ||
-      !loanStatusId
-    ) {
+    if (!policyId || !loanAmount || !interestRate || !loanDate) {
       res.status(400).json({
         success: false,
         message:
-          "policyId, loanAmount, interestRate, loanDate and loanStatusId are required",
+          "policyId, loanAmount, interestRate, and loanDate are required",
       });
       return;
     }
