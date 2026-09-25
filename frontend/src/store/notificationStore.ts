@@ -40,15 +40,15 @@ export const useNotificationStore =
       const response = await getNotifications();
 
       const notifications = response.data;
+      const unreadCount = notifications.filter(
+        (n: any) => !n.isRead
+      ).length;
 
-      set({
+      set((state) => ({
         notifications,
-
-        unreadCount: notifications.filter(
-          (n: any) => !n.isRead
-        ).length,
-        
-      });
+        unreadCount,
+        showNotificationCount: unreadCount > 0 ? (unreadCount > state.unreadCount ? true : state.showNotificationCount) : false,
+      }));
     },
 
     readNotification: async (id: string) => {

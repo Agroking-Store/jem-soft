@@ -247,6 +247,7 @@ export default function LICPoliciesPage() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [policyAgeFilter, setPolicyAgeFilter] = useState<"All" | "New" | "Old">("All");
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPolicyTypeModalOpen, setIsPolicyTypeModalOpen] = useState(false);
@@ -337,7 +338,26 @@ export default function LICPoliciesPage() {
 
       const matchesStatus =
         filterStatus === "All" || policy.status?.statusName === filterStatus;
-      return matchesSearch && matchesStatus;
+
+      let matchesAge = true;
+      if (policyAgeFilter !== "All") {
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const oneYearAgoTime = oneYearAgo.getTime();
+        const dateStr =
+          policy.commencementDate || policy.issueDate || policy.createdAt;
+        const policyTime = dateStr ? new Date(dateStr).getTime() : 0;
+        const isNew = policyTime >= oneYearAgoTime;
+        matchesAge = policyAgeFilter === "New" ? isNew : !isNew;
+      }
+
+      return matchesSearch && matchesStatus && matchesAge;
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.commencementDate || 0).getTime();
+      const timeB = new Date(b.createdAt || b.commencementDate || 0).getTime();
+      return timeB - timeA;
     });
 
     const calculatedStats = {
@@ -348,8 +368,8 @@ export default function LICPoliciesPage() {
       lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
     };
 
-    return { stats: calculatedStats, filteredPolicies: filtered };
-  }, [policies, searchTerm, filterStatus]);
+    return { stats: calculatedStats, filteredPolicies: sorted };
+  }, [policies, searchTerm, filterStatus, policyAgeFilter]);
 
   // ── Pagination (applied AFTER search/filtering) ──
   const totalItems = filteredPolicies.length;
@@ -364,7 +384,7 @@ export default function LICPoliciesPage() {
   // Reset to the first page whenever the search/filter criteria change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterStatus]);
+  }, [searchTerm, filterStatus, policyAgeFilter]);
 
   // Keep the current page within bounds if the filtered list shrinks
   useEffect(() => {
@@ -384,6 +404,12 @@ export default function LICPoliciesPage() {
     value: status,
     label: status,
   }));
+
+  const policyAgeOptions = [
+    { value: "All", label: "All Policies" },
+    { value: "New", label: "New Policy" },
+    { value: "Old", label: "Old Policy" },
+  ];
 
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
@@ -474,6 +500,13 @@ export default function LICPoliciesPage() {
             value={filterStatus}
             onChange={setFilterStatus}
           />
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Policies"
+            options={policyAgeOptions}
+            value={policyAgeFilter}
+            onChange={(val) => setPolicyAgeFilter(val as "All" | "New" | "Old")}
+          />
         </div>
       </div>
 
@@ -488,17 +521,17 @@ export default function LICPoliciesPage() {
           <div className="p-6">
             <CustomerEmptyState
               title={
-                searchTerm || filterStatus !== "All"
+                searchTerm || filterStatus !== "All" || policyAgeFilter !== "All"
                   ? "No Policies Found"
                   : "No policies have been added yet"
               }
               description={
-                searchTerm || filterStatus !== "All"
+                searchTerm || filterStatus !== "All" || policyAgeFilter !== "All"
                   ? "Try adjusting your search or filter criteria to find what you're looking for."
                   : "Get started by creating a new policy record."
               }
               action={
-                isClient && canEdit && !searchTerm && filterStatus === "All" ? (
+                isClient && canEdit && !searchTerm && filterStatus === "All" && policyAgeFilter === "All" ? (
                   <button
                     type="button"
                     onClick={() => setIsPolicyTypeModalOpen(true)}

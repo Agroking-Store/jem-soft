@@ -157,6 +157,24 @@ export default function NewLICPolicyPage() {
 
   const methods = useForm<PolicyFormValues>({
     resolver: async (values, context, options) => {
+      const isOther =
+        selectedPolicyType === "other" || values.providerType === "OTHER";
+      if (isOther) {
+        return zodResolver(policySchema as any)(
+          values as any,
+          context as any,
+          options as any,
+        ) as any;
+      }
+
+      let refinedSchema = policySchema.refine(
+        (data) => !data.policyNumber || /^\d{9}$/.test(data.policyNumber),
+        {
+          message: "Policy number must be exactly 9 digits.",
+          path: ["policyNumber"],
+        },
+      );
+
       const selectedProductAttributes = productAttributeValues.filter(
         (attr) => attr.productId === values.productId,
       );
@@ -164,8 +182,6 @@ export default function NewLICPolicyPage() {
         selectedProductAttributes.find(
           (a) => a.attribute.attributeCode === code,
         )?.value;
-
-      let refinedSchema = policySchema;
 
       const minTerm = getAttributeValue("MIN_POLICY_TERM");
       const maxTerm = getAttributeValue("MAX_POLICY_TERM");
@@ -316,6 +332,7 @@ export default function NewLICPolicyPage() {
       ) as any;
     },
     defaultValues: {
+      providerType: selectedPolicyType === "other" ? "OTHER" : "LIC",
       riders: [],
       nominees: [],
     },
@@ -384,6 +401,20 @@ export default function NewLICPolicyPage() {
   const watchPolicyNumber = watch("policyNumber");
   const watchSmoker = watch("smoker");
   const watchGender = watch("gender");
+  const watchInstallmentPremium = watch("installmentPremium");
+  const watchGst = watch("gst");
+  const watchProviderType = watch("providerType");
+  const isOtherPolicy =
+    selectedPolicyType === "other" || watchProviderType === "OTHER";
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>("");
+
+  useEffect(() => {
+    if (selectedPolicyType === "other") {
+      setValue("providerType", "OTHER");
+    } else if (selectedPolicyType === "lic") {
+      setValue("providerType", "LIC");
+    }
+  }, [selectedPolicyType, setValue]);
 
   const watchProductId = watch("productId");
   const premiumPreviewKey = [
@@ -552,33 +583,56 @@ export default function NewLICPolicyPage() {
       const isLICProvider = providerCode === "lic";
 
       if (selectedPolicyType === "lic") return isLICProvider;
-      if (selectedPolicyType === "other") return providerCode ? !isLICProvider : false;
+      if (selectedPolicyType === "other" || watchProviderType === "OTHER") {
+        if (!providerCode || isLICProvider) return false;
+        if (selectedCompanyFilter && product.providerId !== selectedCompanyFilter) {
+          return false;
+        }
+        return true;
+      }
       return true;
     });
 
     const active = filteredProducts
-      .filter(p => p.productType !== 'Withdrawn')
-      .sort((a, b) => (a.planNumber ?? "").localeCompare(b.planNumber ?? ""))
-      .map(p => ({
-        value: p.id,
-        label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
-        sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
-      }));
+      .filter((p) => p.productType !== "Withdrawn")
+      .sort((a, b) => (a.planNumber ?? a.productName).localeCompare(b.planNumber ?? b.productName))
+      .map((p) => {
+        const provider = providers.find((pr) => pr.id === p.providerId);
+        return {
+          value: p.id,
+          label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
+          sublabel: provider ? `${provider.name} (${provider.code})` : (p.planNumber ? `Plan No: ${p.planNumber}` : undefined),
+        };
+      });
 
     const withdrawn = filteredProducts
-      .filter(p => p.productType === 'Withdrawn')
+      .filter((p) => p.productType === "Withdrawn")
       .sort((a, b) => a.productName.localeCompare(b.productName))
-      .map(p => ({
-        value: p.id,
-        label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
-        sublabel: p.planNumber ? `Plan No: ${p.planNumber}` : undefined,
-      }));
+      .map((p) => {
+        const provider = providers.find((pr) => pr.id === p.providerId);
+        return {
+          value: p.id,
+          label: p.planNumber ? `${p.planNumber} - ${p.productName}` : p.productName,
+          sublabel: provider ? `${provider.name} (${provider.code})` : (p.planNumber ? `Plan No: ${p.planNumber}` : undefined),
+        };
+      });
 
     if (withdrawn.length > 0) {
       return [...active, { label: "Withdrawn Plans", options: withdrawn, isCollapsible: true }];
     }
     return active;
-  }, [products, providers, selectedPolicyType]);
+  }, [products, providers, selectedPolicyType, watchProviderType, selectedCompanyFilter]);
+
+  const companyOptions = useMemo(() => {
+    const nonLicProviders = providers.filter((p) => p.code?.toLowerCase() !== "lic");
+    return [
+      { value: "", label: "All Companies / Insurers" },
+      ...nonLicProviders.map((p) => ({
+        value: p.id,
+        label: `${p.name} (${p.code})`,
+      })),
+    ];
+  }, [providers]);
 
   const agencyOptions = useMemo(() => {
     return agencies
@@ -647,6 +701,9 @@ export default function NewLICPolicyPage() {
       providerCode === "lic" ? "LIC" : "OTHER",
       { shouldValidate: true },
     );
+    if (providerCode !== "lic" && selectedProduct.providerId) {
+      setSelectedCompanyFilter(selectedProduct.providerId);
+    }
   }, [watchProductId, products, providers, setValue]);
 
   useEffect(() => {
@@ -683,6 +740,7 @@ export default function NewLICPolicyPage() {
 
   // Auto-fill Term Rider and CIR fields, and Plan 774 defaults
   useEffect(() => {
+    if (isOtherPolicy) return;
     if (Array.isArray(watchRiders)) {
       const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
       const isWholeLife = ["771", "745", "883", "887"].includes(selectedPlan || "");
@@ -690,7 +748,7 @@ export default function NewLICPolicyPage() {
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
 
-        if (selectedPlan === "774") {
+        if (selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
           const expectedTerm = watchTerm ? Number(watchTerm) : null;
           const expectedPpt = watchPpt ? Number(watchPpt) : null;
@@ -773,14 +831,31 @@ export default function NewLICPolicyPage() {
         }
       });
     }
-  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, updateRider]);
+  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, updateRider, isOtherPolicy]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
+    if (isOtherPolicy) {
+      let totalManualRiderPremium = 0;
+      if (Array.isArray(watchRiders)) {
+        watchRiders.forEach((rider: any) => {
+          if (rider?.selected) {
+            totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
+          }
+        });
+      }
+      setValue(
+        "totalRiderPremium",
+        totalManualRiderPremium > 0 ? totalManualRiderPremium : undefined,
+        { shouldValidate: true, shouldDirty: true }
+      );
+      return;
+    }
+
     if (Array.isArray(watchRiders)) {
       const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
 
-      if (selectedPlan === "774") {
+      if (selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
         let totalManualRiderPremium = 0;
         watchRiders.forEach((rider: any) => {
           if (rider?.selected) {
@@ -916,6 +991,7 @@ export default function NewLICPolicyPage() {
 
   // Auto-select PPT when Term is selected
   useEffect(() => {
+    if (isOtherPolicy) return;
     if (watchTerm && productOptionsData.combinations.length > 0) {
       const termValue = Number(watchTerm);
       // Find combinations for this term
@@ -935,10 +1011,11 @@ export default function NewLICPolicyPage() {
         setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
       }
     }
-  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt]);
+  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isOtherPolicy]);
 
   // Auto-select Term and PPT when product options load
   useEffect(() => {
+    if (isOtherPolicy) return;
     if (!selectedProduct || productOptionsData.terms.length === 0) return;
 
     if (!["771", "745", "883", "887"].includes(selectedProduct.planNumber ?? "")) {
@@ -962,9 +1039,10 @@ export default function NewLICPolicyPage() {
         }
       }
     }
-  }, [productOptionsData, selectedProduct, setValue, watchTerm, watchPpt]);
+  }, [productOptionsData, selectedProduct, setValue, watchTerm, watchPpt, isOtherPolicy]);
 
   useEffect(() => {
+    if (isOtherPolicy) return;
     const sum = parseFloat(String(watchSumAssured)) || 0;
     const term = parseFloat(String(watchTerm)) || 0;
     const ppt = parseFloat(String(watchPpt)) || 0;
@@ -1067,11 +1145,32 @@ export default function NewLICPolicyPage() {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [premiumPreviewKey, products, setValue, watchAge, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium, watchSmoker, watchGender]);
+  }, [premiumPreviewKey, products, setValue, watchAge, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium, watchSmoker, watchGender, isOtherPolicy]);
 
+  // Auto-calculate Total Yearly Premium when in Other policy mode
+  useEffect(() => {
+    if (isOtherPolicy) {
+      const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      if (basic > 0 || rider > 0) {
+        setValue("totalYearlyPremium", basic + rider > 0 ? basic + rider : undefined, { shouldDirty: true });
+      }
+    }
+  }, [isOtherPolicy, watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
+  // Auto-calculate Total Installment Premium when in Other policy mode
+  useEffect(() => {
+    if (isOtherPolicy) {
+      const installment = parseFloat(String(watchInstallmentPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      const gstVal = parseFloat(String(watchGst)) || 0;
+      const total = installment + rider + gstVal;
+      setValue("totalInstallmentPremium", total > 0 ? parseFloat(total.toFixed(2)) : undefined, { shouldDirty: true });
+    }
+  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, watchGst, setValue]);
 
   useEffect(() => {
+    if (isOtherPolicy) return;
     if (!selectedProduct) return;
 
     if (["771", "745", "883", "887"].includes(selectedProduct.planNumber ?? "") && watchAge) {
@@ -1086,12 +1185,22 @@ export default function NewLICPolicyPage() {
         });
       }
     }
-  }, [watchProductId, watchAge, selectedProduct, setValue, watchTerm]);
+  }, [watchProductId, watchAge, selectedProduct, setValue, watchTerm, isOtherPolicy]);
 
   // Auto-populate riders when a product is selected
   useEffect(() => {
+    if (isOtherPolicy) {
+      replaceRiders([]);
+      return;
+    }
+
     // Look for riders instead of productRiders to match the backend response
     if (selectedProduct) {
+      if (selectedProduct.planNumber === "751" || selectedProduct.planNumber === "880") {
+        replaceRiders([]);
+        return;
+      }
+
       if (Array.isArray(selectedProduct.riders) && selectedProduct.riders.length > 0) {
         const newRiders = selectedProduct.riders.map((pr: any) => ({
           description: pr.rider?.riderName || "",
@@ -1184,16 +1293,84 @@ export default function NewLICPolicyPage() {
     } else {
       replaceRiders([]);
     }
-  }, [selectedProduct, replaceRiders, riders]);
+  }, [selectedProduct, replaceRiders, riders, isOtherPolicy]);
 
   // When product changes, update attribute hints and pre-fill fields with minimum values.
   useEffect(() => {
+    if (isOtherPolicy) {
+      setAttributeHints({ term: "", ppt: "", sumAssured: "", age: "" });
+      return;
+    }
+
     if (!watchProductId || !productAttributeValues || !products.length) {
       setAttributeHints({ term: "", ppt: "", sumAssured: "", age: "" });
       // Clear fields if product is deselected
       setValue("term", undefined);
       setValue("ppt", undefined);
       setValue("sumAssured", undefined);
+      return;
+    }
+
+    const selectedProductAttributes = productAttributeValues.filter(
+      (attr) => attr.productId === watchProductId,
+    );
+
+    const getAttributeValue = (code: string) =>
+      selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
+        ?.value;
+
+    const selectedProduct = products.find((p) => p.id === watchProductId);
+    const isPlan889 = selectedProduct?.planNumber === "889";
+    const minTerm = getAttributeValue("MIN_POLICY_TERM") || (isPlan889 ? "10" : undefined);
+    const maxTerm = getAttributeValue("MAX_POLICY_TERM") || (isPlan889 ? "25" : undefined);
+    const effectiveMaxTerm =
+      selectedProduct?.planNumber === "887" && watchAge
+        ? String(Math.min(82, 100 - Number(watchAge)))
+        : maxTerm;
+    const minPpt = getAttributeValue("MIN_PPT") || (isPlan889 ? "5" : undefined);
+    const maxPpt = getAttributeValue("MAX_PPT") || (isPlan889 ? "15" : undefined);
+    const minSum = getAttributeValue("MIN_SUM_ASSURED") || (isPlan889 ? "300000" : undefined);
+    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+    const minAge = getAttributeValue("MIN_ENTRY_AGE") || (isPlan889 ? "18" : undefined);
+    const maxAge = getAttributeValue("MAX_ENTRY_AGE") || (isPlan889 ? "50" : undefined);
+
+    // For plan 771, the term is calculated, not pre-filled from attributes.
+    if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
+      if (minTerm && !watchTerm) setValue("term", minTerm as any);
+    }
+
+    if (minPpt && !watchPpt) setValue("ppt", minPpt as any);
+
+    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as any);
+
+    setAttributeHints({
+      term:
+        minTerm || effectiveMaxTerm
+          ? `Range: ${minTerm || "N/A"} - ${effectiveMaxTerm || "N/A"}`
+          : "",
+      ppt:
+        minPpt || maxPpt
+          ? `Range: ${minPpt || "N/A"} - ${maxPpt || "N/A"}`
+          : "",
+      sumAssured:
+        minSum || maxSum
+          ? `Range: ${minSum || "N/A"} - ${maxSum || "N/A"}`
+          : "",
+      age:
+        minAge || maxAge
+          ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
+          : "",
+    });
+  }, [watchProductId, productAttributeValues, products, setValue, watchAge, isOtherPolicy]);
+
+  useEffect(() => {
+    if (isOtherPolicy) {
+      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+      return;
+    }
+
+    if (!watchProductId) {
+      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
       return;
     }
 
@@ -1325,16 +1502,19 @@ export default function NewLICPolicyPage() {
         installmentPremium: normalizeNumber(data.installmentPremium),
         totalInstallmentPremium: normalizeNumber(data.totalInstallmentPremium),
         gst: normalizeNumber(data.gst),
-        attributes: {
-          MIN_POLICY_TERM: normalizeNumber(data.term),
-          MAX_POLICY_TERM: normalizeNumber(data.term),
+        attributes: isOtherPolicy
+          ? {}
+          : {
+              MIN_POLICY_TERM: normalizeNumber(data.term),
+              MAX_POLICY_TERM: normalizeNumber(data.term),
 
-          MIN_PPT: normalizeNumber(data.ppt),
-          MAX_PPT: normalizeNumber(data.ppt),
+              MIN_PPT: normalizeNumber(data.ppt),
+              MAX_PPT: normalizeNumber(data.ppt),
 
-          MIN_SUM_ASSURED: normalizeNumber(data.sumAssured),
-          MAX_SUM_ASSURED: normalizeNumber(data.sumAssured),
-        },
+              MIN_SUM_ASSURED: normalizeNumber(data.sumAssured),
+              MAX_SUM_ASSURED: normalizeNumber(data.sumAssured),
+            },
+        providerType: isOtherPolicy ? "OTHER" : "LIC",
         smoker: data.smoker,
         gender: data.gender || watchGender,
       };
@@ -1521,6 +1701,29 @@ export default function NewLICPolicyPage() {
                         </p>
                       )}
                     </div>
+                    {isOtherPolicy && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Company / Insurer
+                        </label>
+                        <SearchableSelect
+                          placeholder="All Companies / Insurers"
+                          searchPlaceholder="Search company..."
+                          options={companyOptions}
+                          value={selectedCompanyFilter}
+                          onChange={(val) => {
+                            setSelectedCompanyFilter(val);
+                            if (val && watchProductId) {
+                              const currProd = products.find((p) => p.id === watchProductId);
+                              if (currProd && currProd.providerId !== val) {
+                                setValue("productId", "");
+                              }
+                            }
+                          }}
+                          disabled={providersLoading}
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         Plan <span className="text-red-500">*</span>
@@ -1540,6 +1743,9 @@ export default function NewLICPolicyPage() {
                               if (selectedProduct) {
                                 setValue("providerId", selectedProduct.providerId || "");
                                 setValue("productType", selectedProduct.productType || "");
+                                if (isOtherPolicy && selectedProduct.providerId) {
+                                  setSelectedCompanyFilter(selectedProduct.providerId);
+                                }
                               }
                             }}
                             error={errors.productId?.message}
@@ -1617,43 +1823,52 @@ export default function NewLICPolicyPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Term
+                        Term <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        {...register("term")}
-                        value={watchTerm != null && String(watchTerm) !== "" ? String(watchTerm) : ""}
-                        onChange={(e) => {
-                          register("term").onChange(e);
-                        }}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                        disabled={["771", "745", "883"].includes(selectedProduct?.planNumber ?? "")}
-                      >
-                        <option value="">Select Term</option>
-                        {["771", "745", "883"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
-                          <option value={String(100 - Number(watchAge))}>{100 - Number(watchAge)}</option>
-                        ) : selectedProduct?.planNumber === "887" ? (
-                          (() => {
-                            const maxTerm = watchAge ? Math.min(82, 100 - Number(watchAge)) : 82;
-                            const optionsList: number[] = [];
-                            for (let t = 10; t <= maxTerm; t++) {
-                              optionsList.push(t);
-                            }
-                            return optionsList.map((t) => (
+                      {isOtherPolicy ? (
+                        <input
+                          type="number"
+                          {...register("term")}
+                          placeholder="Enter term in years"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      ) : (
+                        <select
+                          {...register("term")}
+                          value={watchTerm != null && String(watchTerm) !== "" ? String(watchTerm) : ""}
+                          onChange={(e) => {
+                            register("term").onChange(e);
+                          }}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                          disabled={["771", "745", "883"].includes(selectedProduct?.planNumber ?? "")}
+                        >
+                          <option value="">Select Term</option>
+                          {["771", "745", "883"].includes(selectedProduct?.planNumber ?? "") && watchAge ? (
+                            <option value={String(100 - Number(watchAge))}>{100 - Number(watchAge)}</option>
+                          ) : selectedProduct?.planNumber === "887" ? (
+                            (() => {
+                              const maxTerm = watchAge ? Math.min(82, 100 - Number(watchAge)) : 82;
+                              const optionsList: number[] = [];
+                              for (let t = 10; t <= maxTerm; t++) {
+                                optionsList.push(t);
+                              }
+                              return optionsList.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                              ));
+                            })()
+                          ) : (
+                            productOptionsData.terms.map(t => (
                               <option key={t} value={t}>{t}</option>
-                            ));
-                          })()
-                        ) : (
-                          productOptionsData.terms.map(t => (
-                            <option key={t} value={t}>{t}</option>
-                          ))
-                        )}
-                      </select>
+                            ))
+                          )}
+                        </select>
+                      )}
                       {errors.term && (
                         <p className="text-xs text-red-500 mt-1">
                           {errors.term.message}
                         </p>
                       )}
-                      {attributeHints.term && !errors.term && (
+                      {!isOtherPolicy && attributeHints.term && !errors.term && (
                         <p className="text-xs text-slate-500 mt-1">{attributeHints.term}</p>
                       )}
                     </div>
@@ -1662,50 +1877,60 @@ export default function NewLICPolicyPage() {
                         {selectedProduct?.planNumber === "883"
                           ? "Gua.Addn.Period"
                           : "PPT"}
-                        {(selectedProduct?.planNumber === "889" ||
+                        {(isOtherPolicy ||
+                          selectedProduct?.planNumber === "889" ||
                           selectedProduct?.planNumber === "881" ||
                           selectedProduct?.planNumber === "912") && (
                             <span className="text-red-500"> *</span>
                           )}
                       </label>
-                      <select
-                        {...register("ppt")}
-                        value={watchPpt != null && String(watchPpt) !== "" ? String(watchPpt) : ""}
-                        onChange={(e) => {
-                          register("ppt").onChange(e);
-                        }}
-                        disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                      >
-                        <option value="">
-                          {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
-                        </option>
-                        {(() => {
-                          let optionsToRender: (number | string)[] = productOptionsData.ppts;
-                          if (selectedProduct?.planNumber === "887") {
-                            if (watchMode === "Single") {
-                              optionsToRender = ["1"];
-                            } else {
-                              const currentTerm = Number(watch("term"));
-                              const allowed = [5, 10, 15];
-                              if (currentTerm && !allowed.includes(currentTerm)) {
-                                allowed.push(currentTerm);
+                      {isOtherPolicy ? (
+                        <input
+                          type="number"
+                          {...register("ppt")}
+                          placeholder="Enter PPT in years"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      ) : (
+                        <select
+                          {...register("ppt")}
+                          value={watchPpt != null && String(watchPpt) !== "" ? String(watchPpt) : ""}
+                          onChange={(e) => {
+                            register("ppt").onChange(e);
+                          }}
+                          disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
+                          </option>
+                          {(() => {
+                            let optionsToRender: (number | string)[] = productOptionsData.ppts;
+                            if (selectedProduct?.planNumber === "887") {
+                              if (watchMode === "Single") {
+                                optionsToRender = ["1"];
+                              } else {
+                                const currentTerm = Number(watch("term"));
+                                const allowed = [5, 10, 15];
+                                if (currentTerm && !allowed.includes(currentTerm)) {
+                                  allowed.push(currentTerm);
+                                }
+                                const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                                optionsToRender = filtered.length > 0 ? filtered : allowed;
                               }
-                              const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
-                              optionsToRender = filtered.length > 0 ? filtered : allowed;
                             }
-                          }
-                          return optionsToRender.map(p => (
-                            <option key={p} value={p}>{p}</option>
-                          ));
-                        })()}
-                      </select>
+                            return optionsToRender.map(p => (
+                              <option key={p} value={p}>{p}</option>
+                            ));
+                          })()}
+                        </select>
+                      )}
                       {errors.ppt && (
                         <p className="text-xs text-red-500 mt-1">
                           {errors.ppt.message}
                         </p>
                       )}
-                      {attributeHints.ppt && !errors.ppt && !errors.term && (
+                      {!isOtherPolicy && attributeHints.ppt && !errors.ppt && !errors.term && (
                         <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
                       )}
                     </div>
@@ -2037,24 +2262,34 @@ export default function NewLICPolicyPage() {
                                 />
                               </td>
                               <td className="px-2 py-1.5 w-1/3">
-                                <select
-                                  {...register(`riders.${index}.description`)}
-                                  disabled={!watchRiders?.[index]?.selected}
-                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                                >
-                                  <option value="">Select Rider</option>
-                                  {riders.map((rider) => (
-                                    <option
-                                      key={rider.id}
-                                      value={rider.riderName}
-                                    >
-                                      {rider.riderCode
-                                        ? `[${rider.riderCode}] `
-                                        : ""}
-                                      {rider.riderName}
-                                    </option>
-                                  ))}
-                                </select>
+                                {isOtherPolicy ? (
+                                  <input
+                                    type="text"
+                                    {...register(`riders.${index}.description`)}
+                                    placeholder="Enter Rider Name"
+                                    disabled={!watchRiders?.[index]?.selected}
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                  />
+                                ) : (
+                                  <select
+                                    {...register(`riders.${index}.description`)}
+                                    disabled={!watchRiders?.[index]?.selected}
+                                    className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                  >
+                                    <option value="">Select Rider</option>
+                                    {riders.map((rider) => (
+                                      <option
+                                        key={rider.id}
+                                        value={rider.riderName}
+                                      >
+                                        {rider.riderCode
+                                          ? `[${rider.riderCode}] `
+                                          : ""}
+                                        {rider.riderName}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                                 {errors.riders?.[index]?.description && (
                                   <p className="text-xs text-red-500 mt-1">
                                     {errors.riders[index]?.description?.message}
@@ -2109,10 +2344,10 @@ export default function NewLICPolicyPage() {
                                   type="text"
                                   {...register(`riders.${index}.premium`)}
                                   placeholder="Premium"
-                                  readOnly={selectedProduct?.planNumber !== "774"}
+                                  readOnly={!isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"}
                                   disabled={!watchRiders?.[index]?.selected}
                                   className={`w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${
-                                    selectedProduct?.planNumber !== "774"
+                                    !isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"
                                       ? "bg-slate-50 cursor-not-allowed text-slate-500"
                                       : "bg-white text-slate-800"
                                   } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
@@ -2195,8 +2430,12 @@ export default function NewLICPolicyPage() {
                         type="text"
                         {...register("totalYearlyPremium")}
                         placeholder="Enter total yearly premium"
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                        readOnly
+                        className={`w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm ${
+                          !isOtherPolicy
+                            ? "bg-slate-50 text-slate-500 cursor-not-allowed"
+                            : "focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                        }`}
+                        readOnly={!isOtherPolicy}
                       />
                       {errors.totalYearlyPremium && (
                         <p className="text-xs text-red-500 mt-1">
@@ -2237,6 +2476,22 @@ export default function NewLICPolicyPage() {
                         </p>
                       )}
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        GST / Tax
+                      </label>
+                      <input
+                        type="text"
+                        {...register("gst")}
+                        placeholder="Enter GST / Tax"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                      {errors.gst && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.gst.message}
+                        </p>
+                      )}
+                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -2248,6 +2503,11 @@ export default function NewLICPolicyPage() {
                         placeholder="Total installment premium"
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                       />
+                      {errors.totalInstallmentPremium && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.totalInstallmentPremium.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CustomerSectionCard>

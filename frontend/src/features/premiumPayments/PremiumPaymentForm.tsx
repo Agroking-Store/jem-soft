@@ -21,6 +21,7 @@ import {
 } from "@/features/customers/components/CustomerUi";
 import type { Policy } from "@/features/policy/policySlice";
 import { fetchPaymentModes } from "./paymentModeMasterSlice";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const schema = z
   .object({
@@ -53,6 +54,7 @@ export default function PremiumPaymentForm({
 }) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const { fetchNotifications } = useNotificationStore();
   const { policies } = useSelector((s: RootState) => s.policies);
   const { isSubmitting } = useSelector((s: RootState) => s.premiumPayments);
   const { modes } = useSelector((s: RootState) => s.premiumModes);
@@ -161,6 +163,21 @@ export default function PremiumPaymentForm({
         const selectionPolicy = policies.find((x) => x.id === p.policyId);
         if (selectionPolicy) {
           setSelectedPolicy(selectionPolicy);
+        }
+
+        // Fetch existing payments to set highestPaidInstallment for edit mode (excluding current payment)
+        if (p.policyId) {
+          const policyPayments = await dispatch(fetchPremiumPaymentsByPolicy(p.policyId));
+          const paymentsList = Array.isArray(policyPayments.payload) ? policyPayments.payload : [];
+          const otherValidPayments = paymentsList.filter((payment: any) => {
+            const statusCode = payment.paymentStatus?.statusCode;
+            return payment.id !== paymentId && statusCode !== "FAILED" && statusCode !== "CANCELLED";
+          });
+          const highestPaid = otherValidPayments.reduce((max: number, payment: any) => {
+            const num = Number(payment.installmentNo);
+            return Number.isFinite(num) && num > max ? num : max;
+          }, 0);
+          setHighestPaidInstallment(highestPaid);
         }
       }
     })();
@@ -295,6 +312,17 @@ export default function PremiumPaymentForm({
       selectedPolicy.product?.planNumber === "717";
 
     const instNo = Number(installmentNo) || (highestPaidInstallment + 1);
+    const isBelowPaid = highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment;
+
+    if (isBelowPaid) {
+      setValue("premiumAmount", 0);
+      setValue("lateFee", 0);
+      setValue("gstOnLateFee", 0);
+      setValue("futureDueDate", "");
+      setValue("paymentDetails", `Warning: Installment #${Number(installmentNo)} has already been paid.`);
+      return;
+    }
+
     const count = isSinglePremium
       ? 1
       : Math.max(1, instNo - highestPaidInstallment);
@@ -367,6 +395,11 @@ export default function PremiumPaymentForm({
 
   const submit = async (v: FormValues) => {
     try {
+      if (highestPaidInstallment > 0 && Number(v.installmentNo) <= highestPaidInstallment) {
+        toast.error(`Installment #${v.installmentNo} has already been paid for this policy (Highest paid: #${highestPaidInstallment}). Next installment cannot go behind #${highestPaidInstallment + 1}.`);
+        return;
+      }
+
       if (totalInstallments !== null && Number(v.installmentNo) > totalInstallments) {
         toast.error(`Installment #${v.installmentNo} exceeds the policy's Premium Paying Term (${totalInstallments} installments for ${selectedPolicy?.premiumPayingTerm} years PPT).`);
         return;
@@ -398,6 +431,7 @@ export default function PremiumPaymentForm({
             futureDueDate: v.futureDueDate,
           }),
         );
+        await fetchNotifications();
         toast.success("Premium payment updated successfully");
       } else {
         await dispatch(
@@ -414,6 +448,7 @@ export default function PremiumPaymentForm({
           }),
         ).unwrap();
         await dispatch(fetchPolicies());
+        await fetchNotifications();
         toast.success("Premium payment created successfully");
       }
       router.push("/dashboard/premium-payments");
@@ -481,17 +516,26 @@ export default function PremiumPaymentForm({
             </label>
             <input
               type="number"
-              min={mode === "create" && highestPaidInstallment > 0 ? highestPaidInstallment + 1 : 1}
+              min={highestPaidInstallment > 0 ? highestPaidInstallment + 1 : 1}
               max={totalInstallments ?? undefined}
+              onWheel={(e) => e.currentTarget.blur()}
               {...register("installmentNo")}
-              className={`${input} ${totalInstallments !== null && Number(installmentNo) > totalInstallments ? "!border-rose-500 !ring-2 !ring-rose-200" : ""} ${mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717")) ? "bg-slate-50 cursor-not-allowed" : ""}`}
+              className={`${input} ${highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment ? "!border-amber-500 !ring-2 !ring-amber-200" : ""} ${totalInstallments !== null && Number(installmentNo) > totalInstallments ? "!border-rose-500 !ring-2 !ring-rose-200" : ""} ${mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717")) ? "bg-slate-50 cursor-not-allowed" : ""}`}
               disabled={mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717"))}
-              placeholder={mode === "create" && selectedPolicy ? `e.g. ${highestPaidInstallment + 1}` : "e.g. 1"}
+              placeholder={selectedPolicy ? `e.g. ${highestPaidInstallment + 1}` : "e.g. 1"}
             />
             {errors.installmentNo && (
               <p className="mt-1 text-xs text-rose-600">
                 {errors.installmentNo.message}
               </p>
+            )}
+            {highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment && (
+              <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                <AlertCircle size={15} className="shrink-0 text-amber-600" />
+                <span>
+                  Warning: Installment #{Number(installmentNo)} has already been paid for this policy (Highest paid: #{highestPaidInstallment}). Next installment cannot go behind #{highestPaidInstallment + 1}.
+                </span>
+              </div>
             )}
             {totalInstallments !== null && Number(installmentNo) > totalInstallments && (
               <div className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">

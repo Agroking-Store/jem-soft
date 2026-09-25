@@ -72,9 +72,7 @@ export const policySchema = z.object({
   providerType: z.string().optional(),
   productType: z.string().optional(),
   providerId: z.string().min(1, "Provider is required"),
-  policyNumber: z
-    .string()
-    .regex(/^\d{9}$/, "Policy number must be exactly 9 digits."),
+  policyNumber: z.string().min(1, "Policy number is required"),
   productId: z.string().min(1, "Plan is required"),
   mode: z.string().min(1, "Mode is required"),
   commencementDate: z.string().min(1, "Commencement date is required."),

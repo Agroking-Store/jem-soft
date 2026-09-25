@@ -11,6 +11,7 @@ import {
 } from "@/features/premiumPayments/premiumPaymentSlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const money = (v: number | undefined | null) => `
 ₹${Number(v ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -19,11 +20,13 @@ const dt = (v?: string | null) =>
 export default function PremiumPaymentsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const { fetchNotifications } = useNotificationStore();
   const { payments, isLoading, error } = useSelector(
     (s: RootState) => s.premiumPayments,
   );
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [policyAgeFilter, setPolicyAgeFilter] = useState<"All" | "New" | "Old">("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -35,23 +38,43 @@ export default function PremiumPaymentsPage() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
-  const filtered = useMemo(
-    () =>
-      payments.filter((p) => {
-        const q = search.toLowerCase(),
-          policy = p.policy?.policyNumber ?? "",
-          customer = p.policy?.CustomerMaster
-            ? `${p.policy.CustomerMaster.firstName} ${p.policy.CustomerMaster.lastName ?? ""}`
-            : "";
-        return (
-          (!q ||
-            policy.toLowerCase().includes(q) ||
-            customer.toLowerCase().includes(q)) &&
-          (status === "ALL" || p.paymentStatus?.statusCode === status)
-        );
-      }),
-    [payments, search, status],
-  );
+  const filtered = useMemo(() => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoTime = oneYearAgo.getTime();
+
+    const result = payments.filter((p) => {
+      const q = search.toLowerCase();
+      const policy = p.policy?.policyNumber ?? "";
+      const customer = p.policy?.CustomerMaster
+        ? `${p.policy.CustomerMaster.firstName} ${p.policy.CustomerMaster.lastName ?? ""}`
+        : "";
+
+      const matchesSearch =
+        !q ||
+        policy.toLowerCase().includes(q) ||
+        customer.toLowerCase().includes(q);
+
+      const matchesStatus =
+        status === "ALL" || p.paymentStatus?.statusCode === status;
+
+      let matchesAge = true;
+      if (policyAgeFilter !== "All") {
+        const dateStr = p.policy?.commencementDate || p.createdAt;
+        const policyTime = dateStr ? new Date(dateStr).getTime() : 0;
+        const isNew = policyTime >= oneYearAgoTime;
+        matchesAge = policyAgeFilter === "New" ? isNew : !isNew;
+      }
+
+      return matchesSearch && matchesStatus && matchesAge;
+    });
+
+    return result.sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.dueDate || 0).getTime();
+      const timeB = new Date(b.createdAt || b.dueDate || 0).getTime();
+      return timeB - timeA;
+    });
+  }, [payments, search, status, policyAgeFilter]);
   const stats = useMemo(
     () => ({
       total: payments.length,
@@ -77,6 +100,7 @@ export default function PremiumPaymentsPage() {
     if (!paymentToDelete) return;
    try {
      await dispatch(deletePremiumPayment(paymentToDelete.id)).unwrap();
+     await fetchNotifications();
       toast.success("Premium payment deleted successfully.");
    } catch (message) {
       toast.error(String(message || "Failed to delete premium payment."));
@@ -86,15 +110,19 @@ export default function PremiumPaymentsPage() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status, policyAgeFilter]);
+
   const totalPages = Math.max(
-        1,
-        Math.ceil(filtered.length / itemsPerPage),
-      );
-      const safePage = Math.min(currentPage, totalPages);
-      const paginatedPolicies = filtered.slice(
-        (safePage - 1) * itemsPerPage,
-        safePage * itemsPerPage,
-      );
+    1,
+    Math.ceil(filtered.length / itemsPerPage),
+  );
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedPayments = filtered.slice(
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage,
+  );
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
@@ -156,11 +184,20 @@ export default function PremiumPaymentsPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="PAID">Paid</option>
             <option value="UNPAID">Unpaid</option>
+          </select>
+          <select
+            value={policyAgeFilter}
+            onChange={(e) => setPolicyAgeFilter(e.target.value as "All" | "New" | "Old")}
+            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none cursor-pointer"
+          >
+            <option value="All">All Policies</option>
+            <option value="New">New Policy</option>
+            <option value="Old">Old Policy</option>
           </select>
         </div>
       </div>
@@ -189,21 +226,21 @@ export default function PremiumPaymentsPage() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center">
+                  <td colSpan={9} className="px-5 py-12 text-center">
                     Loading payments…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-12 text-center text-slate-500"
                   >
                     No premium payments found.
                   </td>
                 </tr>
               ) : (
-                filtered.map((p) => (
+                paginatedPayments.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="px-5 py-4 font-semibold">
                       {p.policy?.policyNumber ?? "—"}

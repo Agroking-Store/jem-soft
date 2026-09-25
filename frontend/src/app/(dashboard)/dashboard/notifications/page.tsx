@@ -1,55 +1,74 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNotificationStore } from "@/store/notificationStore";
 import NotificationCard from "@/features/notifications/components/NotificationCard";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import {ShieldAlert ,BookOpenCheck,BookText, Eye, Trash2,BellRing , ArrowLeft ,AlertCircle } from "lucide-react";
+import { 
+  Bell, 
+  CheckCheck, 
+  Trash2, 
+  ArrowLeft, 
+  Search, 
+  AlertCircle,
+  Sparkles
+} from "lucide-react";
 
 function ConfirmationModal({
   title,
   description,
+  confirmText = "Confirm",
+  confirmVariant = "danger",
   onCancel,
   onConfirm,
 }: {
-  title : string,
-  description : string;
+  title: string;
+  description: string;
+  confirmText?: string;
+  confirmVariant?: "danger" | "primary";
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-red-50 rounded-xl">
-            <AlertCircle size={22} className="text-red-500" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-zinc-200 animate-in zoom-in-95 duration-150">
+        <div className="flex items-center gap-3.5 mb-3.5">
+          <div
+            className={`p-2.5 rounded-xl ${
+              confirmVariant === "danger"
+                ? "bg-rose-50 text-rose-600"
+                : "bg-blue-50 text-[#065fd4]"
+            }`}
+          >
+            <AlertCircle size={22} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">
-              {title}
-            </h3>
-            <p className="text-xs text-slate-400">
-              This action cannot be undone
-            </p>
+            <h3 className="text-base font-bold text-zinc-900">{title}</h3>
+            <p className="text-xs text-zinc-400">Confirmation required</p>
           </div>
         </div>
-        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+
+        <p className="text-sm text-zinc-600 mb-6 leading-relaxed">
           {description}
         </p>
-        <div className="flex items-center justify-end gap-3">
+
+        <div className="flex items-center justify-end gap-2.5">
           <button
+            type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+            className="px-4 py-2 rounded-full border border-zinc-200 hover:bg-zinc-100 text-zinc-700 font-semibold text-xs transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+            className={`px-5 py-2 rounded-full text-white font-semibold text-xs transition-all shadow-xs cursor-pointer ${
+              confirmVariant === "danger"
+                ? "bg-[#cc0000] hover:bg-red-700"
+                : "bg-[#065fd4] hover:bg-blue-700"
+            }`}
           >
-            Confirm
+            {confirmText}
           </button>
         </div>
       </div>
@@ -58,7 +77,6 @@ function ConfirmationModal({
 }
 
 export default function NotificationsPage() {
-
   const {
     notifications,
     fetchNotifications,
@@ -68,17 +86,43 @@ export default function NotificationsPage() {
     markAllNotificationsRead,
   } = useNotificationStore();
 
+  const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "read">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [markModalOpen, setMarkModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  const unreadNotifications = notifications.filter(
-    (notification) => !notification.isRead
+  const unreadNotifications = useMemo(
+    () => notifications.filter((n) => !n.isRead),
+    [notifications]
   );
 
-  const readNotifications = notifications.filter(
-    (notification) => notification.isRead
+  const readNotifications = useMemo(
+    () => notifications.filter((n) => n.isRead),
+    [notifications]
   );
+
+  const filteredNotifications = useMemo(() => {
+    let list = notifications;
+    if (activeFilter === "unread") {
+      list = unreadNotifications;
+    } else if (activeFilter === "read") {
+      list = readNotifications;
+    }
+
+    if (!searchQuery.trim()) return list;
+
+    const query = searchQuery.toLowerCase();
+    return list.filter(
+      (n) =>
+        n.title?.toLowerCase().includes(query) ||
+        n.message?.toLowerCase().includes(query) ||
+        n.policyId?.toLowerCase().includes(query)
+    );
+  }, [notifications, activeFilter, searchQuery, unreadNotifications, readNotifications]);
 
   const handleNotificationClick = async (id: string) => {
     await readNotification(id);
@@ -90,180 +134,206 @@ export default function NotificationsPage() {
     await fetchNotifications();
   };
 
-  const handleDeleteAllRead = async () => {
+  const handleConfirmDeleteAllRead = async () => {
     await deleteReadNotifications();
     await fetchNotifications();
-    setDeleteConfirmationModalOpen(false);
+    setDeleteModalOpen(false);
   };
 
-  const handleMarkAllRead = async () => {
+  const handleConfirmMarkAllRead = async () => {
     await markAllNotificationsRead();
     await fetchNotifications();
-    setMarkConfirmationModalOpen(false);
+    setMarkModalOpen(false);
   };
 
-  type ModuleTab = "read" | "unread";
-
-const TABS: { key: ModuleTab; label: string; icon: typeof BookOpenCheck }[] = [
-  { key: "read",   label: `Read (${readNotifications.length})`,  icon: BookOpenCheck },
-  { key: "unread",  label: `Unread (${unreadNotifications.length})`, icon: BookText },
-];
-
-
-  const [activeTab,setActivetab] = useState("read")
-  const [markConfirmationModalOpen,setMarkConfirmationModalOpen] = useState(false)
-  const [deleteConfirmationModalOpen,setDeleteConfirmationModalOpen] = useState(false)
-
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
-          <div className="flex flex-row gap-4 items-center">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
-              <BellRing />
-            </span>
-            <span>
-              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
-                Notifications
-              </h1>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {window.history.back();}}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
-              <ArrowLeft size={18} />
-              Back
-            </button>
+    <div className="max-w-5xl mx-auto space-y-5 pb-12">
+      {/* YouTube Style Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 rounded-2xl bg-white border border-zinc-200/90 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-800 shadow-2xs relative">
+            <Bell size={24} strokeWidth={2} />
             {unreadNotifications.length > 0 && (
-              <button
-                onClick={() => setMarkConfirmationModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
-                <Eye size={18} />
-                Mark All Read
-              </button>
-            )} 
-            {readNotifications.length > 0 && (
-              <button
-                onClick={() => {setDeleteConfirmationModalOpen(true)}}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
-                <Trash2 size={18} />
-                Delete All Read
-              </button>
-            )} 
-          </div> 
-    </div>
+              <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] px-1 rounded-full bg-[#cc0000] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs">
+                {unreadNotifications.length > 9 ? "9+" : unreadNotifications.length}
+              </span>
+            )}
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900">
+              Notification Center
+            </h1>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Stay updated with real-time policy alerts, premium schedules, and activities.
+            </p>
+          </div>
+        </div>
 
-       
+        {/* YouTube Header Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
 
-        <nav
-      aria-label="Notification module navigation"
-      className="inline-flex max-w-full bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100"
-    >
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
-        {TABS.map(({ key, label, icon: Icon }) => {
-          const isActive = activeTab === key;
-          return (
+          {unreadNotifications.length > 0 && (
             <button
-              key = {key}
-              aria-current={isActive ? "page" : undefined}
-              className={`
-                relative flex items-center gap-2 px-4 py-2 rounded-xl
-                text-[16px] font-bold whitespace-nowrap
-                transition-all duration-200 select-none 
-                cursor-pointer
-                ${
-                  isActive
-                    ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
-                    : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
-                }
-              `}
-              onClick={() => setActivetab(key)}
+              type="button"
+              onClick={() => setMarkModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-full bg-zinc-900 hover:bg-zinc-800 text-white transition-all shadow-xs cursor-pointer"
             >
-              <Icon size={15} strokeWidth={isActive ? 2.6 : 2} />
-              <span className="tracking-tight">{label}</span>
+              <CheckCheck size={16} />
+              <span>Mark all read</span>
             </button>
-          );
-        })}
+          )}
+
+          {readNotifications.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-full bg-zinc-100 hover:bg-rose-50 text-zinc-700 hover:text-rose-600 border border-zinc-200/80 transition-colors cursor-pointer"
+            >
+              <Trash2 size={16} />
+              <span>Clear read</span>
+            </button>
+          )}
+        </div>
       </div>
-    </nav>
 
-      {/* </div> */}
+      {/* Filter Chips & Search Bar (YouTube Pill Row) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-2xl border border-zinc-200/90 shadow-xs">
+        {/* YouTube Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={`
+              px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer
+              ${
+                activeFilter === "all"
+                  ? "bg-zinc-900 text-white shadow-xs"
+                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+              }
+            `}
+          >
+            All ({notifications.length})
+          </button>
 
-      {/* Empty State */}
-
-      {notifications.length === 0 && (
-        <div className="rounded-xl border bg-white p-16 text-center">
-          <h2 className="text-xl font-semibold">
-            No notifications
-          </h2>
-          <p className="mt-2 text-slate-500">
-            Policy activities will appear here.
-          </p>
-        </div>
-      )}
-
-      {/* Unread */}
-
-      {unreadNotifications.length > 0 && activeTab === "unread" && (
-        <div className="mb-8">
-
-          <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-
-            {unreadNotifications.map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onClick={() => handleNotificationClick(notification.id)}
-                onDelete={handleDeleteNotification}
+          <button
+            type="button"
+            onClick={() => setActiveFilter("unread")}
+            className={`
+              px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5
+              ${
+                activeFilter === "unread"
+                  ? "bg-zinc-900 text-white shadow-xs"
+                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+              }
+            `}
+          >
+            <span>Unread ({unreadNotifications.length})</span>
+            {unreadNotifications.length > 0 && (
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  activeFilter === "unread" ? "bg-red-400" : "bg-[#065fd4]"
+                }`}
               />
-            ))}
+            )}
+          </button>
 
-          </div>
-
+          <button
+            type="button"
+            onClick={() => setActiveFilter("read")}
+            className={`
+              px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer
+              ${
+                activeFilter === "read"
+                  ? "bg-zinc-900 text-white shadow-xs"
+                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+              }
+            `}
+          >
+            Read ({readNotifications.length})
+          </button>
         </div>
+
+        {/* Quick Search */}
+        <div className="relative min-w-[240px] max-w-xs">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search notifications..."
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-zinc-100 border border-transparent rounded-full focus:bg-white focus:border-zinc-300 focus:outline-none transition-all placeholder:text-zinc-400"
+          />
+        </div>
+      </div>
+
+      {/* Main YouTube Feed List */}
+      <div className="bg-white rounded-2xl border border-zinc-200/90 shadow-xs divide-y divide-zinc-100 overflow-hidden">
+        {filteredNotifications.length === 0 ? (
+          <div className="py-20 px-6 text-center flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-zinc-100 flex items-center justify-center mb-4 text-zinc-400 ring-8 ring-zinc-50">
+              <Bell size={36} strokeWidth={1.6} />
+            </div>
+            <h3 className="text-base font-bold text-zinc-900">
+              {searchQuery
+                ? "No matching notifications found"
+                : activeFilter === "unread"
+                ? "You're all caught up!"
+                : "Your notifications live here"}
+            </h3>
+            <p className="text-xs text-zinc-500 mt-1 max-w-sm leading-relaxed">
+              {searchQuery
+                ? `No notifications found matching "${searchQuery}". Try searching with different terms.`
+                : activeFilter === "unread"
+                ? "There are no unread notifications right now. Check back later for new updates."
+                : "Activity and reminders for your policies will appear here."}
+            </p>
+          </div>
+        ) : (
+          filteredNotifications.map((notification) => (
+            <NotificationCard
+              key={notification.id}
+              notification={notification}
+              onClick={() => handleNotificationClick(notification.id)}
+              onDelete={handleDeleteNotification}
+              onMarkRead={handleNotificationClick}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Confirmation Modals */}
+      {markModalOpen && (
+        <ConfirmationModal
+          title="Mark All as Read"
+          description="Are you sure you want to mark all notifications as read?"
+          confirmText="Mark as read"
+          confirmVariant="primary"
+          onCancel={() => setMarkModalOpen(false)}
+          onConfirm={handleConfirmMarkAllRead}
+        />
       )}
 
-      {/* Read */}
-
-      {readNotifications.length > 0 && activeTab === "read" && (
-        <div>
-          <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-
-            {readNotifications.map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onClick={() => handleNotificationClick(notification.id)}
-                onDelete={handleDeleteNotification}
-              />
-            ))}
-
-          </div>
-
-        </div>
+      {deleteModalOpen && (
+        <ConfirmationModal
+          title="Clear Read Notifications"
+          description="Are you sure you want to permanently delete all read notifications? This action cannot be undone."
+          confirmText="Delete"
+          confirmVariant="danger"
+          onCancel={() => setDeleteModalOpen(false)}
+          onConfirm={handleConfirmDeleteAllRead}
+        />
       )}
-      {markConfirmationModalOpen &&
-        <ConfirmationModal
-        title = {"Mark all Notifications as Read"}
-        description={"All notifications will be marked as Read"}
-        onCancel={() => setMarkConfirmationModalOpen(false)}
-        onConfirm={handleMarkAllRead}
-        />
-      }
-
-      {deleteConfirmationModalOpen &&
-        <ConfirmationModal
-        title = {"Delete all Read Notifications"}
-        description={"All Read notifications will be deleted"}
-        onCancel={() => setDeleteConfirmationModalOpen(false)}
-        onConfirm={handleDeleteAllRead}
-        />
-      }
-
-
-
     </div>
   );
 }
