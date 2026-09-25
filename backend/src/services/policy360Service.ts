@@ -9,6 +9,10 @@ import {
 
 const MS_PER_DAY = 86_400_000;
 
+// Outstanding rows within this window are flagged `isRecent` so the frontend
+// can sort/highlight them above older-but-still-pending installments.
+const RECENT_OVERDUE_DAYS = 30;
+
 export interface LapsedPolicyRow {
   policyId: string;
   policyNumber: string;
@@ -19,6 +23,22 @@ export interface LapsedPolicyRow {
   premiumMode: string;
   premiumDueDate: string;
   daysUnpaid: number;
+  mobileNumber: string | null;
+  status: string;
+}
+
+export interface OutstandingPremiumRow {
+  policyId: string;
+  policyNumber: string;
+  lifeAssuredName: string;
+  groupCode: string | null;
+  planNumber: string | null;
+  planName: string;
+  premium: number;
+  outstandingAmount: number;
+  premiumDueDate: string;
+  daysOverdue: number;
+  isRecent: boolean;
   mobileNumber: string | null;
   status: string;
 }
@@ -56,6 +76,14 @@ const buildLifeAssuredName = (customer: {
 const isSuccessfulPayment = (payment: PaymentLike): boolean =>
   !!payment.paidDate ||
   PAID_PAYMENT_STATUS_CODES.includes(payment.paymentStatus?.statusCode ?? "");
+
+/**
+ * True when the policy's own status record says it is already Lapsed.
+ * Used by getOutstandingPremiums to exclude those regardless of the
+ * day-count math below (which getLapsedPolicies uses instead).
+ */
+const isStatusLapsed = (status: { statusName: string } | null): boolean =>
+  (status?.statusName ?? "").trim().toLowerCase() === "lapsed";
 
 /**
  * Total number of premium installments of the policy, derived from the
@@ -298,4 +326,163 @@ export const getLapsedPolicies = async (
   lapsedPolicies.sort((a, b) => b.daysUnpaid - a.daysUnpaid);
 
   return lapsedPolicies;
+};
+
+export const getOutstandingPremiums = async (
+  search?: string,
+): Promise<OutstandingPremiumRow[]> => {
+  const today = startOfDay(new Date());
+
+  const policies = await prisma.policy.findMany({
+    where: {
+      status: {
+        statusCode: { notIn: LAPSED_EXCLUDED_POLICY_STATUS_CODES },
+      },
+    },
+    select: {
+      id: true,
+      policyNumber: true,
+      commencementDate: true,
+      premiumPayingTerm: true,
+      status: { select: { statusName: true } },
+      customer: { select: { groupCode: true } },
+      CustomerMaster: {
+        select: {
+          firstName: true,
+          middleName: true,
+          lastName: true,
+          contactInfo: { select: { mobile1: true } },
+        },
+      },
+      product: { select: { planNumber: true, productName: true } },
+      premiumMode: { select: { modeName: true, months: true } },
+      premium: {
+        select: { installmentPremium: true, totalInstallmentPremium: true },
+      },
+      premiumPayments: {
+        orderBy: [{ dueDate: 'asc' }],
+        select: {
+          installmentNo: true,
+          dueDate: true,
+          paidDate: true,
+          premiumAmount: true,
+          paymentStatus: { select: { statusCode: true } },
+        },
+      },
+    },
+  });
+
+  const normalizedSearch = search?.trim().toLowerCase();
+  const outstandingPolicies: OutstandingPremiumRow[] = [];
+
+  for (const policy of policies) {
+    // Explicit status check — a policy already marked Lapsed never shows up
+    // here, no matter what the day-count below works out to.
+    if (isStatusLapsed(policy.status)) continue;
+
+    const monthsInterval = policy.premiumMode?.months ?? 0;
+    if (!monthsInterval || monthsInterval <= 0) continue;
+
+    const commencement = startOfDay(policy.commencementDate);
+    if (commencement > today) continue;
+
+    const dueInstallments = generateDueInstallments(
+      commencement,
+      monthsInterval,
+      policy.premiumPayingTerm ?? null,
+      today,
+    );
+    if (dueInstallments.length === 0) continue;
+
+    const paidByNo = new Set<number>();
+    const paidByDate = new Set<string>();
+    const unpaidByNo = new Set<number>();
+    const unpaidByDate = new Set<string>();
+    for (const payment of policy.premiumPayments) {
+      if (isSuccessfulPayment(payment)) {
+        if (payment.installmentNo != null) paidByNo.add(payment.installmentNo);
+        paidByDate.add(toDateString(payment.dueDate));
+      } else {
+        if (payment.installmentNo != null) unpaidByNo.add(payment.installmentNo);
+        unpaidByDate.add(toDateString(payment.dueDate));
+      }
+    }
+
+    const isPaidInstallment = (installmentNo: number, dueDateString: string): boolean => {
+      if (paidByNo.has(installmentNo) || paidByDate.has(dueDateString)) return true;
+      if (
+        FIRST_INSTALLMENT_IMPLICITLY_PAID &&
+        installmentNo === 0 &&
+        !unpaidByNo.has(0) &&
+        !unpaidByDate.has(dueDateString)
+      ) return true;
+      return false;
+    };
+
+    const oldestUnpaid = dueInstallments.find(
+      ({ installmentNo, dueDate }) =>
+        !isPaidInstallment(installmentNo, toDateString(dueDate)),
+    );
+    if (!oldestUnpaid) continue;
+
+    const daysUnpaid = Math.floor(
+      (today.getTime() - startOfDay(oldestUnpaid.dueDate).getTime()) / MS_PER_DAY,
+    );
+
+    // All past-due (pending) installments show up here — no day-count cap.
+    // `isRecent` (<= RECENT_OVERDUE_DAYS) is used below to sort/highlight the
+    // newest pending items above older ones. Lapsed exclusion is purely by
+    // the policy's own status (checked above), not by days overdue.
+    if (daysUnpaid < 1) continue;
+
+    const explicitPayment = policy.premiumPayments.find(
+      (payment) =>
+        (payment.installmentNo != null && payment.installmentNo === oldestUnpaid.installmentNo) ||
+        toDateString(payment.dueDate) === toDateString(oldestUnpaid.dueDate),
+    );
+    const fallbackPremium = Number(
+      policy.premium?.totalInstallmentPremium ?? policy.premium?.installmentPremium ?? 0,
+    );
+    const premiumAmount = explicitPayment ? Number(explicitPayment.premiumAmount) : fallbackPremium;
+
+    const lifeAssuredName = buildLifeAssuredName(policy.CustomerMaster);
+
+    const row: OutstandingPremiumRow = {
+      policyId: policy.id,
+      policyNumber: policy.policyNumber,
+      lifeAssuredName,
+      groupCode: policy.customer?.groupCode ?? null,
+      planNumber: policy.product?.planNumber ?? null,
+      planName: policy.product?.productName ?? '',
+      premium: premiumAmount,
+      outstandingAmount: premiumAmount,
+      premiumDueDate: toDateString(oldestUnpaid.dueDate),
+      daysOverdue: daysUnpaid,
+      isRecent: daysUnpaid <= RECENT_OVERDUE_DAYS,
+      mobileNumber: policy.CustomerMaster?.contactInfo?.mobile1 ?? null,
+      status: policy.status?.statusName ?? 'Active',
+    };
+
+    if (normalizedSearch) {
+      const searchable = [
+        row.policyNumber,
+        row.lifeAssuredName,
+        row.planNumber ?? '',
+        row.planName,
+        row.mobileNumber ?? '',
+        row.groupCode ?? '',
+      ].join(' ').toLowerCase();
+      if (!searchable.includes(normalizedSearch)) continue;
+    }
+
+    outstandingPolicies.push(row);
+  }
+
+  // Recent (<= RECENT_OVERDUE_DAYS) pending items first; within each group,
+  // most-overdue first.
+  outstandingPolicies.sort((a, b) => {
+    if (a.isRecent !== b.isRecent) return a.isRecent ? -1 : 1;
+    return b.daysOverdue - a.daysOverdue;
+  });
+  return outstandingPolicies;
 };

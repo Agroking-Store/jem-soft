@@ -108,14 +108,14 @@ export const LIC_REPORT_CARDS: LicReportCard[] = [
     id: "loan-interest-due",
     title: "Loan Interest Due",
     category: "Due & Statements",
-    description: "Upcoming policy loan interest due dates and interest amount due.",
+    description: "Accrued and unpaid interest due on active policy loans with repayment adjustments.",
     icon: Percent,
   },
   {
     id: "loan-interest-outstanding",
-    title: "Loan Interest Outstanding",
+    title: "Loan Outstanding Due",
     category: "Due & Statements",
-    description: "Overdue policy loan interest details with compounding penalty breakdown.",
+    description: "Remaining principal loan balance across policies with automatic repayment reduction.",
     icon: Zap,
   },
   {

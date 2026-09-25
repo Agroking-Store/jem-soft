@@ -22,6 +22,7 @@ import loanRepaymentReducer from "@/features/loans/loanRepaymentSlice";
 import premiumPaymentReducer from "@/features/premiumPayments/premiumPaymentSlice";
 import paymentModeMasterReducer from "@/features/premiumPayments/paymentModeMasterSlice";
 import lapsedPolicyReducer from "@/features/policy360/lapsedPolicySlice";
+import outstandingPremiumReducer from "@/features/policy360/outstandingPremiumSlice";
 
 export const store = configureStore({
   reducer: {
@@ -48,6 +49,7 @@ export const store = configureStore({
     premiumPayments: premiumPaymentReducer,
     paymentModes : paymentModeMasterReducer,
     lapsedPolicies: lapsedPolicyReducer,
+    outstandingPremiums: outstandingPremiumReducer,
   },
 });
 

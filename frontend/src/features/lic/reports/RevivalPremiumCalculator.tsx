@@ -280,11 +280,25 @@ export default function RevivalPremiumCalculator({
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
-    const toastId = toast.loading("Generating PDF report...");
+    const toastId = toast.loading("Generating Pristine Executive PDF...");
+
+    const elem = reportRef.current;
+    const originalWidth = elem.style.width;
+
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false,
+      // Temporarily lock to strict A4 print width for crystal-clear, consistent scale
+      elem.style.width = "820px";
+
+      const canvas = await html2canvas(elem, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
       });
+
+      elem.style.width = originalWidth;
+
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const imgWidth = 210;
@@ -292,18 +306,22 @@ export default function RevivalPremiumCalculator({
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
+
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
+
+      while (heightLeft > 5) {
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
+
       pdf.save(`Revival_Quote_${selectedPolicy?.policyNumber || "Policy"}_${dateOfCalc}.pdf`);
-      toast.success("PDF downloaded successfully!", { id: toastId });
+      toast.success("Executive PDF exported successfully!", { id: toastId });
     } catch (e: any) {
       console.error(e);
+      elem.style.width = originalWidth;
       toast.error(e?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
       setIsExporting(false);
@@ -640,9 +658,14 @@ export default function RevivalPremiumCalculator({
         </div>
       </div>
 
-      {/* Hidden formatted report — used only for PDF export, styled like the other LIC reports */}
-      <div className="fixed top-0 -left-[10000px] -z-10">
-        <div ref={reportRef} className="bg-white p-8 border border-slate-300 text-slate-900 font-sans w-[850px] space-y-4">
+      {/* Formatted report preview — rendered on-page (not off-screen) so html2canvas captures it
+          reliably, same pattern used by the Premium Outstanding report */}
+      {calculated && (
+        <div
+          ref={reportRef}
+          style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+          className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 space-y-4 print:p-0 print:border-none print:shadow-none"
+        >
           {/* Letterhead */}
           <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
             <div className="space-y-0.5">
@@ -796,7 +819,7 @@ export default function RevivalPremiumCalculator({
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
