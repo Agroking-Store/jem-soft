@@ -40,6 +40,28 @@ export const previewPremium = catchAsync(
       );
     }
 
+    const { prisma } = await import("../config/database.js");
+    const product = await prisma.productMaster.findUnique({
+      where: { id: productId },
+      select: {
+        provider: {
+          select: {
+            code: true,
+          },
+        },
+      },
+    });
+
+    if (product?.provider?.code?.toUpperCase() !== "LIC") {
+      return res.status(200).json({
+        status: "success",
+        data: {
+          premium: null,
+          message: "Manual calculation applies for non-LIC plans.",
+        },
+      });
+    }
+
     const premium = await calculatePremium({
       productId,
       age: Number(age),
@@ -106,6 +128,28 @@ export const previewRiderPremium = catchAsync(
     }
 
     const { prisma } = await import("../config/database.js");
+    const initialProduct = await prisma.productMaster.findUnique({
+      where: { id: productId },
+      select: {
+        provider: {
+          select: {
+            code: true,
+          },
+        },
+      },
+    });
+
+    if (initialProduct?.provider?.code?.toUpperCase() !== "LIC") {
+      return res.status(200).json({
+        status: "success",
+        data: {
+          premium: 0,
+          rate: null,
+          message: "Manual calculation applies for non-LIC plans.",
+        },
+      });
+    }
+
     const { getModeFactor } = await import(
       "../services/premiumCalculationService.js"
     );
@@ -325,6 +369,9 @@ export const getAllPolicies = catchAsync(
       dueDate,
       sumAssured,
       status,
+      policyAge,
+      sortBy,
+      sortOrder,
       page,
       limit,
     } = req.query;
@@ -351,6 +398,12 @@ export const getAllPolicies = catchAsync(
           : undefined,
       status:
         typeof status === "string" ? status : undefined,
+      policyAge:
+        typeof policyAge === "string" ? policyAge : undefined,
+      sortBy:
+        typeof sortBy === "string" ? sortBy : undefined,
+      sortOrder:
+        typeof sortOrder === "string" ? (sortOrder as "asc" | "desc") : undefined,
     });
 
     const hasPagination =

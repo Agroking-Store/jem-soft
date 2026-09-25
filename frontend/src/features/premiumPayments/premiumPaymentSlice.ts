@@ -222,7 +222,7 @@ const slice = createSlice({
       })
       .addCase(createPremiumPayment.fulfilled, (s, a) => {
         s.isSubmitting = false;
-        s.payments.push(a.payload);
+        s.payments.unshift(a.payload);
       })
       .addCase(createPremiumPayment.rejected, (s, a) => {
         s.isSubmitting = false;

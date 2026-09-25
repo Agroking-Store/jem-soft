@@ -98,7 +98,7 @@ export const getPaymentsByPolicyId = async (policyId: string) => {
 export const getAllPayments = async () => {
   return prisma.premiumPayment.findMany({
     include: paymentInclude,
-    orderBy: { dueDate: "desc" },
+    orderBy: { createdAt: "desc" },
   });
 };
 
@@ -121,8 +121,32 @@ export const createPayment = async (data: PremiumPaymentData) => {
 
   if (!policy) throw new AppError("Policy not found", 404);
 
-  if (data.installmentNo !== undefined && (!Number.isInteger(data.installmentNo) || data.installmentNo < 1)) {
-    throw new AppError("installmentNo must be a positive integer", 400);
+  if (data.installmentNo !== undefined && data.installmentNo !== null) {
+    if (!Number.isInteger(data.installmentNo) || data.installmentNo < 1) {
+      throw new AppError("installmentNo must be a positive integer", 400);
+    }
+
+    const existingPayments = await prisma.premiumPayment.findMany({
+      where: {
+        policyId: data.policyId,
+        paymentStatus: {
+          statusCode: { notIn: ["FAILED", "CANCELLED"] },
+        },
+      },
+      select: { installmentNo: true },
+    });
+
+    const highestPaid = existingPayments.reduce((max, p) => {
+      const num = Number(p.installmentNo);
+      return Number.isFinite(num) && num > max ? num : max;
+    }, 0);
+
+    if (highestPaid > 0 && data.installmentNo <= highestPaid) {
+      throw new AppError(
+        `Installment #${data.installmentNo} has already been paid for this policy. Next installment must be at least #${highestPaid + 1}.`,
+        400,
+      );
+    }
   }
 
   validateAmount(data.premiumAmount);
@@ -156,7 +180,7 @@ export const createPayment = async (data: PremiumPaymentData) => {
   });
 
   //Create Notification
-  prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Paid",
         message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}.`,
@@ -175,19 +199,43 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
     where: { id },
   });
 
-  const policy = await prisma.policy.findUnique({
-    where: { id : existing?.policyId },
-    select: { id: true , policyNumber : true  },
-    
-  });
-
-   const formattedDueDate = new Date(data.dueDate);
-  const formattedPaidDate = new Date(data.paidDate);
-
   if (!existing) throw new AppError("Premium payment not found", 404);
 
-  if (data.installmentNo !== undefined && (!Number.isInteger(data.installmentNo) || data.installmentNo < 1)) {
-    throw new AppError("installmentNo must be a positive integer", 400);
+  const policy = await prisma.policy.findUnique({
+    where: { id : existing.policyId },
+    select: { id: true , policyNumber : true  },
+  });
+
+  const formattedDueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate;
+  const formattedPaidDate = data.paidDate ? new Date(data.paidDate) : existing.paidDate;
+
+  if (data.installmentNo !== undefined && data.installmentNo !== null) {
+    if (!Number.isInteger(data.installmentNo) || data.installmentNo < 1) {
+      throw new AppError("installmentNo must be a positive integer", 400);
+    }
+
+    const existingPayments = await prisma.premiumPayment.findMany({
+      where: {
+        policyId: existing.policyId,
+        id: { not: id },
+        paymentStatus: {
+          statusCode: { notIn: ["FAILED", "CANCELLED"] },
+        },
+      },
+      select: { installmentNo: true },
+    });
+
+    const highestPaid = existingPayments.reduce((max, p) => {
+      const num = Number(p.installmentNo);
+      return Number.isFinite(num) && num > max ? num : max;
+    }, 0);
+
+    if (highestPaid > 0 && data.installmentNo <= highestPaid) {
+      throw new AppError(
+        `Installment #${data.installmentNo} has already been paid for this policy. Next installment must be at least #${highestPaid + 1}.`,
+        400,
+      );
+    }
   }
 
   if (data.premiumAmount !== undefined) validateAmount(data.premiumAmount);
@@ -196,7 +244,7 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
   const status = await validatePaymentStatus(data.paymentStatusId);
 
   //Create Notification
-  prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Updated",
         message: `Premium record for Policy (${policy?.policyNumber}) has been updated.`,
@@ -268,7 +316,7 @@ export const deletePayment = async (id: string) => {
   await prisma.premiumPayment.delete({ where: { id } });
 
   //Create Notification
-  prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Deleted",
         message: `Premium record for Policy (${policy?.policyNumber}) has been deleted.`,

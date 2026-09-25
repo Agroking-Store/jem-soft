@@ -157,6 +157,20 @@ export default function EditLICPolicyPage() {
 
   const methods = useForm<PolicyFormValues>({
     resolver: async (values, context, options) => {
+      const isOther =
+        values.providerType === "OTHER" ||
+        selectedPolicy?.provider?.type === "OTHER" ||
+        ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
+        (values.productId && (providers.find((p) => p.id === products.find(pr => pr.id === values.productId)?.providerId) as any)?.code?.toUpperCase() !== "LIC");
+
+      if (isOther) {
+        return zodResolver(policySchema as any)(
+          values as any,
+          context as any,
+          options as any,
+        ) as any;
+      }
+
       const selectedProductAttributes = productAttributeValues.filter(
         (attr) => attr.productId === values.productId,
       );
@@ -342,12 +356,19 @@ export default function EditLICPolicyPage() {
   const watchRiders = watch("riders");
   const watchFupDate = watch("fupDate");
   const watchPolicyNumber = watch("policyNumber");
+  const watchProviderType = watch("providerType");
+  const watchGst = watch("gst");
 
   const watchProductId = watch("productId");
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === watchProductId),
     [watchProductId, products],
   );
+  const isOtherPolicy =
+    watchProviderType === "OTHER" ||
+    selectedPolicy?.provider?.type === "OTHER" ||
+    ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
+    (selectedProduct?.providerId && (providers.find((p) => p.id === selectedProduct.providerId) as any)?.code?.toUpperCase() !== "LIC");
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
     [watchGroupId, groups],
@@ -843,6 +864,25 @@ export default function EditLICPolicyPage() {
 
       watchRiders.forEach((r, index) => {
         const desc = r.description?.toLowerCase() || "";
+
+        if (selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (r.selected && (r.term == null || r.ppt == null || r.sum == null)) {
+            const updatedRiders = [...watchRiders];
+            updatedRiders[index] = {
+              ...r,
+              sum: r.sum != null ? r.sum : expectedSum,
+              term: r.term != null ? r.term : expectedTerm,
+              ppt: r.ppt != null ? r.ppt : expectedPpt,
+            };
+            setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+          }
+          return;
+        }
+
         const isAddb = desc.includes("accidental death") || desc.includes("addb");
 
         if (
@@ -924,6 +964,7 @@ export default function EditLICPolicyPage() {
   const watchOption = watch("option");
 
   useEffect(() => {
+    if (isOtherPolicy) return;
     const sum = parseFloat(String(watchSumAssured)) || 0;
     const term = parseFloat(String(watchTerm)) || 0;
     const ppt = parseFloat(String(watchPpt)) || 0;
@@ -1009,14 +1050,14 @@ export default function EditLICPolicyPage() {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [watchProductId, watchAge, watchOption, watchMode, watchPpt, watchSumAssured, watchTerm, watchTotalRiderPremium, watchGender, setValue]);
+  }, [watchProductId, watchAge, watchOption, watchMode, watchPpt, watchSumAssured, watchTerm, watchTotalRiderPremium, watchGender, setValue, isOtherPolicy]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
     if (Array.isArray(watchRiders)) {
       const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
 
-      if (selectedPlan === "774") {
+      if (isOtherPolicy || selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
         let totalManualRiderPremium = 0;
         watchRiders.forEach((rider: any) => {
           if (rider?.selected) {
@@ -1105,7 +1146,28 @@ export default function EditLICPolicyPage() {
         };
       }
     }
-  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, watchGender, setValue, products]);
+  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, watchGender, setValue, products, isOtherPolicy]);
+
+  // Auto-calculate Total Yearly Premium when in Other policy mode
+  useEffect(() => {
+    if (isOtherPolicy) {
+      const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      const total = basic + rider;
+      setValue("totalYearlyPremium", total > 0 ? total : undefined, { shouldDirty: true });
+    }
+  }, [isOtherPolicy, watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
+
+  // Auto-calculate Total Installment Premium when in Other policy mode
+  useEffect(() => {
+    if (isOtherPolicy) {
+      const installment = parseFloat(String(watchInstallmentPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      const gstVal = parseFloat(String(watchGst)) || 0;
+      const total = installment + rider + gstVal;
+      setValue("totalInstallmentPremium", total > 0 ? parseFloat(total.toFixed(2)) : undefined, { shouldDirty: true });
+    }
+  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, watchGst, setValue]);
 
   const onSubmit = async (data: PolicyFormValues) => {
     console.log("Submit clicked");
@@ -1122,12 +1184,15 @@ export default function EditLICPolicyPage() {
 
         advisorId: data.advisorId || null,
         branchId: data.branchId || null,
-        attributes: {
-          SUM_ASSURED: data.sumAssured,
-          POLICY_TERM: data.term,
-          PREMIUM_PAYING_TERM: data.ppt,
-          // Add other dynamic attributes here if they are on the form
-        },
+        providerType: isOtherPolicy ? "OTHER" : "LIC",
+        attributes: isOtherPolicy
+          ? {}
+          : {
+              SUM_ASSURED: data.sumAssured,
+              POLICY_TERM: data.term,
+              PREMIUM_PAYING_TERM: data.ppt,
+              // Add other dynamic attributes here if they are on the form
+            },
       };
 
       console.log("Advisor ID:", payload.advisorId);
@@ -1468,46 +1533,56 @@ export default function EditLICPolicyPage() {
                       {selectedProduct?.planNumber === "883"
                         ? "Gua.Addn.Period"
                         : "PPT"}
-                      {(selectedProduct?.planNumber === "889" ||
+                      {(isOtherPolicy ||
+                        selectedProduct?.planNumber === "889" ||
                         selectedProduct?.planNumber === "881" ||
                         selectedProduct?.planNumber === "912") && (
                         <span className="text-red-500"> *</span>
                       )}
                     </label>
-                    <select
-                      {...register("ppt")}
-                      disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="">
-                        {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
-                      </option>
-                      {(() => {
-                        let optionsToRender: (number | string)[] = productOptionsData.ppts;
-                        if (selectedProduct?.planNumber === "887") {
-                          if (watchMode === "Single") {
-                            optionsToRender = ["1"];
-                          } else {
-                            const currentTerm = Number(watchTerm);
-                            const allowed = [5, 10, 15];
-                            if (currentTerm && !allowed.includes(currentTerm)) {
-                              allowed.push(currentTerm);
+                    {isOtherPolicy ? (
+                      <input
+                        type="number"
+                        {...register("ppt")}
+                        placeholder="Enter PPT in years"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                    ) : (
+                      <select
+                        {...register("ppt")}
+                        disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
+                        </option>
+                        {(() => {
+                          let optionsToRender: (number | string)[] = productOptionsData.ppts;
+                          if (selectedProduct?.planNumber === "887") {
+                            if (watchMode === "Single") {
+                              optionsToRender = ["1"];
+                            } else {
+                              const currentTerm = Number(watchTerm);
+                              const allowed = [5, 10, 15];
+                              if (currentTerm && !allowed.includes(currentTerm)) {
+                                allowed.push(currentTerm);
+                              }
+                              const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
+                              optionsToRender = filtered.length > 0 ? filtered : allowed;
                             }
-                            const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
-                            optionsToRender = filtered.length > 0 ? filtered : allowed;
                           }
-                        }
-                        return optionsToRender.map(p => (
-                          <option key={p} value={p}>{p}</option>
-                        ));
-                      })()}
-                    </select>
+                          return optionsToRender.map(p => (
+                            <option key={p} value={p}>{p}</option>
+                          ));
+                        })()}
+                      </select>
+                    )}
                     {errors.ppt && (
                       <p className="text-xs text-red-500 mt-1">
                         {errors.ppt.message}
                       </p>
                     )}
-                    {attributeHints.ppt && !errors.ppt && (
+                    {!isOtherPolicy && attributeHints.ppt && !errors.ppt && (
                       <p className="text-xs text-slate-500 mt-1">
                         {attributeHints.ppt}
                       </p>
@@ -1759,24 +1834,34 @@ export default function EditLICPolicyPage() {
                               />
                             </td>
                             <td className="px-2 py-1.5 w-1/3">
-                              <select
-                                {...register(`riders.${index}.description`)}
-                                disabled={!watchRiders?.[index]?.selected}
-                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                              >
-                                <option value="">Select Rider</option>
-                                {riders.map((rider) => (
-                                  <option
-                                    key={rider.id}
-                                    value={rider.riderName}
-                                  >
-                                    {rider.riderCode
-                                      ? `[${rider.riderCode}] `
-                                      : ""}
-                                    {rider.riderName}
-                                  </option>
-                                ))}
-                              </select>
+                              {isOtherPolicy ? (
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.description`)}
+                                  placeholder="Enter Rider Name"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                />
+                              ) : (
+                                <select
+                                  {...register(`riders.${index}.description`)}
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                >
+                                  <option value="">Select Rider</option>
+                                  {riders.map((rider) => (
+                                    <option
+                                      key={rider.id}
+                                      value={rider.riderName}
+                                    >
+                                      {rider.riderCode
+                                        ? `[${rider.riderCode}] `
+                                        : ""}
+                                      {rider.riderName}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
                               {errors.riders?.[index]?.description && (
                                 <p className="text-xs text-red-500 mt-1">
                                   {errors.riders[index]?.description?.message}
@@ -1831,10 +1916,10 @@ export default function EditLICPolicyPage() {
                                 type="text"
                                 {...register(`riders.${index}.premium`)}
                                 placeholder="Premium"
-                                readOnly={selectedProduct?.planNumber !== "774"}
+                                readOnly={!isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"}
                                 disabled={!watchRiders?.[index]?.selected}
                                 className={`w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${
-                                  selectedProduct?.planNumber !== "774"
+                                  !isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"
                                     ? "bg-slate-50 cursor-not-allowed text-slate-500"
                                     : "bg-white text-slate-800"
                                 } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
@@ -1917,8 +2002,12 @@ export default function EditLICPolicyPage() {
                       type="text"
                       {...register("totalYearlyPremium")}
                       placeholder="Enter total yearly premium"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
-                      readOnly
+                      className={`w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm ${
+                        !isOtherPolicy
+                          ? "bg-slate-50 text-slate-500 cursor-not-allowed"
+                          : "focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                      }`}
+                      readOnly={!isOtherPolicy}
                     />
                     {errors.totalYearlyPremium && (
                       <p className="text-xs text-red-500 mt-1">
@@ -1959,6 +2048,22 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      GST / Tax
+                    </label>
+                    <input
+                      type="text"
+                      {...register("gst")}
+                      placeholder="Enter GST / Tax"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.gst && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.gst.message}
+                      </p>
+                    )}
+                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1970,6 +2075,11 @@ export default function EditLICPolicyPage() {
                       placeholder="Total installment premium"
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                     />
+                    {errors.totalInstallmentPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalInstallmentPremium.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CustomerSectionCard>

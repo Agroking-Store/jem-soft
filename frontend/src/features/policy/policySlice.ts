@@ -143,6 +143,9 @@ export interface FetchPoliciesParams {
   dueDate?: string;
   sumAssured?: string;
   status?: string;
+  policyAge?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
@@ -319,7 +322,7 @@ const policySlice = createSlice({
       })
       .addCase(createPolicy.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.policies.push(action.payload);
+        state.policies.unshift(action.payload);
       })
       .addCase(createPolicy.rejected, (state, action) => {
         state.isLoading = false;

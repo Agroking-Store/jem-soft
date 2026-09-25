@@ -1,15 +1,11 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
+import { useEffect, useState, useRef } from "react";
 import { useNotificationStore } from "@/store/notificationStore";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function NotificationBell() {
-  const router = useRouter();
-
   const {
     notifications,
     unreadCount,
@@ -17,31 +13,61 @@ export default function NotificationBell() {
     fetchNotifications,
     readNotification,
     deleteNotification,
+    markAllNotificationsRead,
     hideNotificationCount,
   } = useNotificationStore();
 
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  // Handle outside click and Escape key to close the dropdown
+  useEffect(() => {
+    if (!open) return;
 
-  // Mark notification as read
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  // Toggle notification popup
+  const handleToggle = () => {
+    if (!open) {
+      hideNotificationCount();
+    }
+    setOpen((prev) => !prev);
+  };
+
+  // Mark single notification as read
   const handleNotificationClick = async (id: string) => {
-  try {
-    await readNotification(id);
-    await fetchNotifications();
-
-    setOpen(false);
-
-    // ❌ Remove this line
-    // router.push("/dashboard/notifications");
-  } catch (error) {
-    console.error("Failed to read notification:", error);
-  }
-};
-
+    try {
+      await readNotification(id);
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Failed to read notification:", error);
+    }
+  };
 
   // Delete notification
   const handleDeleteNotification = async (id: string) => {
@@ -53,51 +79,74 @@ export default function NotificationBell() {
     }
   };
 
-  const handleBellClick = () => {
-  hideNotificationCount();
-};
+  // Mark all notifications read
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+    }
+  };
 
   return (
-    <div className="relative" onMouseEnter={() => setOpen(true)}
-         onMouseLeave={() => setOpen(false)}>
+    <div className="relative" ref={containerRef}>
+      {/* YouTube Style Bell Icon Button */}
       <button
-        onClick={() => { router.push("/dashboard/notifications"); setOpen(false); handleBellClick();}}
-        className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
+        type="button"
+        onClick={handleToggle}
+        aria-label="Open notifications"
+        aria-expanded={open}
+        className={`
+          relative p-2.5 rounded-full transition-colors cursor-pointer select-none
+          ${
+            open
+              ? "bg-zinc-200/80 text-zinc-900"
+              : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100"
+          }
+        `}
       >
-        <Bell size={22} className="text-slate-600" />
+        <Bell size={21} strokeWidth={2} />
 
+        {/* YouTube Red Notification Badge */}
         {showNotificationCount && unreadCount > 0 && (
           <span
             className="
               absolute
-              -top-1
-              -right-1
-              min-w-5
-              h-5
-              px-1
+              -top-0.5
+              -right-0.5
+              min-w-[19px]
+              h-[19px]
+              px-1.5
               flex
               items-center
               justify-center
               rounded-full
-              bg-red-500
+              bg-[#cc0000]
               text-white
-              text-xs
-              font-semibold
+              text-[10.5px]
+              font-bold
+              border-2
+              border-white
+              shadow-sm
             "
           >
-            {unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
-      <div className={`display : ${open ? "block" : "hidden"}`}>
+      {/* Floating Dropdown */}
+      {open && (
         <NotificationDropdown
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
           onDeleteNotification={handleDeleteNotification}
+          onMarkRead={handleNotificationClick}
+          onMarkAllRead={handleMarkAllRead}
           onClose={() => setOpen(false)}
         />
-      </div>
+      )}
     </div>
   );
 }
