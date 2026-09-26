@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   CheckCheck, 
-  Settings, 
   Bell, 
   ArrowRight,
   Sparkles
@@ -85,15 +84,6 @@ export default function NotificationDropdown({
                 <CheckCheck size={18} />
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={handleOpenPage}
-              title="Notification settings & history"
-              className="p-1.5 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
-            >
-              <Settings size={18} />
-            </button>
           </div>
         </div>
 
@@ -162,7 +152,10 @@ export default function NotificationDropdown({
             <NotificationCard
               key={notification.id}
               notification={notification}
-              onClick={() => onNotificationClick(notification.id)}
+              onClick={() => {
+                onNotificationClick(notification.id);
+                onClose();
+              }}
               onDelete={onDeleteNotification}
               onMarkRead={onMarkRead}
             />
