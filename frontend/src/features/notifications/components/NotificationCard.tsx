@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import { 
   MoreVertical, 
   Trash2, 
@@ -11,7 +13,13 @@ import {
   FileText
 } from "lucide-react";
 import { Notification } from "../types";
-import { formatYouTubeTime, getNotificationMeta } from "../utils/notificationHelpers";
+import { 
+  formatYouTubeTime, 
+  getNotificationMeta, 
+  getNotificationTargetUrl, 
+  getNotificationActionLabel,
+  extractPolicyNumber 
+} from "../utils/notificationHelpers";
 
 interface NotificationCardProps {
   notification: Notification;
@@ -29,6 +37,7 @@ export default function NotificationCard({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { policies } = useSelector((state: RootState) => state.policies);
 
   // Close context menu on outside click
   useEffect(() => {
@@ -42,11 +51,22 @@ export default function NotificationCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const policyNumber = extractPolicyNumber(notification.title, notification.message);
+  const matchedPolicy = policies?.find(
+    (p) =>
+      (notification.policyId && p.id === notification.policyId) ||
+      (policyNumber && p.policyNumber?.toLowerCase() === policyNumber.toLowerCase())
+  );
+  const resolvedPolicyId = notification.policyId || matchedPolicy?.id;
+
+  const targetUrl = getNotificationTargetUrl(notification, resolvedPolicyId);
+  const actionLabel = getNotificationActionLabel(notification, resolvedPolicyId);
+
   const handleRowClick = () => {
-    onClick();
-    if (notification.policyId) {
-      router.push(`/dashboard/lic/policies?highlight=${notification.policyId}&view=table`);
+    if (targetUrl) {
+      router.push(targetUrl);
     }
+    onClick();
   };
 
   const handleAction = (e: React.MouseEvent, action: () => void) => {
@@ -103,17 +123,17 @@ export default function NotificationCard({
 
         {notification.message && (
           <p className="text-xs text-zinc-600 mt-1 line-clamp-2 leading-relaxed font-normal">
-            {notification.message}
+            {notification.message.replace(/\s*\[paymentId:[^\]]+\]/i, "")}
           </p>
         )}
 
         <div className="flex items-center gap-2 mt-1.5 text-[11.5px] text-zinc-400 font-normal">
           <span>{formatYouTubeTime(notification.createdAt)}</span>
-          {notification.policyId && (
+          {(policyNumber || resolvedPolicyId) && (
             <>
               <span>•</span>
-              <span className="text-zinc-500 font-medium truncate max-w-[120px]">
-                Policy #{notification.policyId.slice(-6)}
+              <span className="text-zinc-500 font-medium truncate max-w-[140px]">
+                {policyNumber ? `Policy #${policyNumber}` : `Policy #${resolvedPolicyId?.slice(-6)}`}
               </span>
             </>
           )}
@@ -123,7 +143,7 @@ export default function NotificationCard({
       {/* Right Column: YouTube 16:9 Thumbnail Preview */}
       <div className="shrink-0 hidden xs:flex flex-col items-center justify-center">
         <div className="w-16 h-10 rounded-md bg-gradient-to-br from-zinc-100 to-zinc-200 border border-zinc-200/80 flex flex-col items-center justify-center relative overflow-hidden shadow-2xs group-hover:border-zinc-300 transition-colors">
-          <Shield size={16} className="text-zinc-400" />
+          <IconComponent size={16} className={meta.iconColor} />
           <div className={`absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded text-[9px] font-bold leading-tight uppercase ${meta.badgeBg} ${meta.badgeColor}`}>
             {meta.badgeLabel}
           </div>
@@ -167,21 +187,19 @@ export default function NotificationCard({
               </button>
             )}
 
-            {notification.policyId && (
+            {targetUrl && (
               <button
                 type="button"
                 onClick={(e) =>
                   handleAction(e, () => {
+                    router.push(targetUrl);
                     onClick();
-                    router.push(
-                      `/dashboard/lic/policies?highlight=${notification.policyId}&view=table`
-                    );
                   })
                 }
                 className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
               >
                 <ExternalLink size={15} className="text-zinc-500" />
-                View policy
+                {actionLabel}
               </button>
             )}
 

@@ -58,6 +58,11 @@ export default function LoansPage() {
 
   useEffect(() => {
     setIsClient(true);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("search");
+      if (q) setSearch(q);
+    }
   }, []);
 
   useEffect(() => {

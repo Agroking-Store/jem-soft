@@ -4,7 +4,7 @@ import { useForm , Controller, Form} from "react-hook-form";
 import { set, z } from "zod";
 import { useDispatch, useSelector} from "react-redux";
 import { useRouter } from "next/navigation";
-import { useEffect, useState , useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { FileText, Loader2, Save, User, Search, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import type { AppDispatch, RootState } from "@/store/store";
@@ -65,15 +65,25 @@ export default function PremiumPaymentForm({
   const { paymentModes } = useSelector((s: RootState) => s.paymentModes);
   const [totalAmount, setTotatAmount] = useState(0);
 
+  const isSinglePolicy = useCallback(
+    (p: any, modeItem?: any) => {
+      if (!p) return false;
+      const m = modeItem || p.premiumMode || modes.find((x) => x.id === p.premiumModeId);
+      return Boolean(
+        m?.modeCode === "SIN" ||
+        m?.modeName?.toLowerCase() === "single" ||
+        m?.months === 0 ||
+        p.premiumPayingTerm === 1 ||
+        ["717", "888", "883"].includes(p.product?.planNumber || "")
+      );
+    },
+    [modes],
+  );
+
   const totalInstallments = useMemo(() => {
     if (!selectedPolicy) return null;
     const modeObj = selectedPolicy.premiumMode || modes.find((x) => x.id === selectedPolicy.premiumModeId);
-    const isSingle =
-      modeObj?.modeCode === "SIN" ||
-      modeObj?.modeName?.toLowerCase() === "single" ||
-      modeObj?.months === 0 ||
-      selectedPolicy.premiumPayingTerm === 1 ||
-      selectedPolicy.product?.planNumber === "717";
+    const isSingle = isSinglePolicy(selectedPolicy, modeObj);
 
     if (isSingle) return 1;
     if (selectedPolicy.premiumPayingTerm && selectedPolicy.premiumPayingTerm > 0) {
@@ -82,7 +92,7 @@ export default function PremiumPaymentForm({
       return Math.floor(perYear * Number(selectedPolicy.premiumPayingTerm));
     }
     return null;
-  }, [selectedPolicy, modes]);
+  }, [selectedPolicy, modes, isSinglePolicy]);
 
   const input = `w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#B8873A] focus:ring-2 focus:ring-[#B8873A]/20 ${mode === "view" ? "bg-slate-50 cursor-not-allowed" : ""}`;
   const label = "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500";
@@ -144,12 +154,23 @@ export default function PremiumPaymentForm({
     }
   }, [initialPolicyId, mode, setValue]);
 
-  // load existing payment when editing
+  // load existing payment when editing or viewing
   useEffect(() => {
     if (!paymentId) return;
     (async () => {
+      let p: any = null;
       const res = await dispatch(fetchPremiumPaymentById(paymentId as string));
-      const p = res.payload;
+      if (res.payload && typeof res.payload === "object" && "policyId" in res.payload) {
+        p = res.payload;
+      } else {
+        // Fallback: check if the id is a policyId that has payments
+        const policyPayments = await dispatch(fetchPremiumPaymentsByPolicy(paymentId as string));
+        const list = Array.isArray(policyPayments.payload) ? policyPayments.payload : [];
+        if (list.length > 0) {
+          p = list[0];
+        }
+      }
+
       if (p && typeof p === "object" && "policyId" in p) {
         setValue("policyId", p.policyId ?? "");
         setValue("installmentNo", p.installmentNo ?? 1);
@@ -159,6 +180,9 @@ export default function PremiumPaymentForm({
         setValue("lateFee", p.lateFee ?? 0);
         setValue("paymentMode", p.paymentMode ?? "");
         setValue("paymentDetails", p.paymentDetails ?? "");
+        if (p.paymentStatus?.statusCode) {
+          setValue("paymentStatus", p.paymentStatus.statusCode);
+        }
 
         const selectionPolicy = policies.find((x) => x.id === p.policyId);
         if (selectionPolicy) {
@@ -207,14 +231,7 @@ export default function PremiumPaymentForm({
       setSelectedPolicy(p);
 
       const modeObj = p.premiumMode || modes.find((x) => x.id === p.premiumModeId);
-      const isSinglePremium =
-        modeObj?.modeCode === "SIN" ||
-        modeObj?.modeName?.toLowerCase() === "single" ||
-        modeObj?.months === 0 ||
-        modes.find((x) => x.id === p.premiumModeId)?.modeCode === "SIN" ||
-        modes.find((x) => x.id === p.premiumModeId)?.months === 0 ||
-        p.premiumPayingTerm === 1 ||
-        p.product?.planNumber === "717";
+      const isSinglePremium = isSinglePolicy(p, modeObj);
 
       // Fetch existing payments for sequence tracking and default due installments
       (async () => {
@@ -302,14 +319,7 @@ export default function PremiumPaymentForm({
     if (!selectedPolicy || mode !== "create") return;
 
     const modeObj = selectedPolicy.premiumMode || modes.find((x) => x.id === selectedPolicy.premiumModeId);
-    const isSinglePremium =
-      modeObj?.modeCode === "SIN" ||
-      modeObj?.modeName?.toLowerCase() === "single" ||
-      modeObj?.months === 0 ||
-      modes.find((x) => x.id === selectedPolicy.premiumModeId)?.modeCode === "SIN" ||
-      modes.find((x) => x.id === selectedPolicy.premiumModeId)?.months === 0 ||
-      selectedPolicy.premiumPayingTerm === 1 ||
-      selectedPolicy.product?.planNumber === "717";
+    const isSinglePremium = isSinglePolicy(selectedPolicy, modeObj);
 
     const instNo = Number(installmentNo) || (highestPaidInstallment + 1);
     const isBelowPaid = highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment;
@@ -407,10 +417,7 @@ export default function PremiumPaymentForm({
 
       const totalLateFee = Number(v.lateFee) + (Number(v.gstOnLateFee) || 0);
       const totalPremiumAmount = Number(v.premiumAmount);
-      const isSingle =
-        selectedPolicy?.premiumMode?.modeCode === "SIN" ||
-        selectedPolicy?.premiumMode?.months === 0 ||
-        selectedPolicy?.product?.planNumber === "717";
+      const isSingle = isSinglePolicy(selectedPolicy);
 
       const effectiveInstallmentNo = isSingle
         ? 1
@@ -520,8 +527,8 @@ export default function PremiumPaymentForm({
               max={totalInstallments ?? undefined}
               onWheel={(e) => e.currentTarget.blur()}
               {...register("installmentNo")}
-              className={`${input} ${highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment ? "!border-amber-500 !ring-2 !ring-amber-200" : ""} ${totalInstallments !== null && Number(installmentNo) > totalInstallments ? "!border-rose-500 !ring-2 !ring-rose-200" : ""} ${mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717")) ? "bg-slate-50 cursor-not-allowed" : ""}`}
-              disabled={mode === "view" || Boolean(selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717"))}
+              className={`${input} ${highestPaidInstallment > 0 && Number(installmentNo) <= highestPaidInstallment ? "!border-amber-500 !ring-2 !ring-amber-200" : ""} ${totalInstallments !== null && Number(installmentNo) > totalInstallments ? "!border-rose-500 !ring-2 !ring-rose-200" : ""} ${mode === "view" || isSinglePolicy(selectedPolicy) ? "bg-slate-50 cursor-not-allowed" : ""}`}
+              disabled={mode === "view" || isSinglePolicy(selectedPolicy)}
               placeholder={selectedPolicy ? `e.g. ${highestPaidInstallment + 1}` : "e.g. 1"}
             />
             {errors.installmentNo && (
@@ -553,7 +560,7 @@ export default function PremiumPaymentForm({
                 </span>
               </div>
             )}
-            {selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717") ? (
+            {isSinglePolicy(selectedPolicy) ? (
               highestPaidInstallment >= 1 ? (
                 <div className="mt-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
                   ⚠️ Single premium policy: Already paid (Installment #1 recorded).
@@ -604,7 +611,7 @@ export default function PremiumPaymentForm({
             )}
           </div>
           {(() => {
-            const isSingle = selectedPolicy && (selectedPolicy.premiumMode?.modeCode === "SIN" || selectedPolicy.premiumMode?.months === 0 || selectedPolicy.product?.planNumber === "717");
+            const isSingle = isSinglePolicy(selectedPolicy);
             const instNo = Number(installmentNo) || (highestPaidInstallment + 1);
             const count = isSingle ? 1 : Math.max(1, instNo - highestPaidInstallment);
             const singleBasePrem = Number(selectedPolicy?.premium?.installmentPremium ?? 0);
@@ -901,13 +908,8 @@ export default function PremiumPaymentForm({
               (totalInstallments !== null && Number(installmentNo) > totalInstallments) ||
               (totalInstallments !== null && highestPaidInstallment >= totalInstallments) ||
               (mode === "create" &&
-                Boolean(
-                  selectedPolicy &&
-                    (selectedPolicy.premiumMode?.modeCode === "SIN" ||
-                      selectedPolicy.premiumMode?.months === 0 ||
-                      selectedPolicy.product?.planNumber === "717") &&
-                    highestPaidInstallment >= 1,
-                ))
+                isSinglePolicy(selectedPolicy) &&
+                highestPaidInstallment >= 1)
             }
             type="submit"
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-[60%]"

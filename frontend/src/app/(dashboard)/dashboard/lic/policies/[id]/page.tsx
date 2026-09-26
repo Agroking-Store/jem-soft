@@ -373,6 +373,20 @@ export default function ViewLICPolicyPage() {
   );
 
   const selectedPlanNumber = selectedProduct?.planNumber ?? "";
+  const isSinglePremiumPlan = useMemo(() => {
+    return ["717", "888", "883"].includes(selectedPlanNumber);
+  }, [selectedPlanNumber]);
+
+  const filteredModes = useMemo(() => {
+    if (isSinglePremiumPlan) {
+      return modes.filter(
+        (m) =>
+          m.modeName?.toLowerCase() === "single" ||
+          m.modeCode?.toUpperCase() === "SIN",
+      );
+    }
+    return modes;
+  }, [modes, isSinglePremiumPlan]);
   const selectedLifeAssured = useMemo(
     () => masterCustomers.find((m) => m.id === watchLifeAssuredId),
     [watchLifeAssuredId, masterCustomers],
@@ -703,12 +717,12 @@ export default function ViewLICPolicyPage() {
                       Mode <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={watch("mode") || ""}
+                      value={watch("mode") || (isSinglePremiumPlan ? "Single" : "Yearly")}
                       disabled
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                     >
                       <option value="">Select Mode</option>
-                      {modes.map((mode) => (
+                      {filteredModes.map((mode) => (
                         <option key={mode.id} value={mode.modeName}>
                           {mode.modeName}
                         </option>

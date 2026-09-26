@@ -31,18 +31,14 @@ export interface PremiumPaymentUpdateData {
 const paymentInclude = {
   paymentStatus: true,
   policy: {
-    select: {
-      id: true,
-      policyNumber: true,
-      commencementDate: true,
-      nextPremiumDueDate: true,
-      CustomerMaster: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
+    include: {
+      CustomerMaster: true,
+      customer: true,
+      product: true,
+      premiumMode: true,
+      advisor: true,
+      branch: true,
+      premium: true,
     },
   },
 };
@@ -103,10 +99,33 @@ export const getAllPayments = async () => {
 };
 
 export const getPaymentById = async (id: string) => {
-  const payment = await prisma.premiumPayment.findUnique({
+  let payment = await prisma.premiumPayment.findUnique({
     where: { id },
     include: paymentInclude,
   });
+
+  if (!payment) {
+    // If id is a policyId, retrieve the most recent premium payment for that policy
+    payment = await prisma.premiumPayment.findFirst({
+      where: { policyId: id },
+      include: paymentInclude,
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  if (!payment) {
+    // If id is a notificationId, retrieve the policyId and find its payment
+    const notif = await prisma.notification.findUnique({
+      where: { id },
+    });
+    if (notif?.policyId) {
+      payment = await prisma.premiumPayment.findFirst({
+        where: { policyId: notif.policyId },
+        include: paymentInclude,
+        orderBy: { createdAt: "desc" },
+      });
+    }
+  }
 
   if (!payment) throw new AppError("Premium payment not found", 404);
   return payment;
@@ -183,7 +202,7 @@ export const createPayment = async (data: PremiumPaymentData) => {
   await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Paid",
-        message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}.`,
+        message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}. [paymentId:${payment.id}]`,
         type: NotificationType.PREMIUM_PAID,
         policyId: policy.id,
       });
@@ -247,7 +266,7 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
   await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Updated",
-        message: `Premium record for Policy (${policy?.policyNumber}) has been updated.`,
+        message: `Premium record for Policy (${policy?.policyNumber}) has been updated. [paymentId:${id}]`,
         type: NotificationType.PREMIUM_UPDATED,
         policyId: policy?.id,
       });
