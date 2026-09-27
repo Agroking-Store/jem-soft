@@ -321,7 +321,7 @@ function DropdownPanel({
               return (
                 <div key={item.label}>
                   {item.isCollapsible ? (
-                     <button type="button" onClick={() => toggleGroup(item.label)} className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:bg-slate-50">
+                     <button type="button" onClick={() => toggleGroup(item.label)} className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:bg-slate-50 cursor-pointer">
                        <span>{item.label}</span>
                        <ChevronDown size={14} className={`transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
                      </button>
@@ -329,7 +329,7 @@ function DropdownPanel({
                     <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{item.label}</div>
                   )}
                   {!isCollapsed && filteredGroupOptions.map(opt => (
-                    <button key={opt.value} type="button" onClick={() => onSelect(opt.value)} className={`flex w-full items-center justify-between gap-2 pl-6 pr-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 ${opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"}`}>
+                    <button key={opt.value} type="button" onClick={() => onSelect(opt.value)} className={`flex w-full items-center justify-between gap-2 pl-6 pr-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"}`}>
                       <span className="min-w-0">
                         <span className="block truncate">{opt.label}</span>
                         {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
@@ -346,7 +346,7 @@ function DropdownPanel({
                   key={item.value}
                   type="button"
                   onClick={() => onSelect(item.value)}
-                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 ${
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
                     item.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"
                   }`}
                 >
@@ -571,7 +571,7 @@ export function FilterSelect({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all ${
+        className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer ${
           active || open
             ? "border-blue-200 bg-blue-50/70 text-[#1877F2]"
             : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"

@@ -177,12 +177,12 @@ export default function CustomerMasterDetailsPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200">
+          <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200 cursor-pointer">
             <ArrowLeft size={16} />
           </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="hover:text-[#1877F2]">Customer Master</button>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="hover:text-[#1877F2] cursor-pointer">Customer Master</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{fullName}</span>
             </nav>
@@ -191,10 +191,10 @@ export default function CustomerMasterDetailsPage({
         </div>
         {canEdit && (
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm">
+            <button type="button" onClick={() => (isModal ? onOpenModal?.("master-edit", id) : router.push(`/dashboard/customers/master/${id}/edit`))} className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm cursor-pointer">
               <SquarePen size={14} /> Edit
             </button>
-            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm">
+            <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm cursor-pointer">
               <Trash2 size={14} /> Delete
             </button>
           </div>
@@ -586,8 +586,8 @@ export default function CustomerMasterDetailsPage({
               Are you sure you want to delete <strong>{fullName}</strong>? This will also remove all their contact info, addresses, bank details, and miscellaneous records.
             </p>
             <div className="flex items-center justify-end gap-3">
-              <button disabled={isDeleting} onClick={() => setShowDeleteModal(false)} className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</button>
-              <button disabled={isDeleting} onClick={handleDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2">
+              <button disabled={isDeleting} onClick={() => setShowDeleteModal(false)} className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer">Cancel</button>
+              <button disabled={isDeleting} onClick={handleDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2 cursor-pointer">
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>

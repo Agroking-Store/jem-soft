@@ -305,7 +305,7 @@ function GroupAutoComplete({
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
-            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
               <X size={13} />
             </button>
           )}
@@ -313,7 +313,7 @@ function GroupAutoComplete({
         <Link
           href="/dashboard/customers/new"
           target="_blank"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors cursor-pointer"
           title="Add new group"
         >
           <Plus size={16} />
@@ -327,7 +327,7 @@ function GroupAutoComplete({
               key={g.id}
               type="button"
               onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/40 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/40 transition-colors text-left cursor-pointer"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
@@ -575,12 +575,12 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       {/* Header */}
       {!isModal && (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
             <ArrowLeft size={16} />
           </Link>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600 cursor-pointer">Customer Master</Link>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">New Customer</span>
             </nav>
@@ -908,11 +908,11 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
           {isModal ? (
-            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer">
               Cancel
             </button>
           ) : (
-            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer">
               Cancel
             </Link>
           )}

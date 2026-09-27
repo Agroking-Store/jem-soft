@@ -286,10 +286,10 @@ function GroupAutoComplete({
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
-            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>
+            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><X size={13} /></button>
           )}
         </div>
-        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors" title="Add new group">
+        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors cursor-pointer" title="Add new group">
           <Plus size={16} />
         </Link>
       </div>
@@ -297,7 +297,7 @@ function GroupAutoComplete({
       {open && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
-            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left">
+            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left cursor-pointer">
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
             </button>
@@ -639,12 +639,12 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
 
       {!isModal && (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
             <ArrowLeft size={16} />
           </Link>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600 cursor-pointer">Customer Master</Link>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">Edit</span>
             </nav>

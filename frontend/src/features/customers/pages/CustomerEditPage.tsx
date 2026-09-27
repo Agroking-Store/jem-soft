@@ -394,13 +394,13 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
         <button
           type="button"
           onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-          className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
         </button>
         <div>
           <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-            <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600">Customer Group</button>
+            <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-slate-600 cursor-pointer">Customer Group</button>
             <ChevronRight size={12} />
             <span className="text-slate-600 font-medium">Edit Group</span>
           </nav>
@@ -622,7 +622,7 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -640,7 +640,7 @@ export default function CustomerEditPage({ isModal = false, customerId, onClose,
           <button
             type="button"
             onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer"
           >
             Cancel
           </button>
