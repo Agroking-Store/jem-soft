@@ -5,6 +5,10 @@ import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
 import { calculatePremium } from "./premiumCalculationService.js";
 import { addMonths } from "date-fns";
+import {
+  LAPSED_THRESHOLD_DAYS,
+  LAPSED_EXCLUDED_POLICY_STATUS_CODES,
+} from "../constants/lapsedPolicy.js";
 
 interface RiderData {
   description: string;
@@ -80,16 +84,6 @@ interface PolicyData {
 }
 
 export const createPolicy = async (data: PolicyData): Promise<Policy> => {
-  console.log("========== CREATE POLICY ==========");
-  console.log("Product ID:", data.productId);
-  console.log("Age:", data.age);
-  console.log("Secondary Age:", data.spouseAge);
-  console.log("Option:", data.option);
-  console.log("Term:", data.term);
-  console.log("PPT:", data.ppt);
-  console.log("Sum Assured:", data.sumAssured);
-  console.log("Mode:", data.mode);
-  console.log("===================================");
   const {
     riders,
     totalRiderPremium,
@@ -156,12 +150,40 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   });
 
 
-  const paymentMethodCode = data.paymentMethod || "CHQ";
-  const paymentMode = await prisma.paymentModeMaster.findFirst({
-    where: { modeCode: { equals: paymentMethodCode } },
-  }) || await prisma.paymentModeMaster.findFirst({
-    where: { modeCode: { equals: "CHQ" } },
+  const paymentMethodCode = (data.paymentMethod || "").toUpperCase();
+  if (paymentMethodCode !== "NACH" && paymentMethodCode !== "NEFT") {
+    throw new AppError("Bank mandate type must be either NACH or NEFT, and bank details are required.", 400);
+  }
+
+  if (paymentMethodCode === "NACH") {
+    if (!data.bankName?.trim() || !data.accountNumber?.trim() || !data.ifscCode?.trim() || !data.accountHolderName?.trim() || !data.bankBranch?.trim()) {
+      throw new AppError("All NACH bank details (Bank Name, Account Number, IFSC Code, Account Holder Name, Bank Branch) are required.", 400);
+    }
+  } else if (paymentMethodCode === "NEFT") {
+    if (!data.neftBankName?.trim() || !data.neftAccountNumber?.trim() || !data.neftIfscCode?.trim() || !data.neftAccountHolderName?.trim() || !data.neftBankBranch?.trim()) {
+      throw new AppError("All NEFT bank details (Bank Name, Account Number, IFSC Code, Account Holder Name, Bank Branch) are required.", 400);
+    }
+  }
+
+  let paymentMode = await prisma.paymentModeMaster.findFirst({
+    where: { modeCode: { equals: paymentMethodCode, mode: "insensitive" } },
   });
+
+  if (!paymentMode) {
+    if (paymentMethodCode === "NEFT") {
+      paymentMode = await prisma.paymentModeMaster.upsert({
+        where: { modeCode: "NEFT" },
+        update: { modeName: "NEFT", description: "NEFT payment" },
+        create: { modeName: "NEFT", modeCode: "NEFT", description: "NEFT payment" },
+      });
+    } else if (paymentMethodCode === "NACH") {
+      paymentMode = await prisma.paymentModeMaster.upsert({
+        where: { modeCode: "NACH" },
+        update: { modeName: "NACH", description: "NACH payment" },
+        create: { modeName: "NACH", modeCode: "NACH", description: "NACH payment" },
+      });
+    }
+  }
 
   //Get next premium due date
   const monthsToAdd = premiumMode?.months;
@@ -170,6 +192,26 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
+  }
+
+  // Check if first unpaid premium date is overdue by LAPSED_THRESHOLD_DAYS (60+ days)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const nextDueStart = new Date(nextPremiumDueDate);
+  nextDueStart.setHours(0, 0, 0, 0);
+  const daysOverdue = Math.floor((today.getTime() - nextDueStart.getTime()) / (1000 * 60 * 60 * 24));
+
+  let assignedStatus = status;
+  const isStatusExcluded = status && LAPSED_EXCLUDED_POLICY_STATUS_CODES.includes(status.statusCode.toUpperCase());
+
+  if (daysOverdue >= LAPSED_THRESHOLD_DAYS && !isStatusExcluded) {
+    const lapsedStatus = await prisma.policyStatusMaster.findFirst({
+      where: { statusCode: { equals: "LAPSED", mode: "insensitive" } },
+    });
+    if (lapsedStatus) {
+      assignedStatus = lapsedStatus;
+    }
   }
 
   // Validate policy number format: LIC policies are 9 digits, others can be any valid format
@@ -181,6 +223,14 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     if (!data.policyNumber || data.policyNumber.trim().length === 0) {
       throw new AppError("Policy number is required.", 400);
     }
+  }
+
+  // Check if policyNumber already exists
+  const existingPolicy = await prisma.policy.findUnique({
+    where: { policyNumber: data.policyNumber },
+  });
+  if (existingPolicy) {
+    throw new AppError(`Policy number '${data.policyNumber}' already exists. Please use a unique policy number.`, 400);
   }
 
   return prisma.$transaction(async (tx) => {
@@ -201,7 +251,7 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         proposerId: data.proposerId || null,
         spouseId: data.spouseId || null,
 
-        statusId: status.id,
+        statusId: assignedStatus.id,
         premiumModeId: premiumMode.id,
         paymentModeId: paymentMode!.id,
 
@@ -226,11 +276,11 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               { riderName: { equals: riderData.description.trim(), mode: "insensitive" } },
               { riderCode: { equals: riderData.description.trim(), mode: "insensitive" } },
               ...(riderData.description?.toLowerCase().includes("waiver") ||
-              riderData.description?.toLowerCase().includes("pwb")
+                riderData.description?.toLowerCase().includes("pwb")
                 ? [{ riderCode: "WOP" }]
                 : []),
               ...(riderData.description?.toLowerCase().includes("accidental") ||
-              riderData.description?.toLowerCase().includes("addb")
+                riderData.description?.toLowerCase().includes("addb")
                 ? [{ riderCode: "ADDB" }]
                 : []),
             ],
@@ -259,14 +309,14 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               riderId: riderMaster.id,
               riderAmount:
                 riderData.sum !== null &&
-                riderData.sum !== undefined &&
-                !isNaN(Number(riderData.sum))
+                  riderData.sum !== undefined &&
+                  !isNaN(Number(riderData.sum))
                   ? Number(riderData.sum)
                   : null,
               riderPremium:
                 riderData.premium !== null &&
-                riderData.premium !== undefined &&
-                !isNaN(Number(riderData.premium))
+                  riderData.premium !== undefined &&
+                  !isNaN(Number(riderData.premium))
                   ? Number(riderData.premium)
                   : null,
             },
@@ -471,12 +521,50 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       }
     }
 
+    if (data.neftSubmissionDate) {
+      let neftAttr = await tx.productAttributeMaster.findFirst({
+        where: { attributeCode: { equals: "neftSubmissionDate", mode: "insensitive" } },
+      });
+      if (!neftAttr) {
+        neftAttr = await tx.productAttributeMaster.create({
+          data: {
+            attributeName: "NEFT Submission Date",
+            attributeCode: "neftSubmissionDate",
+            dataType: "STRING",
+          },
+        });
+      }
+      await tx.policyAttribute.upsert({
+        where: {
+          policyId_attributeId: {
+            policyId: newPolicy.id,
+            attributeId: neftAttr.id,
+          },
+        },
+        update: { value: data.neftSubmissionDate },
+        create: {
+          policyId: newPolicy.id,
+          attributeId: neftAttr.id,
+          value: data.neftSubmissionDate,
+        },
+      });
+    }
+
     await createNotification(tx, {
       title: "Policy Created",
       message: `New policy (${newPolicy.policyNumber}) has been created.`,
       type: NotificationType.POLICY_CREATED,
       policyId: newPolicy.id,
     });
+
+    if (assignedStatus.statusCode?.toUpperCase() === "LAPSED") {
+      await createNotification(tx, {
+        title: "Policy Lapsed",
+        message: `Policy (${newPolicy.policyNumber}) has been automatically marked as Lapsed due to first unpaid premium date (${nextPremiumDueDate.toISOString().slice(0, 10)}) being overdue by ${daysOverdue} days.`,
+        type: NotificationType.POLICY_LAPSED,
+        policyId: newPolicy.id,
+      });
+    }
 
     // await tx.premiumPayment.create({
     //   data : {
@@ -514,6 +602,12 @@ interface PolicySearchFilters {
 export const getAllPolicies = async (
   filters: PolicySearchFilters = {},
 ): Promise<any[]> => {
+  try {
+    await checkAndAutoLapsePolicies();
+  } catch (err: any) {
+    console.error("⚠️ [AUTO-LAPSE IN GET ALL POLICIES ERROR]:", err.message);
+  }
+
   const normalizedSearch = filters.search?.trim();
   const normalizedHolderName = filters.holderName?.trim();
   const normalizedPolicyNumber = filters.policyNumber?.trim();
@@ -995,6 +1089,78 @@ export const updatePolicy = async (
     throw new Error("Premium mode not found.");
   }
 
+  const updatedNextDueDate = data.fupDate ? new Date(data.fupDate) : null;
+  let finalStatusId = data.statusId;
+
+  if (updatedNextDueDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(updatedNextDueDate);
+    due.setHours(0, 0, 0, 0);
+    const daysOverdue = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysOverdue >= LAPSED_THRESHOLD_DAYS) {
+      const requestedStatus = data.statusId
+        ? await prisma.policyStatusMaster.findUnique({ where: { id: data.statusId } })
+        : null;
+      const isExcluded = requestedStatus && LAPSED_EXCLUDED_POLICY_STATUS_CODES.includes(requestedStatus.statusCode.toUpperCase());
+      if (!isExcluded) {
+        const lapsedStatus = await prisma.policyStatusMaster.findFirst({
+          where: { statusCode: { equals: "LAPSED", mode: "insensitive" } },
+        });
+        if (lapsedStatus) {
+          finalStatusId = lapsedStatus.id;
+        }
+      }
+    }
+  }
+
+  if (data.policyNumber) {
+    const existingWithNumber = await prisma.policy.findFirst({
+      where: {
+        policyNumber: data.policyNumber,
+        NOT: { id },
+      },
+    });
+    if (existingWithNumber) {
+      throw new AppError(`Policy number '${data.policyNumber}' already exists. Please use a unique policy number.`, 400);
+    }
+  }
+
+  const updatePaymentMethodCode = (data.paymentMethod || "").toUpperCase();
+  if (updatePaymentMethodCode !== "NACH" && updatePaymentMethodCode !== "NEFT") {
+    throw new AppError("Bank mandate type must be either NACH or NEFT, and bank details are required.", 400);
+  }
+
+  if (updatePaymentMethodCode === "NACH") {
+    if (!data.bankName?.trim() || !data.accountNumber?.trim() || !data.ifscCode?.trim() || !data.accountHolderName?.trim() || !data.bankBranch?.trim()) {
+      throw new AppError("All NACH bank details (Bank Name, Account Number, IFSC Code, Account Holder Name, Bank Branch) are required.", 400);
+    }
+  } else if (updatePaymentMethodCode === "NEFT") {
+    if (!data.neftBankName?.trim() || !data.neftAccountNumber?.trim() || !data.neftIfscCode?.trim() || !data.neftAccountHolderName?.trim() || !data.neftBankBranch?.trim()) {
+      throw new AppError("All NEFT bank details (Bank Name, Account Number, IFSC Code, Account Holder Name, Bank Branch) are required.", 400);
+    }
+  }
+
+  let paymentModeRecord = await prisma.paymentModeMaster.findFirst({
+    where: { modeCode: { equals: updatePaymentMethodCode, mode: "insensitive" } },
+  });
+  if (!paymentModeRecord) {
+    if (updatePaymentMethodCode === "NEFT") {
+      paymentModeRecord = await prisma.paymentModeMaster.upsert({
+        where: { modeCode: "NEFT" },
+        update: { modeName: "NEFT", description: "NEFT payment" },
+        create: { modeName: "NEFT", modeCode: "NEFT", description: "NEFT payment" },
+      });
+    } else if (updatePaymentMethodCode === "NACH") {
+      paymentModeRecord = await prisma.paymentModeMaster.upsert({
+        where: { modeCode: "NACH" },
+        update: { modeName: "NACH", description: "NACH payment" },
+        create: { modeName: "NACH", modeCode: "NACH", description: "NACH payment" },
+      });
+    }
+  }
+
   return prisma.$transaction(async (tx) => {
     const updatedPolicy = await tx.policy.update({
       where: {
@@ -1017,13 +1183,7 @@ export const updatePolicy = async (
         spouseId: data.spouseId || null,
 
         premiumModeId: premiumMode.id,
-        paymentModeId: (
-          await tx.paymentModeMaster.findFirst({
-            where: { modeCode: { equals: data.paymentMethod || "CHQ" } },
-          }) || await tx.paymentModeMaster.findFirst({
-            where: { modeCode: { equals: "CHQ" } },
-          })
-        )!.id,
+        paymentModeId: paymentModeRecord!.id,
 
         commencementDate: new Date(data.commencementDate),
 
@@ -1035,9 +1195,9 @@ export const updatePolicy = async (
 
         premiumPayingTerm: premiumPayingTerm,
 
-        statusId: data.statusId,
+        statusId: finalStatusId,
 
-        nextPremiumDueDate: data.fupDate ? new Date(data.fupDate) : null,
+        nextPremiumDueDate: updatedNextDueDate,
       },
     });
 
@@ -1059,11 +1219,11 @@ export const updatePolicy = async (
               { riderName: { equals: riderData.description.trim(), mode: "insensitive" } },
               { riderCode: { equals: riderData.description.trim(), mode: "insensitive" } },
               ...(riderData.description?.toLowerCase().includes("waiver") ||
-              riderData.description?.toLowerCase().includes("pwb")
+                riderData.description?.toLowerCase().includes("pwb")
                 ? [{ riderCode: "WOP" }]
                 : []),
               ...(riderData.description?.toLowerCase().includes("accidental") ||
-              riderData.description?.toLowerCase().includes("addb")
+                riderData.description?.toLowerCase().includes("addb")
                 ? [{ riderCode: "ADDB" }]
                 : []),
             ],
@@ -1092,14 +1252,14 @@ export const updatePolicy = async (
               riderId: riderMaster.id,
               riderAmount:
                 riderData.sum !== null &&
-                riderData.sum !== undefined &&
-                !isNaN(Number(riderData.sum))
+                  riderData.sum !== undefined &&
+                  !isNaN(Number(riderData.sum))
                   ? Number(riderData.sum)
                   : null,
               riderPremium:
                 riderData.premium !== null &&
-                riderData.premium !== undefined &&
-                !isNaN(Number(riderData.premium))
+                  riderData.premium !== undefined &&
+                  !isNaN(Number(riderData.premium))
                   ? Number(riderData.premium)
                   : null,
             },
@@ -1347,6 +1507,35 @@ export const updatePolicy = async (
       }
     }
 
+    if (data.neftSubmissionDate) {
+      let neftAttr = await tx.productAttributeMaster.findFirst({
+        where: { attributeCode: { equals: "neftSubmissionDate", mode: "insensitive" } },
+      });
+      if (!neftAttr) {
+        neftAttr = await tx.productAttributeMaster.create({
+          data: {
+            attributeName: "NEFT Submission Date",
+            attributeCode: "neftSubmissionDate",
+            dataType: "STRING",
+          },
+        });
+      }
+      await tx.policyAttribute.upsert({
+        where: {
+          policyId_attributeId: {
+            policyId: updatedPolicy.id,
+            attributeId: neftAttr.id,
+          },
+        },
+        update: { value: data.neftSubmissionDate },
+        create: {
+          policyId: updatedPolicy.id,
+          attributeId: neftAttr.id,
+          value: data.neftSubmissionDate,
+        },
+      });
+    }
+
     await createNotification(tx, {
       title: "Policy Updated",
       message: `Policy (${updatedPolicy.policyNumber}) has been updated.`,
@@ -1356,4 +1545,119 @@ export const updatePolicy = async (
 
     return updatedPolicy;
   });
+};
+
+/**
+ * Automatically transitions policies whose next unpaid premium is overdue by
+ * LAPSED_THRESHOLD_DAYS (60 days) or more to 'LAPSED' status.
+ *
+ * Excludes terminal statuses (CLAIMED, MATURITY CLAIMED, SURRENDERED, COMPLETED, FULLY PAID UP, REDUCED PAID-UP)
+ * and policies already marked as LAPSED.
+ *
+ * Verifies that no paid payment record covers the due date before marking as lapsed.
+ *
+ * @returns Number of policies transitioned to LAPSED
+ */
+export const checkAndAutoLapsePolicies = async (): Promise<number> => {
+  const lapsedStatus = await prisma.policyStatusMaster.findFirst({
+    where: { statusCode: { equals: "LAPSED", mode: "insensitive" } },
+  });
+
+  if (!lapsedStatus) {
+    console.warn("⚠️ [LAPSE CHECK] Policy status 'LAPSED' not found in database.");
+    return 0;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const cutoffDate = new Date(today);
+  cutoffDate.setDate(cutoffDate.getDate() - LAPSED_THRESHOLD_DAYS);
+  cutoffDate.setHours(23, 59, 59, 999);
+
+  // Find all candidate policies:
+  // 1. Not already LAPSED or excluded
+  // 2. nextPremiumDueDate is on or before cutoffDate (60+ days ago)
+  const candidatePolicies = await prisma.policy.findMany({
+    where: {
+      nextPremiumDueDate: {
+        lte: cutoffDate,
+      },
+      status: {
+        statusCode: {
+          notIn: [...LAPSED_EXCLUDED_POLICY_STATUS_CODES, "LAPSED"],
+        },
+      },
+    },
+    select: {
+      id: true,
+      policyNumber: true,
+      nextPremiumDueDate: true,
+      statusId: true,
+      premiumPayments: {
+        where: {
+          OR: [
+            { paidDate: { not: null } },
+            { paymentStatus: { statusCode: "PAID" } },
+          ],
+        },
+        select: {
+          dueDate: true,
+          installmentNo: true,
+        },
+      },
+    },
+  });
+
+  let lapsedCount = 0;
+
+  for (const policy of candidatePolicies) {
+    if (!policy.nextPremiumDueDate) continue;
+
+    const dueDateStart = new Date(policy.nextPremiumDueDate);
+    dueDateStart.setHours(0, 0, 0, 0);
+    const dueDateEnd = new Date(policy.nextPremiumDueDate);
+    dueDateEnd.setHours(23, 59, 59, 999);
+
+    // Verify if there is a paid record matching this due date
+    const hasPaid = policy.premiumPayments.some((p) => {
+      const pDueDate = new Date(p.dueDate);
+      return pDueDate >= dueDateStart && pDueDate <= dueDateEnd;
+    });
+
+    if (hasPaid) {
+      continue; // Payment exists, do not lapse
+    }
+
+    const daysOverdue = Math.floor(
+      (today.getTime() - dueDateStart.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Update status to LAPSED
+    await prisma.policy.update({
+      where: { id: policy.id },
+      data: { statusId: lapsedStatus.id },
+    });
+
+    // Create Notification
+    await prisma.notification.create({
+      data: {
+        title: "Policy Lapsed",
+        message: `Policy (${policy.policyNumber}) has been automatically marked as Lapsed due to non-payment of premium due on ${policy.nextPremiumDueDate.toISOString().slice(0, 10)} (${daysOverdue} days overdue).`,
+        type: NotificationType.POLICY_LAPSED,
+        policyId: policy.id,
+      },
+    });
+
+    console.log(
+      `🔒 [AUTO-LAPSE] Policy ${policy.policyNumber} transitioned to LAPSED (${daysOverdue} days overdue).`
+    );
+    lapsedCount++;
+  }
+
+  if (lapsedCount > 0) {
+    console.log(`✅ [AUTO-LAPSE] Transitioned ${lapsedCount} policy(ies) to LAPSED status.`);
+  }
+
+  return lapsedCount;
 };

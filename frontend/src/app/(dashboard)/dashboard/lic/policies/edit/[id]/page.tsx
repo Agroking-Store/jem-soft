@@ -157,6 +157,56 @@ export default function EditLICPolicyPage() {
 
   const methods = useForm<PolicyFormValues>({
     resolver: async (values, context, options) => {
+      let refinedSchema = policySchema;
+
+      if (useNach) {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.bankName && data.bankName.trim().length > 0), {
+            message: "Bank Name is required for NACH.",
+            path: ["bankName"],
+          })
+          .refine((data) => Boolean(data.accountNumber && data.accountNumber.trim().length > 0), {
+            message: "Account Number is required for NACH.",
+            path: ["accountNumber"],
+          })
+          .refine((data) => Boolean(data.ifscCode && data.ifscCode.trim().length > 0), {
+            message: "IFSC Code is required for NACH.",
+            path: ["ifscCode"],
+          })
+          .refine((data) => Boolean(data.accountHolderName && data.accountHolderName.trim().length > 0), {
+            message: "Account Holder Name is required for NACH.",
+            path: ["accountHolderName"],
+          })
+          .refine((data) => Boolean(data.bankBranch && data.bankBranch.trim().length > 0), {
+            message: "Bank Branch is required for NACH.",
+            path: ["bankBranch"],
+          });
+      }
+
+      if (useNeft) {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.neftBankName && data.neftBankName.trim().length > 0), {
+            message: "Bank Name is required for NEFT.",
+            path: ["neftBankName"],
+          })
+          .refine((data) => Boolean(data.neftAccountNumber && data.neftAccountNumber.trim().length > 0), {
+            message: "Account Number is required for NEFT.",
+            path: ["neftAccountNumber"],
+          })
+          .refine((data) => Boolean(data.neftIfscCode && data.neftIfscCode.trim().length > 0), {
+            message: "IFSC Code is required for NEFT.",
+            path: ["neftIfscCode"],
+          })
+          .refine((data) => Boolean(data.neftAccountHolderName && data.neftAccountHolderName.trim().length > 0), {
+            message: "Account Holder Name is required for NEFT.",
+            path: ["neftAccountHolderName"],
+          })
+          .refine((data) => Boolean(data.neftBankBranch && data.neftBankBranch.trim().length > 0), {
+            message: "Bank Branch is required for NEFT.",
+            path: ["neftBankBranch"],
+          });
+      }
+
       const isOther =
         values.providerType === "OTHER" ||
         selectedPolicy?.provider?.type === "OTHER" ||
@@ -164,7 +214,7 @@ export default function EditLICPolicyPage() {
         (values.productId && (providers.find((p) => p.id === products.find(pr => pr.id === values.productId)?.providerId) as any)?.code?.toUpperCase() !== "LIC");
 
       if (isOther) {
-        return zodResolver(policySchema as any)(
+        return zodResolver(refinedSchema as any)(
           values as any,
           context as any,
           options as any,
@@ -178,8 +228,6 @@ export default function EditLICPolicyPage() {
         selectedProductAttributes.find(
           (a) => a.attribute.attributeCode === code,
         )?.value;
-
-      let refinedSchema = policySchema;
 
       const minTerm = getAttributeValue("MIN_POLICY_TERM");
       const maxTerm = getAttributeValue("MAX_POLICY_TERM");
@@ -357,7 +405,6 @@ export default function EditLICPolicyPage() {
   const watchFupDate = watch("fupDate");
   const watchPolicyNumber = watch("policyNumber");
   const watchProviderType = watch("providerType");
-  const watchGst = watch("gst");
 
   const watchProductId = watch("productId");
   const selectedProduct = useMemo(
@@ -446,10 +493,6 @@ export default function EditLICPolicyPage() {
 
       branchId: selectedPolicy.branchId ?? "",
 
-      accountHolderName: targetBankCustomer
-        ? getFullName(targetBankCustomer)
-        : "",
-
       term: selectedPolicy.policyTerm ?? undefined,
 
       ppt:
@@ -530,6 +573,11 @@ export default function EditLICPolicyPage() {
       micrNumber: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
         ? targetBankDetails?.micrNumber ?? ""
         : "",
+      accountHolderName: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankCustomer
+          ? getFullName(targetBankCustomer)
+          : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : "")
+        : "",
 
       neftBankName: isPolicyNeft
         ? targetBankDetails?.bankName ?? ""
@@ -543,10 +591,15 @@ export default function EditLICPolicyPage() {
       neftIfscCode: isPolicyNeft
         ? targetBankDetails?.ifscCode ?? ""
         : "",
-      neftAccountHolderName: targetBankCustomer
-        ? getFullName(targetBankCustomer)
-        : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : ""),
-      neftSubmissionDate: "",
+      neftAccountHolderName: isPolicyNeft
+        ? (targetBankCustomer
+            ? getFullName(targetBankCustomer)
+            : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : ""))
+        : "",
+      neftSubmissionDate:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "neftSubmissionDate",
+        )?.value ?? "",
 
       riders:
         selectedPolicy.policyRiders && selectedPolicy.policyRiders.length > 0
@@ -616,12 +669,12 @@ export default function EditLICPolicyPage() {
     });
 
     // Enable NACH/NEFT based on saved policy details
-    if (isPolicyNach || (!isPolicyNeft && (targetBankDetails?.accountNumber || targetBankDetails?.bankName))) {
-      setUseNach(true);
-      setUseNeft(false);
-    } else if (isPolicyNeft) {
+    if (isPolicyNeft) {
       setUseNeft(true);
       setUseNach(false);
+    } else if (isPolicyNach || (targetBankDetails?.accountNumber || targetBankDetails?.bankName)) {
+      setUseNach(true);
+      setUseNeft(false);
     } else {
       setUseNach(false);
       setUseNeft(false);
@@ -698,7 +751,13 @@ export default function EditLICPolicyPage() {
   }, [watchGroupId, selectedGroup, setValue]);
 
   useEffect(() => {
-    const member = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (!watchLifeAssuredId) return;
+    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
+    }
+    if (!member) return;
+
     setValue(
       "dob",
       member?.dob ? new Date(member.dob).toISOString().split("T")[0] : "",
@@ -735,16 +794,18 @@ export default function EditLICPolicyPage() {
         setValue("neftAccountHolderName", getFullName(member as any));
       }
     }
-  }, [watchLifeAssuredId, masterCustomers, setValue]);
+  }, [watchLifeAssuredId, masterCustomers, selectedPolicy, setValue]);
 
   useEffect(() => {
-    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    if (!member && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
-      member = selectedPolicy.CustomerMaster;
+    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
     }
     const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
     if (proposerId) {
-      const proposer = (selectedPolicy as any)?.proposer || masterCustomers.find((m) => m.id === proposerId);
+      const proposer =
+        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
@@ -766,13 +827,15 @@ export default function EditLICPolicyPage() {
   }, [useNach, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
 
   useEffect(() => {
-    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
-    if (!member && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
-      member = selectedPolicy.CustomerMaster;
+    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
     }
     const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
     if (proposerId) {
-      const proposer = (selectedPolicy as any)?.proposer || masterCustomers.find((m) => m.id === proposerId);
+      const proposer =
+        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
@@ -1067,7 +1130,6 @@ export default function EditLICPolicyPage() {
             ? parseFloat(premium.installmentPremium.toFixed(2))
             : undefined,
         );
-        setValue("gst", premium.gst ?? 0);
 
         const totalInstallmentPremium = premium.installmentPremium + totalRider;
         setValue(
@@ -1215,15 +1277,96 @@ export default function EditLICPolicyPage() {
     if (isOtherPolicy) {
       const installment = parseFloat(String(watchInstallmentPremium)) || 0;
       const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
-      const gstVal = parseFloat(String(watchGst)) || 0;
-      const total = installment + rider + gstVal;
+      const total = installment + rider;
       setValue("totalInstallmentPremium", total > 0 ? parseFloat(total.toFixed(2)) : undefined, { shouldDirty: true });
     }
-  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, watchGst, setValue]);
+  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
+
+  const isOverdueLapsed = useMemo(() => {
+    const targetDateStr = watchFupDate || watchCommencementDate;
+    if (!targetDateStr) return false;
+    const targetDate = new Date(targetDateStr);
+    if (isNaN(targetDate.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 60;
+  }, [watchFupDate, watchCommencementDate]);
+
+  // Auto-switch Policy Status to Lapsed if FUP or commencement date is 60+ days overdue
+  useEffect(() => {
+    if (isOverdueLapsed && statuses.length > 0) {
+      const lapsedStatus = statuses.find(
+        (s) => s.statusCode?.toUpperCase() === "LAPSED" || s.statusName?.toLowerCase() === "lapsed"
+      );
+      if (lapsedStatus) {
+        setValue("statusId", lapsedStatus.id, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  }, [isOverdueLapsed, statuses, setValue]);
 
   const onSubmit = async (data: PolicyFormValues) => {
     console.log("Submit clicked");
     setIsSubmitting(true);
+
+    if (useNach) {
+      let hasError = false;
+      if (!data.bankName?.trim()) {
+        setError("bankName", { message: "Bank Name is required for NACH." });
+        hasError = true;
+      }
+      if (!data.accountNumber?.trim()) {
+        setError("accountNumber", { message: "Account Number is required for NACH." });
+        hasError = true;
+      }
+      if (!data.ifscCode?.trim()) {
+        setError("ifscCode", { message: "IFSC Code is required for NACH." });
+        hasError = true;
+      }
+      if (!data.accountHolderName?.trim()) {
+        setError("accountHolderName", { message: "Account Holder Name is required for NACH." });
+        hasError = true;
+      }
+      if (!data.bankBranch?.trim()) {
+        setError("bankBranch", { message: "Bank Branch is required for NACH." });
+        hasError = true;
+      }
+      if (hasError) {
+        toast.error("Please fill all required NACH details.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    if (useNeft) {
+      let hasError = false;
+      if (!data.neftBankName?.trim()) {
+        setError("neftBankName", { message: "Bank Name is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftAccountNumber?.trim()) {
+        setError("neftAccountNumber", { message: "Account Number is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftIfscCode?.trim()) {
+        setError("neftIfscCode", { message: "IFSC Code is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftAccountHolderName?.trim()) {
+        setError("neftAccountHolderName", { message: "Account Holder Name is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftBankBranch?.trim()) {
+        setError("neftBankBranch", { message: "Bank Branch is required for NEFT." });
+        hasError = true;
+      }
+      if (hasError) {
+        toast.error("Please fill all required NEFT details.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     try {
       const payload = {
@@ -1276,6 +1419,12 @@ export default function EditLICPolicyPage() {
     );
     if (selectedProduct?.planNumber === "881" && formErrors.option) {
       toast.error("Please select an option for LIC Plan 881.");
+    }
+    if (useNach && (formErrors.bankName || formErrors.accountNumber || formErrors.ifscCode || formErrors.accountHolderName || formErrors.bankBranch)) {
+      toast.error("Please fill all required NACH details.");
+    }
+    if (useNeft && (formErrors.neftBankName || formErrors.neftAccountNumber || formErrors.neftIfscCode || formErrors.neftAccountHolderName || formErrors.neftBankBranch)) {
+      toast.error("Please fill all required NEFT details.");
     }
   };
 
@@ -2109,22 +2258,7 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      GST / Tax
-                    </label>
-                    <input
-                      type="text"
-                      {...register("gst")}
-                      placeholder="Enter GST / Tax"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
-                    {errors.gst && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.gst.message}
-                      </p>
-                    )}
-                  </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -2177,9 +2311,16 @@ export default function EditLICPolicyPage() {
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Policy Status
-                    </label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        Policy Status
+                      </label>
+                      {isOverdueLapsed && (
+                        <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          Auto-Lapsed (60+ days overdue)
+                        </span>
+                      )}
+                    </div>
                     <select
                       {...register("statusId")}
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
@@ -2294,7 +2435,12 @@ export default function EditLICPolicyPage() {
                       checked={useNach}
                       onChange={(e) => {
                         setUseNach(e.target.checked);
-                        if (e.target.checked) setUseNeft(false);
+                        if (e.target.checked) {
+                          setUseNeft(false);
+                          clearErrors(["neftBankName", "neftAccountNumber", "neftIfscCode", "neftAccountHolderName", "neftBankBranch"]);
+                        } else {
+                          clearErrors(["bankName", "accountNumber", "ifscCode", "accountHolderName", "bankBranch"]);
+                        }
                       }}
                       className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
                     />
@@ -2309,58 +2455,93 @@ export default function EditLICPolicyPage() {
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Bank Name
+                          Bank Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Bank Name"
                           {...register("bankName")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.bankName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.bankName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.bankName.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Account Number
+                          Account Number <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Account Number"
                           {...register("accountNumber")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.accountNumber
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.accountNumber && (
+                          <p className="text-xs text-red-500 mt-1">{errors.accountNumber.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          IFSC Code
+                          IFSC Code <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="IFSC Code"
                           {...register("ifscCode")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.ifscCode
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.ifscCode && (
+                          <p className="text-xs text-red-500 mt-1">{errors.ifscCode.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Account Holder Name
+                          Account Holder Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Account Holder Name"
                           {...register("accountHolderName")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.accountHolderName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.accountHolderName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.accountHolderName.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Bank Branch
+                          Bank Branch <span className="text-red-500">*</span>
                         </label>
                         <input
                           {...register("bankBranch")}
                           type="text"
                           placeholder="Bank Branch"
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.bankBranch
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.bankBranch && (
+                          <p className="text-xs text-red-500 mt-1">{errors.bankBranch.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -2417,7 +2598,12 @@ export default function EditLICPolicyPage() {
                       checked={useNeft}
                       onChange={(e) => {
                         setUseNeft(e.target.checked);
-                        if (e.target.checked) setUseNach(false);
+                        if (e.target.checked) {
+                          setUseNach(false);
+                          clearErrors(["bankName", "accountNumber", "ifscCode", "accountHolderName", "bankBranch"]);
+                        } else {
+                          clearErrors(["neftBankName", "neftAccountNumber", "neftIfscCode", "neftAccountHolderName", "neftBankBranch"]);
+                        }
                       }}
                       className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
                     />
@@ -2433,58 +2619,93 @@ export default function EditLICPolicyPage() {
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Bank Name
+                          Bank Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Bank Name"
                           {...register("neftBankName")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftBankName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.neftBankName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftBankName.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Account Number
+                          Account Number <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Account Number"
                           {...register("neftAccountNumber")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftAccountNumber
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.neftAccountNumber && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftAccountNumber.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          IFSC Code
+                          IFSC Code <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="IFSC Code"
                           {...register("neftIfscCode")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftIfscCode
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.neftIfscCode && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftIfscCode.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Account Holder Name
+                          Account Holder Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           placeholder="Account Holder Name"
                           {...register("neftAccountHolderName")}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftAccountHolderName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.neftAccountHolderName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftAccountHolderName.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Bank Branch
+                          Bank Branch <span className="text-red-500">*</span>
                         </label>
                         <input
                           {...register("neftBankBranch")}
                           type="text"
                           placeholder="Bank Branch"
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftBankBranch
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
                         />
+                        {errors.neftBankBranch && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftBankBranch.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">

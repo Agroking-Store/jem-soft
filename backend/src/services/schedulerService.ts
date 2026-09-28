@@ -5,6 +5,7 @@ import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
 import { renderTemplateText, seedDefaultTemplates } from "./templateService.js";
 import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
+import { checkAndAutoLapsePolicies } from "./policyService.js";
 
 /**
  * Scan all policies and trigger due date reminders and birthday wishes
@@ -15,6 +16,13 @@ import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
  */
 export const runSchedulerScan = async () => {
   console.log("⏰ [SCHEDULER] Starting automated communication scan...");
+
+  // 0. Auto-transition overdue policies (60+ days) to LAPSED status
+  try {
+    await checkAndAutoLapsePolicies();
+  } catch (err: any) {
+    console.error("❌ [SCHEDULER AUTO-LAPSE ERROR]:", err.message);
+  }
 
   const settings = await getReminderSettings();
   if (!settings.isAutoReminderEnabled) {
@@ -559,6 +567,11 @@ export const getUpcomingCelebrations = async (daysAhead = 30) => {
  * Initialize Background Cron Schedule
  */
 export const initScheduler = () => {
+  // Run an immediate lapse check on server startup
+  checkAndAutoLapsePolicies().catch((err: any) => {
+    console.error("❌ [STARTUP AUTO-LAPSE ERROR]:", err.message);
+  });
+
   // Run daily at 09:00 AM server time
   cron.schedule("0 9 * * *", async () => {
     console.log("⏰ [CRON TRIGGER] Running scheduled daily insurance reminder scan...");

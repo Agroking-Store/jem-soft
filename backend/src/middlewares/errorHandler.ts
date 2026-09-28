@@ -41,5 +41,24 @@ export const globalErrorHandler = (
     err.statusCode = 400;
   }
 
+  if ((err as any).code === "P2002") {
+    const target = (err as any).meta?.target;
+    const targetFields = Array.isArray(target)
+      ? target.join(", ")
+      : target
+        ? String(target)
+        : "field";
+    const readableField =
+      targetFields === "policyNumber"
+        ? "Policy number"
+        : targetFields === "email"
+          ? "Email address"
+          : targetFields === "phone"
+            ? "Phone number"
+            : targetFields;
+    errorResponse.message = `${readableField} already exists. Please use a unique value.`;
+    err.statusCode = 400;
+  }
+
   res.status(err.statusCode).json(errorResponse);
 };

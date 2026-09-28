@@ -438,6 +438,7 @@ export default function PremiumPaymentForm({
             futureDueDate: v.futureDueDate,
           }),
         );
+        await dispatch(fetchPolicies());
         await fetchNotifications();
         toast.success("Premium payment updated successfully");
       } else {
