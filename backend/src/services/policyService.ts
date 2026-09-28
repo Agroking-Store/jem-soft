@@ -125,14 +125,36 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
       where: { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
     });
 
-  const premiumMode = await prisma.premiumModeMaster.findFirst({
-    where: { modeName: { equals: data.mode, mode: "insensitive" } },
+  const product = await prisma.productMaster.findUnique({
+    where: { id: data.productId },
+    select: {
+      providerId: true,
+      planNumber: true,
+      provider: {
+        select: {
+          code: true,
+        },
+      },
+    },
   });
 
-  //Paid Status By default
-  const paymentStatus = await prisma.paymentStatusMaster.findFirst({
-    where: { statusCode: { equals: "PAID" } },
+  if (!product) {
+    throw new AppError("Product not found.", 404);
+  }
+
+  const isLic = product.provider?.code?.toUpperCase() === "LIC";
+  const isLicSinglePlan = isLic && ["717", "888", "883"].includes(product.planNumber || "");
+  const targetModeName = isLicSinglePlan ? "Single" : (data.mode || "Yearly");
+
+  const premiumMode = await prisma.premiumModeMaster.findFirst({
+    where: {
+      OR: [
+        { modeName: { equals: targetModeName, mode: "insensitive" } },
+        { modeCode: { equals: targetModeName, mode: "insensitive" } },
+      ],
+    },
   });
+
 
   const paymentMethodCode = data.paymentMethod || "CHQ";
   const paymentMode = await prisma.paymentModeMaster.findFirst({
@@ -149,24 +171,6 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
   if (!status || !premiumMode) {
     throw new Error("Default policy status or premium mode not found.");
   }
-
-  const product = await prisma.productMaster.findUnique({
-    where: { id: data.productId },
-    select: {
-      providerId: true,
-      provider: {
-        select: {
-          code: true,
-        },
-      },
-    },
-  });
-
-  if (!product) {
-    throw new AppError("Product not found.", 404);
-  }
-
-  const isLic = product.provider?.code?.toUpperCase() === "LIC";
 
   // Validate policy number format: LIC policies are 9 digits, others can be any valid format
   if (isLic) {
@@ -957,23 +961,11 @@ export const updatePolicy = async (
     );
   }
 
-  const premiumMode = await prisma.premiumModeMaster.findFirst({
-    where: {
-      modeName: {
-        equals: data.mode,
-        mode: "insensitive",
-      },
-    },
-  });
-
-  if (!premiumMode) {
-    throw new Error("Premium mode not found.");
-  }
-
   const product = await prisma.productMaster.findUnique({
     where: { id: data.productId },
     select: {
       providerId: true,
+      planNumber: true,
       provider: {
         select: {
           code: true,
@@ -987,6 +979,21 @@ export const updatePolicy = async (
   }
 
   const isLic = product.provider?.code?.toUpperCase() === "LIC";
+  const isLicSinglePlan = isLic && ["717", "888", "883"].includes(product.planNumber || "");
+  const targetModeName = isLicSinglePlan ? "Single" : (data.mode || "Yearly");
+
+  const premiumMode = await prisma.premiumModeMaster.findFirst({
+    where: {
+      OR: [
+        { modeName: { equals: targetModeName, mode: "insensitive" } },
+        { modeCode: { equals: targetModeName, mode: "insensitive" } },
+      ],
+    },
+  });
+
+  if (!premiumMode) {
+    throw new Error("Premium mode not found.");
+  }
 
   return prisma.$transaction(async (tx) => {
     const updatedPolicy = await tx.policy.update({

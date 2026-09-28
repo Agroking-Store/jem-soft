@@ -333,6 +333,7 @@ export default function NewLICPolicyPage() {
     },
     defaultValues: {
       providerType: selectedPolicyType === "other" ? "OTHER" : "LIC",
+      mode: "Yearly",
       riders: [],
       nominees: [],
     },
@@ -656,7 +657,28 @@ export default function NewLICPolicyPage() {
       }));
   }, [branches]);
 
+  const isSinglePremiumPlan = useMemo(() => {
+    if (isOtherPolicy) return false;
+    const plan = selectedProduct?.planNumber;
+    return Boolean(plan && ["717", "888", "883"].includes(plan));
+  }, [isOtherPolicy, selectedProduct?.planNumber]);
+
   const modeOptions = useMemo(() => {
+    if (isSinglePremiumPlan) {
+      const singleMode = modes.find(
+        (m) =>
+          m.modeName?.toLowerCase() === "single" ||
+          m.modeCode?.toUpperCase() === "SIN",
+      );
+      return [
+        {
+          value: singleMode?.modeName || "Single",
+          label: singleMode?.modeName || "Single",
+          sublabel: singleMode?.modeCode ? `Code: ${singleMode.modeCode}` : "Code: SIN",
+        },
+      ];
+    }
+
     const list = modes.map((mode) => ({
       value: mode.modeName,
       label: mode.modeName,
@@ -670,7 +692,38 @@ export default function NewLICPolicyPage() {
       });
     }
     return list;
-  }, [modes, selectedProduct?.planNumber]);
+  }, [modes, selectedProduct?.planNumber, isSinglePremiumPlan]);
+
+  // Track previous isSinglePremiumPlan to know when switching from single to non-single
+  const prevIsSingleRef = useRef<boolean>(false);
+
+  // Fix mode to Single for single premium plans (717, 888, 883)
+  // Default to Yearly for other LIC policies (user can modify in dropdown)
+  useEffect(() => {
+    if (isSinglePremiumPlan) {
+      const singleMode = modes.find(
+        (m) =>
+          m.modeName?.toLowerCase() === "single" ||
+          m.modeCode?.toUpperCase() === "SIN",
+      );
+      const targetMode = singleMode?.modeName || "Single";
+      if (watchMode !== targetMode) {
+        setValue("mode", targetMode, { shouldValidate: true, shouldDirty: true });
+      }
+      prevIsSingleRef.current = true;
+    } else if (!isOtherPolicy) {
+      const isCurrentlySingle = watchMode?.toLowerCase() === "single";
+      if (!watchMode || (prevIsSingleRef.current && isCurrentlySingle)) {
+        const yearlyMode = modes.find(
+          (m) =>
+            m.modeName?.toLowerCase() === "yearly" ||
+            m.modeCode?.toUpperCase() === "YLY",
+        );
+        setValue("mode", yearlyMode?.modeName || "Yearly", { shouldValidate: true, shouldDirty: true });
+      }
+      prevIsSingleRef.current = false;
+    }
+  }, [isSinglePremiumPlan, isOtherPolicy, modes, watchMode, setValue]);
 
   const filteredAdvisors = useMemo(() => {
     if (!watchAgencyId) return [];
@@ -1789,9 +1842,18 @@ export default function NewLICPolicyPage() {
                             placeholder="Select Mode"
                             searchPlaceholder="Search mode..."
                             options={modeOptions}
-                            value={field.value || ""}
+                            value={field.value || (isSinglePremiumPlan ? "Single" : "Yearly")}
                             onChange={(val) => {
-                              field.onChange(val);
+                              if (isSinglePremiumPlan) {
+                                const singleMode = modes.find(
+                                  (m) =>
+                                    m.modeName?.toLowerCase() === "single" ||
+                                    m.modeCode?.toUpperCase() === "SIN",
+                                );
+                                field.onChange(singleMode?.modeName || "Single");
+                              } else {
+                                field.onChange(val);
+                              }
                             }}
                             error={errors.mode?.message}
                             disabled={modesLoading}

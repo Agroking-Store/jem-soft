@@ -34,6 +34,11 @@ export default function PremiumPaymentsPage() {
 
   useEffect(() => {
     dispatch(fetchPremiumPayments());
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("search");
+      if (q) setSearch(q);
+    }
   }, [dispatch]);
   useEffect(() => {
     if (error) toast.error(error);

@@ -199,6 +199,10 @@ export async function calculatePremium(data: PremiumInput) {
     throw new AppError("Product not found", 404);
   }
 
+  if (product.planNumber && ["717", "888", "883"].includes(product.planNumber)) {
+    data.premiumMode = "Single";
+  }
+
   // ==========================================
   // STEP 2 : Premium Lookup Term
   // ==========================================

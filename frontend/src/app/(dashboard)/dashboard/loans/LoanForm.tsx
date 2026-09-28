@@ -26,6 +26,7 @@ import {
 interface LoanFormProps {
   mode: "create" | "edit";
   initialLoan?: Loan | null;
+  initialPolicyId?: string;
 }
 
 interface FormState {
@@ -73,7 +74,7 @@ function isPolicyEligible(policy: Policy | null): boolean {
 
 /* ── Component ────────────────────────────────────────── */
 
-export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
+export default function LoanForm({ mode, initialLoan, initialPolicyId }: LoanFormProps) {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
@@ -159,8 +160,12 @@ export default function LoanForm({ mode, initialLoan }: LoanFormProps) {
 
       const p = policies.find((p) => p.id === initialLoan.policyId);
       if (p) setSelectedPolicy(p);
+    } else if (mode === "create" && initialPolicyId) {
+      setForm((prev) => ({ ...prev, policyId: initialPolicyId }));
+      const p = policies.find((p) => p.id === initialPolicyId);
+      if (p) setSelectedPolicy(p);
     }
-  }, [mode, initialLoan, policies]);
+  }, [mode, initialLoan, initialPolicyId, policies]);
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
