@@ -60,7 +60,7 @@ export default function MedicalHistoryInlineEditor({
       {/* Basic Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div>
-          <FieldLabel label="Medical History Date" required />
+          <FieldLabel label="Medical History Date" />
           <DatePicker
             value={record.medicalHistoryDate ? new Date(record.medicalHistoryDate) : undefined}
             onChange={(date) => set("medicalHistoryDate", date ? format(date, "yyyy-MM-dd") : "")}
@@ -75,7 +75,6 @@ export default function MedicalHistoryInlineEditor({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <SearchableSelect
           label="Blood Group"
-          required
           placeholder="Select blood group"
           error={errors.bloodGroup}
           value={record.bloodGroup || ""}
