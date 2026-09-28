@@ -2,6 +2,11 @@ import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
 import { createNotification } from "./notificationService.js";
 import { NotificationType } from "@prisma/client";
+import { addMonths } from "date-fns";
+import {
+  LAPSED_THRESHOLD_DAYS,
+  LAPSED_EXCLUDED_POLICY_STATUS_CODES,
+} from "../constants/lapsedPolicy.js";
 
 export interface PremiumPaymentData {
   policyId: string;
@@ -31,18 +36,14 @@ export interface PremiumPaymentUpdateData {
 const paymentInclude = {
   paymentStatus: true,
   policy: {
-    select: {
-      id: true,
-      policyNumber: true,
-      commencementDate: true,
-      nextPremiumDueDate: true,
-      CustomerMaster: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
+    include: {
+      CustomerMaster: true,
+      customer: true,
+      product: true,
+      premiumMode: true,
+      advisor: true,
+      branch: true,
+      premium: true,
     },
   },
 };
@@ -103,10 +104,33 @@ export const getAllPayments = async () => {
 };
 
 export const getPaymentById = async (id: string) => {
-  const payment = await prisma.premiumPayment.findUnique({
+  let payment = await prisma.premiumPayment.findUnique({
     where: { id },
     include: paymentInclude,
   });
+
+  if (!payment) {
+    // If id is a policyId, retrieve the most recent premium payment for that policy
+    payment = await prisma.premiumPayment.findFirst({
+      where: { policyId: id },
+      include: paymentInclude,
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  if (!payment) {
+    // If id is a notificationId, retrieve the policyId and find its payment
+    const notif = await prisma.notification.findUnique({
+      where: { id },
+    });
+    if (notif?.policyId) {
+      payment = await prisma.premiumPayment.findFirst({
+        where: { policyId: notif.policyId },
+        include: paymentInclude,
+        orderBy: { createdAt: "desc" },
+      });
+    }
+  }
 
   if (!payment) throw new AppError("Premium payment not found", 404);
   return payment;
@@ -174,16 +198,50 @@ export const createPayment = async (data: PremiumPaymentData) => {
     data.futureDueDate && !isNaN(new Date(data.futureDueDate).getTime())
       ? new Date(data.futureDueDate)
       : null;
-  await prisma.policy.update({
+
+  // If the policy was marked LAPSED and this payment brings it back up to date, restore status to IN-FORCE / ACTIVE
+  const policyRecord = await prisma.policy.findUnique({
     where: { id: data.policyId },
-    data: { nextPremiumDueDate: parsedFutureDueDate },
+    include: { status: true },
   });
+
+  const isLapsed = policyRecord?.status?.statusCode?.toUpperCase() === "LAPSED";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isUpToDate =
+    !parsedFutureDueDate ||
+    Math.floor((today.getTime() - new Date(parsedFutureDueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) < 60;
+
+  if (isLapsed && isUpToDate && (status.statusCode === "PAID" || !!data.paidDate)) {
+    const activeStatus = await prisma.policyStatusMaster.findFirst({
+      where: {
+        OR: [
+          { statusCode: { equals: "IN-FORCE", mode: "insensitive" } },
+          { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
+        ],
+      },
+    });
+
+    await prisma.policy.update({
+      where: { id: data.policyId },
+      data: {
+        nextPremiumDueDate: parsedFutureDueDate,
+        statusId: activeStatus ? activeStatus.id : undefined,
+      },
+    });
+  } else {
+    await prisma.policy.update({
+      where: { id: data.policyId },
+      data: { nextPremiumDueDate: parsedFutureDueDate },
+    });
+  }
 
   //Create Notification
   await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
         title: "Policy Premium Paid",
-        message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}.`,
+        message: `Premium for Policy (${policy.policyNumber}) has been paid on ${data.paidDate}. [paymentId:${payment.id}]`,
         type: NotificationType.PREMIUM_PAID,
         policyId: policy.id,
       });
@@ -202,12 +260,12 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
   if (!existing) throw new AppError("Premium payment not found", 404);
 
   const policy = await prisma.policy.findUnique({
-    where: { id : existing.policyId },
-    select: { id: true , policyNumber : true  },
+    where: { id: existing.policyId },
+    include: { status: true, premiumMode: true },
   });
 
   const formattedDueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate;
-  const formattedPaidDate = data.paidDate ? new Date(data.paidDate) : existing.paidDate;
+  const formattedPaidDate = data.paidDate ? new Date(data.paidDate) : (data.paidDate === null ? null : existing.paidDate);
 
   if (data.installmentNo !== undefined && data.installmentNo !== null) {
     if (!Number.isInteger(data.installmentNo) || data.installmentNo < 1) {
@@ -240,20 +298,9 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
 
   if (data.premiumAmount !== undefined) validateAmount(data.premiumAmount);
 
+  await validatePaymentStatus(data.paymentStatusId);
 
-  const status = await validatePaymentStatus(data.paymentStatusId);
-
-  //Create Notification
-  await prisma.$transaction(async (tx) => {
-    await createNotification(tx, {
-        title: "Policy Premium Updated",
-        message: `Premium record for Policy (${policy?.policyNumber}) has been updated.`,
-        type: NotificationType.PREMIUM_UPDATED,
-        policyId: policy?.id,
-      });
-  });
-
-  return prisma.premiumPayment.update({
+  const updatedPayment = await prisma.premiumPayment.update({
     where: { id },
     data: {
       installmentNo: data.installmentNo,
@@ -263,65 +310,224 @@ export const updatePayment = async (id: string, data: PremiumPaymentUpdateData) 
       lateFee: data.lateFee,
       paymentMode: data.paymentMode,
       paymentStatusId: data.paymentStatusId,
-      paymentDetails : data.paymentDetails,
+      paymentDetails: data.paymentDetails,
     },
     include: paymentInclude,
   });
+
+  // Re-evaluate policy status & nextPremiumDueDate
+  if (policy) {
+    const isPaymentPaid = !!formattedPaidDate || updatedPayment.paymentStatus?.statusCode === "PAID";
+    const parsedFutureDueDate =
+      data.futureDueDate && !isNaN(new Date(data.futureDueDate).getTime())
+        ? new Date(data.futureDueDate)
+        : null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (isPaymentPaid) {
+      const isLapsed = policy.status?.statusCode?.toUpperCase() === "LAPSED";
+      const isUpToDate =
+        !parsedFutureDueDate ||
+        Math.floor((today.getTime() - new Date(parsedFutureDueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)) < LAPSED_THRESHOLD_DAYS;
+
+      if (isLapsed && isUpToDate) {
+        const activeStatus = await prisma.policyStatusMaster.findFirst({
+          where: {
+            OR: [
+              { statusCode: { equals: "IN-FORCE", mode: "insensitive" } },
+              { statusCode: { equals: "ACTIVE", mode: "insensitive" } },
+            ],
+          },
+        });
+
+        await prisma.policy.update({
+          where: { id: policy.id },
+          data: {
+            nextPremiumDueDate: parsedFutureDueDate || policy.nextPremiumDueDate,
+            statusId: activeStatus ? activeStatus.id : undefined,
+          },
+        });
+      } else if (parsedFutureDueDate) {
+        await prisma.policy.update({
+          where: { id: policy.id },
+          data: { nextPremiumDueDate: parsedFutureDueDate },
+        });
+      }
+    } else {
+      // Payment was updated to unpaid
+      const remainingPaidPayments = await prisma.premiumPayment.findMany({
+        where: {
+          policyId: policy.id,
+          id: { not: id },
+          OR: [
+            { paidDate: { not: null } },
+            { paymentStatus: { statusCode: "PAID" } },
+          ],
+        },
+        orderBy: [
+          { installmentNo: "desc" },
+          { dueDate: "desc" },
+        ],
+      });
+
+      let targetDueDate = new Date(formattedDueDate);
+      if (remainingPaidPayments.length > 0) {
+        const latestPaid = remainingPaidPayments[0];
+        const modeMonths = policy.premiumMode?.months || 12;
+        const nextAfterPaid = addMonths(new Date(latestPaid.dueDate), modeMonths);
+        if (nextAfterPaid < targetDueDate) {
+          targetDueDate = nextAfterPaid;
+        }
+      }
+
+      const due = new Date(targetDueDate);
+      due.setHours(0, 0, 0, 0);
+      const daysOverdue = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+      const isExcluded = LAPSED_EXCLUDED_POLICY_STATUS_CODES.includes(
+        policy.status?.statusCode?.toUpperCase() || ""
+      );
+
+      if (daysOverdue >= LAPSED_THRESHOLD_DAYS && !isExcluded) {
+        const lapsedStatus = await prisma.policyStatusMaster.findFirst({
+          where: { statusCode: { equals: "LAPSED", mode: "insensitive" } },
+        });
+
+        if (lapsedStatus) {
+          await prisma.policy.update({
+            where: { id: policy.id },
+            data: {
+              nextPremiumDueDate: targetDueDate,
+              statusId: lapsedStatus.id,
+            },
+          });
+        }
+      } else {
+        await prisma.policy.update({
+          where: { id: policy.id },
+          data: { nextPremiumDueDate: targetDueDate },
+        });
+      }
+    }
+  }
+
+  // Create Notification
+  await prisma.$transaction(async (tx) => {
+    await createNotification(tx, {
+      title: "Policy Premium Updated",
+      message: `Premium record for Policy (${policy?.policyNumber}) has been updated. [paymentId:${id}]`,
+      type: NotificationType.PREMIUM_UPDATED,
+      policyId: policy?.id,
+    });
+  });
+
+  return updatedPayment;
 };
 
-// export const markPaymentAsPaid = async (
-//   id: string,
-//   data: { paidDate: string; paymentMode: string; receiptNumber?: string | null; lateFee?: number | null },
-// ) => {
-//   const payment = await prisma.premiumPayment.findUnique({ where: { id } });
-//   if (!payment) throw new AppError("Premium payment not found", 404);
-
-//   const paidDate = validateDate(data.paidDate, "paidDate");
-//   if (paidDate < payment.dueDate) {
-//     throw new AppError("paidDate cannot be before dueDate", 400);
-//   }
-//   if (!data.paymentMode?.trim()) {
-//     throw new AppError("paymentMode is required", 400);
-//   }
-//   if (data.lateFee !== undefined && data.lateFee !== null) validateAmount(data.lateFee, "lateFee");
-
-//   const paidStatus = await getStatus("PAID");
-
-//   return prisma.premiumPayment.update({
-//     where: { id },
-//     data: {
-//       paidDate,
-//       paymentMode: data.paymentMode.trim(),
-//       lateFee: data.lateFee ?? payment.lateFee,
-//       paymentStatusId: paidStatus.id,
-//     },
-//     include: paymentInclude,
-//   });
-// };
-
 export const deletePayment = async (id: string) => {
-  const payment = await prisma.premiumPayment.findUnique({ where: { id } });
+  const payment = await prisma.premiumPayment.findUnique({
+    where: { id },
+    include: {
+      paymentStatus: true,
+      policy: {
+        include: {
+          status: true,
+          premiumMode: true,
+        },
+      },
+    },
+  });
+
   if (!payment) throw new AppError("Premium payment not found", 404);
 
-  const policy = await prisma.policy.findUnique({
-    where: { id : payment?.policyId },
-    select: { id: true , policyNumber : true  },
-    
-  });
-  // const paidStatus = await getStatus("PAID");
-  // if (payment.paymentStatusId === paidStatus.id) {
-  //   throw new AppError("Paid premium payments cannot be deleted", 400);
-  // }
+  const policy = payment.policy;
 
   await prisma.premiumPayment.delete({ where: { id } });
 
-  //Create Notification
+  // Recalculate policy state after deleting this payment
+  let targetDueDate = new Date(payment.dueDate);
+
+  // Check remaining paid payments for this policy
+  const remainingPaidPayments = await prisma.premiumPayment.findMany({
+    where: {
+      policyId: payment.policyId,
+      OR: [
+        { paidDate: { not: null } },
+        { paymentStatus: { statusCode: "PAID" } },
+      ],
+    },
+    orderBy: [
+      { installmentNo: "desc" },
+      { dueDate: "desc" },
+    ],
+  });
+
+  if (remainingPaidPayments.length > 0) {
+    const latestPaid = remainingPaidPayments[0];
+    const modeMonths = policy?.premiumMode?.months || 12;
+    const nextAfterPaid = addMonths(new Date(latestPaid.dueDate), modeMonths);
+    if (nextAfterPaid < targetDueDate) {
+      targetDueDate = nextAfterPaid;
+    }
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const due = new Date(targetDueDate);
+  due.setHours(0, 0, 0, 0);
+
+  const daysOverdue = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+  const isExcluded = LAPSED_EXCLUDED_POLICY_STATUS_CODES.includes(
+    policy?.status?.statusCode?.toUpperCase() || ""
+  );
+
+  let transitionedToLapsed = false;
+
+  if (daysOverdue >= LAPSED_THRESHOLD_DAYS && !isExcluded) {
+    const lapsedStatus = await prisma.policyStatusMaster.findFirst({
+      where: { statusCode: { equals: "LAPSED", mode: "insensitive" } },
+    });
+
+    if (lapsedStatus && policy) {
+      await prisma.policy.update({
+        where: { id: policy.id },
+        data: {
+          nextPremiumDueDate: targetDueDate,
+          statusId: lapsedStatus.id,
+        },
+      });
+      transitionedToLapsed = true;
+    } else if (policy) {
+      await prisma.policy.update({
+        where: { id: policy.id },
+        data: { nextPremiumDueDate: targetDueDate },
+      });
+    }
+  } else if (policy) {
+    await prisma.policy.update({
+      where: { id: policy.id },
+      data: { nextPremiumDueDate: targetDueDate },
+    });
+  }
+
+  // Create Notifications
   await prisma.$transaction(async (tx) => {
     await createNotification(tx, {
-        title: "Policy Premium Deleted",
-        message: `Premium record for Policy (${policy?.policyNumber}) has been deleted.`,
-        type: NotificationType.PREMIUM_DELETED,
-        policyId: policy?.id,
+      title: "Policy Premium Deleted",
+      message: `Premium record for Policy (${policy?.policyNumber}) has been deleted.`,
+      type: NotificationType.PREMIUM_DELETED,
+      policyId: policy?.id,
+    });
+
+    if (transitionedToLapsed && policy) {
+      await createNotification(tx, {
+        title: "Policy Lapsed",
+        message: `Policy (${policy.policyNumber}) has reverted to Lapsed status due to unpaid premium due on ${due.toISOString().slice(0, 10)} (${daysOverdue} days overdue).`,
+        type: NotificationType.POLICY_LAPSED,
+        policyId: policy.id,
       });
+    }
   });
 };

@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, NotificationType } from "@prisma/client";
+import { createNotification } from "./notificationService.js";
 
 const prisma = new PrismaClient();
 
@@ -241,6 +242,20 @@ export const createLoan = async (data: LoanData) => {
   });
 
   const summary = computeSummary(newLoan);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await createNotification(tx, {
+        title: "Policy Loan Created",
+        message: `New loan (₹${Number(data.loanAmount).toLocaleString("en-IN")}) has been created for Policy (${newLoan.policy?.policyNumber || data.policyId}).`,
+        type: NotificationType.GENERAL,
+        policyId: data.policyId,
+      });
+    });
+  } catch (err) {
+    console.error("Failed to create loan notification:", err);
+  }
+
   return { ...newLoan, summary };
 };
 
@@ -261,13 +276,30 @@ export const updateLoanById = async (id: string, data: Partial<LoanData>) => {
   });
 
   const summary = computeSummary(updatedLoan);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await createNotification(tx, {
+        title: "Policy Loan Updated",
+        message: `Loan record for Policy (${updatedLoan.policy?.policyNumber || updatedLoan.policyId}) has been updated.`,
+        type: NotificationType.GENERAL,
+        policyId: updatedLoan.policyId,
+      });
+    });
+  } catch (err) {
+    console.error("Failed to update loan notification:", err);
+  }
+
   return { ...updatedLoan, summary };
 };
 
 export const deleteLoanById = async (id: string) => {
   const loan = await prisma.policyLoan.findUnique({
     where: { id },
-    include: { repayments: true },
+    include: { 
+      repayments: true,
+      policy: { select: { id: true, policyNumber: true } }
+    },
   });
 
   if (!loan) throw new Error("Loan not found");
@@ -278,5 +310,20 @@ export const deleteLoanById = async (id: string) => {
     );
   }
 
-  return await prisma.policyLoan.delete({ where: { id } });
+  const deleted = await prisma.policyLoan.delete({ where: { id } });
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await createNotification(tx, {
+        title: "Policy Loan Deleted",
+        message: `Loan record for Policy (${loan.policy?.policyNumber || loan.policyId}) has been deleted.`,
+        type: NotificationType.GENERAL,
+        policyId: loan.policyId,
+      });
+    });
+  } catch (err) {
+    console.error("Failed to delete loan notification:", err);
+  }
+
+  return deleted;
 };

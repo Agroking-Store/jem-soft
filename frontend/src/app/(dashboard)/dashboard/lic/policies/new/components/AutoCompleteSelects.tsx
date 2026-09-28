@@ -3,12 +3,13 @@ import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import { useNotificationStore } from "@/store/notificationStore";
 
-export function getFullName(customer: {
+export function getFullName(customer?: {
   salutation?: string | null;
-  firstName: string;
+  firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
-}) {
+} | null) {
+  if (!customer) return "";
   return [
     customer.salutation,
     customer.firstName,

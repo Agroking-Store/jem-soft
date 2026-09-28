@@ -9,6 +9,7 @@ import {
   fetchPremiumPayments,
   type PremiumPayment,
 } from "@/features/premiumPayments/premiumPaymentSlice";
+import { fetchPolicies } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -34,6 +35,11 @@ export default function PremiumPaymentsPage() {
 
   useEffect(() => {
     dispatch(fetchPremiumPayments());
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("search");
+      if (q) setSearch(q);
+    }
   }, [dispatch]);
   useEffect(() => {
     if (error) toast.error(error);
@@ -98,11 +104,12 @@ export default function PremiumPaymentsPage() {
 
   const confirmDelete = async () => {
     if (!paymentToDelete) return;
-   try {
-     await dispatch(deletePremiumPayment(paymentToDelete.id)).unwrap();
-     await fetchNotifications();
+    try {
+      await dispatch(deletePremiumPayment(paymentToDelete.id)).unwrap();
+      await dispatch(fetchPolicies());
+      await fetchNotifications();
       toast.success("Premium payment deleted successfully.");
-   } catch (message) {
+    } catch (message) {
       toast.error(String(message || "Failed to delete premium payment."));
     } finally {
       setShowDeleteModal(false);

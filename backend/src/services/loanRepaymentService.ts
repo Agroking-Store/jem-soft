@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, NotificationType } from "@prisma/client";
+import { createNotification } from "./notificationService.js";
 
 const prisma = new PrismaClient();
 
@@ -41,6 +42,7 @@ export const createRepayment = async (loanId: string, data: RepaymentData) => {
     include: {
       repayments: { orderBy: { repaymentDate: "desc" } },
       loanStatus: true,
+      policy: { select: { id: true, policyNumber: true } },
     },
   });
 
@@ -118,6 +120,19 @@ export const createRepayment = async (loanId: string, data: RepaymentData) => {
         data: { loanStatusId: paidOffStatus.id },
       });
     }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await createNotification(tx, {
+        title: "Loan Repayment Recorded",
+        message: `Loan repayment of ₹${repaymentAmount.toLocaleString("en-IN")} recorded for Policy (${loan.policy?.policyNumber || loan.policyId}).`,
+        type: NotificationType.GENERAL,
+        policyId: loan.policyId,
+      });
+    });
+  } catch (err) {
+    console.error("Failed to create loan repayment notification:", err);
   }
 
   return repayment;

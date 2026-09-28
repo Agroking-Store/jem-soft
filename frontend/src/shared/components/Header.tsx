@@ -66,8 +66,8 @@ export const Header = () => {
       </h1>
 
       <div className="flex items-center gap-4">
-        {/* Notification Bell - Always rendered but hidden for customers */}
-        <div className={isMounted && isAdmin ? "block" : "hidden"}>
+        {/* Notification Bell */}
+        <div className={isMounted ? "block" : "hidden"}>
           <NotificationBell />
         </div>
 
