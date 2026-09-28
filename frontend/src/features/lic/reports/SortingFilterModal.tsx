@@ -294,14 +294,28 @@ export default function SortingFilterModal({
       }
 
       if (sortingOption === "sbDatewise") {
+        // Calculate S.B. dates from commencement date (same logic as report view)
         const sbDates = Array.from(
           new Set(
             policies
-              .map((p) =>
-                p.survivalBenefitDate
-                  ? new Date(p.survivalBenefitDate).toLocaleDateString("en-GB")
-                  : null
-              )
+              .map((p) => {
+                if (p.survivalBenefitDate) {
+                  const d = new Date(p.survivalBenefitDate);
+                  if (!isNaN(d.getTime())) return d.toLocaleDateString("en-GB");
+                }
+                if (p.commencementDate) {
+                  const cd = new Date(p.commencementDate);
+                  if (!isNaN(cd.getTime())) {
+                    const now = new Date();
+                    const yearsPassed = now.getFullYear() - cd.getFullYear();
+                    const nextIntervalYears = (Math.floor(yearsPassed / 5) + 1) * 5;
+                    const sbDate = new Date(cd);
+                    sbDate.setFullYear(cd.getFullYear() + nextIntervalYears);
+                    return sbDate.toLocaleDateString("en-GB");
+                  }
+                }
+                return null;
+              })
               .filter((d): d is string => Boolean(d))
           )
         );

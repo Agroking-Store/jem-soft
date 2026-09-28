@@ -210,7 +210,15 @@ export default function SurvivalBenefitReportView({
       const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "Y";
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
       const sbAmount = Number(p.survivalBenefitAmount || sumAssured * 0.2);
-      const memberDob = fmtDate(custMaster?.dob || custObj?.dob);
+      // DOB can come from CustomerMaster.dob, customer.dob, or CustomerMaster.dateOfBirth
+      const memberDob = fmtDate(
+        custMaster?.dob ||
+        custMaster?.dateOfBirth ||
+        custObj?.dob ||
+        custObj?.dateOfBirth ||
+        p.dob ||
+        p.dateOfBirth
+      );
 
       return {
         policyNo: p.policyNumber || "—",
@@ -277,9 +285,15 @@ export default function SurvivalBenefitReportView({
 
       // Apply selected groups/items filter
       if (selectedGroupCodesOrNames.length > 0) {
-        const matches = selectedGroupCodesOrNames.some(
-          (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
-        );
+        const matches = selectedGroupCodesOrNames.some((sc) => {
+          const scLower = sc.toLowerCase();
+          // For groupMemberwise, match by member ID (gCode) or member name (gHeadName)
+          if (formData.sortingOption === "groupMemberwise") {
+            return gCode.toLowerCase() === scLower || gHeadName.toLowerCase().includes(scLower);
+          }
+          // For other modes, use includes matching
+          return gCode.toLowerCase().includes(scLower) || gHeadName.toLowerCase().includes(scLower);
+        });
         if (!matches) return;
       }
 
@@ -454,11 +468,17 @@ export default function SurvivalBenefitReportView({
               <tbody>
                 {groupData.map((group) => (
                   <Fragment key={group.groupCode}>
-                    {/* Group heading - centered, bold */}
+                    {/* Group heading - centered, bold (no ID visible) */}
                     <tr>
                       <td colSpan={columns.length} className="pt-3 pb-1 text-center">
                         <div className="text-[13px] font-bold">
-                          {group.groupCode}: {group.groupHeadName}
+                          {formData.sortingOption === "groupMemberwise"
+                            ? group.groupHeadName
+                            : formData.sortingOption === "sbDatewise"
+                              ? group.groupHeadName
+                              : formData.sortingOption === "branchNoWise"
+                                ? group.groupHeadName
+                                : `${group.groupCode}: ${group.groupHeadName}`}
                         </div>
                       </td>
                     </tr>
