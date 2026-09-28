@@ -40,6 +40,25 @@ function ageOn(dob: string, asOf: Date) {
 }
 
 
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
+const totalRowStyle = { borderTop: `1px solid ${BLACK}` } as const;
+const grandRowStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+} as const;
+
 export default function ComprehensiveInsuranceChartReportView({
   formData,
   policies: rawPolicies = [],
@@ -243,21 +262,32 @@ export default function ComprehensiveInsuranceChartReportView({
     const toastId = toast.loading("Generating PDF report...");
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
+
       pdf.save(`Comprehensive_Insurance_Chart_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
@@ -269,8 +299,11 @@ export default function ComprehensiveInsuranceChartReportView({
   };
 
   const sectionBadge = (label: string) => (
-    <div className="flex justify-center py-2">
-      <span className="border-2 border-[#0B1220] rounded-md px-4 py-1 text-sm font-bold text-[#0B1220] bg-[#B8873A]/10">{label}</span>
+    <div
+      className="pt-4 pb-0.5 text-center text-[12px] font-bold"
+      style={{ borderBottom: `1px solid ${BLACK}` }}
+    >
+      {label}
     </div>
   );
 
@@ -294,44 +327,34 @@ export default function ComprehensiveInsuranceChartReportView({
         </button>
       </div>
 
-      <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-6xl mx-auto space-y-3 print:p-0 print:border-none print:shadow-none">
-        {/* Letterhead */}
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Comprehensive Insurance Chart</h2>
-          <span className="text-xs font-bold text-slate-200">As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
+      <div
+        ref={reportRef}
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-6xl mx-auto space-y-2 text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
+      >
+        {/* Title line */}
+        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+          <span>Comprehensive Insurance Chart as on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
+          <span>{getReportHeaderTitle()}</span>
         </div>
 
         {/* Group Banner / Empty State */}
         {!family ? (
-          <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 space-y-2 p-8">
-            <h3 className="font-bold text-slate-800 text-sm">No Group Data Found</h3>
-            <p className="text-xs text-slate-500">
+          <div className="py-16 text-center rounded-xl border border-slate-200 space-y-2 p-8">
+            <h3 className="font-bold text-sm">No Group Data Found</h3>
+            <p className="text-xs">
               Please select a group from the form filters and ensure policies exist for that group.
             </p>
           </div>
         ) : (
           <>
             <div className="text-center pt-2">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 className="text-[13px] font-bold">
                 {family.groupHeadName} and Family [ {family.groupCode} ]
               </h3>
-              {family.address && <p className="text-[11px] text-slate-600">{family.address}</p>}
+              {family.address && <p className="text-[11px]">{family.address}</p>}
               {(family.mobile || family.email) && (
-                <p className="text-[11px] text-slate-600">
+                <p className="text-[11px]">
                   {family.mobile && <>Mobile : {family.mobile} </>}
                   {family.email && <>Email : {family.email}</>}
                 </p>
@@ -342,7 +365,7 @@ export default function ComprehensiveInsuranceChartReportView({
         {sectionBadge("Policy Details")}
         <table className="w-full text-left text-[10px] border-collapse">
           <thead>
-            <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+            <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
               <th className="py-1.5 px-1">Sr No</th>
               <th className="py-1.5 px-1">Ag Cd</th>
               <th className="py-1.5 px-1">Policy No.</th>
@@ -363,10 +386,10 @@ export default function ComprehensiveInsuranceChartReportView({
               return (
                 <Fragment key={member.name}>
                   <tr>
-                    <td colSpan={12} className="text-center font-bold text-[11px] py-1.5 bg-slate-50">{member.name}</td>
+                    <td colSpan={12} className="text-center font-bold text-[11px] py-1.5">{member.name}</td>
                   </tr>
                   {member.policies.map((p: any) => (
-                    <tr key={p.policyNo} className="border-b border-slate-100">
+                    <tr key={p.policyNo} className="">
                       <td className="py-1 px-1">{p.sr}</td>
                       <td className="py-1 px-1">{p.agCd}</td>
                       <td className="py-1 px-1 font-mono">{p.policyNo}</td>
@@ -381,7 +404,7 @@ export default function ComprehensiveInsuranceChartReportView({
                       <td className="py-1 px-1 text-right font-mono">{p.accidentalRiskcover.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
-                  <tr className="font-bold bg-slate-50 border-b-2 border-slate-300">
+                  <tr className="font-bold" style={totalRowStyle}>
                     <td colSpan={6} className="text-right pr-2 py-1">Total :</td>
                     <td className="text-right py-1 font-mono">{t.sumAssured.toLocaleString("en-IN")}</td>
                     <td className="text-right py-1 font-mono">{t.premium.toFixed(2)}p.a</td>
@@ -401,7 +424,7 @@ export default function ComprehensiveInsuranceChartReportView({
             {sectionBadge("Special Information")}
             <table className="w-full text-left text-[9px] border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">Sr No.</th>
                   <th className="py-1 px-1">Name</th>
                   <th className="py-1 px-1">Policy No.</th>
@@ -420,7 +443,7 @@ export default function ComprehensiveInsuranceChartReportView({
               </thead>
               <tbody>
                 {family.members.flatMap((m: any) => m.policies.map((p: any) => (
-                  <tr key={p.policyNo} className="border-b border-slate-100">
+                  <tr key={p.policyNo} className="">
                     <td className="py-1 px-1">{p.sr}</td>
                     <td className="py-1 px-1">{m.name}</td>
                     <td className="py-1 px-1 font-mono">{p.policyNo}</td>
@@ -442,7 +465,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
             <table className="w-full text-left text-[10px] border-collapse mt-3">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">P.Cd.</th>
                   <th className="py-1 px-1">Name of the Policy Holder</th>
                   {formData.printOptions.statementWithPan && <th className="py-1 px-1">PAN</th>}
@@ -455,7 +478,7 @@ export default function ComprehensiveInsuranceChartReportView({
                 {family.members.map((m: any, idx: number) => {
                   const t = memberTotals(m);
                   return (
-                    <tr key={m.name} className="border-b border-slate-100">
+                    <tr key={m.name} className="">
                       <td className="py-1 px-1">{idx + 1}</td>
                       <td className="py-1 px-1">{m.name}</td>
                       {formData.printOptions.statementWithPan && <td className="py-1 px-1">{m.pan || ""}</td>}
@@ -466,7 +489,7 @@ export default function ComprehensiveInsuranceChartReportView({
                   );
                 })}
                 {(family.dependents || []).map((dep: any, idx: number) => (
-                  <tr key={dep.name} className="border-b border-slate-100">
+                  <tr key={dep.name} className="">
                     <td className="py-1 px-1">{family.members.length + idx + 1}</td>
                     <td className="py-1 px-1">{dep.name}</td>
                     {formData.printOptions.statementWithPan && <td className="py-1 px-1"></td>}
@@ -475,7 +498,7 @@ export default function ComprehensiveInsuranceChartReportView({
                     <td className="py-1 px-1 text-right font-mono">0.00</td>
                   </tr>
                 ))}
-                <tr className="font-bold bg-slate-50">
+                <tr className="font-bold" style={totalRowStyle}>
                   <td colSpan={formData.printOptions.statementWithPan ? 3 : 2} className="text-right pr-2 py-1">Total :</td>
                   <td></td>
                   <td className="text-right py-1 font-mono">{grandPolicyTotal.sumAssured.toLocaleString("en-IN")}</td>
@@ -492,7 +515,7 @@ export default function ComprehensiveInsuranceChartReportView({
             {sectionBadge(`Premium Calendar ${calendarMonths[0]?.label}-${calendarMonths[0]?.year.toString().slice(-2)} to ${calendarMonths[11]?.label}-${calendarMonths[11]?.year.toString().slice(-2)}`)}
             <table className="w-full text-left text-[9px] border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">Policy No</th>
                   {calendarMonths.map((m) => (
                     <th key={`${m.month}-${m.year}`} className="py-1 px-1 text-right">{m.label}</th>
@@ -505,7 +528,7 @@ export default function ComprehensiveInsuranceChartReportView({
                   return (
                     <Fragment key={member.name}>
                       <tr>
-                        <td colSpan={13} className="font-bold text-[10px] py-1 bg-slate-50">{member.name}</td>
+                        <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
                       </tr>
                       {member.policies.map((p: any) => {
                         const row = premiumCalendarRow(p);
@@ -519,7 +542,7 @@ export default function ComprehensiveInsuranceChartReportView({
                           </tr>
                         );
                       })}
-                      <tr className="font-bold bg-slate-50 border-b border-slate-300">
+                      <tr className="font-bold" style={totalRowStyle}>
                         <td className="py-1 px-1"></td>
                         {monthTotals.map((v, i) => (
                           <td key={i} className="py-1 px-1 text-right font-mono">{v.toFixed(2)}</td>
@@ -528,7 +551,7 @@ export default function ComprehensiveInsuranceChartReportView({
                     </Fragment>
                   );
                 })}
-                <tr className="font-bold bg-slate-100 border-t-2 border-slate-700">
+                <tr className="font-bold" style={grandRowStyle}>
                   <td className="py-1.5 px-1">Total Premium per Annum : {grandPolicyTotal.premium.toFixed(2)}</td>
                   {calendarMonths.map((m, i) => {
                     const monthTotal = family.members.reduce((acc: number, member: any) => {
@@ -550,7 +573,7 @@ export default function ComprehensiveInsuranceChartReportView({
             {sectionBadge("Current Status of Policies (Estimated)")}
             <table className="w-full text-left text-[9px] border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">Sr No</th>
                   <th className="py-1 px-1">Policy No</th>
                   <th className="py-1 px-1">Com Date</th>
@@ -573,10 +596,10 @@ export default function ComprehensiveInsuranceChartReportView({
                   return (
                     <Fragment key={member.name}>
                       <tr>
-                        <td colSpan={13} className="font-bold text-[10px] py-1 bg-slate-50">{member.name}</td>
+                        <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
                       </tr>
                       {member.policies.map((p: any) => (
-                        <tr key={p.policyNo} className="border-b border-slate-100">
+                        <tr key={p.policyNo} className="">
                           <td className="py-1 px-1">{p.sr}</td>
                           <td className="py-1 px-1 font-mono">{p.policyNo}</td>
                           <td className="py-1 px-1">{fmtDate(p.comDate, true)}</td>
@@ -593,7 +616,7 @@ export default function ComprehensiveInsuranceChartReportView({
                           {formData.optionalColumns.loanAvailable && <td className="py-1 px-1 text-right font-mono">{p.loanAvailable.toLocaleString("en-IN")}</td>}
                         </tr>
                       ))}
-                      <tr className="font-bold bg-slate-50 border-b border-slate-300">
+                      <tr className="font-bold" style={totalRowStyle}>
                         <td colSpan={3} className="text-right pr-2 py-1">Total :</td>
                         <td className="text-right py-1 font-mono">{member.policies.reduce((a: number, p: any) => a + p.sumAssured, 0).toLocaleString("en-IN")}</td>
                         <td colSpan={3}></td>
@@ -607,7 +630,7 @@ export default function ComprehensiveInsuranceChartReportView({
                     </Fragment>
                   );
                 })}
-                <tr className="font-bold bg-slate-200 border-t-2 border-slate-700">
+                <tr className="font-bold" style={grandRowStyle}>
                   <td colSpan={4} className="py-1.5 px-1">Group Total :</td>
                   <td colSpan={3}></td>
                   <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.riskCover.toLocaleString("en-IN")}</td>
@@ -628,7 +651,7 @@ export default function ComprehensiveInsuranceChartReportView({
             {sectionBadge("Projected Cash Flow")}
             <table className="w-full text-left text-[10px] border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">Sr No</th>
                   <th className="py-1 px-1">Policy No</th>
                   <th className="py-1 px-1">Name</th>
@@ -643,7 +666,7 @@ export default function ComprehensiveInsuranceChartReportView({
               </thead>
               <tbody>
                 {cashFlowRows.map((r) => (
-                  <tr key={r.policyNo} className="border-b border-slate-100">
+                  <tr key={r.policyNo} className="">
                     <td className="py-1 px-1">{r.sr}</td>
                     <td className="py-1 px-1 font-mono">{r.policyNo}</td>
                     <td className="py-1 px-1">{r.name}</td>
@@ -656,13 +679,13 @@ export default function ComprehensiveInsuranceChartReportView({
                     <td className="py-1 px-1 text-right font-mono font-bold">{r.total.toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
-                <tr className="font-bold bg-slate-100 border-t-2 border-slate-700">
+                <tr className="font-bold" style={grandRowStyle}>
                   <td colSpan={9} className="text-right pr-2 py-1.5">Cash Flow Grand Total :</td>
                   <td className="text-right py-1.5 px-1 font-mono">{cashFlowGrandTotal.toLocaleString("en-IN")}</td>
                 </tr>
               </tbody>
             </table>
-            <p className="text-[9px] text-slate-500 italic">
+            <p className="text-[9px] italic">
               Note: The figures shown above are subject to the policies being in force during their terms and also being free of any loan liabilities. Loan interest is not considered in this calculation.
             </p>
           </>
@@ -674,7 +697,7 @@ export default function ComprehensiveInsuranceChartReportView({
             {sectionBadge("Projected Cash In / Cash Out Summary")}
             <table className="w-full text-left text-[10px] border-collapse">
               <thead>
-                <tr className="border-b-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
                   <th className="py-1 px-1">Year</th>
                   <th className="py-1 px-1 text-right">Cash In</th>
                   <th className="py-1 px-1 text-right">Cash Out</th>
@@ -683,16 +706,16 @@ export default function ComprehensiveInsuranceChartReportView({
               </thead>
               <tbody>
                 {cashInOutRows.map((r) => (
-                  <tr key={r.year} className="border-b border-slate-100">
+                  <tr key={r.year} className="">
                     <td className="py-1 px-1">{r.year}</td>
                     <td className="py-1 px-1 text-right font-mono">{r.cashIn.toLocaleString("en-IN")}</td>
                     <td className="py-1 px-1 text-right font-mono">{r.cashOut.toLocaleString("en-IN")}</td>
-                    <td className={`py-1 px-1 text-right font-mono font-bold ${r.nett < 0 ? "text-red-600" : "text-emerald-700"}`}>
+                    <td className={`py-1 px-1 text-right font-mono font-bold `}>
                       {r.nett.toLocaleString("en-IN")}
                     </td>
                   </tr>
                 ))}
-                <tr className="font-bold bg-slate-100 border-t-2 border-slate-700">
+                <tr className="font-bold" style={grandRowStyle}>
                   <td className="py-1.5 px-1">Total</td>
                   <td className="text-right py-1.5 px-1 font-mono">{cashInOutRows.reduce((a, r) => a + r.cashIn, 0).toLocaleString("en-IN")}</td>
                   <td className="text-right py-1.5 px-1 font-mono">{cashInOutRows.reduce((a, r) => a + r.cashOut, 0).toLocaleString("en-IN")}</td>
@@ -715,8 +738,8 @@ export default function ComprehensiveInsuranceChartReportView({
                   const x = 15 + i * 36;
                   return (
                     <g key={r.year}>
-                      <rect x={x} y={170 - h} width={22} height={h} fill="#1877F2" rx={2} />
-                      <text x={x + 11} y={182} textAnchor="middle" fontSize="7" fill="#334155">{r.year}</text>
+                      <rect x={x} y={170 - h} width={22} height={h} fill="#4b5563" />
+                      <text x={x + 11} y={182} textAnchor="middle" fontSize="7" fill="#000">{r.year}</text>
                     </g>
                   );
                 });
@@ -727,8 +750,8 @@ export default function ComprehensiveInsuranceChartReportView({
 
         {/* ---------------- Assumptions ---------------- */}
         {formData.printOptions.printCashFlowAssumptions && (
-          <div className="pt-2 text-[9px] text-slate-600 space-y-1">
-            <p className="font-bold text-slate-800">Assumptions made in generating the report (as and if applicable to the policies in the portfolio):</p>
+          <div className="pt-2 text-[9px] space-y-1">
+            <p className="font-bold">Assumptions made in generating the report (as and if applicable to the policies in the portfolio):</p>
             <ul className="list-disc list-inside space-y-0.5">
               <li>The figures shown above are subject to the policies being in force during their terms and also being free of any loan liabilities.</li>
               <li>
@@ -751,7 +774,7 @@ export default function ComprehensiveInsuranceChartReportView({
         )}
 
         {/* ---------------- Legend ---------------- */}
-        <div className="pt-4 border-t border-slate-300 space-y-1 text-[9px] text-slate-700 font-medium">
+        <div className="pt-3 mt-3 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             <span><strong className="font-bold">A :</strong> Policies with APPS mode</span>
             <span><strong className="font-bold">ρ :</strong> Pan Card is register for the Policy</span>
@@ -767,7 +790,7 @@ export default function ComprehensiveInsuranceChartReportView({
           <p className="pt-1">
             Disclaimer: This cashflow illustrated in this report contains guaranteed and non-guaranteed benefits, given solely as an indication of estimated projected benefits and is not a promise or guarantee. Actual benefits depend on LIC of India&apos;s future performance for the products in this portfolio.
           </p>
-          <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+          <div className="flex justify-between items-center pt-2 font-mono text-[9px] ">
             <span>DSS000019899</span>
             <span>Generated via Comprehensive Insurance Chart Engine</span>
           </div>

@@ -50,6 +50,19 @@ function getPolicyMemberName(p: any): string {
   return "Annuity Holder";
 }
 
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
 export default function AnnuityStatementReportView({
   formData,
   policies: rawPolicies = [],
@@ -168,21 +181,32 @@ export default function AnnuityStatementReportView({
     const toastId = toast.loading("Generating PDF statement...");
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
+
       pdf.save(`Annuity_${formData.reportType}_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
@@ -216,127 +240,122 @@ export default function AnnuityStatementReportView({
         </button>
       </div>
 
-      {/* Main Report View */}
-      <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none">
-        {/* Letterhead */}
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
-            Annuity {formData.reportType === "Statement" ? "Payout Statement" : "Intimation Summary"}
-          </h2>
-          <span className="text-xs font-bold text-slate-200">As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
-        </div>
-
-        {/* Intimation specific summary bar */}
-        {formData.reportType === "Intimation" && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex flex-wrap justify-between gap-2 font-medium">
-            <span><strong>Purpose:</strong> {formData.intimationOptions.purpose || "Pension Intimation"}</span>
-            <span><strong>Cost per despatch:</strong> ₹{formData.intimationOptions.costPerDespatch}</span>
-            {formData.dateFrom && <span><strong>Period:</strong> {fmtDate(formData.dateFrom)} to {fmtDate(formData.dateTo)}</span>}
-          </div>
-        )}
-
-        <div className="space-y-4 overflow-x-auto">
-          {groupData.length === 0 ? (
-            <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
-              <h3 className="font-bold text-slate-800 text-sm">No Annuity Policies Found</h3>
-              <p className="text-xs text-slate-500">
-                There are no annuity policies matching your filter criteria.
-              </p>
-            </div>
-          ) : (
-            <table className="w-full text-left text-[11px] border-collapse">
-              <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                  <th className="py-2 px-2">Sr No</th>
-                  <th className="py-2 px-2">Policy No</th>
-                  <th className="py-2 px-2">Annuity Holder</th>
-                  <th className="py-2 px-2">Plan / Option</th>
-                  <th className="py-2 px-2 text-center">Mode</th>
-                  <th className="py-2 px-2 text-right">Pension Amount (₹)</th>
-                  <th className="py-2 px-2 text-center">Payout Date</th>
-                  <th className="py-2 px-2 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupData.map((group) => (
-                  <Fragment key={group.groupCode}>
-                    {formData.sortingOption === "groupsWise" && (
-                      <tr className="border-t-2 border-slate-400">
-                        <td colSpan={8} className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900">
-                          {group.groupCode}: {group.groupHeadName}
-                        </td>
-                      </tr>
-                    )}
-                    {group.members.map((member: any) => (
-                      <Fragment key={member.name}>
-                        {formData.sortingOption !== "policyNoWise" && (
-                          <tr>
-                            <td colSpan={8} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
-                              <div>{member.name}</div>
-                              {formData.reportType === "Statement" && (
-                                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                  {[
-                                    formData.statementOptions.statementWithAddress && member.address && `Address: ${member.address}`,
-                                    formData.statementOptions.statementWithTelNo && member.mobile && `Tel/Mob: ${member.mobile}`,
-                                  ].filter(Boolean).join(" | ")}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        )}
-                        {member.policies.map((p: any) => (
-                          <tr key={p.policyNo} className="hover:bg-slate-50 border-b border-slate-100">
-                            <td className="py-1 px-2">{p.sr}</td>
-                            <td className="py-1 px-2 font-mono font-semibold">{p.policyNo}</td>
-                            <td className="py-1 px-2">{p.memberName}</td>
-                            <td className="py-1 px-2">{p.planName}</td>
-                            <td className="py-1 px-2 text-center">{p.mode}</td>
-                            <td className="py-1 px-2 text-right font-mono font-bold">{p.pensionAmount.toLocaleString("en-IN")}</td>
-                            <td className="py-1 px-2 text-center font-mono">{p.payoutDate}</td>
-                            <td className="py-1 px-2 text-center text-xs font-semibold text-emerald-700">{p.neftStatus}</td>
-                          </tr>
-                        ))}
-                        {formData.sortingOption !== "policyNoWise" && (
-                          <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                            <td colSpan={5} className="text-right pr-4 py-1">Member Total Pension :</td>
-                            <td className="text-right py-1 font-mono text-[#0B1220]">{member.totalAnnuityAmount.toLocaleString("en-IN")}</td>
-                            <td colSpan={2}></td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    ))}
-                    {formData.sortingOption === "groupsWise" && (
-                      <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                        <td colSpan={5} className="px-3 py-1.5">Group Total Pension Payout :</td>
-                        <td className="px-2 py-1.5 text-right font-mono text-[#0B1220]">{group.totalAnnuityAmount.toLocaleString("en-IN")}</td>
-                        <td colSpan={2}></td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+      {/* Printable Statement — plain LIC-style */}
+      <div
+        ref={reportRef}
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-5xl mx-auto text-[11px] leading-snug print:p-0 print:border-none print:shadow-none"
+      >
+        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+          <span>
+            Annuity {formData.reportType === "Statement" ? "Payout Statement" : "Intimation Summary"} as on{" "}
+            {fmtDate(formData.reportDate) || fmtDate(new Date())}
+          </span>
+          {formData.reportType === "Intimation" && formData.dateFrom && (
+            <span>Period: {fmtDate(formData.dateFrom)} to {fmtDate(formData.dateTo)}</span>
           )}
         </div>
 
+        {formData.reportType === "Intimation" && (
+          <div className="pb-1 flex flex-wrap gap-x-6">
+            <span><strong>Purpose :</strong> {formData.intimationOptions.purpose || "Pension Intimation"}</span>
+            <span><strong>Cost per despatch :</strong> ₹{formData.intimationOptions.costPerDespatch}</span>
+          </div>
+        )}
+
+        {groupData.length === 0 ? (
+          <div className="mt-6 py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
+            <h3 className="font-bold text-slate-800 text-sm">No Annuity Policies Found</h3>
+            <p className="text-xs text-slate-500">There are no annuity policies matching your filter criteria.</p>
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="font-bold">
+                <th className="px-1 py-1" style={thStyle}>Sr<br />No</th>
+                <th className="px-1 py-1" style={thStyle}>Policy No</th>
+                <th className="px-1 py-1" style={thStyle}>Annuity Holder</th>
+                <th className="px-1 py-1" style={thStyle}>Plan / Option</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Mode</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Pension<br />Amount (₹)</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Payout<br />Date</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupData.map((group) => (
+                <Fragment key={group.groupCode}>
+                  {formData.sortingOption === "groupsWise" && (
+                    <tr>
+                      <td colSpan={8} className="pt-3 pb-1 text-center text-[13px] font-bold">
+                        {group.groupCode}: {group.groupHeadName}
+                      </td>
+                    </tr>
+                  )}
+                  {group.members.map((member: any) => (
+                    <Fragment key={member.name}>
+                      {formData.sortingOption !== "policyNoWise" && (
+                        <tr>
+                          <td colSpan={8} className="pt-2 pb-0.5">
+                            <div className="text-[11px] font-bold">{member.name}</div>
+                            {formData.reportType === "Statement" && (
+                              <div className="text-[10px]">
+                                {[
+                                  formData.statementOptions.statementWithAddress && member.address && `Address : ${member.address}`,
+                                  formData.statementOptions.statementWithTelNo && member.mobile && `Tel/Mob : ${member.mobile}`,
+                                ].filter(Boolean).join("   ")}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                      {member.policies.map((p: any) => (
+                        <tr key={p.policyNo}>
+                          <td className="px-1 py-0.5">{p.sr}</td>
+                          <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
+                          <td className="px-1 py-0.5">{p.memberName}</td>
+                          <td className="px-1 py-0.5">{p.planName}</td>
+                          <td className="px-1 py-0.5 text-center">{p.mode}</td>
+                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.pensionAmount.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.payoutDate}</td>
+                          <td className="px-1 py-0.5 text-center">{p.neftStatus}</td>
+                        </tr>
+                      ))}
+                      {formData.sortingOption !== "policyNoWise" && member.policies.length > 1 && (
+                        <tr className="font-bold">
+                          <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total Pension :</td>
+                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                            <span style={totalValueStyle}>{member.totalAnnuityAmount.toLocaleString("en-IN")}</span>
+                          </td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                  {formData.sortingOption === "groupsWise" && (
+                    <>
+                      <tr className="font-bold">
+                        <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total Pension Payout :</td>
+                        <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                          <span style={totalValueStyle}>{group.totalAnnuityAmount.toLocaleString("en-IN")}</span>
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                      <tr>
+                        <td colSpan={8} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
+                      </tr>
+                    </>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        )}
+
         {groupData.length > 0 && (
-          <div className="pt-4 border-t border-slate-300 flex justify-between items-center text-xs font-bold">
-            <span>Grand Total Annuity Payout:</span>
-            <span className="font-mono text-base text-[#0B1220]">₹ {grandTotalAnnuity.toLocaleString("en-IN")}</span>
+          <div className="pt-4 flex justify-end items-center gap-4 text-[12px] font-bold">
+            <span>Grand Total Annuity Payout :</span>
+            <span className="font-mono" style={totalValueStyle}>₹ {grandTotalAnnuity.toLocaleString("en-IN")}</span>
           </div>
         )}
       </div>

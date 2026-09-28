@@ -61,6 +61,19 @@ function getNextInterestDueDate(loanDateStr: string | null | undefined, asOf: Da
   return d;
 }
 
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
 export default function LoanInterestDueReportView({
   formData,
   policies: rawPolicies = [],
@@ -422,21 +435,32 @@ export default function LoanInterestDueReportView({
         backgroundColor: "#ffffff",
         logging: false,
       });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
+
       pdf.save(
         `Loan_Interest_Due_${formData.reportType}_${formData.reportDate || "Report"}.pdf`
       );
@@ -475,217 +499,158 @@ export default function LoanInterestDueReportView({
         </button>
       </div>
 
-      {/* Main Report View */}
+      {/* Printable Statement — plain LIC-style */}
       <div
         ref={reportRef}
-        className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-5xl mx-auto text-[11px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        {/* Letterhead */}
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">
-              84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
-            </p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">
-              LIC INDIA
-            </span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
-            Loan Interest Due {formData.reportType === "Statement" ? "Report" : "Intimation Notice"}
-          </h2>
-          <span className="text-xs font-bold text-slate-200">
-            As on {fmtDate(formData.reportDate) || fmtDate(new Date())}
+        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+          <span>
+            Loan Interest Due {formData.reportType === "Statement" ? "Report" : "Intimation Notice"} as on{" "}
+            {fmtDate(formData.reportDate) || fmtDate(new Date())}
           </span>
-        </div>
-
-        {/* Intimation specific summary bar */}
-        {formData.reportType === "Intimation" && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex flex-wrap justify-between gap-2 font-medium">
-            <span>
-              <strong>Purpose:</strong> {formData.intimationOptions.purpose || "Loan Interest Due Remittance"}
-            </span>
-            <span>
-              <strong>Cost per despatch:</strong> ₹{formData.intimationOptions.costPerDespatch}
-            </span>
-            {formData.dateFrom && (
-              <span>
-                <strong>Period:</strong> {fmtDate(formData.dateFrom)} to {fmtDate(formData.dateTo)}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-4 overflow-x-auto">
-          {groupData.length === 0 ? (
-            <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
-              <h3 className="font-bold text-slate-800 text-sm">No Loan Policies Matching Filters Found</h3>
-              <p className="text-xs text-slate-500">
-                There are no policy loans matching the applied filter criteria. Try resetting or adjusting the filters.
-              </p>
-            </div>
-          ) : (
-            <table className="w-full text-left text-[11px] border-collapse">
-              <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                  <th className="py-2 px-2 w-10 text-center">Sr</th>
-                  <th className="py-2 px-2">Policy No</th>
-                  <th className="py-2 px-2">Policy Holder</th>
-                  <th className="py-2 px-2">Plan</th>
-                  <th className="py-2 px-2 text-right">Outstanding Principal (₹)</th>
-                  <th className="py-2 px-2 text-center">Rate (% p.a.)</th>
-                  <th className="py-2 px-2 text-center">Accruing From</th>
-                  <th className="py-2 px-2 text-center">Next Due</th>
-                  <th className="py-2 px-2 text-right">Interest Paid (₹)</th>
-                  <th className="py-2 px-2 text-right text-red-600">Interest Due (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupData.map((group) => (
-                  <Fragment key={group.groupCode}>
-                    {formData.sortingOption !== "groupMemberwise" && (
-                      <tr className="border-t-2 border-slate-400">
-                        <td
-                          colSpan={10}
-                          className="bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-[#0B1220]"
-                        >
-                          {group.groupHeadName}{" "}
-                          {formData.sortingOption === "groupsWise" ? `[${group.groupCode}]` : ""}
-                        </td>
-                      </tr>
-                    )}
-                    {group.members.map((member: any) => (
-                      <Fragment key={member.name}>
-                        <tr>
-                          <td
-                            colSpan={10}
-                            className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200"
-                          >
-                            <div>{member.name}</div>
-                            {formData.reportType === "Statement" && (
-                              <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                {[
-                                  formData.statementOptions.address &&
-                                    member.address &&
-                                    `Address: ${member.address}`,
-                                  formData.statementOptions.mobile &&
-                                    member.mobile &&
-                                    `Mob: ${member.mobile}`,
-                                  formData.statementOptions.dob &&
-                                    member.dob &&
-                                    `DOB: ${fmtDate(member.dob)}`,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" | ")}
-                              </div>
-                            )}
-                            {formData.reportType === "Intimation" && (
-                              <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                {[
-                                  formData.intimationOptions.dob &&
-                                    member.dob &&
-                                    `DOB: ${fmtDate(member.dob)}`,
-                                  formData.intimationOptions.includePrevArrear && `Includes Arrears`,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" | ")}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                        {member.policies.map((p: any) => (
-                          <tr key={p.policyNo} className="hover:bg-slate-50 border-b border-slate-100">
-                            <td className="py-1 px-2 text-center text-slate-500">{p.sr}</td>
-                            <td className="py-1 px-2 font-mono font-semibold">{p.policyNo}</td>
-                            <td className="py-1 px-2">{p.memberName}</td>
-                            <td
-                              className="py-1 px-2 text-slate-600 truncate max-w-[120px]"
-                              title={p.planName}
-                            >
-                              {p.planName}
-                            </td>
-                            <td className="py-1 px-2 text-right font-mono text-slate-800 font-medium">
-                              {p.outstandingPrincipal.toLocaleString("en-IN")}
-                            </td>
-                            <td className="py-1 px-2 text-center font-mono text-slate-600">
-                              {p.interestRate}%
-                            </td>
-                            <td className="py-1 px-2 text-center font-mono text-slate-600">
-                              {p.interestFromDate}
-                            </td>
-                            <td className="py-1 px-2 text-center font-mono font-medium text-slate-700">
-                              {p.dueDate}
-                            </td>
-                            <td className="py-1 px-2 text-right font-mono text-emerald-700">
-                              {p.interestPaid.toLocaleString("en-IN")}
-                            </td>
-                            <td className="py-1 px-2 text-right font-mono font-bold text-red-600">
-                              {p.interestDue.toLocaleString("en-IN")}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                          <td colSpan={4} className="text-right pr-4 py-1">
-                            Member Total :
-                          </td>
-                          <td className="text-right py-1 font-mono text-slate-900">
-                            {member.totalOutstanding.toLocaleString("en-IN")}
-                          </td>
-                          <td colSpan={4} className="text-right pr-2 py-1 text-slate-600">
-                            Interest Due:
-                          </td>
-                          <td className="text-right py-1 font-mono text-red-600">
-                            {member.totalInterestDue.toLocaleString("en-IN")}
-                          </td>
-                        </tr>
-                      </Fragment>
-                    ))}
-                    {formData.sortingOption !== "groupMemberwise" && (
-                      <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                        <td colSpan={4} className="px-3 py-1.5 text-right">
-                          Group Total :
-                        </td>
-                        <td className="px-2 py-1.5 text-right font-mono text-[#0B1220]">
-                          {group.totalOutstanding.toLocaleString("en-IN")}
-                        </td>
-                        <td colSpan={4} className="text-right pr-2 py-1.5 text-[#0B1220]">
-                          Total Interest Due:
-                        </td>
-                        <td className="px-2 py-1.5 text-right font-mono text-red-700">
-                          {group.totalInterestDue.toLocaleString("en-IN")}
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+          {formData.reportType === "Intimation" && formData.dateFrom && (
+            <span>Period: {fmtDate(formData.dateFrom)} to {fmtDate(formData.dateTo)}</span>
           )}
         </div>
 
+        {formData.reportType === "Intimation" && (
+          <div className="pb-1 flex flex-wrap gap-x-6">
+            <span>
+              <strong>Purpose :</strong> {formData.intimationOptions.purpose || "Loan Interest Due Remittance"}
+            </span>
+            <span>
+              <strong>Cost per despatch :</strong> ₹{formData.intimationOptions.costPerDespatch}
+            </span>
+          </div>
+        )}
+
+        {groupData.length === 0 ? (
+          <div className="mt-6 py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
+            <h3 className="font-bold text-slate-800 text-sm">No Loan Policies Matching Filters Found</h3>
+            <p className="text-xs text-slate-500">
+              There are no policy loans matching the applied filter criteria. Try resetting or adjusting the filters.
+            </p>
+          </div>
+        ) : (
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="font-bold">
+                <th className="px-1 py-1" style={thStyle}>Sr</th>
+                <th className="px-1 py-1" style={thStyle}>Policy No</th>
+                <th className="px-1 py-1" style={thStyle}>Policy Holder</th>
+                <th className="px-1 py-1" style={thStyle}>Plan</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Outstanding<br />Principal (₹)</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Rate<br />(% p.a.)</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Accruing<br />From</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Next<br />Due</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Interest<br />Paid (₹)</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Interest<br />Due (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupData.map((group) => (
+                <Fragment key={group.groupCode}>
+                  {formData.sortingOption !== "groupMemberwise" && (
+                    <tr>
+                      <td colSpan={10} className="pt-3 pb-1 text-center text-[13px] font-bold">
+                        {formData.sortingOption === "groupsWise" ? `${group.groupCode}: ` : ""}
+                        {group.groupHeadName}
+                      </td>
+                    </tr>
+                  )}
+                  {group.members.map((member: any) => (
+                    <Fragment key={member.name}>
+                      <tr>
+                        <td colSpan={10} className="pt-2 pb-0.5">
+                          <div className="text-[11px] font-bold">{member.name}</div>
+                          {formData.reportType === "Statement" && (
+                            <div className="text-[10px]">
+                              {[
+                                formData.statementOptions.address && member.address && `Address : ${member.address}`,
+                                formData.statementOptions.mobile && member.mobile && `Mob : ${member.mobile}`,
+                                formData.statementOptions.dob && member.dob && `DOB : ${fmtDate(member.dob)}`,
+                              ].filter(Boolean).join("   ")}
+                            </div>
+                          )}
+                          {formData.reportType === "Intimation" && (
+                            <div className="text-[10px]">
+                              {[
+                                formData.intimationOptions.dob && member.dob && `DOB : ${fmtDate(member.dob)}`,
+                                formData.intimationOptions.includePrevArrear && `Includes Arrears`,
+                              ].filter(Boolean).join("   ")}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                      {member.policies.map((p: any) => (
+                        <tr key={p.policyNo}>
+                          <td className="px-1 py-0.5">{p.sr}</td>
+                          <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
+                          <td className="px-1 py-0.5">{p.memberName}</td>
+                          <td className="px-1 py-0.5">{p.planName}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.outstandingPrincipal.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-center">{p.interestRate}%</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.interestFromDate}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.dueDate}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.interestPaid.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.interestDue.toLocaleString("en-IN")}</td>
+                        </tr>
+                      ))}
+                      {member.policies.length > 1 && (
+                        <tr className="font-bold">
+                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
+                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                            <span style={totalValueStyle}>{member.totalOutstanding.toLocaleString("en-IN")}</span>
+                          </td>
+                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-2">Interest Due :</td>
+                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                            <span style={totalValueStyle}>{member.totalInterestDue.toLocaleString("en-IN")}</span>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                  {formData.sortingOption !== "groupMemberwise" && (
+                    <>
+                      <tr className="font-bold">
+                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total :</td>
+                        <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                          <span style={totalValueStyle}>{group.totalOutstanding.toLocaleString("en-IN")}</span>
+                        </td>
+                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-2">Total Interest Due :</td>
+                        <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                          <span style={totalValueStyle}>{group.totalInterestDue.toLocaleString("en-IN")}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={10} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
+                      </tr>
+                    </>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        )}
+
         {groupData.length > 0 && (
-          <div className="pt-4 border-t-2 border-slate-400 flex flex-wrap justify-between items-center text-xs font-bold gap-4">
-            <div className="flex items-center gap-4">
-              <span>Grand Total Outstanding Principal:</span>
-              <span className="font-mono text-base text-[#0B1220]">
-                ₹ {grandTotalPrincipal.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Grand Total Interest Due:</span>
-              <span className="font-mono text-lg text-red-700 font-black">
-                ₹ {grandTotalInterestDue.toLocaleString("en-IN")}
-              </span>
-            </div>
+          <div className="pt-5 flex justify-end">
+            <table className="w-full max-w-md border-collapse text-[11px]">
+              <tbody>
+                <tr>
+                  <td className="px-1 py-0.5">Grand Total Outstanding Principal :</td>
+                  <td className="px-1 py-0.5 text-right font-mono">₹ {grandTotalPrincipal.toLocaleString("en-IN")}</td>
+                </tr>
+                <tr className="font-bold">
+                  <td className="px-1 pt-1.5 pb-1">Grand Total Interest Due :</td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>₹ {grandTotalInterestDue.toLocaleString("en-IN")}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
