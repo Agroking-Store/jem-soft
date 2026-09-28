@@ -495,7 +495,7 @@ export default function PolicyRegisterReportView({
       elem.style.width = "900px";
 
       const canvas = await html2canvas(elem, {
-        scale: 2.5,
+        scale: 2, // 2x is plenty sharp for A4 print
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
@@ -505,22 +505,50 @@ export default function PolicyRegisterReportView({
       // Restore full width screen styling
       elem.style.width = originalWidth;
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // How many canvas pixels fit on one A4 page at this width
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
-      while (heightLeft > 5) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      let renderedPx = 0;
+      let pageIndex = 0;
+
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+
+        // Each PDF page gets ONLY its own slice (not the whole canvas again)
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0, renderedPx, canvas.width, sliceHeightPx, // source slice
+          0, 0, canvas.width, sliceHeightPx           // destination
+        );
+
+        // JPEG @ 0.85 is ~10x smaller than PNG for text-heavy pages
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          0,
+          pageWidthMm,
+          sliceHeightPx / pxPerMm,
+          undefined,
+          "FAST"
+        );
+
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
 
       pdf.save(`Policy_Register_${formData.reportDate || "Report"}.pdf`);
