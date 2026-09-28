@@ -63,11 +63,55 @@ export default function SurvivalBenefitReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
+    // Parse applied filters from FilterOptionsModal
+    const selectedStatusFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Policy Status")
+      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
+
+    const selectedAgencyFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Agencies")
+      .map((f) => f.name.toLowerCase().trim());
+
+    const selectedPaymentModeFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Payment Modes")
+      .map((f) => f.name.toLowerCase().trim());
+
+    const selectedCrmGroupFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "CRM Groups")
+      .map((f) => f.name.toLowerCase().trim());
+
+    const selectedGroupRatingFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Group Rating")
+      .map((f) => f.name.toLowerCase().trim());
+
+    const selectedGroupCategoryFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Group Category")
+      .map((f) => f.name.toLowerCase().trim());
+
     const selectedGroupCodesOrNames =
       formData.sortingOption === "groupsWise"
         ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
         : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
 
+    // Agency matching logic (same as Policy Register)
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+
+    const isAgencyMatch = (p: any, agencyFilters: string[]): boolean => {
+      if (!agencyFilters || agencyFilters.length === 0) return true;
+      const pAgCode = (p.agentCode || "").toLowerCase().trim();
+      return agencyFilters.some((f) => {
+        const fLower = f.toLowerCase().trim();
+        if (!fLower) return true;
+        if (fLower.includes("jayant") || fLower.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(pAgCode);
+        if (fLower.includes("manisha") || fLower.includes("ag003")) return MANISHA_ADVISOR_CODES.includes(pAgCode);
+        if (fLower.includes("other") || fLower.includes("ag001")) return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISHA_ADVISOR_CODES.includes(pAgCode);
+        return pAgCode.includes(fLower) || fLower.includes(pAgCode);
+      });
+    };
+
+    // Compute Survival Benefit date from commencement date
+    // LIC plans typically pay survival benefits every 5 years from commencement
     const getPolicySBDate = (p: any): Date | null => {
       if (p.survivalBenefitDate) {
         const d = new Date(p.survivalBenefitDate);
@@ -88,18 +132,71 @@ export default function SurvivalBenefitReportView({
     };
 
     const validDbPolicies = rawPolicies.filter((p) => {
+      // Policy Status Filter
+      if (selectedStatusFilters.length > 0) {
+        const rawStatus = (p.status?.statusName || p.statusName || "Inforce")
+          .toLowerCase()
+          .replace(/[- ]/g, "");
+        const matchesStatus = selectedStatusFilters.some(
+          (st) => rawStatus.includes(st) || st.includes(rawStatus)
+        );
+        if (!matchesStatus) return false;
+      }
+
+      // Agency / Agent Filter
+      if (!isAgencyMatch(p, selectedAgencyFilters)) return false;
+
+      // Payment Mode Filter
+      if (selectedPaymentModeFilters.length > 0) {
+        const modeName = (p.premiumMode?.modeName || "").toLowerCase();
+        const matchesPayment = selectedPaymentModeFilters.some(
+          (pm) => modeName.includes(pm) || pm.includes(modeName)
+        );
+        if (!matchesPayment) return false;
+      }
+
+      // CRM Group Filter
+      if (selectedCrmGroupFilters.length > 0) {
+        const crmGroup = (p.customer?.crmGroup || p.crmGroup || "").toLowerCase();
+        const matchesCrm = selectedCrmGroupFilters.some(
+          (cg) => crmGroup.includes(cg) || cg.includes(crmGroup)
+        );
+        if (!matchesCrm) return false;
+      }
+
+      // Group Rating Filter
+      if (selectedGroupRatingFilters.length > 0) {
+        const rating = (p.customer?.groupRating || p.groupRating || "").toLowerCase();
+        const matchesRating = selectedGroupRatingFilters.some(
+          (gr) => rating.includes(gr) || gr.includes(rating)
+        );
+        if (!matchesRating) return false;
+      }
+
+      // Group Category Filter
+      if (selectedGroupCategoryFilters.length > 0) {
+        const category = (p.customer?.groupCategory || p.groupCategory || "").toLowerCase();
+        const matchesCategory = selectedGroupCategoryFilters.some(
+          (gc) => category.includes(gc) || gc.includes(category)
+        );
+        if (!matchesCategory) return false;
+      }
+
+      // Lapsed Policy Filter
       const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
       if (!formData.includeLapsedPolicies && rawStatus.includes("lapsed")) return false;
 
+      // Record Only Policy Filter
       const isRecordOnly = Boolean(p.isRecordOnly);
       if (isRecordOnly && !formData.includeRecordOnlyPolicies) return false;
 
+      // Survival Benefit Date Range Filter
       const sd = getPolicySBDate(p);
       if (!sd) return false;
-
       if (fromDate && sd < fromDate) return false;
       if (toDate && sd > toDate) return false;
 
+      // Survival Benefit Amount Filter
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
       const sbAmount = Number(p.survivalBenefitAmount || sumAssured * 0.2);
       if (formData.sbAmountFilterEnabled && sbAmount < formData.sbAmountAboveOrEqualTo) return false;
@@ -133,14 +230,56 @@ export default function SurvivalBenefitReportView({
       return [];
     }
 
+    // Grouping logic based on sortingOption
     const groupMap: { [key: string]: any } = {};
+
     validDbPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
       const custObj = p.customer;
-      const gCode = custObj?.groupCode || `S${(p.clientId || "01").toString().padStart(3, "0")}`;
-      const gHeadName = custObj?.groupName || custObj?.name || "Customer Group";
+      const sd = getPolicySBDate(p) || new Date();
+
+      // Determine group key based on sorting option
+      let gCode: string;
+      let gHeadName: string;
+
+      switch (formData.sortingOption) {
+        case "groupMemberwise": {
+          // Each member is its own group
+          const memberId = custMaster?.id || `M${p.clientId || "01"}`;
+          const memberName = custMaster
+            ? [custMaster.salutation, custMaster.firstName, custMaster.middleName, custMaster.lastName].filter(Boolean).join(" ")
+            : custObj?.name || "Policy Holder";
+          const memberOwnGroupCode = custObj?.groupCode || "";
+          gCode = memberId;
+          gHeadName = memberOwnGroupCode ? `${memberOwnGroupCode} - ${memberName}` : memberName;
+          break;
+        }
+        case "sbDatewise": {
+          // Group by S.B. date
+          gCode = sd.toISOString().split("T")[0];
+          gHeadName = `S.B. Due: ${fmtDate(sd)}`;
+          break;
+        }
+        case "branchNoWise": {
+          // Group by branch
+          const branchCode = p.branch?.branchCode || p.branchNo || "—";
+          gCode = branchCode;
+          gHeadName = `Branch ${branchCode}`;
+          break;
+        }
+        default: {
+          // groupsWise - group by group code
+          gCode = custObj?.groupCode || `S${(p.clientId || "01").toString().padStart(3, "0")}`;
+          gHeadName = custObj?.groupName || custObj?.name || "Customer Group";
+          break;
+        }
+      }
+
+      // Apply selected groups/items filter
       if (selectedGroupCodesOrNames.length > 0) {
-        const matches = selectedGroupCodesOrNames.some((sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc));
+        const matches = selectedGroupCodesOrNames.some(
+          (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
+        );
         if (!matches) return;
       }
 
@@ -157,9 +296,15 @@ export default function SurvivalBenefitReportView({
         memberAddress = custObj.address;
       }
 
-      const sd = getPolicySBDate(p) || new Date();
-
-      if (!groupMap[gCode]) groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, membersMap: {}, totalPolicies: 0, totalSB: 0 };
+      if (!groupMap[gCode]) {
+        groupMap[gCode] = {
+          groupCode: gCode,
+          groupHeadName: gHeadName,
+          membersMap: {},
+          totalPolicies: 0,
+          totalSB: 0,
+        };
+      }
       const grp = groupMap[gCode];
       if (!grp.membersMap[memberName]) {
         grp.membersMap[memberName] = {
@@ -259,29 +404,35 @@ export default function SurvivalBenefitReportView({
         </button>
       </div>
 
-      <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-6xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none">
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-          </div>
+      <div ref={reportRef} className="bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none" style={{ fontFamily: "Arial, Helvetica, sans-serif", color: "#000" }}>
+        {/* Report title line */}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            {formData.reportType === "Intimation" ? "Survival Benefit Intimation" : "Survival Benefit Statement"} as on {fmtDate(formData.reportDate) || fmtDate(new Date())}
+          </span>
+          <span>
+            Groups: {groupData.length} | Policies: {grandPolicies}
+          </span>
+        </div>
+        <div className="pb-1 text-[9px] font-normal">
+          S.B. due between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)} | {getReportHeaderTitle()}
         </div>
 
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Survival Benefit Statement</h2>
-          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">{getReportHeaderTitle()}</span>
-        </div>
-
-        <div className="text-[11px] font-semibold text-slate-800 px-1 flex justify-between">
-          <span>Date of Report: {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
-          <span>S.B. due between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)}</span>
-        </div>
+        {/* Intimation Letter - only shown when reportType is "Intimation" */}
+        {formData.reportType === "Intimation" && groupData.length > 0 && (
+          <div className="border border-slate-300 rounded-lg p-6 space-y-4 my-4">
+            <div className="text-center">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Survival Benefit Intimation</h3>
+              <p className="text-xs text-slate-500 mt-1">This is to inform you that the following survival benefits are due as per your policy terms.</p>
+            </div>
+            <div className="text-xs text-slate-700 space-y-2">
+              <p>Dear Policyholder,</p>
+              <p>
+                As per the terms of your LIC policy, the following survival benefits are due for payment. Please find the details below:
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 overflow-x-auto">
           {groupData.length === 0 ? (
@@ -292,53 +443,71 @@ export default function SurvivalBenefitReportView({
               </p>
             </div>
           ) : (
-            <table className="w-full text-left text-[11px] border-collapse min-w-[700px]">
+            <table className="w-full text-left text-[10px] border-collapse">
               <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
+                <tr className="font-bold">
                   {columns.map((col) => (
-                    <th key={col.key} className={`py-2 px-1 ${alignClass(col.align)}`}>{col.label}</th>
+                    <th key={col.key} className={`px-1 py-1 ${alignClass(col.align)} border-t border-b border-black`}>{col.label}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {groupData.map((group) => (
                   <Fragment key={group.groupCode}>
-                    <tr className="border-t-2 border-slate-400">
-                      <td colSpan={columns.length} className="text-center bg-slate-100 font-bold text-xs py-1.5 px-2 border-b border-slate-300 text-slate-900">
-                        {group.groupCode}: {group.groupHeadName}
+                    {/* Group heading - centered, bold */}
+                    <tr>
+                      <td colSpan={columns.length} className="pt-3 pb-1 text-center">
+                        <div className="text-[13px] font-bold">
+                          {group.groupCode}: {group.groupHeadName}
+                        </div>
                       </td>
                     </tr>
                     {group.members.map((member: any) => (
                       <Fragment key={member.name}>
+                        {/* Member name - bold */}
                         <tr>
-                          <td colSpan={columns.length} className="px-2 font-bold text-[11px] text-slate-800 py-1 bg-slate-50/40 border-b border-slate-200">
-                            <div>{member.name}</div>
+                          <td colSpan={columns.length} className="pt-2 pb-0.5 text-[11px] font-bold">
+                            {member.name}
                             {(formData.reportOptions.printWithAddress || formData.reportOptions.printWithTelNo) && (
-                              <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                              <span className="font-normal ml-3 text-[9px]">
                                 {[
                                   formData.reportOptions.printWithAddress && member.address && `Address: ${member.address}`,
                                   formData.reportOptions.printWithTelNo && member.mobile && `Tel/Mob: ${member.mobile}`,
                                 ].filter(Boolean).join(" | ")}
-                              </div>
+                              </span>
                             )}
                           </td>
                         </tr>
                         {member.policies.map((p: any) => (
-                          <tr key={p.policyNo} className="hover:bg-slate-50 divide-x divide-slate-100">
+                          <tr key={p.policyNo}>
                             {columns.map((col) => (
-                              <td key={col.key} className={`py-1 px-1 ${alignClass(col.align)}`}>{col.render(p)}</td>
+                              <td key={col.key} className={`px-1 py-0.5 ${alignClass(col.align)} ${col.align === "right" ? "font-mono" : ""}`}>{col.render(p)}</td>
                             ))}
                           </tr>
                         ))}
-                        <tr className="border-t border-slate-300 font-bold text-[11px] bg-slate-50">
-                          <td colSpan={columns.length - 1} className="text-right pr-4 py-1">Member Total :</td>
-                          <td className="text-right py-1 font-mono text-[#0B1220]">{member.totalSB.toLocaleString("en-IN")}</td>
+                        {/* Member total */}
+                        <tr className="font-bold">
+                          <td colSpan={columns.length - 1} className="px-1 pt-1.5 pb-1 text-right">
+                            <span className="inline-block border-t border-b border-black px-1">Member Total :</span>
+                          </td>
+                          <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                            <span className="inline-block border-t border-b border-black px-1">{member.totalSB.toLocaleString("en-IN")}</span>
+                          </td>
                         </tr>
                       </Fragment>
                     ))}
-                    <tr className="bg-slate-200 border-t-2 border-slate-500 font-bold text-xs">
-                      <td colSpan={columns.length - 1} className="px-3 py-1.5">Total No. of Policies for this Group : {group.totalPolicies}</td>
-                      <td className="px-1 py-1.5 text-right font-mono text-[#0B1220]">{group.totalSB.toLocaleString("en-IN")}</td>
+                    {/* Group total */}
+                    <tr className="font-bold">
+                      <td colSpan={columns.length - 1} className="px-1 pt-1.5 pb-1 text-right">
+                        <span className="inline-block border-t border-b border-black px-1">Total for Group : {group.totalPolicies} Policies</span>
+                      </td>
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                        <span className="inline-block border-t border-b border-black px-1">{group.totalSB.toLocaleString("en-IN")}</span>
+                      </td>
+                    </tr>
+                    {/* Separator */}
+                    <tr>
+                      <td colSpan={columns.length} style={{ borderBottom: "1px solid #000", height: 6 }}></td>
                     </tr>
                   </Fragment>
                 ))}
@@ -347,33 +516,37 @@ export default function SurvivalBenefitReportView({
           )}
         </div>
 
+        {/* Grand summary */}
         {groupData.length > 0 && (
-          <div className="pt-4 flex justify-end">
-            <div className="w-full max-w-sm border-2 border-slate-800 rounded overflow-hidden">
-              <table className="w-full text-left text-xs font-semibold">
-                <tbody className="divide-y divide-slate-300">
-                  <tr className="bg-slate-100 font-bold">
-                    <td className="p-2 border-r border-slate-400">Grand Total (S.B. Amount)</td>
-                    <td className="p-2 text-right font-mono">{grandTotal.toLocaleString("en-IN")}</td>
-                  </tr>
-                  <tr className="bg-slate-50 font-bold">
-                    <td className="p-2 border-r border-slate-400">Total No. of Policies</td>
-                    <td className="p-2 text-right font-mono">{grandPolicies}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div className="pt-5 flex justify-end">
+            <table className="w-full max-w-xl border-collapse text-[11px]">
+              <tbody>
+                <tr className="font-bold">
+                  <td className="px-1 pt-1.5 pb-1">Grand Total (S.B. Amount)</td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span className="inline-block border-t border-b border-black px-1">{grandTotal.toLocaleString("en-IN")}</span>
+                  </td>
+                </tr>
+                <tr className="font-bold">
+                  <td className="px-1 py-1">Total No. of Policies</td>
+                  <td className="px-1 py-1 text-right font-mono">{grandPolicies}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
 
-        <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span><strong className="font-bold">Y :</strong> Policies with NACH Mode</span>
-            <span><strong className="font-bold">A :</strong> Policies with APPS Mode</span>
-            <span><strong className="font-bold">ρ :</strong> Pan Card is register for the Policy</span>
+        {/* Legend footer */}
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: "1px solid #000" }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>M :</strong> Monthly Mode</span>
+            <span><strong>Q :</strong> Quarterly Mode</span>
+            <span><strong>H :</strong> Half-Yearly Mode</span>
+            <span><strong>S :</strong> Single Mode</span>
           </div>
-          <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
-            <span>DSS000019899</span>
+          <div className="flex justify-between font-mono text-[8px] pt-1">
+            <span>Statement Code: DSS000019899</span>
             <span>Generated via Survival Benefit Engine</span>
           </div>
         </div>
