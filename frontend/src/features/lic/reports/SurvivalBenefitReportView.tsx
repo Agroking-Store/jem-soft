@@ -91,7 +91,13 @@ export default function SurvivalBenefitReportView({
     const selectedGroupCodesOrNames =
       formData.sortingOption === "groupsWise"
         ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
-        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
+        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => {
+            // For groupMemberwise, use the member ID (item.id) for matching
+            if (formData.sortingOption === "groupMemberwise") {
+              return (item.id || item.code || item.name).toLowerCase();
+            }
+            return (item.code || item.name).toLowerCase();
+          });
 
     // Agency matching logic (same as Policy Register)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
