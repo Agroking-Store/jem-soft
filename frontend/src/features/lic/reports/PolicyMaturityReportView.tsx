@@ -166,9 +166,24 @@ export default function PolicyMaturityReportView({
       const gHeadName = custObj?.groupName || custObj?.name || "Customer Group";
 
       if (selectedGroupCodesOrNames.length > 0) {
-        const matches = selectedGroupCodesOrNames.some(
-          (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
-        );
+        let matches: boolean;
+
+        if (formData.sortingOption === "groupMemberwise") {
+          // Group Memberwise: match by member ID or member name
+          const memberId = custMaster?.id || p.CustomerMasterId;
+          const memberName = custMaster
+            ? [custMaster.salutation, custMaster.firstName, custMaster.middleName, custMaster.lastName].filter(Boolean).join(" ").trim()
+            : custObj?.name || "Policy Holder";
+          const selectedMemberIds = new Set(
+            (formData.sortingFilterSelection?.selectedItems || []).map((item) => item.id)
+          );
+          matches = Boolean(memberId) && selectedMemberIds.has(memberId);
+        } else {
+          // All other sorting modes: fuzzy match against group code, group head name
+          matches = selectedGroupCodesOrNames.some(
+            (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
+          );
+        }
         if (!matches) return;
       }
 

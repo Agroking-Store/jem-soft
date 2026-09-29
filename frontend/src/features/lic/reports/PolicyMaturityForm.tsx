@@ -5,6 +5,8 @@ import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "luci
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface PolicyMaturityFormData {
   appliedFilters: SelectedFilterItem[];
@@ -185,29 +187,23 @@ export default function PolicyMaturityForm({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">MaturityDate Range</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={formData.fromMaturityDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, fromMaturityDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.fromMaturityDate ? new Date(formData.fromMaturityDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, fromMaturityDate: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
                 <span className="text-xs font-bold text-slate-500">To</span>
-                <input
-                  type="date"
-                  value={formData.toMaturityDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, toMaturityDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.toMaturityDate ? new Date(formData.toMaturityDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, toMaturityDate: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
               />
             </div>
 
@@ -354,6 +350,7 @@ export default function PolicyMaturityForm({
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        visibleCategories={["Groups Wise", "Agencies", "Policy Status"]}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}

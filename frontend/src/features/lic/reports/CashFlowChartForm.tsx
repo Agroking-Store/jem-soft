@@ -5,6 +5,8 @@ import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "luci
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface CashFlowChartFormData {
   appliedFilters: SelectedFilterItem[];
@@ -145,29 +147,23 @@ export default function CashFlowChartForm({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cash Flow From</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={formData.cashFlowFromDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, cashFlowFromDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.cashFlowFromDate ? new Date(formData.cashFlowFromDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowFromDate: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
                 <span className="text-xs font-bold text-slate-500">To</span>
-                <input
-                  type="date"
-                  value={formData.cashFlowToDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, cashFlowToDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.cashFlowToDate ? new Date(formData.cashFlowToDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowToDate: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
               />
             </div>
           </div>
@@ -331,6 +327,7 @@ export default function CashFlowChartForm({
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
         defaultCategory="Groups Wise"
+        visibleCategories={["Groups Wise", "Agencies", "Payment Modes", "Policy Status"]}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}

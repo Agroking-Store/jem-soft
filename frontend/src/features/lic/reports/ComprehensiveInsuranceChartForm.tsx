@@ -5,6 +5,8 @@ import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "luci
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface ComprehensiveInsuranceChartFormData {
   appliedFilters: SelectedFilterItem[];
@@ -175,21 +177,17 @@ export default function ComprehensiveInsuranceChartForm({
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cash Flow Start Date</label>
-              <input
-                type="date"
-                value={formData.cashFlowStartDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, cashFlowStartDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.cashFlowStartDate ? new Date(formData.cashFlowStartDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowStartDate: date ? format(date, "yyyy-MM-dd") : "" }))}
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
               />
             </div>
           </div>
@@ -419,6 +417,7 @@ export default function ComprehensiveInsuranceChartForm({
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        visibleCategories={["Groups Wise", "Group Memberwise"]}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}
