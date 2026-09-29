@@ -292,7 +292,7 @@ export default function CustomerListPage() {
               action={
                 <button
                   onClick={() => dispatch(fetchCustomers())}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
                 >
                   Try Again
                 </button>
@@ -311,7 +311,7 @@ export default function CustomerListPage() {
                   <button
                     type="button"
                     onClick={() => openModal("group-create")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
                   >
                     <Plus size={16} />
                     Add First Group
@@ -395,7 +395,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("group-details", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105 cursor-pointer"
                                 title="View"
                               >
                                 <Eye size={14} />
@@ -406,7 +406,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("group-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
                                 title="Edit"
                               >
                                 <SquarePen size={14} />
@@ -416,7 +416,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "group", label: customer.groupName || customer.name });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -442,7 +442,7 @@ export default function CustomerListPage() {
             action={
               <button
                 onClick={() => dispatch(fetchCustomersMaster())}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
               >
                 Try Again
               </button>
@@ -534,7 +534,7 @@ export default function CustomerListPage() {
                                 e.stopPropagation();
                                 openModal("group-details", customer.group!.id);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-blue-50 hover:text-[#1877F2]"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:bg-blue-50 hover:text-[#1877F2] cursor-pointer"
                             >
                               <Building2 size={11} />
                               {groupLabel}
@@ -585,7 +585,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("master-details", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105 cursor-pointer"
                                 title="View"
                               >
                                 <Eye size={14} />
@@ -596,7 +596,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   openModal("master-edit", customer.id);
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
                                 title="Edit"
                               >
                                 <SquarePen size={14} />
@@ -606,7 +606,7 @@ export default function CustomerListPage() {
                                   e.stopPropagation();
                                   setDeleteTarget({ id: customer.id, type: "master", label: fullName });
                                 }}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -746,7 +746,7 @@ export default function CustomerListPage() {
             <button
               type="button"
               onClick={() => openModal(activeTab === "group" ? "group-create" : "master-create")}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
             >
               <Plus size={16} />
               {activeTab === "group" ? "Add Customer Group" : "Add Customer"}
@@ -798,14 +798,14 @@ export default function CustomerListPage() {
             <div className="mt-6 flex items-center justify-end gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>

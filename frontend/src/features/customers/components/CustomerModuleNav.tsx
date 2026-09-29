@@ -57,6 +57,7 @@ function CustomerModuleNavInner() {
                     ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
                     : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
                 }
+                cursor-pointer
               `}
             >
               <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />

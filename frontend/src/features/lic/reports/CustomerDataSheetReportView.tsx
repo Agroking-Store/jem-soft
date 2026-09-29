@@ -17,6 +17,19 @@ interface CustomerDataSheetReportViewProps {
   onBackToForm: () => void;
 }
 
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
 export default function CustomerDataSheetReportView({
   formData,
   customers = [],
@@ -167,22 +180,30 @@ export default function CustomerDataSheetReportView({
 
       elem.style.width = originalWidth;
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 5) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
 
       pdf.save(`Customer_Data_Sheet_${formData.reportDate || "Report"}.pdf`);
@@ -240,8 +261,8 @@ export default function CustomerDataSheetReportView({
       {/* Main Printable Document Canvas */}
       <div
         ref={reportRef}
-        style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-        className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-2xl text-slate-900 space-y-10 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl space-y-8 print:p-0 print:border-none print:shadow-none"
       >
         {targetMembers.map((member, mIdx) => {
           const group =
@@ -349,126 +370,62 @@ export default function CustomerDataSheetReportView({
           return (
             <div
               key={member.id || mIdx}
-              className={`space-y-4 text-[11px] font-sans leading-tight ${
-                mIdx > 0 ? "pt-8 border-t-2 border-dashed border-slate-300" : ""
-              }`}
+              className={`text-[10px] leading-snug ${mIdx > 0 ? "pt-6" : ""}`}
+              style={mIdx > 0 ? { borderTop: `1px solid ${BLACK}` } : undefined}
             >
-              {/* Advisor Letterhead Header */}
-              <div
-                style={{ borderBottom: "2px solid #0B1220" }}
-                className="flex justify-between items-start pb-4"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">
-                      Jayant Yashwantrao Mahabole
-                    </h1>
-                    <span className="text-[10px] bg-[#0B1220] text-[#E8C77A] font-bold px-2 py-0.5 rounded uppercase tracking-widest">
-                      LIC Authorized Advisor
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-[#B8873A]">
-                    MBA in Insurance & Finance
-                  </p>
-                  <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-                    84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
-                  </p>
-                  <div className="flex items-center gap-4 text-xs font-medium text-slate-700 pt-1">
-                    <span>Phone: 9822452896</span>
-                    <span>Email: office@jayantmahbole.com</span>
-                  </div>
-                </div>
-
-                <div className="text-right space-y-1.5">
-                  <div className="inline-block bg-[#0B1220] text-[#E8C77A] px-4 py-2 rounded-xl text-right border border-[#B8873A]/40 shadow-sm">
-                    <p className="text-xs font-bold tracking-widest uppercase">
-                      Life Insurance Corporation
-                    </p>
-                    <p className="text-[10px] text-slate-300">
-                      Master Customer Data Sheet
-                    </p>
-                  </div>
-                  <p className="text-xs font-bold text-slate-700 pt-1">
-                    Date: {formatDate(formData.reportDate)}
-                  </p>
-                </div>
+              {/* Title line */}
+              <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+                <span>
+                  Master Customer Data Sheet of {memberFullName || "Client"} as on {formatDate(formData.reportDate)}
+                </span>
+                <span>Group Code : {groupCode} | Personal Code : {mIdx + 1}</span>
               </div>
 
-              {/* Title Banner */}
-              <div className="bg-[#0B1220] text-white rounded-xl px-5 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A] shadow-sm">
-                <div>
-                  <h2 className="text-sm font-bold text-[#E8C77A] uppercase tracking-wider">
-                    Data Sheet of {memberFullName || "Client"}
-                  </h2>
+              {/* Group / address / contact */}
+              <div className="py-1.5 space-y-1" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                <div className="flex gap-8">
+                  <span>Group Code : <strong className="font-mono">{groupCode}</strong></span>
+                  <span>Personal Code : <strong>{mIdx + 1}</strong></span>
+                  <span>Group Head : <strong>{groupHeadName}</strong></span>
                 </div>
-                <div className="text-right text-xs text-[#E8C77A] font-bold">
-                  Group Code: {groupCode} | Personal Code: {mIdx + 1}
+                <div className="grid grid-cols-2 gap-8">
+                  <div><strong>Resident Address :</strong> {resAddressStr || "-"}</div>
+                  <div><strong>Office Address :</strong> {offAddressStr || "-"}</div>
                 </div>
-              </div>
-
-              {/* Group Code / Personal Code / Group Head Row */}
-              <div className="border border-slate-300 rounded-xl overflow-hidden divide-y divide-slate-300 shadow-xs">
-                <div className="grid grid-cols-12 px-3 py-2 bg-slate-50 font-medium text-xs">
-                  <div className="col-span-4">
-                    Group Code : <span className="font-bold font-mono">{groupCode}</span>
-                  </div>
-                  <div className="col-span-3">
-                    Personal Code : <span className="font-bold">{mIdx + 1}</span>
-                  </div>
-                  <div className="col-span-5">
-                    Group Head : <span className="font-bold text-slate-900">{groupHeadName}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-12 divide-x divide-slate-300">
-                  <div className="col-span-6 p-2.5 space-y-1">
-                    <div className="font-bold text-slate-700 uppercase text-[10px]">Resident Address</div>
-                    <div className="text-slate-900 min-h-[30px]">{resAddressStr || "-"}</div>
-                  </div>
-                  <div className="col-span-6 p-2.5 space-y-1">
-                    <div className="font-bold text-slate-700 uppercase text-[10px]">Office Address</div>
-                    <div className="text-slate-900 min-h-[30px]">{offAddressStr || "-"}</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-12 divide-x divide-slate-300 p-2.5 gap-y-1">
-                  <div className="col-span-6 pr-2 space-y-1">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-0.5">
                     <div>Tel No.(R) : <span className="font-mono">{telRes || "-"}</span></div>
                     <div>Fax No. : <span className="font-mono">{fax || "-"}</span></div>
                     <div>Mobile : <span className="font-mono font-bold">{mobile || "-"}</span></div>
                   </div>
-                  <div className="col-span-6 pl-2 space-y-1">
+                  <div className="space-y-0.5">
                     <div>Tel No. (O) : <span className="font-mono">{telOff || "-"}</span></div>
-                    <div>E-mail : <span className="font-semibold text-blue-800">{email || "-"}</span></div>
+                    <div>E-mail : {email || "-"}</div>
                     <div>Location : {resAddress?.city || (group as any)?.resCity || "Pune"}</div>
                   </div>
                 </div>
               </div>
 
-              {/* SECTION: Personal Information */}
-              <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+              {/* Personal Information */}
+              <div className="pt-3">
+                <div className="text-[11px] font-bold pb-0.5" style={{ borderBottom: `1px solid ${BLACK}` }}>
                   Personal Information
                 </div>
-                <div className="p-3 grid grid-cols-12 gap-x-4 gap-y-2 bg-white">
-                  <div className="col-span-5">
-                    Birth Date (Rec) : <span className="font-bold font-mono">{formatDate(member.dob || "") || "-"}</span>
-                  </div>
-                  <div className="col-span-4">
-                    Birth Date (Greeting) : <span className="font-bold font-mono">{formatDate(misc?.dobForGreetings || member.dob || "") || "-"}</span>
-                  </div>
+                <div className="pt-1.5 grid grid-cols-12 gap-x-4 gap-y-1">
+                  <div className="col-span-5">Birth Date (Rec) : <strong className="font-mono">{formatDate(member.dob || "") || "-"}</strong></div>
+                  <div className="col-span-4">Birth Date (Greeting) : <strong className="font-mono">{formatDate(misc?.dobForGreetings || member.dob || "") || "-"}</strong></div>
                   <div className="col-span-3">Birth Place : -</div>
 
                   <div className="col-span-5">Age Proof : -</div>
                   <div className="col-span-4">Nationality : {misc?.nationality || "Indian"}</div>
-                  <div className="col-span-3">PAN : <span className="font-mono font-bold">{member.panNumber || "-"}</span></div>
+                  <div className="col-span-3">PAN : <strong className="font-mono">{member.panNumber || "-"}</strong></div>
 
                   <div className="col-span-5">Father&apos;s Name : {misc?.fatherName || "-"}</div>
                   <div className="col-span-4">Mother&apos;s Name : {misc?.motherName || "-"}</div>
                   <div className="col-span-3">Marriage Date : {formatDate(misc?.marriageDate || "") || "-"}</div>
 
                   <div className="col-span-5">Spouse Name : {misc?.spouseName || "-"}</div>
-                  <div className="col-span-7">AadhaarCard No : <span className="font-mono font-bold">{member.aadhaarNumber || "-"}</span></div>
+                  <div className="col-span-7">AadhaarCard No : <strong className="font-mono">{member.aadhaarNumber || "-"}</strong></div>
 
                   <div className="col-span-5">Qualification : {misc?.qualification || "-"}</div>
                   <div className="col-span-7">Income Sources : -</div>
@@ -484,14 +441,13 @@ export default function CustomerDataSheetReportView({
                 </div>
               </div>
 
-              {/* SECTION: Medical Detail */}
-              <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+              {/* Medical Detail */}
+              <div className="pt-3">
+                <div className="text-[11px] font-bold pb-0.5" style={{ borderBottom: `1px solid ${BLACK}` }}>
                   Medical Detail
                 </div>
-                <div className="grid grid-cols-12 divide-x divide-slate-300 bg-white">
-                  {/* Left Examination Details */}
-                  <div className="col-span-8 p-3 space-y-2">
+                <div className="pt-1.5 grid grid-cols-12 gap-x-6">
+                  <div className="col-span-8 space-y-1">
                     <div className="grid grid-cols-2 gap-2">
                       <div>Medical Date : <span className="font-mono">{formatDate(medicalRecord?.medicalExaminationDate || "") || "-"}</span></div>
                       <div>Medical History Date : <span className="font-mono">{formatDate(medicalRecord?.medicalHistoryDate || "") || "-"}</span></div>
@@ -508,156 +464,127 @@ export default function CustomerDataSheetReportView({
                     <div>Last Delivery Date : -</div>
                   </div>
 
-                  {/* Right Physical Measurement Table */}
-                  <div className="col-span-4 p-0">
-                    <table className="w-full text-[10px] border-collapse">
-                      <tbody className="divide-y divide-slate-200">
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200 w-1/2">Height</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.height || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Weight</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.weight || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Chest</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.chest || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Abdomen</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.abdomen || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Blood Group</td>
-                          <td className="py-1 px-2 text-center font-bold text-red-700">{medicalRecord?.bloodGroup || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Pulse</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.pulse || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Spectacles</td>
-                          <td className="py-1 px-2 text-center">{medicalRecord?.spectaclesDetails || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">Dental</td>
-                          <td className="py-1 px-2 text-center">{medicalRecord?.dentalDetails || "-"}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2.5 font-semibold bg-slate-50 border-r border-slate-200">B.P</td>
-                          <td className="py-1 px-2 text-center font-mono">{medicalRecord?.bloodPressure || "-"}</td>
-                        </tr>
+                  <div className="col-span-4">
+                    <table className="w-full border-collapse">
+                      <tbody>
+                        {[
+                          ["Height", medicalRecord?.height],
+                          ["Weight", medicalRecord?.weight],
+                          ["Chest", medicalRecord?.chest],
+                          ["Abdomen", medicalRecord?.abdomen],
+                          ["Blood Group", medicalRecord?.bloodGroup],
+                          ["Pulse", medicalRecord?.pulse],
+                          ["Spectacles", medicalRecord?.spectaclesDetails],
+                          ["Dental", medicalRecord?.dentalDetails],
+                          ["B.P", medicalRecord?.bloodPressure],
+                        ].map(([label, val]) => (
+                          <tr key={label as string}>
+                            <td className="py-0.5 pr-2 font-semibold">{label}</td>
+                            <td className="py-0.5 text-right font-mono">{(val as any) || "-"}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
               </div>
 
-              {/* SECTION: Family History */}
-              <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+              {/* Family History */}
+              <div className="pt-3">
+                <div className="text-[11px] font-bold pb-0.5" style={{ borderBottom: `1px solid ${BLACK}` }}>
                   Family History
+                  <span className="font-normal ml-3">
+                    Date : {formatDate(member.familyHistories?.[0]?.date || "") || "-"}
+                  </span>
                 </div>
-                <div className="p-3 space-y-2 bg-white">
-                  <div className="text-[10px] text-slate-600">
-                    Family History Date : {formatDate(member.familyHistories?.[0]?.date || "") || "-"}
-                  </div>
-                  <table className="w-full text-left text-[10px] border border-slate-200 border-collapse rounded-lg overflow-hidden">
-                    <thead>
-                      <tr className="bg-slate-100 border-b border-slate-200 text-slate-800 font-bold">
-                        <th className="py-1.5 px-3 border-r border-slate-200">Relation</th>
-                        <th className="py-1.5 px-3 border-r border-slate-200 text-center">Present Age</th>
-                        <th className="py-1.5 px-3 border-r border-slate-200">Health</th>
-                        <th className="py-1.5 px-3 border-r border-slate-200 text-center">Age at Death</th>
-                        <th className="py-1.5 px-3">Cause of Death</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {familyRecords.length > 0 ? (
-                        familyRecords.map((fRec, fIdx) => (
-                          <tr key={fRec.id || fIdx}>
-                            <td className="py-1 px-3 border-r border-slate-200 font-medium">{fRec.relation}</td>
-                            <td className="py-1 px-3 border-r border-slate-200 text-center font-mono">
-                              {fRec.isDead ? "-" : fRec.age}
-                            </td>
-                            <td className="py-1 px-3 border-r border-slate-200">{fRec.stateOfHealth || "-"}</td>
-                            <td className="py-1 px-3 border-r border-slate-200 text-center font-mono">
-                              {fRec.isDead ? fRec.ageAtDeath || fRec.age : "-"}
-                            </td>
-                            <td className="py-1 px-3">{fRec.causeOfDeath || "-"}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td className="py-2 px-3 border-r border-slate-200">-</td>
-                          <td className="py-2 px-3 border-r border-slate-200 text-center">-</td>
-                          <td className="py-2 px-3 border-r border-slate-200">-</td>
-                          <td className="py-2 px-3 border-r border-slate-200 text-center">-</td>
-                          <td className="py-2 px-3">-</td>
+                <table className="w-full text-left border-collapse mt-1">
+                  <thead>
+                    <tr className="font-bold">
+                      <th className="px-1 py-1" style={thStyle}>Relation</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Present Age</th>
+                      <th className="px-1 py-1" style={thStyle}>Health</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Age at Death</th>
+                      <th className="px-1 py-1" style={thStyle}>Cause of Death</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {familyRecords.length > 0 ? (
+                      familyRecords.map((fRec, fIdx) => (
+                        <tr key={fRec.id || fIdx}>
+                          <td className="px-1 py-0.5">{fRec.relation}</td>
+                          <td className="px-1 py-0.5 text-center font-mono">{fRec.isDead ? "-" : fRec.age}</td>
+                          <td className="px-1 py-0.5">{fRec.stateOfHealth || "-"}</td>
+                          <td className="px-1 py-0.5 text-center font-mono">
+                            {fRec.isDead ? fRec.ageAtDeath || fRec.age : "-"}
+                          </td>
+                          <td className="px-1 py-0.5">{fRec.causeOfDeath || "-"}</td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="px-1 py-0.5">-</td>
+                        <td className="px-1 py-0.5 text-center">-</td>
+                        <td className="px-1 py-0.5">-</td>
+                        <td className="px-1 py-0.5 text-center">-</td>
+                        <td className="px-1 py-0.5">-</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Bank Details Section */}
+              {/* Bank Details */}
               {formData.reportOptions.printBankDetails && (
-                <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-                  <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+                <div className="pt-3">
+                  <div className="text-[11px] font-bold pb-0.5" style={{ borderBottom: `1px solid ${BLACK}` }}>
                     Bank Details
                   </div>
-                  <div className="p-3 grid grid-cols-12 gap-2 text-[10px] bg-white">
+                  <div className="pt-1.5 space-y-1">
                     {member.bankDetails && member.bankDetails.length > 0 ? (
                       member.bankDetails.map((b, bIdx) => (
-                        <div key={b.id || bIdx} className="col-span-12 grid grid-cols-12 gap-2">
-                          <div className="col-span-4">Bank Name: <span className="font-semibold">{b.bankName || "-"}</span></div>
-                          <div className="col-span-4">Branch: <span className="font-semibold">{b.bankBranch || "-"}</span></div>
-                          <div className="col-span-4">Account No: <span className="font-mono font-bold">{b.accountNumber || "-"}</span></div>
-                          <div className="col-span-4">IFSC: <span className="font-mono font-bold">{b.ifscCode || "-"}</span></div>
-                          <div className="col-span-4">Account Type: <span className="font-semibold">{b.accountType || "-"}</span></div>
-                          <div className="col-span-4">MICR: <span className="font-mono">{b.micrNumber || "-"}</span></div>
+                        <div key={b.id || bIdx} className="grid grid-cols-12 gap-x-4 gap-y-0.5">
+                          <div className="col-span-4">Bank Name : <strong>{b.bankName || "-"}</strong></div>
+                          <div className="col-span-4">Branch : <strong>{b.bankBranch || "-"}</strong></div>
+                          <div className="col-span-4">Account No : <strong className="font-mono">{b.accountNumber || "-"}</strong></div>
+                          <div className="col-span-4">IFSC : <strong className="font-mono">{b.ifscCode || "-"}</strong></div>
+                          <div className="col-span-4">Account Type : <strong>{b.accountType || "-"}</strong></div>
+                          <div className="col-span-4">MICR : <span className="font-mono">{b.micrNumber || "-"}</span></div>
                         </div>
                       ))
                     ) : (
-                      <div className="col-span-12 text-slate-500 italic">No bank records registered</div>
+                      <div className="italic">No bank records registered</div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Policy Details Table */}
-              <div
-                className={`border border-slate-300 rounded-xl overflow-hidden shadow-xs ${
-                  formData.reportOptions.printPolicyOnNewPage ? "page-break-before pt-4" : ""
-                }`}
-              >
-                <div className="bg-[#0B1220] px-4 py-1.5 text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
+              {/* Policy Details */}
+              <div className={`pt-3 ${formData.reportOptions.printPolicyOnNewPage ? "page-break-before" : ""}`}>
+                <div className="text-[11px] font-bold pb-0.5" style={{ borderBottom: `1px solid ${BLACK}` }}>
                   Policy Details
                 </div>
-                <table className="w-full text-left text-[9px] border-collapse bg-white">
+                <table className="w-full text-left border-collapse text-[9px] mt-1">
                   <thead>
-                    <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
-                      <th className="py-1.5 px-1.5 border-r border-slate-300">Policy No</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Com. Date</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Pl/Tm/Pt</th>
-                      <th className="py-1.5 px-1.5 border-r border-slate-300 text-right">Sum</th>
-                      <th className="py-1.5 px-1.5 border-r border-slate-300 text-right">Premium</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Md.</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Ag Cd</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Brn.</th>
-                      <th className="py-1.5 px-1.5 border-r border-slate-300">Nominee</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Rel.</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">F.U.P. Date</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">Med/NM</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-center">DAB</th>
-                      <th className="py-1.5 px-1 border-r border-slate-300 text-right">Extra Prem.</th>
-                      <th className="py-1.5 px-1.5 border-r border-slate-300 text-right">SA Rated</th>
-                      <th className="py-1.5 px-1 text-center">Duly Tax Ben.</th>
+                    <tr className="font-bold">
+                      <th className="px-1 py-1" style={thStyle}>Policy No</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Com.<br />Date</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Pl/Tm/Pt</th>
+                      <th className="px-1 py-1 text-right" style={thStyle}>Sum</th>
+                      <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Md.</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Ag<br />Cd</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Brn.</th>
+                      <th className="px-1 py-1" style={thStyle}>Nominee</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Rel.</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>F.U.P.<br />Date</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Med/<br />NM</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>DAB</th>
+                      <th className="px-1 py-1 text-right" style={thStyle}>Extra<br />Prem.</th>
+                      <th className="px-1 py-1 text-right" style={thStyle}>SA<br />Rated</th>
+                      <th className="px-1 py-1 text-center" style={thStyle}>Duly Tax<br />Ben.</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {memberPolicies.map((pol) => {
                       const planNum = pol.product?.planNumber || pol.product?.productName || "14";
                       const term = pol.policyTerm || 25;
@@ -676,75 +603,46 @@ export default function CustomerDataSheetReportView({
                       const fupDate = formatShortDate(pol.nextPremiumDueDate || pol.commencementDate);
 
                       return (
-                        <tr key={pol.id} className="hover:bg-slate-50">
-                          <td className="py-1 px-1.5 border-r border-slate-200 font-bold font-mono text-slate-900">
-                            {pol.policyNumber}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">
-                            {formatShortDate(pol.commencementDate)}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">
-                            {plTmPt}
-                          </td>
-                          <td className="py-1 px-1.5 border-r border-slate-200 text-right font-mono font-semibold">
-                            {sumAssured.toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-1 px-1.5 border-r border-slate-200 text-right font-mono">
-                            {premiumAmt.toFixed(2)}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center">
-                            {modeStr}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">
-                            {agCd}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">
-                            {branchCd}
-                          </td>
-                          <td className="py-1 px-1.5 border-r border-slate-200 truncate max-w-[90px]">
-                            {nominee || "-"}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center">
-                            {nomineeRel || "-"}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">
-                            {fupDate || "-"}
-                          </td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center">M</td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-center font-mono">35</td>
-                          <td className="py-1 px-1 border-r border-slate-200 text-right font-mono">0.00</td>
-                          <td className="py-1 px-1.5 border-r border-slate-200 text-right font-mono font-semibold">
-                            {sumAssured.toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-1 px-1 text-center">self</td>
+                        <tr key={pol.id}>
+                          <td className="px-1 py-0.5 font-mono whitespace-nowrap">{pol.policyNumber}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{formatShortDate(pol.commencementDate)}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{plTmPt}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{sumAssured.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{premiumAmt.toFixed(2)}</td>
+                          <td className="px-1 py-0.5 text-center">{modeStr}</td>
+                          <td className="px-1 py-0.5 text-center">{agCd}</td>
+                          <td className="px-1 py-0.5 text-center">{branchCd}</td>
+                          <td className="px-1 py-0.5">{nominee || "-"}</td>
+                          <td className="px-1 py-0.5 text-center">{nomineeRel || "-"}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{fupDate || "-"}</td>
+                          <td className="px-1 py-0.5 text-center">M</td>
+                          <td className="px-1 py-0.5 text-center">35</td>
+                          <td className="px-1 py-0.5 text-right">0.00</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{sumAssured.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-center">self</td>
                         </tr>
                       );
                     })}
 
                     {memberPolicies.length === 0 && (
                       <tr>
-                        <td colSpan={16} className="py-4 text-center text-slate-400 italic">
+                        <td colSpan={16} className="py-3 text-center italic">
                           No active policies registered for this client
                         </td>
                       </tr>
                     )}
 
-                    {/* Total Row */}
-                    <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                      <td colSpan={3} className="py-1 px-2 border-r border-slate-300 text-right uppercase">
-                        Total:
+                    <tr className="font-bold">
+                      <td colSpan={3} className="px-1 pt-1.5 pb-1 text-right pr-3">Total :</td>
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{totalSumAssured.toLocaleString("en-IN")}</span>
                       </td>
-                      <td className="py-1 px-1.5 border-r border-slate-300 text-right font-mono text-slate-900">
-                        {totalSumAssured.toLocaleString("en-IN")}
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{totalPremiumAnnual.toFixed(2)}</span>
                       </td>
-                      <td className="py-1 px-1.5 border-r border-slate-300 text-right font-mono text-slate-900">
-                        {totalPremiumAnnual.toFixed(2)}
-                      </td>
-                      <td colSpan={9} className="py-1 px-2 border-r border-slate-300 text-left">
-                        p.a.
-                      </td>
-                      <td className="py-1 px-1.5 border-r border-slate-300 text-right font-mono text-slate-900">
-                        {totalSARated.toLocaleString("en-IN")}
+                      <td colSpan={9} className="px-1 pt-1.5 pb-1 text-left">p.a.</td>
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{totalSARated.toLocaleString("en-IN")}</span>
                       </td>
                       <td></td>
                     </tr>
@@ -753,8 +651,8 @@ export default function CustomerDataSheetReportView({
               </div>
 
               {formData.reportOptions.printRemarksInPolicy && (
-                <div className="text-[10px] text-slate-600 italic px-2">
-                  Remarks: {member.miscInfo?.specialNote || "All policy certificates verified."}
+                <div className="pt-2 italic">
+                  Remarks : {member.miscInfo?.specialNote || "All policy certificates verified."}
                 </div>
               )}
             </div>

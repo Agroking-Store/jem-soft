@@ -15,6 +15,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
+import { getCustomersMasterApi } from "@/features/customers/services/customerMasterApi";
 import {
   createFamilyHistory,
   type FamilyHistoryRecordItem,
@@ -249,13 +250,15 @@ function toBankFormDetails(bankDetails: CustomerBankDetail[]): FormInputValues["
   }));
 }
 
-function SectionCard({ title, icon, children, accent }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string }) {
+function SectionCard({ title, icon, children, accent, required }: { title: string; icon: React.ReactNode; children: React.ReactNode; accent?: string; required?: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
       <div className={`flex items-center gap-2.5 border-b border-slate-200 px-5 py-3.5 ${accent || "bg-slate-50"}`}>
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">{icon}</span>
-        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          {title}{required && <span className="text-red-500 ml-1">*</span>}
+        </h2>
       </div>
       <div className="p-5 sm:p-6">{children}</div>
     </div>
@@ -305,7 +308,7 @@ function GroupAutoComplete({
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
-            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
               <X size={13} />
             </button>
           )}
@@ -313,7 +316,7 @@ function GroupAutoComplete({
         <Link
           href="/dashboard/customers/new"
           target="_blank"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors cursor-pointer"
           title="Add new group"
         >
           <Plus size={16} />
@@ -327,7 +330,7 @@ function GroupAutoComplete({
               key={g.id}
               type="button"
               onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/40 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50/40 transition-colors text-left cursor-pointer"
             >
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
@@ -370,6 +373,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(groupId || "");
+  const [existingGroupHeadId, setExistingGroupHeadId] = useState<string | null>(null);
 
   const methods = useForm<FormInputValues, unknown, FormValues>({
     resolver: zodResolver(schema),
@@ -399,7 +403,20 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       setSelectedGroupId(groupId);
       setValue("groupId", groupId);
     }
-  }, [dispatch, groupId, setValue]);
+    // Fetch all customer masters to check for existing group heads
+    getCustomersMasterApi().then((res) => {
+      const members = res.data || [];
+      const currentGroup = selectedGroupId || groupId;
+      if (currentGroup) {
+        const existingHead = members.find(
+          (m: any) => m.groupId === currentGroup && m.isGroupHead
+        );
+        setExistingGroupHeadId(existingHead?.id || null);
+      }
+    }).catch(() => {
+      // Silently fail - group head check is not critical
+    });
+  }, [dispatch, groupId, setValue, selectedGroupId]);
 
   const handleToggleGroupAddress = (index: number, checked: boolean) => {
     setValue(`addresses.${index}.useGroupAddress`, checked, { shouldDirty: true });
@@ -461,7 +478,48 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
     }
   }, [isMounted, authLoading, user, router, isModal, onClose]);
 
+  // Auto-set isGroupHead when relationToGroup is "Self"
+  useEffect(() => {
+    const relation = watch("relationToGroup");
+    if (relation === "Self") {
+      setValue("isGroupHead", true, { shouldDirty: true });
+    }
+  }, [watch("relationToGroup"), setValue]);
+
+  // Update existing group head when group changes
+  useEffect(() => {
+    if (selectedGroupId) {
+      getCustomersMasterApi().then((res) => {
+        const members = res.data || [];
+        const existingHead = members.find(
+          (m: any) => m.groupId === selectedGroupId && m.isGroupHead
+        );
+        setExistingGroupHeadId(existingHead?.id || null);
+      }).catch(() => {
+        // Silently fail
+      });
+    } else {
+      setExistingGroupHeadId(null);
+    }
+  }, [selectedGroupId]);
+
+  // Show toast when user unchecks "Is Group Head" while relation is "Self"
+  useEffect(() => {
+    const relation = watch("relationToGroup");
+    const isGroupHead = watch("isGroupHead");
+    if (relation === "Self" && !isGroupHead) {
+      toast.error("Relation to Group is 'Self', so this member must be the Group Head");
+      setValue("isGroupHead", true, { shouldDirty: true });
+    }
+  }, [watch("relationToGroup"), watch("isGroupHead"), setValue]);
+
   const onSubmit = async (data: FormValues) => {
+    // Validate bank details for non-minor customers
+    if (data.customerType !== "Minor" && (!data.bankDetails || data.bankDetails.length === 0)) {
+      toast.error("At least one bank account is required for non-minor customers");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const created = await dispatch(createCustomerMaster({
@@ -575,12 +633,12 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       {/* Header */}
       {!isModal && (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
             <ArrowLeft size={16} />
           </Link>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600 cursor-pointer">Customer Master</Link>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">New Customer</span>
             </nav>
@@ -658,14 +716,30 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             </div>
 
             <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
+              <label className={`flex items-center gap-2.5 ${existingGroupHeadId ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                <input
+                  type="checkbox"
+                  {...register("isGroupHead")}
+                  disabled={!!existingGroupHeadId}
+                  className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15 disabled:cursor-not-allowed"
+                  onChange={(e) => {
+                    if (existingGroupHeadId) {
+                      e.preventDefault();
+                      return;
+                    }
+                    register("isGroupHead").onChange(e);
+                  }}
+                />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Is Group Head</p>
-                  <p className="text-xs text-slate-400">Mark as the primary person of the group</p>
+                  <p className="text-xs text-slate-400">
+                    {existingGroupHeadId
+                      ? "Another member is already the Group Head of this group"
+                      : "Mark as the primary person of the group"}
+                  </p>
                 </div>
               </label>
-              {watch("isGroupHead") && (
+              {watch("isGroupHead") && !existingGroupHeadId && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-[#1877F2]">
                   <Star size={11} /> Group Head
                 </span>
@@ -738,7 +812,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         </SectionCard>
 
         {/* ── Section 4: Bank Details ── */}
-        <SectionCard title="Bank Details" icon={<CreditCard size={16} />}>
+        <SectionCard title="Bank Details" icon={<CreditCard size={16} />} required>
           <BankDetailsRecordsEditor
             bankDetails={watch("bankDetails") || []}
             onChange={(banks) => setValue("bankDetails", toBankFormDetails(banks), { shouldDirty: true, shouldValidate: true })}
@@ -746,6 +820,11 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
           {errors.bankDetails && (
             <p className="mt-3 text-xs text-rose-600">
               {getBankDetailsErrorMessage(errors.bankDetails)}
+            </p>
+          )}
+          {watch("customerType") !== "Minor" && watch("bankDetails")?.length === 0 && (
+            <p className="mt-2 text-xs text-amber-600">
+              Bank Details are required for non-minor customers
             </p>
           )}
         </SectionCard>
@@ -908,11 +987,11 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
         {/* ── Submit ── */}
         <div className="flex items-center justify-end gap-3 py-2">
           {isModal ? (
-            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+            <button type="button" onClick={onClose} className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer">
               Cancel
             </button>
           ) : (
-            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">
+            <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer">
               Cancel
             </Link>
           )}

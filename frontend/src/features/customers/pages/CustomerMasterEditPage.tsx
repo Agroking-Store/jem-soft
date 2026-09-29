@@ -14,6 +14,7 @@ import type { RootState, AppDispatch } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchCustomerMaster, updateCustomerMaster } from "@/features/customers/customerMasterSlice";
 import { fetchCustomers } from "@/features/customers/customerSlice";
+import { getCustomersMasterApi } from "@/features/customers/services/customerMasterApi";
 import {
   fetchFamilyHistoriesByMember,
   updateFamilyHistory,
@@ -109,7 +110,7 @@ const schema = z.object({
   emailBusiness: z.string().email("Invalid email").optional().or(z.literal("")),
   skypeId: z.string().optional().or(z.literal("")),
   addresses: z.array(addressSchema).default([]),
-  bankDetails: z.array(bankDetailSchema).min(1, "At least one bank account is required").default([]),
+  bankDetails: z.array(bankDetailSchema).default([]),
   relationToGroup: z.string().optional().or(z.literal("")),
   dobForGreetings: z.string().optional().or(z.literal("")),
   marriageDate: z.string().optional().or(z.literal("")),
@@ -138,6 +139,15 @@ const schema = z.object({
   preferredCommAddress: z.string().optional().or(z.literal("")),
   smsMarketing: z.boolean().default(true),
   emailMarketing: z.boolean().default(true),
+}).superRefine((data, ctx) => {
+  // Minor customers aren't required to have their own bank account on file.
+  if (data.customerType !== "Minor" && data.bankDetails.length < 1) {
+    ctx.addIssue({
+      path: ["bankDetails"],
+      code: z.ZodIssueCode.custom,
+      message: "At least one bank account is required",
+    });
+  }
 });
 
 type FormInputValues = z.input<typeof schema>;
@@ -232,12 +242,14 @@ function toBankFormDetails(bankDetails: CustomerBankDetail[]): FormInputValues["
   }));
 }
 
-function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionCard({ title, icon, children, required }: { title: string; icon: React.ReactNode; children: React.ReactNode; required?: boolean }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
       <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-5 py-3.5">
         <span className="text-[#1877F2]">{icon}</span>
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">{title}</h2>
+        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+          {title}{required && <span className="text-red-500 ml-1">*</span>}
+        </h2>
       </div>
       <div className="p-5 sm:p-6">{children}</div>
     </div>
@@ -286,10 +298,10 @@ function GroupAutoComplete({
               ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
           />
           {selected && (
-            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>
+            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><X size={13} /></button>
           )}
         </div>
-        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors" title="Add new group">
+        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors cursor-pointer" title="Add new group">
           <Plus size={16} />
         </Link>
       </div>
@@ -297,7 +309,7 @@ function GroupAutoComplete({
       {open && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
           {filtered.map((g) => (
-            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left">
+            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left cursor-pointer">
               <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
               <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
             </button>
@@ -349,6 +361,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [existingGroupHeadId, setExistingGroupHeadId] = useState<string | null>(null);
 
   // Inline Family History + Medical History (most recent record) state.
   const [familyHistoryDate, setFamilyHistoryDate] = useState(() => new Date().toISOString().substring(0, 10));
@@ -439,6 +452,42 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
       }
     }
   }, [isMounted, authLoading, user, router, isModal, onClose]);
+
+  // Auto-set isGroupHead when relationToGroup is "Self"
+  useEffect(() => {
+    const relation = watch("relationToGroup");
+    if (relation === "Self") {
+      setValue("isGroupHead", true, { shouldDirty: true });
+    }
+  }, [watch("relationToGroup"), setValue]);
+
+  // Update existing group head when group changes
+  useEffect(() => {
+    if (selectedGroupId) {
+      getCustomersMasterApi().then((res) => {
+        const members = res.data || [];
+        // Find group head that is NOT the current customer being edited
+        const existingHead = members.find(
+          (m: any) => m.groupId === selectedGroupId && m.isGroupHead && m.id !== id
+        );
+        setExistingGroupHeadId(existingHead?.id || null);
+      }).catch(() => {
+        // Silently fail
+      });
+    } else {
+      setExistingGroupHeadId(null);
+    }
+  }, [selectedGroupId, id]);
+
+  // Show toast when user unchecks "Is Group Head" while relation is "Self"
+  useEffect(() => {
+    const relation = watch("relationToGroup");
+    const isGroupHead = watch("isGroupHead");
+    if (relation === "Self" && !isGroupHead) {
+      toast.error("Relation to Group is 'Self', so this member must be the Group Head");
+      setValue("isGroupHead", true, { shouldDirty: true });
+    }
+  }, [watch("relationToGroup"), watch("isGroupHead"), setValue]);
 
   useEffect(() => {
     if (currentCustomer && isMounted) {
@@ -546,6 +595,12 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   });
 
   const onSubmit = async (data: FormValues) => {
+    // Validate bank details for non-minor customers
+    if (data.customerType !== "Minor" && (!data.bankDetails || data.bankDetails.length === 0)) {
+      toast.error("At least one bank account is required for non-minor customers");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await dispatch(updateCustomerMaster({
@@ -639,12 +694,12 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
 
       {!isModal && (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors">
+          <Link href="/dashboard/customers?tab=master" className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
             <ArrowLeft size={16} />
           </Link>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600">Customer Master</Link>
+              <Link href="/dashboard/customers?tab=master" className="hover:text-slate-600 cursor-pointer">Customer Master</Link>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">Edit</span>
             </nav>
@@ -710,14 +765,34 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
               <FormSelect label="Relation to Group" {...register("relationToGroup")}><option value="">Select relation</option>{RELATIONS.map((r) => <option key={r}>{r}</option>)}</FormSelect>
             </div>
             <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" {...register("isGroupHead")} className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15" />
+              <label className={`flex items-center gap-2.5 ${existingGroupHeadId ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                <input
+                  type="checkbox"
+                  {...register("isGroupHead")}
+                  disabled={!!existingGroupHeadId}
+                  className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-blue-500/15 disabled:cursor-not-allowed"
+                  onChange={(e) => {
+                    if (existingGroupHeadId) {
+                      e.preventDefault();
+                      return;
+                    }
+                    register("isGroupHead").onChange(e);
+                  }}
+                />
                 <div>
                   <p className="text-sm font-semibold text-slate-700">Is Group Head</p>
-                  <p className="text-xs text-slate-400">Mark as the primary person of the group</p>
+                  <p className="text-xs text-slate-400">
+                    {existingGroupHeadId
+                      ? "Another member is already the Group Head of this group"
+                      : "Mark as the primary person of the group"}
+                  </p>
                 </div>
               </label>
-              {watch("isGroupHead") && <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700"><Star size={11} /> Group Head</span>}
+              {watch("isGroupHead") && !existingGroupHeadId && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                  <Star size={11} /> Group Head
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -772,7 +847,9 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-50 border-b border-slate-200">
             <span className="text-[#1877F2]"><CreditCard size={16} /></span>
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Bank Details</h2>
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+              Bank Details <span className="text-red-500">*</span>
+            </h2>
           </div>
           <div className="p-5">
             <BankDetailsRecordsEditor

@@ -291,7 +291,7 @@ export default function FilterOptionsModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
             title="Close"
           >
             <X size={20} />
@@ -408,31 +408,31 @@ export default function FilterOptionsModal({
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage(1)}
-                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   |&lt;
                 </button>
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
-                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   Prev
                 </button>
-                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px]">
+                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px] cursor-pointer">
                   {currentPage}
                 </span>
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
-                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   Next
                 </button>
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage(totalPages)}
-                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   &gt;|
                 </button>
@@ -467,13 +467,13 @@ export default function FilterOptionsModal({
                         <button
                           type="button"
                           onClick={() => setViewingCategory(type)}
-                          className="text-[#1877F2] border border-blue-200 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 hover:bg-blue-100 transition"
+                          className="text-[#1877F2] border border-blue-200 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
                         >
                           View
                         </button>
                         <button
                           onClick={() => removeFilterGroup(type)}
-                          className="text-slate-400 hover:text-red-600 transition p-1"
+                          className="text-slate-400 hover:text-red-600 transition p-1 cursor-pointer"
                           title="Clear group"
                         >
                           <Trash2 size={13} />
@@ -507,7 +507,7 @@ export default function FilterOptionsModal({
                       <span>{item.name}</span>
                       <button
                         onClick={() => removeItem(viewingCategory, item.id)}
-                        className="text-slate-400 hover:text-red-600 p-1 transition"
+                        className="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
                         title="Remove status"
                       >
                         <Trash2 size={14} />
@@ -524,7 +524,7 @@ export default function FilterOptionsModal({
         <div className="flex items-center justify-end px-6 py-3 border-t border-slate-200 bg-white">
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition"
+            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition cursor-pointer"
           >
             Apply Filter
           </button>

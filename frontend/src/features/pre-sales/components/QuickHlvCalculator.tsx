@@ -325,7 +325,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => router.push("/dashboard")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} />
           </button>
@@ -343,7 +343,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => calculate()}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Play size={14} className="fill-current" />
             Calculate
@@ -351,7 +351,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
           >
             <RotateCcw size={14} />
             Reset
@@ -360,7 +360,7 @@ export default function QuickHlvCalculator() {
             type="button"
             onClick={handleViewPDF}
             disabled={previewing || downloading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 cursor-pointer"
           >
             {previewing
               ? <Loader2 size={14} className="animate-spin" />
@@ -371,7 +371,7 @@ export default function QuickHlvCalculator() {
             type="button"
             onClick={handleDownloadPDF}
             disabled={downloading || previewing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm font-semibold text-[#1877F2] transition-colors hover:bg-blue-100 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm font-semibold text-[#1877F2] transition-colors hover:bg-blue-100 disabled:opacity-60 cursor-pointer"
           >
             {downloading
               ? <Loader2 size={14} className="animate-spin" />
@@ -524,7 +524,7 @@ export default function QuickHlvCalculator() {
                       <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 border border-slate-200">
                         {[true, false].map((v) => (
                           <button key={String(v)} type="button" onClick={() => setWhatIf(v)}
-                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${whatIf === v ? "bg-[#1877F2] text-white" : "text-slate-500 hover:text-slate-800"}`}>
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${whatIf === v ? "bg-[#1877F2] text-white" : "text-slate-500 hover:text-slate-800"}`}>
                             {v ? "Yes" : "No"}
                           </button>
                         ))}
@@ -565,18 +565,18 @@ export default function QuickHlvCalculator() {
               )}
 
               <button type="button" onClick={() => calculate()}
-                className="w-full mt-4 py-2.5 bg-white text-[#1877F2] font-bold text-sm rounded-xl hover:shadow-md transition">
+                className="w-full mt-4 py-2.5 bg-white text-[#1877F2] font-bold text-sm rounded-xl hover:shadow-md transition cursor-pointer">
                 Compute Human Life Value
               </button>
 
               <button type="button" onClick={handleViewPDF} disabled={previewing || downloading}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50 cursor-pointer">
                 {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
                 {previewing ? "Preparing…" : "View PDF Report"}
               </button>
 
               <button type="button" onClick={handleDownloadPDF} disabled={downloading || previewing}
-                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50">
+                className="w-full py-2.5 flex items-center justify-center gap-2 border border-white/20 text-white/80 hover:text-white hover:border-white/40 font-semibold text-sm rounded-xl transition disabled:opacity-50 cursor-pointer">
                 {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {downloading ? "Generating PDF…" : "Download PDF Report"}
               </button>
