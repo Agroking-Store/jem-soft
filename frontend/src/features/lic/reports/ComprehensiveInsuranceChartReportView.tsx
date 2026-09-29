@@ -70,32 +70,59 @@ export default function ComprehensiveInsuranceChartReportView({
   const asOfDate = formData.reportDate ? new Date(formData.reportDate) : new Date();
 
   const family = useMemo(() => {
-    const selectedGroupCode =
-      formData.sortingOption === "groupsWise" && formData.selectedGroups.length > 0
-        ? formData.selectedGroups[0].groupCode
-        : formData.sortingFilterSelection?.selectedItems?.[0]?.code;
+    // ── Agency / Status filters from FilterOptionsModal ──────────────────
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
 
-    if (!selectedGroupCode || rawPolicies.length === 0) return null;
+    const selectedAgencyFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Agencies")
+      .map((f) => f.name.toLowerCase().trim());
 
-    const groupPolicies = rawPolicies.filter((p) => p.customer?.groupCode === selectedGroupCode);
-    if (groupPolicies.length === 0) return null;
+    const selectedStatusFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Policy Status")
+      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
 
-    const membersMap: { [name: string]: any } = {};
-    groupPolicies.forEach((p, idx) => {
-      const memberName = p.customer?.name || "Policy Holder";
-      if (!membersMap[memberName]) membersMap[memberName] = { name: memberName, dob: p.customer?.dob || "1980-01-01", pan: p.customer?.pan || "", policies: [] };
+    const isAgencyMatch = (p: any) => {
+      if (selectedAgencyFilters.length === 0) return true;
+      const pAgCode = (p.agentCode || "").toLowerCase().trim();
+      return selectedAgencyFilters.some((f) => {
+        if (f.includes("jayant") || f.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(pAgCode);
+        if (f.includes("manisha") || f.includes("ag003")) return MANISHA_ADVISOR_CODES.includes(pAgCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISHA_ADVISOR_CODES.includes(pAgCode);
+        const advisorName = (p.advisor?.advisorName || p.advisor?.name || "").toLowerCase();
+        const advisorCode = (p.advisor?.advisorCode || "").toLowerCase();
+        return (
+          advisorName.includes(f) || f.includes(advisorName) ||
+          advisorCode.includes(f) || f.includes(advisorCode) ||
+          pAgCode.includes(f) || f.includes(pAgCode)
+        );
+      });
+    };
 
+    const isStatusMatch = (p: any) => {
+      if (selectedStatusFilters.length === 0) return true;
+      const rawStatus = (p.status?.statusName || "Inforce").toLowerCase().replace(/[- ]/g, "");
+      return selectedStatusFilters.some((st) => rawStatus.includes(st) || st.includes(rawStatus));
+    };
+
+    // ── Helper to build a policy row ─────────────────────────────────────
+    const buildPolicyRow = (p: any, srNo: number) => {
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 500000);
       const premium = Number(p.premium?.installmentPremium || p.premiumAmount || 5000);
       const comDate = p.commencementDate || "2020-01-01";
-      const md = (p.premiumMode?.modeName || "Yearly").slice(0, 3) + ".";
+      const rawMode = (p.premiumMode?.modeName || "Yearly").toLowerCase();
+      const md = rawMode.startsWith("month") ? "Mly."
+        : rawMode.startsWith("quart") ? "Qly."
+        : rawMode.startsWith("half") ? "Hly."
+        : rawMode.startsWith("single") ? "Sgl."
+        : "Yly.";
       const vestedBonus = Math.round((sumAssured / 1000) * VESTED_BONUS_RATE_PER_1000_PA * 3);
       const surrenderValue = Math.round(vestedBonus * 1.1);
-
-      membersMap[memberName].policies.push({
-        sr: idx + 1,
-        agCd: p.agentCode || "J",
-        policyNo: p.policyNumber || `9${100000000 + idx}`,
+      return {
+        sr: srNo,
+        agCd: p.agentCode || p.advisor?.advisorCode || "J",
+        policyNo: p.policyNumber || `9${100000000 + srNo}`,
         comDate,
         planTermPpt: `${p.product?.planNumber || "836"}/${p.policyTerm || 25}/${p.premiumPayingTerm || 16}`,
         planName: p.product?.productName || "Plan",
@@ -103,7 +130,7 @@ export default function ComprehensiveInsuranceChartReportView({
         premium,
         md,
         brn: p.branch?.branchCode || "955",
-        nominee: p.nominee?.name || "-",
+        nominee: p.nominees?.[0]?.nomineeName || p.nominee?.name || "-",
         accidentalRiskcover: sumAssured,
         abRiderSA: 0,
         dabRiderSA: 0,
@@ -116,7 +143,90 @@ export default function ComprehensiveInsuranceChartReportView({
         status: p.status?.statusName || "Inforce",
         nextDue: p.nextPremiumDueDate || comDate,
         maturityDate: p.maturityDate || null,
+      };
+    };
+
+    const getMemberName = (p: any) => {
+      const cm = p.CustomerMaster;
+      if (cm) {
+        const n = `${cm.salutation || ""} ${cm.firstName || ""} ${cm.lastName || ""}`.replace(/\s+/g, " ").trim();
+        if (n) return n;
+      }
+      return p.customer?.name || "Policy Holder";
+    };
+
+    // ── Group Memberwise ──────────────────────────────────────────────────
+    if (formData.sortingOption === "groupMemberwise") {
+      const selectedItems = formData.sortingFilterSelection?.selectedItems || [];
+      if (selectedItems.length === 0 || rawPolicies.length === 0) return null;
+
+      // Match by CustomerMaster.id — each selected item in the SortingFilterModal
+      // carries the CustomerMaster.id as its `id` field.
+      const selectedMemberIds = new Set(selectedItems.map((item: any) => item.id));
+
+      const memberPolicies = rawPolicies.filter((p) => {
+        const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+        return memberId && selectedMemberIds.has(memberId) && isAgencyMatch(p) && isStatusMatch(p);
       });
+
+      if (memberPolicies.length === 0) return null;
+
+      // Build members map keyed by CustomerMaster.id (one block per selected member)
+      const membersMap: { [id: string]: any } = {};
+      memberPolicies.forEach((p) => {
+        const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+        if (!membersMap[memberId]) {
+          membersMap[memberId] = {
+            name: getMemberName(p),
+            dob: p.CustomerMaster?.dob || p.customer?.dob || "1980-01-01",
+            pan: p.CustomerMaster?.panNumber || p.customer?.pan || "",
+            policies: [],
+          };
+        }
+        membersMap[memberId].policies.push(buildPolicyRow(p, membersMap[memberId].policies.length + 1));
+      });
+
+      const firstPolicy = memberPolicies[0];
+      const groupCode = firstPolicy.customer?.groupCode || selectedItems[0]?.code || "MEMBER";
+      const groupCustomer = rawCustomers.find((c) => c.groupCode === groupCode);
+
+      return {
+        groupCode,
+        groupHeadName: selectedItems.map((item: any) => item.name).join(", ") || "Member",
+        address: groupCustomer?.address || "",
+        mobile: groupCustomer?.mobile || "",
+        email: groupCustomer?.email || "",
+        members: Object.values(membersMap),
+        dependents: [],
+      };
+    }
+
+    // ── Groups Wise ──────────────────────────────────────────────────────
+    const selectedGroupCode =
+      formData.selectedGroups.length > 0
+        ? formData.selectedGroups[0].groupCode
+        : formData.sortingFilterSelection?.selectedItems?.[0]?.code;
+
+    if (!selectedGroupCode || rawPolicies.length === 0) return null;
+
+    const groupPolicies = rawPolicies.filter(
+      (p) => p.customer?.groupCode === selectedGroupCode && isAgencyMatch(p) && isStatusMatch(p)
+    );
+    if (groupPolicies.length === 0) return null;
+
+    // Key by CustomerMaster.id so distinct members with same customer name don't collapse
+    const membersMap: { [id: string]: any } = {};
+    groupPolicies.forEach((p, idx) => {
+      const memberId = p.CustomerMaster?.id || p.CustomerMasterId || `C${idx}`;
+      if (!membersMap[memberId]) {
+        membersMap[memberId] = {
+          name: getMemberName(p),
+          dob: p.CustomerMaster?.dob || p.customer?.dob || "1980-01-01",
+          pan: p.CustomerMaster?.panNumber || p.customer?.pan || "",
+          policies: [],
+        };
+      }
+      membersMap[memberId].policies.push(buildPolicyRow(p, membersMap[memberId].policies.length + 1));
     });
 
     const groupCustomer = rawCustomers.find((c) => c.groupCode === selectedGroupCode);

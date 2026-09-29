@@ -414,10 +414,12 @@ export default function ComprehensiveInsuranceChartForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
-        visibleCategories={["Groups Wise", "Group Memberwise"]}
+        defaultCategory="Agencies"
+        visibleCategories={["Agencies", "Policy Status", "Groups Wise"]}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}
