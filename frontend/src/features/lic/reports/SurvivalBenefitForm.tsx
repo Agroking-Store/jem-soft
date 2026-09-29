@@ -5,6 +5,8 @@ import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "luci
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface SurvivalBenefitFormData {
   appliedFilters: SelectedFilterItem[];
@@ -172,29 +174,23 @@ export default function SurvivalBenefitForm({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date From</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={formData.dateFrom}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.dateFrom ? new Date(formData.dateFrom) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, dateFrom: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
                 <span className="text-xs font-bold text-slate-500">To</span>
-                <input
-                  type="date"
-                  value={formData.dateTo}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.dateTo ? new Date(formData.dateTo) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, dateTo: date ? format(date, "yyyy-MM-dd") : "" }))}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
               />
             </div>
 
