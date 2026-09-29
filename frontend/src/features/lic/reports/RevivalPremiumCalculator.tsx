@@ -13,6 +13,8 @@ import {
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 interface RevivalPremiumCalculatorProps {
   onBack: () => void;
@@ -453,23 +455,35 @@ export default function RevivalPremiumCalculator({
               <div className="space-y-4">
                 {/* Row 1: Name, DOB, Comm Date */}
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Name", value: name, set: setName, type: "text" },
-                    { label: "Date of Birth", value: dob, set: setDob, type: "date" },
-                    { label: "Comm. Date", value: commDate, set: setCommDate, type: "date" },
-                  ].map(({ label, value, set, type }) => (
-                    <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                        {label}
-                      </span>
-                      <input
-                        type={type}
-                        value={value}
-                        onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
-                      />
-                    </div>
-                  ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Name
+                    </span>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Birth
+                    </span>
+                    <DatePicker
+                      value={dob ? new Date(dob) : undefined}
+                      onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Comm. Date
+                    </span>
+                    <DatePicker
+                      value={commDate ? new Date(commDate) : undefined}
+                      onChange={(date) => setCommDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Row 2: Plan, Mode, Term, PPT */}
@@ -497,23 +511,31 @@ export default function RevivalPremiumCalculator({
                 {/* Row 3: Extra Class, Extra Premium, SB Option, FUP Date */}
                 <div className="grid grid-cols-4 gap-3">
                   {[
-                    { label: "Extra Class", value: extraClass, set: setExtraClass, type: "text" },
-                    { label: "Extra Premium", value: extraPremium, set: setExtraPremium, type: "text" },
-                    { label: "SB Option", value: sbOption, set: setSbOption, type: "text" },
-                    { label: "FUP Date", value: fupDate, set: setFupDate, type: "date" },
-                  ].map(({ label, value, set, type }) => (
+                    { label: "Extra Class", value: extraClass, set: setExtraClass },
+                    { label: "Extra Premium", value: extraPremium, set: setExtraPremium },
+                    { label: "SB Option", value: sbOption, set: setSbOption },
+                  ].map(({ label, value, set }) => (
                     <div key={label} className="relative">
                       <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
-                        type={type}
+                        type="text"
                         value={value}
                         onChange={(e) => set(e.target.value)}
                         className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                       />
                     </div>
                   ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      FUP Date
+                    </span>
+                    <DatePicker
+                      value={fupDate ? new Date(fupDate) : undefined}
+                      onChange={(date) => setFupDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Row 4: Sum Assured, Premium, Rider Premium */}
@@ -539,23 +561,35 @@ export default function RevivalPremiumCalculator({
 
                 {/* Row 5: Loan Taken, Date of Int Calc, Date of Calculation */}
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Loan Taken", value: loanTaken, set: setLoanTaken, type: "number" },
-                    { label: "Date of Int Calc", value: dateOfIntCalc, set: setDateOfIntCalc, type: "date" },
-                    { label: "Date of Calculation", value: dateOfCalc, set: setDateOfCalc, type: "date" },
-                  ].map(({ label, value, set, type }) => (
-                    <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                        {label}
-                      </span>
-                      <input
-                        type={type}
-                        value={value}
-                        onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
-                      />
-                    </div>
-                  ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Loan Taken
+                    </span>
+                    <input
+                      type="number"
+                      value={loanTaken}
+                      onChange={(e) => setLoanTaken(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Int Calc
+                    </span>
+                    <DatePicker
+                      value={dateOfIntCalc ? new Date(dateOfIntCalc) : undefined}
+                      onChange={(date) => setDateOfIntCalc(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Calculation
+                    </span>
+                    <DatePicker
+                      value={dateOfCalc ? new Date(dateOfCalc) : undefined}
+                      onChange={(date) => setDateOfCalc(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Remarks + Calculate */}
