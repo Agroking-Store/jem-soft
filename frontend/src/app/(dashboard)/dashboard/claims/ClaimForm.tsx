@@ -871,7 +871,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   <ChequeInput
                     label="Cheque Number"
                     value={chequeFields.chequeNumber}
-                    onChange={(v) =>
+                    onChange={(v: string) =>
                       setChequeFields((p) => ({ ...p, chequeNumber: v }))
                     }
                     required
@@ -897,7 +897,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   <ChequeInput
                     label="Bank Name"
                     value={chequeFields.bankName}
-                    onChange={(v) =>
+                    onChange={(v: string) =>
                       setChequeFields((p) => ({ ...p, bankName: v }))
                     }
                     required
@@ -907,7 +907,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   <ChequeInput
                     label="Branch Name"
                     value={chequeFields.branchName}
-                    onChange={(v) =>
+                    onChange={(v: string) =>
                       setChequeFields((p) => ({ ...p, branchName: v }))
                     }
                     required
@@ -917,7 +917,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
                   <ChequeInput
                     label="Cheque Amount"
                     value={chequeFields.chequeAmount}
-                    onChange={(v) =>
+                    onChange={(v: string) =>
                       setChequeFields((p) => ({ ...p, chequeAmount: v }))
                     }
                     required
@@ -1240,6 +1240,16 @@ function ReadOnlyField({ label, value, className, labelClass }: any) {
   );
 }
 
+interface ChequeInputProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  inputClass: string;
+  labelClass: string;
+  type?: string;
+}
+
 function ChequeInput({
   label,
   value,
@@ -1248,7 +1258,7 @@ function ChequeInput({
   inputClass,
   labelClass,
   type = "text",
-}: any) {
+}: ChequeInputProps) {
   return (
     <div>
       <label className={labelClass}>

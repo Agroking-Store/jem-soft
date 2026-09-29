@@ -14,9 +14,7 @@ export const createClaimSchema = z
     policyId: z.string().min(1, "Policy is required"),
     claimantName: z.string().optional(),
     claimType: z.enum(CLAIM_TYPES, {
-      errorMap: () => ({
-        message: "Claim type must be: Death, Maturity, or Surrender",
-      }),
+      message: "Claim type must be: Death, Maturity, or Surrender",
     }),
     claimAmount: z.number().positive("Claim amount must be greater than 0"),
     claimDate: z.string().min(1, "Claim date is required"),

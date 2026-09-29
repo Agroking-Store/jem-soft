@@ -6,6 +6,7 @@ import { X, Search, Trash2 } from "lucide-react";
 export interface GroupFilterItem {
   groupCode: string;
   groupHeadName: string;
+  groupName?: string;
 }
 
 interface SelectGroupModalProps {

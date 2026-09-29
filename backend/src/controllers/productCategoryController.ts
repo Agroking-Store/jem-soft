@@ -5,7 +5,7 @@ import { AppError } from "../utils/AppError.js";
 
 // @desc    Get all product categories
 // @route   GET /api/product-categories
-export const getProductCategories = catchAsync(async (req: Request, res: Response) => {
+export const getProductCategories = catchAsync(async (_req: Request, res: Response) => {
   const categories = await categoryService.getCategories();
   res.status(200).json({ status: "success", data: categories });
 });

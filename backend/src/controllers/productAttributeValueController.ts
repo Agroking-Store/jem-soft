@@ -12,7 +12,7 @@ export const createProductAttributeValue = catchAsync(async (req: Request, res: 
   });
 });
 
-export const getProductAttributeValues = catchAsync(async (req: Request, res: Response) => {
+export const getProductAttributeValues = catchAsync(async (_req: Request, res: Response) => {
   const values = await service.getProductAttributeValues();
   res.status(200).json({
     status: "success",

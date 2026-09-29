@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { Gender } from "@prisma/client";
 import { catchAsync } from "../utils/catchAsync.js";
 import * as policyService from "../services/policyService.js";
@@ -6,7 +6,7 @@ import { calculatePremium } from "../services/premiumCalculationService.js";
 import { AppError } from "../utils/AppError.js";
 
 export const createPolicy = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const newPolicy = await policyService.createPolicy(req.body);
 
     res.status(201).json({
@@ -19,7 +19,7 @@ export const createPolicy = catchAsync(
 );
 
 export const previewPremium = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const {
       productId,
       age,
@@ -53,13 +53,14 @@ export const previewPremium = catchAsync(
     });
 
     if (product?.provider?.code?.toUpperCase() !== "LIC") {
-      return res.status(200).json({
+      res.status(200).json({
         status: "success",
         data: {
           premium: null,
           message: "Manual calculation applies for non-LIC plans.",
         },
       });
+      return;
     }
 
     const premium = await calculatePremium({
@@ -100,7 +101,7 @@ export const previewPremium = catchAsync(
 );
 
 export const previewRiderPremium = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const {
       riderId,
       age,
@@ -140,7 +141,7 @@ export const previewRiderPremium = catchAsync(
     });
 
     if (initialProduct?.provider?.code?.toUpperCase() !== "LIC") {
-      return res.status(200).json({
+      res.status(200).json({
         status: "success",
         data: {
           premium: 0,
@@ -148,6 +149,7 @@ export const previewRiderPremium = catchAsync(
           message: "Manual calculation applies for non-LIC plans.",
         },
       });
+      return;
     }
 
     const { getModeFactor } = await import(
@@ -358,7 +360,7 @@ export const previewRiderPremium = catchAsync(
 );
 
 export const getAllPolicies = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const {
       search,
       holderName,
@@ -434,7 +436,7 @@ export const getAllPolicies = catchAsync(
 );
 
 export const deletePolicy = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     await policyService.deletePolicy(req.params.id);
 
     res.status(204).json({
