@@ -120,21 +120,32 @@ export default function CashFlowChartReportView({
     const toastId = toast.loading("Generating PDF report...");
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("l", "mm", "a4");
-      const imgWidth = 297;
-      const pageHeight = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pdf = new jsPDF({ orientation: "l", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 297;
+      const pageHeightMm = 210;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
+
       pdf.save(`Cash_Flow_Chart_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
@@ -143,6 +154,19 @@ export default function CashFlowChartReportView({
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const BLACK = "#000";
+  const thStyle = {
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `1px solid ${BLACK}`,
+    verticalAlign: "bottom",
+  };
+  const totalValueStyle = {
+    display: "inline-block",
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `3px double ${BLACK}`,
+    padding: "1px 2px",
   };
 
   return (
@@ -167,34 +191,25 @@ export default function CashFlowChartReportView({
         </button>
       </div>
 
-      <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-5xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none">
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-          </div>
-        </div>
-
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Cash Flow Chart</h2>
-          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-            {formData.yearBasis === "financialYear" ? "Financial Year" : "Calendar Year"}
+      {/* Printable Statement — plain LIC-style */}
+      <div
+        ref={reportRef}
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-5xl mx-auto text-[11px] leading-snug print:p-0 print:border-none print:shadow-none"
+      >
+        {/* Title line */}
+        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+          <span>
+            Cash Flow Chart ({formData.yearBasis === "financialYear" ? "Financial Year" : "Calendar Year"}) as on{" "}
+            {fmtDate(formData.reportDate) || fmtDate(new Date())}
+          </span>
+          <span>
+            Maturity between {fmtDate(formData.cashFlowFromDate)} and {fmtDate(formData.cashFlowToDate)}
           </span>
         </div>
 
-        <div className="text-[11px] font-semibold text-slate-800 px-1 flex justify-between">
-          <span>As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
-          <span>Maturity from {fmtDate(formData.cashFlowFromDate)} to {fmtDate(formData.cashFlowToDate)}</span>
-        </div>
-
         {yearRows.length === 0 ? (
-          <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
+          <div className="mt-6 py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
             <h3 className="font-bold text-slate-800 text-sm">No Policies Found</h3>
             <p className="text-xs text-slate-500">
               No policies with maturity dates in the selected date range were found. Please adjust your filter criteria.
@@ -202,42 +217,48 @@ export default function CashFlowChartReportView({
           </div>
         ) : (
           <>
-            <table className="w-full text-left text-[11px] border-collapse">
+            <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                  <th className="py-2 px-2">Year</th>
-                  <th className="py-2 px-2 text-right">Projected Cash Inflow (₹)</th>
+                <tr className="font-bold">
+                  <th className="px-2 py-1.5" style={thStyle}>Year</th>
+                  <th className="px-2 py-1.5 text-right" style={thStyle}>Projected Cash Inflow (₹)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {yearRows.map((row) => (
                   <tr key={row.year}>
-                    <td className="py-1.5 px-2 font-semibold">{row.year}</td>
-                    <td className="py-1.5 px-2 text-right font-mono">{row.amount.toLocaleString("en-IN")}</td>
+                    <td className="px-2 py-1 font-semibold">{row.year}</td>
+                    <td className="px-2 py-1 text-right font-mono">{row.amount.toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
-                <tr className="bg-slate-100 border-t-2 border-slate-700 font-bold">
-                  <td className="py-2 px-2">Grand Total</td>
-                  <td className="py-2 px-2 text-right font-mono text-[#0B1220]">{grandTotal.toLocaleString("en-IN")}</td>
+                <tr className="font-bold">
+                  <td className="px-2 pt-2 pb-1">Grand Total :</td>
+                  <td className="px-2 pt-2 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN")}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={2} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
                 </tr>
               </tbody>
             </table>
 
             {formData.printOptions.showGraphs && (
-              <div className="pt-4 overflow-x-auto">
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Yearwise Cash Flow</h3>
+              <div className="pt-5 overflow-x-auto">
+                <h3 className="text-[11px] font-bold mb-2">Yearwise Cash Flow</h3>
                 <svg viewBox={`0 0 ${Math.max(500, yearRows.length * 75 + 40)} 220`} className="w-full max-w-3xl h-auto">
+                  <line x1={15} y1={190} x2={Math.max(500, yearRows.length * 75 + 40) - 10} y2={190} stroke="#000" strokeWidth={1} />
                   {yearRows.map((row, i) => {
                     const barHeight = Math.max(4, (row.amount / maxAmount) * 150);
                     const x = 25 + i * 75;
                     const formattedValue = row.amount >= 100000 ? `${(row.amount / 100000).toFixed(1)}L` : `${(row.amount / 1000).toFixed(0)}k`;
                     return (
                       <g key={row.year}>
-                        <rect x={x} y={190 - barHeight} width={42} height={barHeight} fill="#B8873A" rx={3} />
-                        <text x={x + 21} y={205} textAnchor="middle" fontSize="9" fill="#334155" fontWeight="600">
+                        <rect x={x} y={190 - barHeight} width={42} height={barHeight} fill="#4b5563" />
+                        <text x={x + 21} y={205} textAnchor="middle" fontSize="9" fill="#000" fontWeight="600">
                           {row.year}
                         </text>
-                        <text x={x + 21} y={183 - barHeight} textAnchor="middle" fontSize="8" fill="#0B1220" fontWeight="bold">
+                        <text x={x + 21} y={183 - barHeight} textAnchor="middle" fontSize="8" fill="#000" fontWeight="bold">
                           {formattedValue}
                         </text>
                       </g>
@@ -249,11 +270,11 @@ export default function CashFlowChartReportView({
           </>
         )}
 
-        <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
           <p>
             Loyalty Addition &amp; F.A.B figures are estimated based on bonus rates (₹{LOYALTY_ADDITION_RATE_PER_1000}/1000 SA LA and ₹{FAB_RATE_PER_1000}/1000 SA FAB) — replace with your declared bonus rate table for accurate figures.
           </p>
-          <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+          <div className="flex justify-between font-mono text-[8px] pt-1">
             <span>Generated via Cash Flow Chart Engine</span>
             <span>Report Date: {fmtDate(formData.reportDate)}</span>
           </div>

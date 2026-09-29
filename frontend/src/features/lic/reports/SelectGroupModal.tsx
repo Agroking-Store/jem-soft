@@ -114,7 +114,7 @@ export default function SelectGroupModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
             title="Close"
           >
             <X size={20} />
@@ -218,14 +218,14 @@ export default function SelectGroupModal({
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage(1)}
-                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   |&lt;
                 </button>
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
-                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   Prev
                 </button>
@@ -236,7 +236,7 @@ export default function SelectGroupModal({
                     <button
                       key={pNum}
                       onClick={() => setCurrentPage(pNum)}
-                      className={`px-3 py-1 rounded-md text-[11px] font-bold ${
+                      className={`px-3 py-1 rounded-md text-[11px] font-bold cursor-pointer ${
                         currentPage === pNum
                           ? "bg-[#1877F2] text-white"
                           : "border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -250,14 +250,14 @@ export default function SelectGroupModal({
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
-                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2.5 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   Next
                 </button>
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage(totalPages)}
-                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium"
+                  className="px-2 py-1 border border-slate-200 rounded-md disabled:opacity-30 hover:bg-slate-50 text-[11px] font-medium cursor-pointer"
                 >
                   &gt;|
                 </button>
@@ -292,7 +292,7 @@ export default function SelectGroupModal({
                       </div>
                       <button
                         onClick={() => removeGroup(g.groupCode)}
-                        className="text-slate-400 hover:text-red-600 transition p-1"
+                        className="text-slate-400 hover:text-red-600 transition p-1 cursor-pointer"
                         title="Remove group"
                       >
                         <Trash2 size={13} />
@@ -309,7 +309,7 @@ export default function SelectGroupModal({
         <div className="flex items-center justify-end px-6 py-3 border-t border-slate-200 bg-white">
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition"
+            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition cursor-pointer"
           >
             Apply Filter
           </button>

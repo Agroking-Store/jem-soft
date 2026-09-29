@@ -106,16 +106,16 @@ export default function CashFlowChartForm({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider cursor-pointer">
             <ChevronLeft size={18} />
             <span>Reports</span>
           </button>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Cash Flow Chart</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Save"><Save size={17} /></button>
-          <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Reset"><RotateCcw size={17} /></button>
-          <button onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider"><FileText size={15} /><span>Generate</span></button>
+          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save"><Save size={17} /></button>
+          <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
+          <button onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export default function CashFlowChartForm({
                   onClick={() => setIsFilterModalOpen(true)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
                 />
-                <button type="button" onClick={() => setIsFilterModalOpen(true)} className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800">
+                <button type="button" onClick={() => setIsFilterModalOpen(true)} className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer">
                   <Filter size={16} />
                 </button>
               </div>
@@ -309,11 +309,11 @@ export default function CashFlowChartForm({
         </div>
 
         <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-          <button type="button" onClick={onBack} className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider">Cancel</button>
+          <button type="button" onClick={onBack} className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider cursor-pointer">Cancel</button>
           <button
             type="button"
             onClick={() => onGenerateReport(formData)}
-            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition"
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
           >
             <span>Generate Report</span>
             <ArrowRight size={16} />

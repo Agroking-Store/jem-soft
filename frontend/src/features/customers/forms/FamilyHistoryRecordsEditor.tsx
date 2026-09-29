@@ -168,7 +168,7 @@ export default function FamilyHistoryRecordsEditor({
     <div className="space-y-5">
       {/* Family History Date */}
       <div className="max-w-xs">
-        <FieldLabel label="Family History Date" required />
+        <FieldLabel label="Family History Date" />
         <DatePicker
           value={familyHistoryDate ? new Date(familyHistoryDate) : undefined}
           onChange={(date) => onFamilyHistoryDateChange(date ? format(date, "yyyy-MM-dd") : "")}
@@ -188,7 +188,6 @@ export default function FamilyHistoryRecordsEditor({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <SearchableSelect
             label="Relation"
-            required
             placeholder="Select relation"
             searchPlaceholder="Search relations..."
             error={detailErrors.relation}
@@ -206,7 +205,7 @@ export default function FamilyHistoryRecordsEditor({
           />
 
           <div>
-            <FieldLabel label="Age" required />
+            <FieldLabel label="Age" />
             <input
               type="number"
               placeholder="Current Age"
@@ -223,7 +222,7 @@ export default function FamilyHistoryRecordsEditor({
           </div>
 
           <div>
-            <FieldLabel label="State of Health" required />
+            <FieldLabel label="State of Health" />
             <input
               type="text"
               placeholder="State of Health"
@@ -259,7 +258,7 @@ export default function FamilyHistoryRecordsEditor({
           {isDead && (
             <>
               <div>
-                <FieldLabel label="Age at Death" required />
+                <FieldLabel label="Age at Death" />
                 <input
                   type="number"
                   placeholder="Age at Death"
@@ -277,7 +276,7 @@ export default function FamilyHistoryRecordsEditor({
               </div>
 
               <div className="md:col-span-2">
-                <FieldLabel label="Cause of Death" required />
+                <FieldLabel label="Cause of Death" />
                 <input
                   type="text"
                   placeholder="Cause of Death"

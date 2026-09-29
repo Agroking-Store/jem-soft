@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Star, X } from "lucide-react";
 import { SearchableSelect } from "@/features/customers/components/CustomerUi";
 import type { CustomerBankDetail } from "../types";
+import toast from "react-hot-toast";
 
 const ACCOUNT_TYPES = [
   "Saving",
@@ -64,9 +65,12 @@ export default function BankDetailsRecordsEditor({
     if (!accountNumber.trim()) errs.accountNumber = "Account Number is required";
     if (!accountType) errs.accountType = "Account Type is required";
     if (!ifscCode.trim()) errs.ifscCode = "IFSC Code is required";
+    if (!bankBranch.trim()) errs.bankBranch = "Branch Name is required";
+    if (!city.trim()) errs.city = "City is required";
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
+      toast.error("Please fill bank details, branch name and city are mandatory");
       return;
     }
     setErrors({});
@@ -202,7 +206,7 @@ export default function BankDetailsRecordsEditor({
           </div>
 
           <div>
-            <FieldLabel label="Branch Name" />
+            <FieldLabel label="Branch Name" required />
             <input
               type="text"
               placeholder="e.g. Connaught Place"
@@ -213,7 +217,7 @@ export default function BankDetailsRecordsEditor({
           </div>
 
           <div>
-            <FieldLabel label="City" />
+            <FieldLabel label="City" required />
             <input
               type="text"
               placeholder="e.g. New Delhi"

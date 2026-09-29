@@ -98,15 +98,15 @@ export default function CustomerDataSheetForm({
       {/* Top Header Banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider cursor-pointer">
             <ChevronLeft size={18} />
             <span>Reports</span>
           </button>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Customer Data Sheet</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Reset"><RotateCcw size={17} /></button>
-          <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider"><FileText size={15} /><span>Generate</span></button>
+          <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
+          <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>
       </div>
 

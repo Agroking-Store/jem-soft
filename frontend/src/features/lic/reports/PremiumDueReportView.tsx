@@ -212,11 +212,32 @@ export default function PremiumDueReportView({
         useCORS: true,
         backgroundColor: "#ffffff",
       });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = (canvas.height * pdfW) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 297;
+      const pageHeightMm = 210;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
+      }
+
       pdf.save(`Premium_Due_Report_${formData.fromDueDate}_${formData.toDueDate}.pdf`);
       toast.success("PDF downloaded!", { id: toastId });
     } catch (err: unknown) {
@@ -343,167 +364,133 @@ export default function PremiumDueReportView({
         })}
       </div>
 
-      {/* ── Printable Report Canvas ──────────────────────────────────────────── */}
+      {/* ── Printable Report Canvas — Plain LIC-style register ─────────────────── */}
       <div
         ref={reportRef}
-        className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-        style={{ fontFamily: "Arial, sans-serif" }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: "#000" }}
       >
-        {/* Letterhead */}
-        <div
-          className="px-8 py-5 text-white"
-          style={{ background: "linear-gradient(135deg, #0B1220 0%, #1a2540 100%)" }}
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-[#E8C77A] mb-0.5">
-                JEM Soft — LIC Reports Engine
-              </p>
-              <h2 className="text-lg font-bold text-white tracking-wide">
-                Premium Due Report
-              </h2>
-              <p className="text-slate-300 text-[11px] mt-0.5">
-                Due Date: {displayFromDate} to {displayToDate} &nbsp;|&nbsp; Based On: {formData.reportBasedOn} &nbsp;|&nbsp; Type: {formData.reportType}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] text-slate-400">Report Date</p>
-              <p className="text-sm font-bold text-[#E8C77A]">{reportDateDisplay}</p>
-              {formData.includeLapsedPolicies && (
-                <span className="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider bg-red-600/20 text-red-300 px-2 py-0.5 rounded-full border border-red-400/30">
-                  Incl. Lapsed
-                </span>
-              )}
-            </div>
-          </div>
+        {/* Report title line */}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            Premium Due Statement as on {reportDateDisplay}
+          </span>
+          <span>
+            Groups: {totalGroups} | Policies: {totalPolicies}
+          </span>
         </div>
-
-        {/* Title bar */}
-        <div className="bg-[#faedd0] px-8 py-2 border-b border-[#deb862]/40">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#7a5c1e]">
-            Premium Due Statement — {formData.paymentTypes.nach && formData.paymentTypes.otherThanNach ? "All Payment Types" : formData.paymentTypes.nach ? "NACH Only" : "Other Than NACH"}
-          </p>
+        <div className="pb-1 text-[9px] font-normal">
+          Due Date: {displayFromDate} to {displayToDate} | {formData.reportBasedOn} | {formData.reportType}
+          {formData.includeLapsedPolicies ? " | Incl. Lapsed" : ""}
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-[11px] border-collapse">
-            <thead>
-              <tr className="bg-[#1a2540] text-white">
-                {[
-                  "S.No",
-                  "Group Code",
-                  "Group Name",
-                  "Policy No.",
-                  "Insured Name",
-                  "Plan",
-                  "Sum Assured (₹)",
-                  "Mode",
-                  "Due Date",
-                  "Premium (₹)",
-                  "Payment Type",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-3 py-2.5 text-left font-bold uppercase tracking-wider text-[10px] border border-[#2e3f5e] whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {groupedRows.map(([groupName, groupRows]) => (
-                <Fragment key={`grp-block-${groupName}`}>
-                  {/* Group sub-header */}
-                  <tr key={`grp-${groupName}`} className="bg-[#f0f4ff]">
-                    <td
-                      colSpan={11}
-                      className="px-3 py-1.5 font-bold text-[#0B1220] text-[10px] uppercase tracking-wider border border-slate-200"
-                    >
-                      {groupRows[0]?.groupCode} — {groupName}
-                    </td>
-                  </tr>
-                  {groupRows.map((row, ri) => (
-                    <tr
-                      key={`${groupName}-${ri}`}
-                      className={ri % 2 === 0 ? "bg-white" : "bg-slate-50/60"}
-                    >
-                      <td className="px-3 py-2 border border-slate-100 text-slate-500">{row.sNo}</td>
-                      <td className="px-3 py-2 border border-slate-100 font-semibold text-slate-700">{row.groupCode}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-slate-700">{row.groupName}</td>
-                      <td className="px-3 py-2 border border-slate-100 font-mono font-bold text-[#0B1220]">{row.policyNo}</td>
-                      <td className="px-3 py-2 border border-slate-100 font-semibold text-slate-800">{row.insuredName}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-slate-600">{row.plan}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-right font-semibold text-slate-700">{fmtCurrency(row.sumAssured)}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-center">{row.premiumMode}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-center font-semibold text-slate-700">
-                        <span className="flex items-center gap-1 justify-center">
-                          <CalendarDays size={11} className="text-[#B8873A]" />
-                          {row.dueDate}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 border border-slate-100 text-right font-bold text-[#0B1220]">{fmtCurrency(row.premium)}</td>
-                      <td className="px-3 py-2 border border-slate-100 text-center">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                            row.paymentType === "NACH"
-                              ? "bg-blue-100 text-blue-700 border border-blue-200"
-                              : "bg-slate-100 text-slate-600 border border-slate-200"
-                          }`}
-                        >
-                          {row.paymentType}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {/* Group subtotal */}
-                  <tr key={`grp-total-${groupName}`} className="bg-[#faedd0]">
-                    <td colSpan={9} className="px-3 py-1.5 font-bold text-[10px] text-[#7a5c1e] border border-[#deb862]/40 text-right uppercase tracking-wider">
-                      Sub Total — {groupName}
-                    </td>
-                    <td className="px-3 py-1.5 font-bold text-right text-[#0B1220] border border-[#deb862]/40">
-                      {fmtCurrency(groupRows.reduce((s, r) => s + r.premium, 0))}
-                    </td>
-                    <td className="px-3 py-1.5 border border-[#deb862]/40" />
-                  </tr>
-                </Fragment>
+        <table className="w-full text-left text-[10px] border-collapse">
+          <thead>
+            <tr className="font-bold">
+              {[
+                "S.No",
+                "Group Code",
+                "Group Name",
+                "Policy No.",
+                "Insured Name",
+                "Plan",
+                "Sum Assured",
+                "Mode",
+                "Due Date",
+                "Premium",
+                "Payment Type",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="px-1 py-1 text-left font-bold whitespace-nowrap border-t border-b border-black"
+                >
+                  {h}
+                </th>
               ))}
-
-              {/* Grand Total */}
-              {rows.length > 0 && (
-                <tr className="bg-[#0B1220] text-white">
-                  <td colSpan={6} className="px-3 py-2.5 font-bold text-xs uppercase tracking-wider border border-[#2e3f5e]">
-                    Grand Total ({totalPolicies} Policies, {totalGroups} Groups)
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-bold border border-[#2e3f5e] text-[#E8C77A]" />
-                  <td className="px-3 py-2.5 border border-[#2e3f5e]" />
-                  <td className="px-3 py-2.5 border border-[#2e3f5e]" />
-                  <td className="px-3 py-2.5 text-right font-bold text-[#E8C77A] border border-[#2e3f5e]">
-                    {fmtCurrency(totalPremium)}
-                  </td>
-                  <td className="px-3 py-2.5 border border-[#2e3f5e]" />
-                </tr>
-              )}
-
-              {rows.length === 0 && (
+            </tr>
+          </thead>
+          <tbody>
+            {groupedRows.map(([groupName, groupRows]) => (
+              <Fragment key={`grp-block-${groupName}`}>
+                {/* Group heading - centered, bold */}
                 <tr>
-                  <td colSpan={11} className="px-3 py-8 text-center text-slate-400 text-sm">
-                    No policies match the selected filters.
+                  <td colSpan={11} className="pt-3 pb-1 text-center">
+                    <div className="text-[13px] font-bold">
+                      {groupRows[0]?.groupCode}: {groupName}
+                    </div>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                {groupRows.map((row, ri) => (
+                  <tr key={`${groupName}-${ri}`}>
+                    <td className="px-1 py-0.5 text-slate-500">{row.sNo}</td>
+                    <td className="px-1 py-0.5 font-semibold">{row.groupCode}</td>
+                    <td className="px-1 py-0.5">{row.groupName}</td>
+                    <td className="px-1 py-0.5 font-mono font-bold">{row.policyNo}</td>
+                    <td className="px-1 py-0.5 font-semibold">{row.insuredName}</td>
+                    <td className="px-1 py-0.5">{row.plan}</td>
+                    <td className="px-1 py-0.5 text-right font-mono">{fmtCurrency(row.sumAssured)}</td>
+                    <td className="px-1 py-0.5 text-center">{row.premiumMode}</td>
+                    <td className="px-1 py-0.5 text-center font-semibold">{row.dueDate}</td>
+                    <td className="px-1 py-0.5 text-right font-mono font-bold">{fmtCurrency(row.premium)}</td>
+                    <td className="px-1 py-0.5 text-center">{row.paymentType}</td>
+                  </tr>
+                ))}
+                {/* Group subtotal */}
+                <tr className="font-bold">
+                  <td colSpan={9} className="px-1 pt-1.5 pb-1 text-right">
+                    <span className="inline-block border-t border-b border-black px-1">Sub Total — {groupName}</span>
+                  </td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span className="inline-block border-t border-b border-black px-1">
+                      {fmtCurrency(groupRows.reduce((s, r) => s + r.premium, 0))}
+                    </span>
+                  </td>
+                  <td className="px-1 pt-1.5 pb-1" />
+                </tr>
+              </Fragment>
+            ))}
 
-        {/* Footer */}
-        <div className="px-8 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-          <div className="text-[10px] text-slate-400 font-mono">
-            Generated on {reportDateDisplay} &nbsp;|&nbsp; JEM Soft — LIC Reports Engine
+            {/* Grand Total */}
+            {rows.length > 0 && (
+              <tr className="font-bold">
+                <td colSpan={6} className="px-1 pt-1.5 pb-1 text-right uppercase">
+                  Grand Total ({totalPolicies} Policies, {totalGroups} Groups)
+                </td>
+                <td className="px-1 pt-1.5 pb-1" />
+                <td className="px-1 pt-1.5 pb-1" />
+                <td className="px-1 pt-1.5 pb-1" />
+                <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                  <span className="inline-block border-t border-b border-black px-1">
+                    {fmtCurrency(totalPremium)}
+                  </span>
+                </td>
+                <td className="px-1 pt-1.5 pb-1" />
+              </tr>
+            )}
+
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={11} className="px-3 py-8 text-center text-slate-400 text-sm">
+                  No policies match the selected filters.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* Legend footer */}
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: "1px solid #000" }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>M :</strong> Monthly Mode</span>
+            <span><strong>Q :</strong> Quarterly Mode</span>
+            <span><strong>H :</strong> Half-Yearly Mode</span>
+            <span><strong>S :</strong> Single Mode</span>
           </div>
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            {formData.reportType === "Intimation" ? "Intimation Copy" : "Statement Copy"}
+          <div className="flex justify-between font-mono text-[8px] pt-1">
+            <span>Statement Code: DSS000019899</span>
+            <span>Generated via Premium Due Engine</span>
           </div>
         </div>
       </div>

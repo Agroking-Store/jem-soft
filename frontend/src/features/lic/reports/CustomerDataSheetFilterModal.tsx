@@ -276,7 +276,7 @@ export default function CustomerDataSheetFilterModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
             title="Close"
           >
             <X size={18} />
@@ -431,7 +431,7 @@ export default function CustomerDataSheetFilterModal({
                 >
                   Prev
                 </button>
-                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px]">
+                <span className="px-3 py-1 bg-[#1877F2] text-white rounded-md font-bold text-[11px] cursor-pointer">
                   {currentPage}
                 </span>
                 <button

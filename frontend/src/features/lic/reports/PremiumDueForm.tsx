@@ -173,16 +173,16 @@ export default function PremiumDueForm({
       {/* Top Header Banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider cursor-pointer">
             <ChevronLeft size={18} />
             <span>Reports</span>
           </button>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Premium Due</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Save"><Save size={17} /></button>
-          <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" title="Reset"><RotateCcw size={17} /></button>
-          <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider"><FileText size={15} /><span>Generate</span></button>
+          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save"><Save size={17} /></button>
+          <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
+          <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>
       </div>
 
@@ -212,7 +212,7 @@ export default function PremiumDueForm({
                     <button
                       type="button"
                       onClick={() => setIsFilterModalOpen(true)}
-                      className="px-2.5 py-1 text-xs font-bold text-[#1877F2] bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-lg hover:bg-[#1877F2]/20 transition"
+                      className="px-2.5 py-1 text-xs font-bold text-[#1877F2] bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-lg hover:bg-[#1877F2]/20 transition cursor-pointer"
                     >
                       View Filter
                     </button>
@@ -222,7 +222,7 @@ export default function PremiumDueForm({
                 <button
                   type="button"
                   onClick={() => setFormData((prev) => ({ ...prev, appliedFilters: [] }))}
-                  className="p-2 text-slate-400 hover:text-red-600 transition"
+                  className="p-2 text-slate-400 hover:text-red-600 transition cursor-pointer"
                   title="Clear applied filters"
                 >
                   <FilterX size={18} />
@@ -268,7 +268,7 @@ export default function PremiumDueForm({
                     key={type}
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, reportBasedOn: type }))}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
                       formData.reportBasedOn === type
                         ? "bg-[#1877F2] text-white shadow-sm"
                         : "text-slate-600 hover:text-slate-900"
@@ -329,7 +329,7 @@ export default function PremiumDueForm({
                     key={type}
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, reportType: type }))}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
                       formData.reportType === type
                         ? "bg-[#1877F2] text-white shadow-sm"
                         : "text-slate-600 hover:text-slate-900"
@@ -432,7 +432,7 @@ export default function PremiumDueForm({
                 <button
                   type="button"
                   onClick={openSelectGroupsModal}
-                  className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800"
+                  className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
                   title="Open Select Groups Modal"
                 >
                   <Filter size={16} />
@@ -511,7 +511,7 @@ export default function PremiumDueForm({
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider"
+            className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider cursor-pointer"
           >
             Cancel
           </button>
@@ -519,7 +519,7 @@ export default function PremiumDueForm({
           <button
             type="button"
             onClick={() => onGenerateReport(formData)}
-            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition"
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
           >
             <span>Generate Report</span>
             <ArrowRight size={16} />
