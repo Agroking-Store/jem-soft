@@ -340,6 +340,7 @@ export default function SurvivalBenefitForm({
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        visibleCategories={["Groups Wise", "Agencies", "Payment Modes", "Policy Status"]}
       />
       <SelectGroupModal
         isOpen={isGroupModalOpen}
