@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface PolicyRegisterFormData {
   appliedFilters: SelectedFilterItem[];
@@ -235,23 +237,18 @@ export default function PolicyRegisterForm({
                 Comm. Date Range
               </label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={formData.fromCommDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, fromCommDate: e.target.value }))
+                <DatePicker
+                  value={formData.fromCommDate ? new Date(formData.fromCommDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, fromCommDate: date ? format(date, "yyyy-MM-dd") : "" }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
-                  placeholder="From Date"
                 />
                 <span className="text-xs font-bold text-slate-500">To</span>
-                <input
-                  type="date"
-                  value={formData.toCommDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, toCommDate: e.target.value }))
+                <DatePicker
+                  value={formData.toCommDate ? new Date(formData.toCommDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, toCommDate: date ? format(date, "yyyy-MM-dd") : "" }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                 />
               </div>
             </div>
@@ -322,13 +319,11 @@ export default function PolicyRegisterForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))
                 }
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
               />
             </div>
           </div>
@@ -476,6 +471,7 @@ export default function PolicyRegisterForm({
         onApplyFilters={(filters) =>
           setFormData((prev) => ({ ...prev, appliedFilters: filters }))
         }
+        visibleCategories={["Groups Wise", "Agencies", "Policy Status"]}
       />
 
       {/* Sorting Filter Modal */}

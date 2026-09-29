@@ -12,6 +12,8 @@ import {
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface LapsedPolicyFormData {
   appliedFilters: SelectedFilterItem[];
@@ -239,16 +241,14 @@ export default function LapsedPolicyForm({
                 <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Revival Interest Calculation Date
                 </span>
-                <input
-                  type="date"
-                  value={formData.revivalInterestCalculationDate}
-                  onChange={(e) =>
+                <DatePicker
+                  value={formData.revivalInterestCalculationDate ? new Date(formData.revivalInterestCalculationDate) : undefined}
+                  onChange={(date) =>
                     setFormData((prev) => ({
                       ...prev,
-                      revivalInterestCalculationDate: e.target.value,
+                      revivalInterestCalculationDate: date ? format(date, "yyyy-MM-dd") : "",
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                 />
               </div>
             </div>
@@ -262,13 +262,11 @@ export default function LapsedPolicyForm({
                 <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Include Policies Lapsed since
                 </span>
-                <input
-                  type="date"
-                  value={formData.policiesLapsedSince}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, policiesLapsedSince: e.target.value }))
+                <DatePicker
+                  value={formData.policiesLapsedSince ? new Date(formData.policiesLapsedSince) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, policiesLapsedSince: date ? format(date, "yyyy-MM-dd") : "" }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                 />
               </div>
             </div>
@@ -339,13 +337,11 @@ export default function LapsedPolicyForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))
                 }
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
               />
             </div>
           </div>
@@ -483,7 +479,7 @@ export default function LapsedPolicyForm({
         </div>
       </div>
 
-      {/* Filter Options Modal — reused as-is, opened with nothing pre-ticked */}
+      {/* Filter Options Modal — sirf useful categories dikhenge */}
       <FilterOptionsModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
@@ -494,6 +490,7 @@ export default function LapsedPolicyForm({
           setFormData((prev) => ({ ...prev, appliedFilters: filters }))
         }
         enableDefaultStatusSelection={false}
+        visibleCategories={["Groups Wise", "Agencies", "Payment Modes", "Policy Status"]}
       />
 
       {/* Select Groups Modal — reused as-is, only for the "Groups Wise" sort */}
