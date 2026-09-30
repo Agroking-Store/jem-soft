@@ -195,11 +195,27 @@ export default function CommissionLedgerReportView({
         ? "S"
         : "Y";
 
-      // Commission calculations: 15% Standard First Year / Ledger rate
-      const commRate = 15;
-      const grossComm = Math.round(premium * (commRate / 100));
-      const tdsAmount = Math.round(grossComm * 0.05); // Standard 5% TDS
-      const netComm = grossComm - tdsAmount;
+      // Calculate accurate LIC Commission Slab based on Policy Year & PPT
+      const doc = p.commencementDate ? new Date(p.commencementDate) : new Date();
+      const currentYear = new Date().getFullYear();
+      const yearsElapsed = Math.max(0, currentYear - doc.getFullYear());
+      const ppt = Number(p.premiumPayingTerm || p.policyTerm || 20);
+
+      let commRate = 5; // Default renewal
+      if (yearsElapsed === 0) {
+        // First Year Commission (Base + Bonus)
+        commRate = ppt >= 15 ? 35 : ppt >= 10 ? 28 : 14;
+      } else if (yearsElapsed >= 1 && yearsElapsed <= 2) {
+        // 2nd & 3rd Year Renewal Commission
+        commRate = 7.5;
+      } else {
+        // 4th Year Onwards Subsequent Renewal
+        commRate = 5.0;
+      }
+
+      const grossComm = Math.round(premium * (commRate / 100) * 100) / 100;
+      const tdsAmount = Math.round(grossComm * 0.05 * 100) / 100; // Standard 5% TDS
+      const netComm = Math.round((grossComm - tdsAmount) * 100) / 100;
 
       totalSum += sumAssured;
       totalPrem += premium;
