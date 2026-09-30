@@ -121,7 +121,17 @@ export default function EditLICPolicyPage() {
     sumAssured: "",
     age: "",
   });
-  const [productOptionsData, setProductOptionsData] = useState<{terms: number[], ppts: number[], combinations: {term: number, ppt: number}[]}>({ terms: [], ppts: [], combinations: [] });
+  const [productOptionsData, setProductOptionsData] = useState<{
+    terms: number[];
+    ppts: number[];
+    combinations: { term: number; ppt: number }[];
+    hasData?: boolean;
+  }>({ terms: [], ppts: [], combinations: [] });
+  const [isOptionsLoading, setIsOptionsLoading] = useState(false);
+  const [loadedOptionsProductId, setLoadedOptionsProductId] = useState<string | null>(null);
+  const [isManualTerm, setIsManualTerm] = useState(false);
+  const [isManualPpt, setIsManualPpt] = useState(false);
+  const [isPremiumManual, setIsPremiumManual] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -416,6 +426,59 @@ export default function EditLICPolicyPage() {
     selectedPolicy?.provider?.type === "OTHER" ||
     ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
     (selectedProduct?.providerId && (providers.find((p) => p.id === selectedProduct.providerId) as any)?.code?.toUpperCase() !== "LIC");
+
+  const hasDbTerms = useMemo(() => {
+    return Boolean(productOptionsData.terms && productOptionsData.terms.length > 0);
+  }, [productOptionsData.terms]);
+
+  const isFormulaTermPlan = useMemo(() => {
+    return ["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "");
+  }, [selectedProduct?.planNumber]);
+
+  const pptOptionsToRender = useMemo(() => {
+    let list: (number | string)[] = productOptionsData.ppts || [];
+    if (selectedProduct?.planNumber === "887") {
+      if (watchMode === "Single") {
+        list = ["1"];
+      } else {
+        const currentTerm = Number(watchTerm);
+        const allowed = [5, 10, 15];
+        if (currentTerm && !allowed.includes(currentTerm)) {
+          allowed.push(currentTerm);
+        }
+        const filtered = (productOptionsData.ppts || []).filter(p => allowed.includes(Number(p)));
+        list = filtered.length > 0 ? filtered : allowed;
+      }
+    } else if (watchTerm && productOptionsData.combinations.length > 0) {
+      const termValue = Number(watchTerm);
+      const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
+      if (matchingCombs.length > 0) {
+        list = matchingCombs.map(c => c.ppt);
+      }
+    }
+    return list;
+  }, [productOptionsData.ppts, productOptionsData.combinations, selectedProduct?.planNumber, watchMode, watchTerm]);
+
+  const hasDbPpts = useMemo(() => {
+    return Boolean(pptOptionsToRender && pptOptionsToRender.length > 0);
+  }, [pptOptionsToRender]);
+
+  const isPlanDataMissing = useMemo(() => {
+    if (isOtherPolicy || !selectedProduct || !watchProductId) return false;
+    if (isFormulaTermPlan) return false;
+    if (isOptionsLoading || loadedOptionsProductId !== watchProductId) return false;
+
+    if (typeof productOptionsData.hasData === "boolean") {
+      return !productOptionsData.hasData;
+    }
+    return productOptionsData.terms.length === 0 && productOptionsData.combinations.length === 0;
+  }, [isOtherPolicy, selectedProduct, watchProductId, isFormulaTermPlan, isOptionsLoading, loadedOptionsProductId, productOptionsData]);
+
+  useEffect(() => {
+    setIsManualTerm(false);
+    setIsManualPpt(false);
+    setIsPremiumManual(false);
+  }, [watchProductId]);
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === watchGroupId),
     [watchGroupId, groups],
@@ -683,10 +746,16 @@ export default function EditLICPolicyPage() {
 
   // Fetch available Term/PPT options for the selected product (same as Create Policy)
   useEffect(() => {
-    if (!watchProductId) {
+    if (!watchProductId || isOtherPolicy) {
       setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+      setLoadedOptionsProductId(null);
+      setIsOptionsLoading(false);
       return;
     }
+
+    let isMounted = true;
+    setIsOptionsLoading(true);
+
     const fetchOptions = async () => {
       try {
         const response = await axios.get(
@@ -697,54 +766,88 @@ export default function EditLICPolicyPage() {
             },
           }
         );
+        if (!isMounted) return;
         if (response.data?.data) {
-          setProductOptionsData(response.data.data);
+          const data = response.data.data;
+          const hasDbData =
+            typeof data.hasData === "boolean"
+              ? data.hasData
+              : Boolean((data.terms && data.terms.length > 0) || (data.combinations && data.combinations.length > 0));
+
+          setProductOptionsData({
+            terms: data.terms || [],
+            ppts: data.ppts || [],
+            combinations: data.combinations || [],
+            hasData: hasDbData,
+          });
+          setLoadedOptionsProductId(watchProductId);
+
+          if (!hasDbData && !isFormulaTermPlan) {
+            setIsManualTerm(true);
+            setIsManualPpt(true);
+          }
 
           // Re-apply the saved PPT now that the dropdown options exist.
-          // Keep it only if it is valid for the selected plan, otherwise
-          // clear it and ask the user to select a valid PPT.
           const currentPpt = getValues("ppt") as unknown as string | number | undefined;
           if (currentPpt !== undefined && currentPpt !== null && currentPpt !== "") {
-            const ppts: number[] = (response.data.data.ppts || []).map(Number);
-            const combinations: { term: number, ppt: number }[] = response.data.data.combinations || [];
+            const ppts: number[] = (data.ppts || []).map(Number);
+            const combinations: { term: number, ppt: number }[] = data.combinations || [];
             const isValidPpt =
+              ppts.length === 0 ||
               ppts.includes(Number(currentPpt)) ||
               combinations.some((c) => c.ppt === Number(currentPpt));
             if (isValidPpt) {
               setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
             } else {
-              setValue("ppt", undefined, { shouldValidate: true, shouldDirty: true });
-              toast.error(
-                "The saved PPT is not valid for the selected plan. Please select a valid PPT.",
-              );
+              setIsManualPpt(true);
+              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+            }
+          }
+
+          const currentTerm = getValues("term") as unknown as string | number | undefined;
+          if (currentTerm !== undefined && currentTerm !== null && currentTerm !== "") {
+            const terms: number[] = (data.terms || []).map(Number);
+            if (terms.length > 0 && !terms.includes(Number(currentTerm))) {
+              setIsManualTerm(true);
             }
           }
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Failed to fetch product options", error);
+        setLoadedOptionsProductId(watchProductId);
+      } finally {
+        if (isMounted) {
+          setIsOptionsLoading(false);
+        }
       }
     };
     fetchOptions();
-  }, [watchProductId, setValue, getValues]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [watchProductId, isOtherPolicy, isFormulaTermPlan, setValue, getValues]);
 
   // Auto-select PPT when Term is selected (same as Create Policy)
   useEffect(() => {
+    if (isManualPpt) return;
     if (watchTerm && productOptionsData.combinations.length > 0) {
       const termValue = Number(watchTerm);
       // Find combinations for this term
       const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
       if (matchingCombs.length === 1) {
         // Only one possible PPT for this term, auto select it
-        setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+        setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
       } else if (matchingCombs.length > 0 && watchPpt) {
         // If current PPT is not in the valid list for this term, clear or reset it
         const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
-        if (!isValid) {
-          setValue("ppt", matchingCombs[0].ppt, { shouldValidate: true, shouldDirty: true });
+        if (!isValid && !isManualPpt) {
+          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
         }
       }
     }
-  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt]);
+  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isManualPpt]);
 
   useEffect(() => {
     setValue("groupCode", selectedGroup?.groupCode || "");
@@ -1116,8 +1219,12 @@ export default function EditLICPolicyPage() {
         );
 
         const premium = response.data?.data?.premium;
-        if (!premium) return;
+        if (!premium || response.data?.data?.isManual) {
+          setIsPremiumManual(true);
+          return;
+        }
 
+        setIsPremiumManual(false);
         setValue(
           "basicYearlyPremium",
           premium.basicYearlyPremium > 0
@@ -1156,6 +1263,7 @@ export default function EditLICPolicyPage() {
       } catch (error: any) {
         if (!axios.isCancel(error)) {
           console.error("Failed to fetch premium preview", error);
+          setIsPremiumManual(true);
         }
       }
     }, 300);
@@ -1223,22 +1331,29 @@ export default function EditLICPolicyPage() {
                       },
                     }
                   );
+                  const isManualRider = response.data?.data?.isManual;
                   const finalRiderPremium = response.data?.data?.premium || 0;
-                  return { index, newPremium: finalRiderPremium, currentPremium, isValid: true };
+                  return {
+                    index,
+                    newPremium: finalRiderPremium,
+                    currentPremium,
+                    isValid: !isManualRider && finalRiderPremium > 0,
+                  };
                 } catch (error) {
                   if (!axios.isCancel(error)) {
                     console.error("Failed to fetch rider premium preview", error);
                   }
-                  return { index, newPremium: 0, currentPremium, isValid: true };
+                  return { index, newPremium: 0, currentPremium, isValid: false };
                 }
               }
-              return { index, newPremium: 0, currentPremium, isValid: true };
+              return { index, newPremium: 0, currentPremium, isValid: false };
             })
           );
 
           updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
+            const effective = isValid ? newPremium : currentPremium;
             if (watchRiders[index]?.selected) {
-              totalInstallmentRiderPremium += newPremium;
+              totalInstallmentRiderPremium += effective;
             }
             if (isValid && newPremium !== currentPremium) {
               setValue(`riders.${index}.premium`, newPremium, { shouldValidate: true, shouldDirty: true });
@@ -1262,25 +1377,35 @@ export default function EditLICPolicyPage() {
     }
   }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, watchGender, setValue, products, isOtherPolicy]);
 
-  // Auto-calculate Total Yearly Premium when in Other policy mode
+  // Auto-calculate Total Yearly Premium when in Other policy mode or manual mode
   useEffect(() => {
-    if (isOtherPolicy) {
+    if (isOtherPolicy || isPremiumManual) {
       const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
       const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
-      const total = basic + rider;
-      setValue("totalYearlyPremium", total > 0 ? total : undefined, { shouldDirty: true });
+      const mode = watchMode || "Yearly";
+      let multiplier = 1;
+      if (mode === "Half Yearly") multiplier = 2;
+      if (mode === "Quarterly") multiplier = 4;
+      if (mode === "Monthly (NACH)" || mode === "Monthly") multiplier = 12;
+      if (mode === "SSS") multiplier = 12;
+      const total = basic + (rider * multiplier);
+      if (total > 0) {
+        setValue("totalYearlyPremium", parseFloat(total.toFixed(2)), { shouldDirty: true });
+      }
     }
-  }, [isOtherPolicy, watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
+  }, [isOtherPolicy, isPremiumManual, watchBasicYearlyPremium, watchTotalRiderPremium, watchMode, setValue]);
 
-  // Auto-calculate Total Installment Premium when in Other policy mode
+  // Auto-calculate Total Installment Premium when in Other policy mode or manual mode
   useEffect(() => {
-    if (isOtherPolicy) {
+    if (isOtherPolicy || isPremiumManual) {
       const installment = parseFloat(String(watchInstallmentPremium)) || 0;
       const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
       const total = installment + rider;
-      setValue("totalInstallmentPremium", total > 0 ? parseFloat(total.toFixed(2)) : undefined, { shouldDirty: true });
+      if (total > 0) {
+        setValue("totalInstallmentPremium", parseFloat(total.toFixed(2)), { shouldDirty: true });
+      }
     }
-  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
+  }, [isOtherPolicy, isPremiumManual, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
 
   const isOverdueLapsed = useMemo(() => {
     const targetDateStr = watchFupDate || watchCommencementDate;
@@ -1369,13 +1494,26 @@ export default function EditLICPolicyPage() {
     }
 
     try {
+      const normalizeNumber = (value: any) =>
+        value === undefined || value === null || value === ""
+          ? undefined
+          : Number(value);
+
       const payload = {
         ...data,
         paymentMethod: useNach ? "NACH" : useNeft ? "NEFT" : "CHQ",
-        age: data.age ? Number(data.age) : undefined,
-        policyTerm: data.term ? Number(data.term) : undefined,
-        premiumPayingTerm: data.ppt ? Number(data.ppt) : undefined,
-        option: data.option ? Number(data.option) : undefined,
+        age: normalizeNumber(data.age),
+        policyTerm: normalizeNumber(data.term),
+        premiumPayingTerm: normalizeNumber(data.ppt),
+        term: normalizeNumber(data.term),
+        ppt: normalizeNumber(data.ppt),
+        sumAssured: normalizeNumber(data.sumAssured),
+        basicYearlyPremium: normalizeNumber(data.basicYearlyPremium),
+        totalYearlyPremium: normalizeNumber(data.totalYearlyPremium),
+        totalRiderPremium: normalizeNumber(data.totalRiderPremium),
+        installmentPremium: normalizeNumber(data.installmentPremium),
+        totalInstallmentPremium: normalizeNumber(data.totalInstallmentPremium),
+        option: normalizeNumber(data.option),
 
         advisorId: data.advisorId || null,
         branchId: data.branchId || null,
@@ -1718,39 +1856,83 @@ export default function EditLICPolicyPage() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Term
-                    </label>
-                    <input
-                      type="text"
-                      {...register("term")}
-                      placeholder="Enter term"
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        Term
+                      </label>
+                      {isPlanDataMissing && (
+                        <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                          Manual entry
+                        </span>
+                      )}
+                    </div>
+                    {isOtherPolicy || isManualTerm || isPlanDataMissing || (!hasDbTerms && !isFormulaTermPlan) ? (
+                      <input
+                        type="number"
+                        {...register("term")}
+                        placeholder="Enter term in years"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                    ) : (
+                      <select
+                        {...register("term")}
+                        value={watchTerm != null && String(watchTerm) !== "" ? String(watchTerm) : ""}
+                        onChange={(e) => {
+                          register("term").onChange(e);
+                        }}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Term</option>
+                        {isFormulaTermPlan ? (
+                          (() => {
+                            const maxAge = selectedProduct?.planNumber === "912" ? 75 : 69;
+                            const maxTerm = Math.min(40, maxAge - (Number(watchAge) || 18));
+                            const optionsList: number[] = [];
+                            for (let t = 10; t <= maxTerm; t++) {
+                              optionsList.push(t);
+                            }
+                            return optionsList.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ));
+                          })()
+                        ) : (
+                          productOptionsData.terms.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))
+                        )}
+                      </select>
+                    )}
                     {errors.term && (
                       <p className="text-xs text-red-500 mt-1">
                         {errors.term.message}
                       </p>
                     )}
-                    {attributeHints.term && !errors.term && (
+                    {!isOtherPolicy && attributeHints.term && !errors.term && (
                       <p className="text-xs text-slate-500 mt-1">
                         {attributeHints.term}
                       </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      {selectedProduct?.planNumber === "883"
-                        ? "Gua.Addn.Period"
-                        : "PPT"}
-                      {(isOtherPolicy ||
-                        selectedProduct?.planNumber === "889" ||
-                        selectedProduct?.planNumber === "881" ||
-                        selectedProduct?.planNumber === "912") && (
-                        <span className="text-red-500"> *</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        {selectedProduct?.planNumber === "883"
+                          ? "Gua.Addn.Period"
+                          : "PPT"}
+                        {(isOtherPolicy ||
+                          selectedProduct?.planNumber === "889" ||
+                          selectedProduct?.planNumber === "881" ||
+                          selectedProduct?.planNumber === "912") && (
+                          <span className="text-red-500"> *</span>
+                        )}
+                      </label>
+                      {isPlanDataMissing && (
+                        <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                          Manual entry
+                        </span>
                       )}
-                    </label>
-                    {isOtherPolicy ? (
+                    </div>
+                    {isOtherPolicy || isManualPpt || isPlanDataMissing || !hasDbPpts ? (
                       <input
                         type="number"
                         {...register("ppt")}
@@ -1760,31 +1942,19 @@ export default function EditLICPolicyPage() {
                     ) : (
                       <select
                         {...register("ppt")}
+                        value={watchPpt != null && String(watchPpt) !== "" ? String(watchPpt) : ""}
+                        onChange={(e) => {
+                          register("ppt").onChange(e);
+                        }}
                         disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
                       >
                         <option value="">
                           {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
                         </option>
-                        {(() => {
-                          let optionsToRender: (number | string)[] = productOptionsData.ppts;
-                          if (selectedProduct?.planNumber === "887") {
-                            if (watchMode === "Single") {
-                              optionsToRender = ["1"];
-                            } else {
-                              const currentTerm = Number(watchTerm);
-                              const allowed = [5, 10, 15];
-                              if (currentTerm && !allowed.includes(currentTerm)) {
-                                allowed.push(currentTerm);
-                              }
-                              const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
-                              optionsToRender = filtered.length > 0 ? filtered : allowed;
-                            }
-                          }
-                          return optionsToRender.map(p => (
-                            <option key={p} value={p}>{p}</option>
-                          ));
-                        })()}
+                        {pptOptionsToRender.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
                       </select>
                     )}
                     {errors.ppt && (
@@ -2126,13 +2296,8 @@ export default function EditLICPolicyPage() {
                                 type="text"
                                 {...register(`riders.${index}.premium`)}
                                 placeholder="Premium"
-                                readOnly={!isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"}
                                 disabled={!watchRiders?.[index]?.selected}
-                                className={`w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${
-                                  !isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"
-                                    ? "bg-slate-50 cursor-not-allowed text-slate-500"
-                                    : "bg-white text-slate-800"
-                                } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] bg-white text-slate-800 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                               />
                             </td>
                             <td className="px-2 py-1.5 text-center">
@@ -2167,6 +2332,11 @@ export default function EditLICPolicyPage() {
                 icon={Banknote}
               >
                 <div className="space-y-4">
+                  {isPlanDataMissing && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                      Terms, PPT, or rates are not present in database for this plan. You can enter all premium values manually.
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Sum Assured
@@ -2212,12 +2382,7 @@ export default function EditLICPolicyPage() {
                       type="text"
                       {...register("totalYearlyPremium")}
                       placeholder="Enter total yearly premium"
-                      className={`w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm ${
-                        !isOtherPolicy
-                          ? "bg-slate-50 text-slate-500 cursor-not-allowed"
-                          : "focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                      }`}
-                      readOnly={!isOtherPolicy}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                     />
                     {errors.totalYearlyPremium && (
                       <p className="text-xs text-red-500 mt-1">
