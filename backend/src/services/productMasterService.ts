@@ -48,5 +48,7 @@ export const getProductOptions = async (productId: string) => {
     ppt: r.premiumPayingTerm,
   }));
 
-  return { terms, ppts, combinations };
+  const hasData = rates.length > 0;
+
+  return { terms, ppts, combinations, hasData, ratesCount: rates.length };
 };

@@ -50,6 +50,8 @@ interface PolicyData {
 
   term?: number;
   ppt?: number;
+  policyTerm?: number;
+  premiumPayingTerm?: number;
   sumAssured?: number;
   basicYearlyPremium?: number;
   totalYearlyPremium?: number;
@@ -100,10 +102,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     data.sumAssured !== undefined && data.sumAssured !== null
       ? Number(data.sumAssured)
       : undefined;
+  const rawTerm = term ?? data.policyTerm;
+  const rawPpt = ppt ?? data.premiumPayingTerm;
   const policyTerm =
-    term !== undefined && term !== null ? Number(term) : undefined;
+    rawTerm !== undefined && rawTerm !== null ? Number(rawTerm) : undefined;
   const premiumPayingTerm =
-    ppt !== undefined && ppt !== null ? Number(ppt) : null;
+    rawPpt !== undefined && rawPpt !== null ? Number(rawPpt) : null;
 
   if (!age || !sumAssured || !policyTerm) {
     throw new AppError(
@@ -326,46 +330,84 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
     }
 
     if (isLic) {
-      const premium = await calculatePremium({
-        productId: data.productId,
-        age: Number(age),
-        secondaryAge:
-          data.spouseAge !== undefined && data.spouseAge !== null
-            ? Number(data.spouseAge)
-            : null,
-        option:
-          data.option !== undefined && data.option !== null
-            ? Number(data.option)
-            : null,
-        policyTerm: Number(policyTerm),
-        premiumPayingTerm:
-          premiumPayingTerm !== undefined && premiumPayingTerm !== null
-            ? Number(premiumPayingTerm)
-            : null,
-        sumAssured: Number(sumAssured),
-        premiumMode: data.mode,
-        gender: data.gender,
-        smoker: data.smoker,
-      });
-
-      await tx.policyPremiumCalculation.create({
-        data: {
-          policyId: newPolicy.id,
-          sumAssured: sumAssured ?? 0,
+      let premium: any = null;
+      try {
+        premium = await calculatePremium({
+          productId: data.productId,
+          age: Number(age),
+          secondaryAge:
+            data.spouseAge !== undefined && data.spouseAge !== null
+              ? Number(data.spouseAge)
+              : null,
           option:
             data.option !== undefined && data.option !== null
               ? Number(data.option)
               : null,
-          basicYearlyPremium: premium.basicYearlyPremium, // From service
-          totalYearlyPremium:
-            premium.basicYearlyPremium + (totalRiderPremium ?? 0),
-          installmentPremium: premium.installmentPremium, // From service
-          totalInstallmentPremium:
-            premium.installmentPremium + (totalRiderPremium ?? 0),
-          gst: premium.gst, // From service
-          riderPremium: totalRiderPremium ?? 0,
-        },
-      });
+          policyTerm: Number(policyTerm),
+          premiumPayingTerm:
+            premiumPayingTerm !== undefined && premiumPayingTerm !== null
+              ? Number(premiumPayingTerm)
+              : null,
+          sumAssured: Number(sumAssured),
+          premiumMode: data.mode,
+          gender: data.gender,
+          smoker: data.smoker,
+        });
+      } catch (err: any) {
+        console.warn("calculatePremium failed for LIC plan:", err?.message);
+      }
+
+      if (premium) {
+        await tx.policyPremiumCalculation.create({
+          data: {
+            policyId: newPolicy.id,
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: premium.basicYearlyPremium, // From service
+            totalYearlyPremium:
+              premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+            installmentPremium: premium.installmentPremium, // From service
+            totalInstallmentPremium:
+              premium.installmentPremium + (totalRiderPremium ?? 0),
+            gst: premium.gst, // From service
+            riderPremium: totalRiderPremium ?? 0,
+          },
+        });
+      } else {
+        // Fallback to manual values if terms/ppt/rates are not in DB
+        const basicYearlyPremium = Number(data.basicYearlyPremium || 0);
+        const totalRiderPrem = Number(data.totalRiderPremium || 0);
+        const totalYearlyPremium =
+          data.totalYearlyPremium !== undefined && data.totalYearlyPremium !== null && !isNaN(Number(data.totalYearlyPremium))
+            ? Number(data.totalYearlyPremium)
+            : basicYearlyPremium + totalRiderPrem;
+        const installmentPremium = Number(data.installmentPremium || 0);
+        const totalInstallmentPremium =
+          data.totalInstallmentPremium !== undefined && data.totalInstallmentPremium !== null && !isNaN(Number(data.totalInstallmentPremium))
+            ? Number(data.totalInstallmentPremium)
+            : installmentPremium + totalRiderPrem;
+        const gst = Number(data.gst || 0);
+
+        await tx.policyPremiumCalculation.create({
+          data: {
+            policyId: newPolicy.id,
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null && !isNaN(Number(data.option))
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: basicYearlyPremium,
+            totalYearlyPremium: totalYearlyPremium,
+            installmentPremium: installmentPremium,
+            totalInstallmentPremium: totalInstallmentPremium,
+            gst: gst,
+            riderPremium: totalRiderPrem,
+          },
+        });
+      }
     } else {
       // Non-LIC / Other Policy: Use manually entered premium values
       const basicYearlyPremium = Number(data.basicYearlyPremium || 0);
@@ -1041,12 +1083,14 @@ export const updatePolicy = async (
     data.sumAssured !== undefined && data.sumAssured !== null
       ? Number(data.sumAssured)
       : undefined;
+  const rawTerm = data.term ?? data.policyTerm;
+  const rawPpt = data.ppt ?? data.premiumPayingTerm;
   const policyTerm =
-    data.term !== undefined && data.term !== null
-      ? Number(data.term)
+    rawTerm !== undefined && rawTerm !== null
+      ? Number(rawTerm)
       : undefined;
   const premiumPayingTerm =
-    data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null;
+    rawPpt !== undefined && rawPpt !== null ? Number(rawPpt) : null;
 
   if (!age || !sumAssured || !policyTerm) {
     throw new AppError(
@@ -1191,7 +1235,7 @@ export const updatePolicy = async (
           ? new Date(data.completionDate)
           : null,
 
-        policyTerm: data.term,
+        policyTerm: policyTerm,
 
         premiumPayingTerm: premiumPayingTerm,
 
@@ -1294,55 +1338,109 @@ export const updatePolicy = async (
 
     // Update Premium Calculation
     if (isLic) {
-      const premium = await calculatePremium({
-        productId: data.productId,
-        age: Number(data.age),
-        secondaryAge: data.spouseAge != null ? Number(data.spouseAge) : null,
-        option: data.option != null ? Number(data.option) : null,
-        policyTerm: Number(data.term),
-        premiumPayingTerm:
-          data.ppt !== undefined && data.ppt !== null ? Number(data.ppt) : null,
-        sumAssured: Number(data.sumAssured),
-        premiumMode: data.mode,
-        gender: data.gender,
-        smoker: data.smoker,
-      });
-      await tx.policyPremiumCalculation.upsert({
-        where: {
-          policyId: id,
-        },
-        update: {
-          sumAssured: sumAssured ?? 0,
-          option:
-            data.option !== undefined && data.option !== null
-              ? Number(data.option)
-              : null,
-          basicYearlyPremium: premium.basicYearlyPremium,
-          totalYearlyPremium:
-            premium.basicYearlyPremium + (totalRiderPremium ?? 0),
-          installmentPremium: premium.installmentPremium,
-          totalInstallmentPremium:
-            premium.installmentPremium + (totalRiderPremium ?? 0),
-          gst: premium.gst,
-          riderPremium: totalRiderPremium ?? 0,
-        },
-        create: {
-          policyId: id,
-          sumAssured: sumAssured ?? 0,
-          option:
-            data.option !== undefined && data.option !== null
-              ? Number(data.option)
-              : null,
-          basicYearlyPremium: premium.basicYearlyPremium,
-          totalYearlyPremium:
-            premium.basicYearlyPremium + (totalRiderPremium ?? 0),
-          installmentPremium: premium.installmentPremium,
-          totalInstallmentPremium:
-            premium.installmentPremium + (totalRiderPremium ?? 0),
-          gst: premium.gst,
-          riderPremium: totalRiderPremium ?? 0,
-        },
-      });
+      let premium: any = null;
+      try {
+        premium = await calculatePremium({
+          productId: data.productId,
+          age: Number(data.age),
+          secondaryAge: data.spouseAge != null ? Number(data.spouseAge) : null,
+          option: data.option != null ? Number(data.option) : null,
+          policyTerm: Number(policyTerm),
+          premiumPayingTerm:
+            premiumPayingTerm !== undefined && premiumPayingTerm !== null ? Number(premiumPayingTerm) : null,
+          sumAssured: Number(data.sumAssured),
+          premiumMode: data.mode,
+          gender: data.gender,
+          smoker: data.smoker,
+        });
+      } catch (err: any) {
+        console.warn("calculatePremium update failed for LIC plan:", err?.message);
+      }
+
+      if (premium) {
+        await tx.policyPremiumCalculation.upsert({
+          where: {
+            policyId: id,
+          },
+          update: {
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: premium.basicYearlyPremium,
+            totalYearlyPremium:
+              premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+            installmentPremium: premium.installmentPremium,
+            totalInstallmentPremium:
+              premium.installmentPremium + (totalRiderPremium ?? 0),
+            gst: premium.gst,
+            riderPremium: totalRiderPremium ?? 0,
+          },
+          create: {
+            policyId: id,
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: premium.basicYearlyPremium,
+            totalYearlyPremium:
+              premium.basicYearlyPremium + (totalRiderPremium ?? 0),
+            installmentPremium: premium.installmentPremium,
+            totalInstallmentPremium:
+              premium.installmentPremium + (totalRiderPremium ?? 0),
+            gst: premium.gst,
+            riderPremium: totalRiderPremium ?? 0,
+          },
+        });
+      } else {
+        const basicYearlyPremium = Number(data.basicYearlyPremium || 0);
+        const totalRiderPrem = Number(data.totalRiderPremium || 0);
+        const totalYearlyPremium =
+          data.totalYearlyPremium !== undefined && data.totalYearlyPremium !== null && !isNaN(Number(data.totalYearlyPremium))
+            ? Number(data.totalYearlyPremium)
+            : basicYearlyPremium + totalRiderPrem;
+        const installmentPremium = Number(data.installmentPremium || 0);
+        const totalInstallmentPremium =
+          data.totalInstallmentPremium !== undefined && data.totalInstallmentPremium !== null && !isNaN(Number(data.totalInstallmentPremium))
+            ? Number(data.totalInstallmentPremium)
+            : installmentPremium + totalRiderPrem;
+        const gst = Number(data.gst || 0);
+
+        await tx.policyPremiumCalculation.upsert({
+          where: {
+            policyId: id,
+          },
+          update: {
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null && !isNaN(Number(data.option))
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: basicYearlyPremium,
+            totalYearlyPremium: totalYearlyPremium,
+            installmentPremium: installmentPremium,
+            totalInstallmentPremium: totalInstallmentPremium,
+            gst: gst,
+            riderPremium: totalRiderPrem,
+          },
+          create: {
+            policyId: id,
+            sumAssured: sumAssured ?? 0,
+            option:
+              data.option !== undefined && data.option !== null && !isNaN(Number(data.option))
+                ? Number(data.option)
+                : null,
+            basicYearlyPremium: basicYearlyPremium,
+            totalYearlyPremium: totalYearlyPremium,
+            installmentPremium: installmentPremium,
+            totalInstallmentPremium: totalInstallmentPremium,
+            gst: gst,
+            riderPremium: totalRiderPrem,
+          },
+        });
+      }
     } else {
       const basicYearlyPremium = Number(data.basicYearlyPremium || 0);
       const totalRiderPrem = Number(data.totalRiderPremium || 0);

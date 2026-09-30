@@ -197,7 +197,7 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
     policyNo: "906762577",
     agCd: "J",
     groupCode: "B104",
-    holderName: "Bhise Manisha",
+    holderName: "Bhise Manish",
     dueDate: "06/21",
     premiumAmount: 4589.0,
     planTermPpt: "836/25/16",
@@ -212,7 +212,7 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
     policyNo: "906762577",
     agCd: "J",
     groupCode: "B104",
-    holderName: "Bhise Manisha",
+    holderName: "Bhise Manish",
     dueDate: "03/21",
     premiumAmount: 4589.0,
     planTermPpt: "836/25/16",
@@ -227,7 +227,7 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
     policyNo: "906762577",
     agCd: "J",
     groupCode: "B104",
-    holderName: "Bhise Manisha",
+    holderName: "Bhise Manish",
     dueDate: "03/20",
     premiumAmount: 4589.0,
     planTermPpt: "836/25/16",
@@ -242,7 +242,7 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
     policyNo: "906762577",
     agCd: "J",
     groupCode: "B104",
-    holderName: "Bhise Manisha",
+    holderName: "Bhise Manish",
     dueDate: "03/22",
     premiumAmount: 4589.0,
     planTermPpt: "836/25/16",
@@ -1451,7 +1451,7 @@ export function generateShortCommissionItems(
   let combined: ShortCommissionItem[] = [];
 
   const JAYANT_CODES = ["a001", "a002", "a003"];
-  const MANISHA_CODES = ["a004", "a005", "a006"];
+  const MANISH_CODES = ["a004", "a005", "a006"];
 
   // If user policies exist in Redux, use ONLY Redux data
   if (policies && policies.length > 0) {
@@ -1468,8 +1468,8 @@ export function generateShortCommissionItems(
           if (al.includes("jayant") || al.includes("ag002")) {
             return JAYANT_CODES.includes(pAgCode) || JAYANT_CODES.includes(pAdvCode) || pAdvName.includes("jayant");
           }
-          if (al.includes("manisha") || al.includes("ag003")) {
-            return MANISHA_CODES.includes(pAgCode) || MANISHA_CODES.includes(pAdvCode) || pAdvName.includes("manisha");
+          if (al.includes("manish") || al.includes("ag003")) {
+            return MANISH_CODES.includes(pAgCode) || MANISH_CODES.includes(pAdvCode) || pAdvName.includes("manish");
           }
           return pAgCode.includes(al) || pAdvCode.includes(al) || pAdvName.includes(al) || pAgName.includes(al);
         });

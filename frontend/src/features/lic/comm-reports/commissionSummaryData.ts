@@ -137,12 +137,12 @@ export function generateCommissionSummaryRows(
             pAdvName.includes("jayant")
           );
         }
-        if (fl.includes("manisha")) {
+        if (fl.includes("manish")) {
           return (
             pAgCode.includes("a004") ||
             pAgCode.includes("a005") ||
             pAdvCode.includes("a004") ||
-            pAdvName.includes("manisha")
+            pAdvName.includes("manish")
           );
         }
         return pAgCode.includes(fl) || pAdvCode.includes(fl) || pAdvName.includes(fl);

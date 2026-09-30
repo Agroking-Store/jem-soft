@@ -95,7 +95,7 @@ export default function CommissionOutstandingForm({
     }
 
     const JAYANT_CODES = ["a001", "a002", "a003"];
-    const MANISHA_CODES = ["a004", "a005", "a006"];
+    const MANISH_CODES = ["a004", "a005", "a006"];
 
     const agencyNamesOrIds = formData.dataFilters
       .filter((f) => f.type === "Agencies")
@@ -124,12 +124,12 @@ export default function CommissionOutstandingForm({
               pAgName.includes("jayant")
             );
           }
-          if (f.name.includes("manisha") || f.id.includes("ag003")) {
+          if (f.name.includes("manish") || f.id.includes("ag003")) {
             return (
-              MANISHA_CODES.includes(pAgCode) ||
-              MANISHA_CODES.includes(pAdvCode) ||
-              pAdvName.includes("manisha") ||
-              pAgName.includes("manisha")
+              MANISH_CODES.includes(pAgCode) ||
+              MANISH_CODES.includes(pAdvCode) ||
+              pAdvName.includes("manish") ||
+              pAgName.includes("manish")
             );
           }
           return (
@@ -156,8 +156,8 @@ export default function CommissionOutstandingForm({
 
     // 2. Also check LIC Policy Form specific mappings:
     agencyNamesOrIds.forEach((f) => {
-      // Jayant Mahabole (AG002) or Manisha Y Mahabole (AG003) -> Branch 955 (Hadapsar, Pune)
-      if (f.name.includes("jayant") || f.id.includes("ag002") || f.name.includes("manisha") || f.id.includes("ag003")) {
+      // Jayant Mahabole (AG002) or Manish Y Mahabole (AG003) -> Branch 955 (Hadapsar, Pune)
+      if (f.name.includes("jayant") || f.id.includes("ag002") || f.name.includes("manish") || f.id.includes("ag003")) {
         const br955 = dynamicBranches.find((b) => b.branchCode === "955") || {
           id: "b955",
           branchCode: "955",
