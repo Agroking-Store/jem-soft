@@ -28,7 +28,7 @@ interface CommissionPolicyFilterModalProps {
 }
 
 const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
-const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+const MANISH_ADVISOR_CODES = ["a004", "a005", "a006"];
 
 export default function CommissionPolicyFilterModal({
   isOpen,
@@ -82,12 +82,12 @@ export default function CommissionPolicyFilterModal({
         );
       }
 
-      // Manisha Y Mahabole (AG003)
-      if (fLower.includes("manisha") || fLower.includes("ag003")) {
+      // Manish Y Mahabole (AG003)
+      if (fLower.includes("manish") || fLower.includes("ag003")) {
         return (
-          MANISHA_ADVISOR_CODES.includes(pAgCode) ||
-          MANISHA_ADVISOR_CODES.includes(pAdvCode) ||
-          pAdvName.includes("manisha")
+          MANISH_ADVISOR_CODES.includes(pAgCode) ||
+          MANISH_ADVISOR_CODES.includes(pAdvCode) ||
+          pAdvName.includes("manish")
         );
       }
 
@@ -95,9 +95,9 @@ export default function CommissionPolicyFilterModal({
       if (fLower.includes("other") || fLower.includes("ag001")) {
         return (
           !JAYANT_ADVISOR_CODES.includes(pAgCode) &&
-          !MANISHA_ADVISOR_CODES.includes(pAgCode) &&
+          !MANISH_ADVISOR_CODES.includes(pAgCode) &&
           !JAYANT_ADVISOR_CODES.includes(pAdvCode) &&
-          !MANISHA_ADVISOR_CODES.includes(pAdvCode)
+          !MANISH_ADVISOR_CODES.includes(pAdvCode)
         );
       }
 

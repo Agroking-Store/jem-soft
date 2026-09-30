@@ -947,7 +947,7 @@ export function generateGapCommissionItems(
   let combined: GapCommissionItem[] = [];
 
   const JAYANT_CODES = ["a001", "a002", "a003"];
-  const MANISHA_CODES = ["a004", "a005", "a006"];
+  const MANISH_CODES = ["a004", "a005", "a006"];
 
   if (policies && policies.length > 0) {
     const reduxItems: GapCommissionItem[] = policies
@@ -963,8 +963,8 @@ export function generateGapCommissionItems(
           if (al.includes("jayant") || al.includes("ag002")) {
             return JAYANT_CODES.includes(pAgCode) || JAYANT_CODES.includes(pAdvCode) || pAdvName.includes("jayant");
           }
-          if (al.includes("manisha") || al.includes("ag003")) {
-            return MANISHA_CODES.includes(pAgCode) || MANISHA_CODES.includes(pAdvCode) || pAdvName.includes("manisha");
+          if (al.includes("manish") || al.includes("ag003")) {
+            return MANISH_CODES.includes(pAgCode) || MANISH_CODES.includes(pAdvCode) || pAdvName.includes("manish");
           }
           return pAgCode.includes(al) || pAdvCode.includes(al) || pAdvName.includes(al) || pAgName.includes(al);
         });

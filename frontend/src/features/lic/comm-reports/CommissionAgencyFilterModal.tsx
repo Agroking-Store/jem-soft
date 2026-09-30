@@ -24,7 +24,7 @@ interface CommissionAgencyFilterModalProps {
 
 export const SYSTEM_COMMISSION_AGENCIES: CommissionAgencyItem[] = [
   { id: "ag002", name: "Jayant Mahabole", code: "AG002", description: "Advisors: A001, A002, A003", branchCode: "955", branchName: "Hadapsar, Pune" },
-  { id: "ag003", name: "Manisha Y Mahabole", code: "AG003", description: "Advisors: A004, A005, A006", branchCode: "955", branchName: "Hadapsar, Pune" },
+  { id: "ag003", name: "Manish Y Mahabole", code: "AG003", description: "Advisors: A004, A005, A006", branchCode: "955", branchName: "Hadapsar, Pune" },
   { id: "ag001", name: "Other Agencies", code: "AG001", description: "All other advisors & direct codes", branchCode: "958", branchName: "Camp, Pune" },
 ];
 
@@ -229,14 +229,13 @@ export default function CommissionAgencyFilterModal({
                   <label
                     key={agency.id}
                     onClick={() => toggleItem(agency)}
-                    className={`flex items-start gap-3.5 p-3.5 cursor-pointer transition select-none ${
-                      isChecked ? "bg-blue-50/40" : "hover:bg-slate-50/80 bg-white"
-                    }`}
+                    className={`flex items-start gap-3.5 p-3.5 cursor-pointer transition select-none ${isChecked ? "bg-blue-50/40" : "hover:bg-slate-50/80 bg-white"
+                      }`}
                   >
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      onChange={() => {}}
+                      onChange={() => { }}
                       className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] cursor-pointer"
                     />
                     <div className="flex-1 min-w-0">
