@@ -115,6 +115,24 @@ export default function PolicyMaturityReportView({
       if (fromDate && md < fromDate) return false;
       if (toDate && md > toDate) return false;
 
+      // Sorting filter: groupMemberwise by member id
+      const sortingItems = formData.sortingFilterSelection?.selectedItems || [];
+      if (sortingItems.length > 0) {
+        if (formData.sortingOption === "groupMemberwise") {
+          const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!memberId || !selectedMemberIds.has(memberId)) return false;
+        } else {
+          const gCode = (p.customer?.groupCode || "").toLowerCase();
+          const gHeadName = (p.customer?.groupName || p.customer?.name || "").toLowerCase();
+          const polNo = (p.policyNumber || "").toLowerCase();
+          const matches = selectedGroupCodesOrNames.some(
+            (sc) => gCode.includes(sc) || gHeadName.includes(sc) || polNo.includes(sc)
+          );
+          if (!matches) return false;
+        }
+      }
+
       return true;
     });
 

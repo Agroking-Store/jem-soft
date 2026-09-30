@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
+import { RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
@@ -142,9 +142,6 @@ export default function PolicyMaturityForm({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save Configuration">
-            <Save size={17} />
-          </button>
           <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset Form">
             <RotateCcw size={17} />
           </button>

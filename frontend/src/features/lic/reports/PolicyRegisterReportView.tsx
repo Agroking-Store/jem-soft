@@ -154,6 +154,7 @@ export default function PolicyRegisterReportView({
     const isSubAreaWise = formData.sortingOption === "subAreaWise";
     const isBranchWise = formData.sortingOption === "branchNoWise";
     const isPlanWise = formData.sortingOption === "planWise";
+    const isPolicyNoWise = formData.sortingOption === "policyNoWise";
 
     const groupMap: { [key: string]: any } = {};
     const nomineeList: Array<{
@@ -338,6 +339,14 @@ export default function PolicyRegisterReportView({
             );
             const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
             matches = Boolean(memberId) && selectedMemberIds.has(memberId);
+          } else if (isPolicyNoWise) {
+            // Policy No. Wise: match by the policy's DB id (the modal lists
+            // each policy with id = p.id). Only the ticked policies show.
+            const selectedPolicyIds = new Set(
+              selectedSortingItems.map((item) => item.id)
+            );
+            const pid = String(p.id || p.policyNumber || "");
+            matches = Boolean(pid) && selectedPolicyIds.has(pid);
           } else {
             // All other sorting modes (groupsWise, areaWise, branchNoWise, planWise, ...):
             // fuzzy match against group code, group head name, CustomerMaster full name,
