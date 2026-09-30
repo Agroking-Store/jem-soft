@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, Fragment } from "react";
 import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { PremiumOutstandingFormData } from "./PremiumOutstandingForm";
 import html2canvas from "html2canvas-pro";
@@ -248,35 +248,64 @@ export default function PremiumOutstandingReportView({
     const originalWidth = elem.style.width;
 
     try {
-      // Temporarily lock to strict A4 print width for crystal-clear, consistent scale
+      // Temporarily lock to a fixed print width for consistent, sharp scale
       elem.style.width = "820px";
 
       const canvas = await html2canvas(elem, {
-        scale: 2.5,
+        scale: 2, // 2x is plenty sharp for A4 print
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
       });
 
+      // Restore full width screen styling
       elem.style.width = originalWidth;
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // How many canvas pixels fit on one A4 page at this width
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
-      while (heightLeft > 5) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      let renderedPx = 0;
+      let pageIndex = 0;
+
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+
+        // Each PDF page gets ONLY its own slice (not the whole canvas again)
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0, renderedPx, canvas.width, sliceHeightPx, // source slice
+          0, 0, canvas.width, sliceHeightPx           // destination
+        );
+
+        // JPEG @ 0.85 is ~10x smaller than PNG for text-heavy pages
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          0,
+          pageWidthMm,
+          sliceHeightPx / pxPerMm,
+          undefined,
+          "FAST"
+        );
+
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
 
       pdf.save(`Premium_Outstanding_${formData.reportDate || "Report"}.pdf`);
@@ -289,6 +318,55 @@ export default function PremiumOutstandingReportView({
       setIsExporting(false);
     }
   };
+
+
+  const BLACK = "#000";
+  const thStyle: React.CSSProperties = {
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `1px solid ${BLACK}`,
+    verticalAlign: "bottom",
+  };
+  const totalValueStyle: React.CSSProperties = {
+    display: "inline-block",
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `3px double ${BLACK}`,
+    padding: "1px 2px",
+  };
+  const thSubStyle: React.CSSProperties = {
+    borderBottom: `1px solid ${BLACK}`,
+  };
+
+  const reportDateStr = formData.reportDate ? fmtDate(formData.reportDate) : fmtDate(new Date());
+
+  // Columns: 8 leading (Policy No .. FUP Date) + 4 amount cols + Tax Benef. + Deps/X-charge
+  const LEADING_COLS = 8;
+  const totalCols = 14;
+
+  const renderTotalRow = (
+    key: string,
+    label: string,
+    leftText: string | null,
+    tier1: number,
+    tier2: number
+  ) => (
+    <tr key={key} className="font-bold">
+      <td colSpan={LEADING_COLS} className="px-1 pt-1.5 pb-1">
+        <div className="flex justify-between">
+          <span>{leftText}</span>
+          <span className="pr-3">{label}</span>
+        </div>
+      </td>
+      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+        <span style={totalValueStyle}>{tier1.toFixed(2)}</span>
+      </td>
+      <td></td>
+      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+        <span style={totalValueStyle}>{tier2.toFixed(2)}</span>
+      </td>
+      <td></td>
+      <td colSpan={2}></td>
+    </tr>
+  );
 
   return (
     <div className="space-y-6 w-full">
@@ -319,65 +397,27 @@ export default function PremiumOutstandingReportView({
         </div>
       </div>
 
-      {/* Main Printable Document Layout */}
+      {/* Printable Statement — plain LIC-style register (same look as Policy Register) */}
       <div
         ref={reportRef}
-        style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-        className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 space-y-6 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        {/* Advisor Letterhead */}
-        <div style={{ borderBottom: "2px solid #0B1220" }} className="flex justify-between items-start pb-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-              <span className="text-[10px] bg-[#0B1220] text-[#E8C77A] font-bold px-2 py-0.5 rounded uppercase tracking-widest">
-                LIC Authorized Advisor
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-[#B8873A]">MBA in Insurance & Finance</p>
-            <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-              84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
-            </p>
-            <div className="flex items-center gap-4 text-xs font-medium text-slate-700 pt-1">
-              <span>Phone: 9822452896</span>
-              <span>Email: office@jayantmahbole.com</span>
-            </div>
-          </div>
-
-          <div className="text-right space-y-1.5">
-            <div className="inline-block bg-[#0B1220] text-[#E8C77A] px-4 py-2 rounded-xl text-right border border-[#B8873A]/40 shadow-sm">
-              <p className="text-xs font-bold tracking-widest uppercase">Life Insurance Corporation</p>
-              <p className="text-[10px] text-slate-300">Official Premium Outstanding Statement</p>
-            </div>
-            <p className="text-xs font-bold text-slate-700 pt-1">
-              Date: {formData.reportDate ? fmtDate(formData.reportDate) : fmtDate(new Date())}
-            </p>
-          </div>
-        </div>
-
-        {/* Title Banner */}
-        <div className="bg-[#0B1220] text-white rounded-xl px-5 py-3 flex items-center justify-between border-l-4 border-[#B8873A] shadow-sm">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
-            Premium Outstanding — {getReportHeaderTitle()}
-          </h2>
-          <div className="text-right text-xs text-[#E8C77A] font-bold">
+        {/* Report title line */}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            Premium Outstanding — {getReportHeaderTitle()} as on {reportDateStr}
+          </span>
+          <span>
             Groups: {groupData.length} | Policies: {grandTotalPolicies}
-          </div>
+          </span>
+        </div>
+        <div className="pb-1 text-[9px] font-normal">
+          Premium Outstanding between {fmtDate(windowFrom)} and {fmtDate(formData.fupDatesUpto)}
         </div>
 
-        {/* Report Meta Line */}
-        <div className="text-[11px] font-semibold text-slate-800 px-1 space-y-0.5">
-          <div className="flex justify-between">
-            <span>
-              Premium Outstanding between {fmtDate(windowFrom)} and {fmtDate(formData.fupDatesUpto)}
-            </span>
-            <span>Page 1 of 1</span>
-          </div>
-        </div>
-
-        {/* Premium Outstanding — group cards (same proven structure as Policy Register) */}
         {groupData.length === 0 ? (
-          <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
+          <div className="mt-6 p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
             <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
               <FilterX size={32} />
             </div>
@@ -393,188 +433,171 @@ export default function PremiumOutstandingReportView({
             </button>
           </div>
         ) : (
-        <div className="space-y-6">
-          {groupData.map((group) => (
-            <div key={group.groupCode} className="space-y-3 rounded-xl border border-slate-300 p-4 bg-white shadow-xs">
-              {/* Group Banner */}
-              <div className="bg-[#0B1220] text-white p-3.5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#B8873A]/40">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-[#B8873A] text-[#0B1220] font-bold px-2 py-0.5 rounded font-mono">
-                      {group.groupCode}
-                    </span>
-                    <h3 className="font-bold text-sm text-[#E8C77A]">{group.groupHeadName}</h3>
-                    {showPan && (
-                      <span className="text-[10px] bg-slate-800 text-[#E8C77A] font-bold px-2 py-0.5 rounded border border-[#B8873A]/40">
-                        PAN: {group.pan}
-                      </span>
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="font-bold">
+                <th rowSpan={2} className="px-1 py-1 text-left whitespace-nowrap" style={thStyle}>Policy No.</th>
+                <th rowSpan={2} className="px-1 py-1 text-center" style={thStyle}>Ag<br />Cd</th>
+                <th rowSpan={2} className="px-1 py-1" style={thStyle}>Comm.<br />Date</th>
+                <th rowSpan={2} className="px-1 py-1" style={thStyle}>Pl/<br />Tm/Pt</th>
+                <th rowSpan={2} className="px-1 py-1 text-center" style={thStyle}>Md</th>
+                <th rowSpan={2} className="px-1 py-1" style={thStyle}>Brn</th>
+                <th rowSpan={2} className="px-1 py-1 text-right" style={thStyle}>Instl.<br />Premium</th>
+                <th rowSpan={2} className="px-1 py-1" style={thStyle}>FUP<br />Date</th>
+                <th
+                  colSpan={4}
+                  className="px-1 py-1 text-center"
+                  style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}
+                >
+                  Amount to be Paid (Upto)
+                </th>
+                <th rowSpan={2} className="px-1 py-1 text-center" style={thStyle}>Tax<br />Benef.</th>
+                <th rowSpan={2} className="px-1 py-1 text-center" style={thStyle}>Deps./<br />X-charge</th>
+              </tr>
+              <tr className="font-bold">
+                <th className="px-1 py-1 text-right" style={thSubStyle}>Rs.</th>
+                <th className="px-1 py-1" style={thSubStyle}>dd/mm</th>
+                <th className="px-1 py-1 text-right" style={thSubStyle}>Rs.</th>
+                <th className="px-1 py-1" style={thSubStyle}>dd/mm</th>
+              </tr>
+            </thead>
+
+            {groupData.map((group) => (
+              <tbody key={group.groupCode}>
+                {/* Centered group heading */}
+                <tr>
+                  <td colSpan={totalCols} className="pt-3 pb-1 text-center">
+                    <div className="text-[13px] font-bold">
+                      {group.groupCode}: {group.groupHeadName}
+                      {showPan && <span className="text-[10px] font-normal"> &nbsp;(PAN: {group.pan})</span>}
+                      {showGst && <span className="text-[10px] font-normal"> &nbsp;(GST: {group.gst})</span>}
+                    </div>
+                    {(showMobile || showEmail) && (
+                      <div>
+                        {showMobile && <span>Mobile : {group.mobile}</span>}
+                        {showMobile && showEmail && <span>&nbsp;&nbsp;&nbsp;</span>}
+                        {showEmail && <span>Email : {group.email}</span>}
+                      </div>
                     )}
-                    {showGst && (
-                      <span className="text-[10px] bg-slate-800 text-[#E8C77A] font-bold px-2 py-0.5 rounded border border-[#B8873A]/40">
-                        GST: {group.gst}
-                      </span>
-                    )}
-                  </div>
-                  {showAddress && (
-                    <p className="text-[11px] text-slate-300 pt-0.5">Address: {group.address}</p>
-                  )}
-                </div>
+                    {showAddress && <div>Address : {group.address}</div>}
+                  </td>
+                </tr>
 
-                <div className="text-left sm:text-right space-y-0.5 text-[11px] text-slate-300">
-                  {showMobile && <p>Mobile: {group.mobile}</p>}
-                  {showEmail && <p>Email: {group.email}</p>}
-                </div>
-              </div>
-
-              {/* Member Sections */}
-              {group.members.map((member: any) => (
-                <div key={member.name} className="space-y-2 pt-1">
-                  <div className="flex justify-between items-center bg-slate-100 px-3 py-1.5 rounded-md border-l-4 border-[#0B1220] text-xs font-bold text-slate-900">
-                    <span>{member.name}</span>
-                    {showDob && member.dob && (
-                      <span className="font-mono text-slate-600">DOB : {member.dob}</span>
-                    )}
-                  </div>
-
-                  <div className="overflow-x-auto rounded-lg border border-slate-300">
-                    <table className="w-full text-left text-[11px] border-collapse">
-                      <thead>
-                        <tr className="bg-slate-200 border-y border-slate-400 font-bold text-slate-900">
-                          <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Policy No.</th>
-                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Ag Cd</th>
-                          <th rowSpan={2} className="py-2 px-1 align-bottom">Comm. Date</th>
-                          <th rowSpan={2} className="py-2 px-1 align-bottom">Pl/Tm/Pt</th>
-                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Md</th>
-                          <th rowSpan={2} className="py-2 px-1 align-bottom">Brn</th>
-                          <th rowSpan={2} className="py-2 px-1 text-right align-bottom">Instl. Premium</th>
-                          <th rowSpan={2} className="py-2 px-1 align-bottom">FUP Date</th>
-                          <th colSpan={4} className="py-1 px-1 text-center border-b border-slate-400">
-                            Amount to be Paid (Upto)
-                          </th>
-                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Tax Benef.</th>
-                          <th rowSpan={2} className="py-2 px-1 text-center align-bottom">Deps./ X-charge</th>
-                        </tr>
-                        <tr className="bg-slate-200 border-b border-slate-400 font-bold text-slate-900">
-                          <th className="py-1 px-1 text-right">Rs.</th>
-                          <th className="py-1 px-1">dd/mm</th>
-                          <th className="py-1 px-1 text-right">Rs.</th>
-                          <th className="py-1 px-1">dd/mm</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {member.policies.map((p: any) => (
-                          <tr key={p.policyNo} className="hover:bg-slate-50">
-                            <td className="py-1.5 px-1 text-right font-mono font-bold text-[#0B1220]">
-                              {p.policyNo}
-                            </td>
-                            <td className="py-1.5 px-1 text-center font-bold">{p.agCd}</td>
-                            <td className="py-1.5 px-1">{p.commDate}</td>
-                            <td className="py-1.5 px-1 font-medium">{p.planTermPpt}</td>
-                            <td className="py-1.5 px-1 text-center font-bold">{p.md}</td>
-                            <td className="py-1.5 px-1 font-mono">{p.brn}</td>
-                            <td className="py-1.5 px-1 text-right font-mono">{p.installmentPremium.toFixed(2)}</td>
-                            <td className="py-1.5 px-1 font-medium text-slate-700">{p.fupDate}</td>
-                            <td className="py-1.5 px-1 text-right font-bold font-mono text-red-600">
-                              {p.tier1Amount.toFixed(2)}
-                            </td>
-                            <td className="py-1.5 px-1 text-slate-700">{p.tier1Date}</td>
-                            <td className="py-1.5 px-1 text-right font-bold font-mono text-red-600">
-                              {p.tier2Amount.toFixed(2)}
-                            </td>
-                            <td className="py-1.5 px-1 text-slate-700">{p.tier2Date}</td>
-                            <td className="py-1.5 px-1 text-center">{p.taxBen}</td>
-                            <td className="py-1.5 px-1 text-center">{p.depsXCharge}</td>
-                          </tr>
-                        ))}
-
-                        <tr className="border-t-2 border-slate-300 font-bold text-[11px] bg-slate-50">
-                          <td colSpan={8} className="text-right pr-4 py-1.5 text-slate-700 uppercase tracking-wider">
-                            Member Total :
-                          </td>
-                          <td className="text-right py-1.5 font-mono text-[#0B1220]">
-                            {member.memberTotalTier1.toFixed(2)}
-                          </td>
-                          <td></td>
-                          <td className="text-right py-1.5 font-mono text-[#0B1220]">
-                            {member.memberTotalTier2.toFixed(2)}
-                          </td>
-                          <td></td>
-                          <td colSpan={2}></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
-
-              {/* Group Total Footer */}
-              <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg font-bold text-xs border-t-2 border-[#B8873A]">
-                <table className="w-full border-collapse">
-                  <tbody>
+                {group.members.map((member: any) => (
+                  <Fragment key={member.name}>
+                    {/* Member name (bold) */}
                     <tr>
-                      <td className="text-left font-bold">Total Policies for Group : {group.totalPolicies}</td>
-                      <td className="text-right font-bold text-[#E8C77A] pr-4">Group Total :</td>
-                      <td className="text-right font-mono text-[#E8C77A] w-28">{group.groupTotalTier1.toFixed(2)}</td>
-                      <td className="text-right font-mono w-28">{group.groupTotalTier2.toFixed(2)}</td>
+                      <td colSpan={totalCols} className="pt-2 pb-0.5 text-[11px] font-bold">
+                        {member.name}
+                        {showDob && member.dob && (
+                          <span className="font-normal ml-3">DOB : {member.dob}</span>
+                        )}
+                      </td>
                     </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-        </div>
+
+                    {member.policies.map((p: any) => (
+                      <tr key={p.policyNo}>
+                        <td className="px-1 py-0.5 text-left font-mono whitespace-nowrap">{p.policyNo}</td>
+                        <td className="px-1 py-0.5 text-center">{p.agCd}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.commDate}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.planTermPpt}</td>
+                        <td className="px-1 py-0.5 text-center">{p.md}</td>
+                        <td className="px-1 py-0.5">{p.brn}</td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.installmentPremium.toFixed(2)}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.fupDate}</td>
+                        <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.tier1Amount.toFixed(2)}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.tier1Date}</td>
+                        <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.tier2Amount.toFixed(2)}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.tier2Date}</td>
+                        <td className="px-1 py-0.5 text-center">{p.taxBen}</td>
+                        <td className="px-1 py-0.5 text-center">{p.depsXCharge}</td>
+                      </tr>
+                    ))}
+
+                    {/* Member total — only when it adds information */}
+                    {member.policies.length > 1 &&
+                      group.members.length > 1 &&
+                      renderTotalRow(
+                        `mt-${member.name}`,
+                        "Member Total :",
+                        null,
+                        member.memberTotalTier1,
+                        member.memberTotalTier2
+                      )}
+                  </Fragment>
+                ))}
+
+                {/* Group total */}
+                {group.totalPolicies > 1 &&
+                  renderTotalRow(
+                    `gt-${group.groupCode}`,
+                    "Group Total :",
+                    `Total Policies for Group : ${group.totalPolicies}`,
+                    group.groupTotalTier1,
+                    group.groupTotalTier2
+                  )}
+
+                {/* Thin separator line between groups */}
+                <tr>
+                  <td
+                    colSpan={totalCols}
+                    style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}
+                  ></td>
+                </tr>
+              </tbody>
+            ))}
+          </table>
         )}
 
-        {/* Summary Box */}
+        {/* Grand summary */}
         {groupData.length > 0 && (
-          <div className="pt-2 flex justify-end">
-            <div className="w-full max-w-xl border-2 border-[#0B1220] rounded-xl overflow-hidden shadow-md">
-              <div className="bg-[#0B1220] text-[#E8C77A] p-2.5 text-xs font-bold uppercase tracking-wider border-b border-[#B8873A]">
-                Grand Premium Outstanding Summary
-              </div>
-              <table className="w-full text-left text-xs font-semibold border-collapse">
-                <thead>
-                  <tr className="bg-slate-100 border-b border-slate-300 text-slate-900">
-                    <th className="p-2.5 border-r border-slate-300"></th>
-                    <th className="p-2.5 text-right border-r border-slate-300">Amount (without Latefee)</th>
-                    <th className="p-2.5 text-right">Amount (with Latefee)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  <tr className="bg-[#0B1220] text-white font-bold border-t-2 border-[#B8873A]">
-                    <td className="p-2.5 border-r border-slate-700 text-[#E8C77A]">Grand Total</td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-700 text-[#E8C77A]">
+          <div className="pt-5 flex justify-end">
+            <table className="w-full max-w-xl border-collapse text-[11px]">
+              <thead>
+                <tr className="font-bold">
+                  <th className="px-1 py-1 text-left" style={thStyle}>Grand Premium Outstanding</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Amount (without Latefee)</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Amount (with Latefee)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="font-bold">
+                  <td className="px-1 pt-1.5 pb-1">Grand Total</td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>
                       {grandTotalTier1.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-2.5 text-right font-mono text-[#E8C77A]">
+                    </span>
+                  </td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>
                       {grandTotalTier2.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                  <tr className="bg-slate-50 font-bold">
-                    <td className="p-2.5 border-r border-slate-300 text-slate-800">Total No. of Policies</td>
-                    <td colSpan={2} className="p-2.5 text-center font-mono text-sm text-[#0B1220]">
-                      {grandTotalPolicies} Policies
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </span>
+                  </td>
+                </tr>
+                <tr className="font-bold">
+                  <td className="px-1 py-1">Total No. of Policies</td>
+                  <td colSpan={2} className="px-1 py-1 text-right font-mono">
+                    {grandTotalPolicies} Policies
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* Legend Footer */}
-        <div className="pt-6 border-t border-slate-300 space-y-2 text-[10px] text-slate-700 font-medium">
-          <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span><strong className="font-bold text-[#0B1220]">m :</strong> SSS Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">M :</strong> Monthly Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">Y :</strong> NACH Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">S :</strong> Cheque dishonoured/ Debit fail</span>
+        {/* Legend footer */}
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>m :</strong> SSS Mode</span>
+            <span><strong>M :</strong> Monthly Mode</span>
+            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>S :</strong> Cheque dishonoured/ Debit fail</span>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span><strong className="font-bold text-[#0B1220]">A :</strong> APPS Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">ρ :</strong> PAN Card Registered</span>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>A :</strong> APPS Mode</span>
+            <span><strong>ρ :</strong> PAN Card Registered</span>
           </div>
-          <div className="flex justify-between items-center pt-3 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+          <div className="flex justify-between font-mono text-[8px] pt-1">
             <span>Statement Code: DSS000019899</span>
             <span>Generated via Premium Outstanding Engine</span>
           </div>

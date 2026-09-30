@@ -239,13 +239,13 @@ export default function CustomerDetailsPage({
           <button
             type="button"
             onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:bg-blue-50 hover:text-[#1877F2] hover:border-blue-200 cursor-pointer"
           >
             <ArrowLeft size={16} />
           </button>
           <div>
             <nav className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-[#1877F2]">Customer Group</button>
+              <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))} className="hover:text-[#1877F2] cursor-pointer">Customer Group</button>
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">{groupName}</span>
             </nav>
@@ -258,14 +258,14 @@ export default function CustomerDetailsPage({
             <button
               type="button"
               onClick={() => (isModal ? onOpenModal?.("group-edit", currentCustomer.id) : router.push(`/dashboard/customers/${currentCustomer.id}/edit`))}
-              className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-200 hover:text-[#1877F2] text-slate-700 rounded-xl font-semibold text-sm transition-all shadow-sm cursor-pointer"
             >
               <SquarePen size={14} />
               Edit
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-white text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50 shadow-sm cursor-pointer"
             >
               <Trash2 size={14} />
               Delete
@@ -319,7 +319,7 @@ export default function CustomerDetailsPage({
         <button
           type="button"
           onClick={() => setActiveSubTab("overview")}
-          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all ${
+          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeSubTab === "overview"
               ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
               : "text-slate-500 hover:text-[#1877F2] hover:bg-blue-50/50"
@@ -330,7 +330,7 @@ export default function CustomerDetailsPage({
         <button
           type="button"
           onClick={() => setActiveSubTab("members")}
-          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${
+          className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
             activeSubTab === "members"
               ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
               : "text-slate-500 hover:text-[#1877F2] hover:bg-blue-50/50"
@@ -493,7 +493,7 @@ export default function CustomerDetailsPage({
                           <button
                             type="button"
                             onClick={() => onOpenModal?.("master-details", member.id)}
-                            className="font-semibold text-slate-900 hover:text-[#1877F2] transition-colors flex items-center gap-1 group"
+                            className="font-semibold text-slate-900 hover:text-[#1877F2] transition-colors flex items-center gap-1 group cursor-pointer"
                           >
                             {fullName}
                             <ChevronRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#1877F2]" />
@@ -588,14 +588,14 @@ export default function CustomerDetailsPage({
               <button
                 disabled={isDeleting}
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 disabled={isDeleting}
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>

@@ -187,6 +187,7 @@ export const getLapsedPolicies = async (
       },
       product: { select: { planNumber: true, productName: true } },
       premiumMode: { select: { modeName: true, months: true } },
+      status: { select: { statusName: true, statusCode: true } },
       premium: {
         select: { installmentPremium: true, totalInstallmentPremium: true },
       },
@@ -213,6 +214,11 @@ export const getLapsedPolicies = async (
 
     const commencement = startOfDay(policy.commencementDate);
     if (commencement > today) continue;
+
+    // Only include policies whose status is actually LAPSED.
+    // This prevents policies that have been paid (and had their status
+    // restored to IN-FORCE/ACTIVE) from still appearing in the lapsed list.
+    if ((policy.status?.statusCode ?? "").trim().toUpperCase() !== "LAPSED") continue;
 
     // Expected installments due so far, from the premium schedule.
     const dueInstallments = generateDueInstallments(
@@ -258,6 +264,11 @@ export const getLapsedPolicies = async (
       }
       return false;
     };
+
+    // If the policy's own status is NOT "Lapsed", it should never appear
+    // in the lapsed list — even if there are unpaid installments.
+    // (e.g. premium paid → status changed back to Active by the payment flow)
+    if (!isStatusLapsed(policy.status)) continue;
 
     // Oldest unpaid installment (list is ordered by due date asc).
     const oldestUnpaid = dueInstallments.find(

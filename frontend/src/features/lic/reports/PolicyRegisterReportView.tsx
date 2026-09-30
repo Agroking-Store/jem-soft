@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, Fragment } from "react";
 import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { PolicyRegisterFormData } from "./PolicyRegisterForm";
 import html2canvas from "html2canvas-pro";
@@ -485,17 +485,17 @@ export default function PolicyRegisterReportView({
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
-    const toastId = toast.loading("Generating Pristine Executive PDF...");
+    const toastId = toast.loading("Generating PDF...");
 
     const elem = reportRef.current;
     const originalWidth = elem.style.width;
 
     try {
-      // Temporarily set strict A4 print width (820px) for crystal-clear vector scale
-      elem.style.width = "820px";
+      // Temporarily set print width (900px) for crystal-clear vector scale
+      elem.style.width = "900px";
 
       const canvas = await html2canvas(elem, {
-        scale: 2.5,
+        scale: 2, // 2x is plenty sharp for A4 print
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
@@ -505,26 +505,54 @@ export default function PolicyRegisterReportView({
       // Restore full width screen styling
       elem.style.width = originalWidth;
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // How many canvas pixels fit on one A4 page at this width
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
-      while (heightLeft > 5) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      let renderedPx = 0;
+      let pageIndex = 0;
+
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+
+        // Each PDF page gets ONLY its own slice (not the whole canvas again)
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0, renderedPx, canvas.width, sliceHeightPx, // source slice
+          0, 0, canvas.width, sliceHeightPx           // destination
+        );
+
+        // JPEG @ 0.85 is ~10x smaller than PNG for text-heavy pages
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          0,
+          pageWidthMm,
+          sliceHeightPx / pxPerMm,
+          undefined,
+          "FAST"
+        );
+
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
 
       pdf.save(`Policy_Register_${formData.reportDate || "Report"}.pdf`);
-      toast.success("Executive PDF exported successfully!", { id: toastId });
+      toast.success("PDF exported successfully!", { id: toastId });
     } catch (err: any) {
       console.error(err);
       elem.style.width = originalWidth;
@@ -541,6 +569,65 @@ export default function PolicyRegisterReportView({
   const showMobile = formData.reportOptions?.mobile;
   const showEmail = formData.reportOptions?.email;
   const showStatementWithPan = formData.reportOptions?.statementWithPan;
+
+  // Group heading: show "CODE: Name" only where the code is a real group code
+  // (in Area / Branch / Plan / Memberwise modes the name already carries the label)
+  const showCodeInHeading = [
+    "groupsWise",
+    "policyNoWise",
+    "commencementDatewise",
+    "completionDatewise",
+  ].includes(formData.sortingOption);
+
+  const reportDateStr = formData.reportDate
+    ? new Date(formData.reportDate).toLocaleDateString("en-GB")
+    : new Date().toLocaleDateString("en-GB");
+
+  // Columns before "Premium": Policy No, Ag, Com.Date, Pl/Tm/Pt, Md, Brn, FUP, Status, Mat.Date
+  const LEADING_COLS = 9;
+  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + 1;
+
+  const BLACK = "#000";
+  const thStyle: React.CSSProperties = {
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `1px solid ${BLACK}`,
+    verticalAlign: "bottom",
+  };
+  const totalValueStyle: React.CSSProperties = {
+    display: "inline-block",
+    borderTop: `1px solid ${BLACK}`,
+    borderBottom: `3px double ${BLACK}`,
+    padding: "1px 2px",
+  };
+
+  const renderTotalRow = (
+    key: string,
+    label: string,
+    leftText: string | null,
+    pa: number,
+    sum: number,
+    acc: number
+  ) => (
+    <tr key={key} className="font-bold">
+      <td colSpan={LEADING_COLS} className="px-1 pt-1.5 pb-1">
+        <div className="flex justify-between">
+          <span>{leftText}</span>
+          <span className="pr-3">{label}</span>
+        </div>
+      </td>
+      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+        <span style={totalValueStyle}>p.a. {pa.toFixed(2)}</span>
+      </td>
+      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+        <span style={totalValueStyle}>{sum.toLocaleString("en-IN")}</span>
+      </td>
+      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+        <span style={totalValueStyle}>{acc.toLocaleString("en-IN")}</span>
+      </td>
+      {showRiderDetails && <td colSpan={3}></td>}
+      <td></td>
+    </tr>
+  );
 
   return (
     <div className="space-y-6 w-full">
@@ -571,63 +658,27 @@ export default function PolicyRegisterReportView({
         </div>
       </div>
 
-      {/* Main Printable Document Canvas — 100% FULL WIDTH MATCHING TOP BAR */}
+      {/* Printable Statement — plain LIC-style register */}
       <div
         ref={reportRef}
-        style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-        className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 space-y-6 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        {/* Advisor Letterhead Header */}
-        <div style={{ borderBottom: "2px solid #0B1220" }} className="flex justify-between items-start pb-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">
-                Jayant Mahabole
-              </h1>
-              <span className="text-[10px] bg-[#0B1220] text-[#E8C77A] font-bold px-2 py-0.5 rounded uppercase tracking-widest">
-                LIC Authorized Advisor
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-[#B8873A]">MBA in Insurance & Finance</p>
-            <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-              84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
-            </p>
-            <div className="flex items-center gap-4 text-xs font-medium text-slate-700 pt-1">
-              <span>Phone: 9822452896</span>
-              <span>Email: office@jayantmahbole.com</span>
-            </div>
-          </div>
-
-          <div className="text-right space-y-1.5">
-            <div className="inline-block bg-[#0B1220] text-[#E8C77A] px-4 py-2 rounded-xl text-right border border-[#B8873A]/40 shadow-sm">
-              <p className="text-xs font-bold tracking-widest uppercase">
-                Life Insurance Corporation
-              </p>
-              <p className="text-[10px] text-slate-300">Official Policy Register Statement</p>
-            </div>
-            <p className="text-xs font-bold text-slate-700 pt-1">
-              Date:{" "}
-              {formData.reportDate
-                ? new Date(formData.reportDate).toLocaleDateString("en-GB")
-                : new Date().toLocaleDateString("en-GB")}
-            </p>
-          </div>
+        {/* Report title line (like "LIC Premiums Due between ... ") */}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            {getReportTitle()} as on {reportDateStr}
+          </span>
+          <span>
+            Groups: {groupData.length} | Policies: {grandTotalPolicies}
+          </span>
         </div>
-
-        {/* Title Banner */}
-        <div className="bg-[#0B1220] text-white rounded-xl px-5 py-3 flex items-center justify-between border-l-4 border-[#B8873A] shadow-sm">
-          <div>
-            <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">
-              {getReportTitle()}
-            </h2>
-          </div>
-          <div className="text-right text-xs text-[#E8C77A] font-bold">
-            Total Groups: {groupData.length} | Policies: {grandTotalPolicies}
-          </div>
-        </div>
+        {activeFiltersSummary && (
+          <div className="pb-1 text-[9px] font-normal">{activeFiltersSummary}</div>
+        )}
 
         {groupData.length === 0 ? (
-          <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
+          <div className="mt-6 p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
             <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
               <FilterX size={32} />
             </div>
@@ -643,283 +694,250 @@ export default function PolicyRegisterReportView({
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="font-bold">
+                <th className="px-1 py-1 text-left whitespace-nowrap" style={thStyle}>Policy No</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Ag<br />Cd</th>
+                <th className="px-1 py-1" style={thStyle}>Com.<br />Date</th>
+                <th className="px-1 py-1" style={thStyle}>Pl/<br />Tm/Pt</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Md</th>
+                <th className="px-1 py-1" style={thStyle}>Brn</th>
+                <th className="px-1 py-1" style={thStyle}>FUP<br />Date</th>
+                <th className="px-1 py-1" style={thStyle}>Status</th>
+                <th className="px-1 py-1" style={thStyle}>Mat.<br />Date</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Premium<br />Amount</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Sum<br />Assured</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Acc.<br />Benefit</th>
+                {showRiderDetails && (
+                  <>
+                    <th className="px-1 py-1 text-right" style={thStyle}>Term<br />Rider</th>
+                    <th className="px-1 py-1 text-right" style={thStyle}>Critical<br />Illness</th>
+                    <th className="px-1 py-1 text-center" style={thStyle}>PWB</th>
+                  </>
+                )}
+                <th className="px-1 py-1" style={thStyle}>Nominee</th>
+              </tr>
+            </thead>
+
             {groupData.map((group, groupIdx) => (
-              <div
+              <tbody
                 key={group.groupCode}
-                className={`space-y-3 rounded-xl border border-slate-300 p-4 bg-white shadow-xs ${
+                className={
                   formData.reportOptions?.pageBreakOnGroupChange && groupIdx > 0
                     ? "break-before-page"
                     : ""
-                }`}
+                }
               >
-                <div className="bg-[#0B1220] text-white p-3.5 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#B8873A]/40">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs bg-[#B8873A] text-[#0B1220] font-bold px-2 py-0.5 rounded font-mono">
-                        {group.groupCode}
-                      </span>
-                      <h3 className="font-bold text-sm text-[#E8C77A]">
-                        {group.groupHeadName}
-                      </h3>
+                {/* Centered group heading */}
+                <tr>
+                  <td colSpan={totalCols} className="pt-3 pb-1 text-center">
+                    <div className="text-[13px] font-bold">
+                      {showCodeInHeading ? `${group.groupCode}: ` : ""}
+                      {group.groupHeadName}
                       {showStatementWithPan && (
-                        <span className="text-[10px] bg-slate-800 text-[#E8C77A] font-bold px-2 py-0.5 rounded border border-[#B8873A]/40">
-                          PAN: {group.pan}
-                        </span>
+                        <span className="text-[10px] font-normal"> &nbsp;(PAN: {group.pan})</span>
                       )}
                     </div>
-                    {showAddress && (
-                      <p className="text-[11px] text-slate-300 pt-0.5">
-                        Address: {group.address}
-                      </p>
+                    {showMobile && <div>Mobile : {group.mobile}</div>}
+                    {(showLandline || showEmail) && (
+                      <div>
+                        {showLandline && <span>Tel(O) : {group.landline}</span>}
+                        {showLandline && showEmail && <span>&nbsp;&nbsp;&nbsp;</span>}
+                        {showEmail && <span>Email : {group.email}</span>}
+                      </div>
                     )}
-                  </div>
-
-                  <div className="text-left sm:text-right space-y-0.5 text-[11px] text-slate-300">
-                    {showMobile && <p>Mobile: {group.mobile}</p>}
-                    {showLandline && <p>Landline: {group.landline}</p>}
-                    {showEmail && <p>Email: {group.email}</p>}
-                  </div>
-                </div>
+                    {showAddress && <div>Address : {group.address}</div>}
+                  </td>
+                </tr>
 
                 {group.members.map((member: any) => (
-                  <div key={member.name} className="space-y-2 pt-1">
-                    <div className="flex justify-between items-center bg-slate-100 px-3 py-1.5 rounded-md border-l-4 border-[#0B1220] text-xs font-bold text-slate-900">
-                      <span>{member.name}</span>
-                      {member.dob && <span className="font-mono text-slate-600">DOB : {member.dob}</span>}
-                    </div>
+                  <Fragment key={member.name}>
+                    {/* Member name (bold) */}
+                    <tr>
+                      <td colSpan={totalCols} className="pt-2 pb-0.5 text-[11px] font-bold">
+                        {member.name}
+                        {member.dob && (
+                          <span className="font-normal ml-3">DOB : {member.dob}</span>
+                        )}
+                      </td>
+                    </tr>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-[11px] border-collapse">
-                        <thead>
-                          <tr className="bg-slate-200 border-y border-slate-400 font-bold text-slate-900">
-                            <th className="py-2 px-1 text-right">Policy No.</th>
-                            <th className="py-2 px-1 text-center">Ag Cd</th>
-                            <th className="py-2 px-1">Com. Date</th>
-                            <th className="py-2 px-1">Pl/Tm/Pt</th>
-                            <th className="py-2 px-1">FUP Date</th>
-                            <th className="py-2 px-1">Status</th>
-                            <th className="py-2 px-1">Mat.Date</th>
-                            <th className="py-2 px-1">Brn</th>
-                            <th className="py-2 px-1 text-center">Md</th>
-                            <th className="py-2 px-1 text-right">Premium</th>
-                            <th className="py-2 px-1 text-right">Sum Assured</th>
-                            <th className="py-2 px-1 text-right">Acc. Benefit</th>
-                            {showRiderDetails && (
-                              <>
-                                <th className="py-2 px-1 text-right">Term Rider</th>
-                                <th className="py-2 px-1 text-right">Critical Illness</th>
-                                <th className="py-2 px-1 text-center">PWB</th>
-                              </>
-                            )}
-                            <th className="py-2 px-1">Nominee</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                          {member.policies.map((p: any) => (
-                            <tr key={p.policyNo} className="hover:bg-slate-50">
-                              <td className="py-1.5 px-1 text-right font-mono font-bold text-[#0B1220]">
-                                {p.policyNo}
-                              </td>
-                              <td className="py-1.5 px-1 text-center font-bold">{p.agCd}</td>
-                              <td className="py-1.5 px-1">{p.comDate}</td>
-                              <td className="py-1.5 px-1 font-medium">{p.planTermPpt}</td>
-                              <td className="py-1.5 px-1 font-medium text-slate-700">{p.fupDate}</td>
-                              <td className="py-1.5 px-1">
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  p.status === "Inforce"
-                                    ? "bg-emerald-100 text-emerald-800"
-                                    : p.status.includes("Paidup")
-                                    ? "bg-amber-100 text-amber-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}>
-                                  {p.status}
-                                </span>
-                              </td>
-                              <td className="py-1.5 px-1">{p.matDate}</td>
-                              <td className="py-1.5 px-1 font-mono">{p.brn}</td>
-                              <td className="py-1.5 px-1 text-center font-bold">{p.md}</td>
-                              <td className="py-1.5 px-1 text-right font-mono font-bold text-[#0B1220]">
-                                {p.premium}
-                              </td>
-                              <td className="py-1.5 px-1 text-right font-mono font-semibold">
-                                {p.sumAssured.toLocaleString("en-IN")}
-                              </td>
-                              <td className="py-1.5 px-1 text-right font-mono">
-                                {p.accBenefit.toLocaleString("en-IN")}
-                              </td>
-                              {showRiderDetails && (
-                                <>
-                                  <td className="py-1.5 px-1 text-right font-mono">{p.termRider}</td>
-                                  <td className="py-1.5 px-1 text-right font-mono">{p.criticalIllness}</td>
-                                  <td className="py-1.5 px-1 text-center font-bold">{p.pwb}</td>
-                                </>
-                              )}
-                              <td className="py-1.5 px-1 text-slate-800 font-medium truncate max-w-[140px]">
-                                {p.nominee}
-                              </td>
-                            </tr>
-                          ))}
+                    {member.policies.map((p: any) => (
+                      <tr key={p.policyNo}>
+                        <td className="px-1 py-0.5 text-left font-mono whitespace-nowrap">{p.policyNo}</td>
+                        <td className="px-1 py-0.5 text-center">{p.agCd}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.comDate}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.planTermPpt}</td>
+                        <td className="px-1 py-0.5 text-center">{p.md}</td>
+                        <td className="px-1 py-0.5">{p.brn}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.fupDate}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.status}</td>
+                        <td className="px-1 py-0.5 whitespace-nowrap">{p.matDate}</td>
+                        <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.premium}</td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">
+                          {p.sumAssured.toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">
+                          {p.accBenefit.toLocaleString("en-IN")}
+                        </td>
+                        {showRiderDetails && (
+                          <>
+                            <td className="px-1 py-0.5 text-right">{p.termRider}</td>
+                            <td className="px-1 py-0.5 text-right">{p.criticalIllness}</td>
+                            <td className="px-1 py-0.5 text-center">{p.pwb}</td>
+                          </>
+                        )}
+                        <td className="px-1 py-0.5">{p.nominee}</td>
+                      </tr>
+                    ))}
 
-                          <tr className="border-t-2 border-slate-300 font-bold text-[11px] bg-slate-50">
-                            <td colSpan={9} className="text-right pr-4 py-1.5 text-slate-700 uppercase tracking-wider">
-                              Member Total :
-                            </td>
-                            <td className="text-right py-1.5 font-mono text-[#0B1220]">
-                              p.a. {member.memberTotalPa.toFixed(2)}
-                            </td>
-                            <td className="text-right py-1.5 font-mono text-slate-900">
-                              {member.memberTotalSum.toLocaleString("en-IN")}
-                            </td>
-                            <td className="text-right py-1.5 font-mono text-slate-900">
-                              {member.memberTotalAcc.toLocaleString("en-IN")}
-                            </td>
-                            {showRiderDetails && <td colSpan={3}></td>}
-                            <td></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                    {/* Member total — only when it adds information */}
+                    {member.policies.length > 1 &&
+                      group.members.length > 1 &&
+                      renderTotalRow(
+                        `mt-${member.name}`,
+                        "Member Total :",
+                        null,
+                        member.memberTotalPa,
+                        member.memberTotalSum,
+                        member.memberTotalAcc
+                      )}
+                  </Fragment>
                 ))}
 
-                <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg font-bold text-xs border-t-2 border-[#B8873A]">
-                  <table className="w-full border-collapse">
-                    <tbody>
-                      <tr>
-                        <td className="text-left font-bold">Total Policies for Group : {group.totalPolicies}</td>
-                        <td className="text-right font-bold text-[#E8C77A] pr-4">Group Total :</td>
-                        <td className="text-right font-mono text-[#E8C77A] w-28">p.a. {group.groupTotalPa.toFixed(2)}</td>
-                        <td className="text-right font-mono w-28">{group.groupTotalSum.toLocaleString("en-IN")}</td>
-                        <td className="text-right font-mono w-28">{group.groupTotalAcc.toLocaleString("en-IN")}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                {/* Group total */}
+                {group.totalPolicies > 1 &&
+                  renderTotalRow(
+                    `gt-${group.groupCode}`,
+                    "Group Total :",
+                    `Total Policies for Group : ${group.totalPolicies}`,
+                    group.groupTotalPa,
+                    group.groupTotalSum,
+                    group.groupTotalAcc
+                  )}
+
+                {/* Thin separator line between groups */}
+                <tr>
+                  <td
+                    colSpan={totalCols}
+                    style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}
+                  ></td>
+                </tr>
+              </tbody>
             ))}
-          </div>
+          </table>
         )}
 
+        {/* Nominee list */}
         {showNomineeList && nomineeEntries.length > 0 && (
-          <div className="pt-2 space-y-2">
-            <div className="bg-[#0B1220] text-white px-4 py-2 rounded-xl flex items-center justify-between border-l-4 border-[#B8873A]">
-              <h3 className="text-xs font-bold text-[#E8C77A] uppercase tracking-wider">
-                Nominee Details List
-              </h3>
-              <span className="text-[10px] text-slate-300 font-mono">Total Nominees: {nomineeEntries.length}</span>
+          <div className="pt-6">
+            <div className="flex justify-between text-[11px] font-bold pb-0.5">
+              <span>Nominee Details List</span>
+              <span>Total Nominees: {nomineeEntries.length}</span>
             </div>
-
-            <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-              <table className="w-full text-left text-[11px]">
-                <thead>
-                  <tr className="bg-slate-100 font-bold border-b border-slate-300 text-slate-900">
-                    <th className="p-2 text-center w-12">Sr. No</th>
-                    <th className="p-2 font-mono">Policy No.</th>
-                    <th className="p-2">Nominee Name</th>
-                    <th className="p-2">Relation</th>
-                    <th className="p-2 text-center">Share %</th>
-                    <th className="p-2 text-center">Nominee Type</th>
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="font-bold">
+                  <th className="px-1 py-1 text-center w-12" style={thStyle}>Sr. No</th>
+                  <th className="px-1 py-1" style={thStyle}>Policy No.</th>
+                  <th className="px-1 py-1" style={thStyle}>Nominee Name</th>
+                  <th className="px-1 py-1" style={thStyle}>Relation</th>
+                  <th className="px-1 py-1 text-center" style={thStyle}>Share %</th>
+                  <th className="px-1 py-1 text-center" style={thStyle}>Nominee Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nomineeEntries.map((nom) => (
+                  <tr key={`${nom.policyNo}-${nom.srNo}`}>
+                    <td className="px-1 py-0.5 text-center">{nom.srNo}</td>
+                    <td className="px-1 py-0.5 font-mono">{nom.policyNo}</td>
+                    <td className="px-1 py-0.5 font-bold">{nom.nomineeName}</td>
+                    <td className="px-1 py-0.5">{nom.relation}</td>
+                    <td className="px-1 py-0.5 text-center font-mono">{nom.sharePct}</td>
+                    <td className="px-1 py-0.5 text-center">{nom.nomineeType}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {nomineeEntries.map((nom) => (
-                    <tr key={`${nom.policyNo}-${nom.srNo}`} className="hover:bg-slate-50">
-                      <td className="p-2 text-center font-bold text-slate-700">{nom.srNo}</td>
-                      <td className="p-2 font-mono font-bold text-[#0B1220]">{nom.policyNo}</td>
-                      <td className="p-2 font-bold text-slate-900">{nom.nomineeName}</td>
-                      <td className="p-2 text-slate-700">{nom.relation}</td>
-                      <td className="p-2 text-center font-mono font-bold text-emerald-700">{nom.sharePct}</td>
-                      <td className="p-2 text-center text-slate-700">{nom.nomineeType}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ borderBottom: `1px solid ${BLACK}` }} />
           </div>
         )}
 
+        {/* Grand summary */}
         {groupData.length > 0 && (
-          <div className="pt-4 flex justify-end">
-            <div className="w-full max-w-2xl border-2 border-[#0B1220] rounded-xl overflow-hidden shadow-md">
-              <div className="bg-[#0B1220] text-[#E8C77A] p-2.5 text-xs font-bold uppercase tracking-wider border-b border-[#B8873A]">
-                Grand Portfolio Summary Statement
-              </div>
-              <table className="w-full text-left text-xs font-semibold border-collapse">
-                <thead>
-                  <tr className="bg-slate-100 border-b border-slate-300 text-slate-900">
-                    <th className="p-2.5 border-r border-slate-300">Policy Category</th>
-                    <th className="p-2.5 text-right border-r border-slate-300">Premium</th>
-                    <th className="p-2.5 text-right border-r border-slate-300">Sum Assured</th>
-                    <th className="p-2.5 text-right">Accidental Benefit</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  <tr>
-                    <td className="p-2.5 font-bold border-r border-slate-300 bg-slate-50 text-slate-800">
-                      Total for Regular Policies ({regularPoliciesCount})
-                    </td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-300 text-[#0B1220]">
-                      {regularPaTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })} p.a
-                    </td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-300">
-                      {grandTotalSum.toLocaleString("en-IN")}
-                    </td>
-                    <td className="p-2.5 text-right font-mono">
-                      {grandTotalAcc.toLocaleString("en-IN")}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-bold border-r border-slate-300 bg-slate-50 text-slate-800">
-                      Total for Single Mode Policies ({singlePoliciesCount})
-                    </td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-300">
-                      {singlePaTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-300">0</td>
-                    <td className="p-2.5 text-right font-mono">0</td>
-                  </tr>
-                  <tr className="bg-[#0B1220] text-white font-bold border-t-2 border-[#B8873A]">
-                    <td className="p-2.5 border-r border-slate-700 text-[#E8C77A]">Grand Total Portfolio</td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-700 text-[#E8C77A]">
+          <div className="pt-5 flex justify-end">
+            <table className="w-full max-w-xl border-collapse text-[11px]">
+              <thead>
+                <tr className="font-bold">
+                  <th className="px-1 py-1 text-left" style={thStyle}>Policy Category</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Sum Assured</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Accidental Benefit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="px-1 py-0.5">Total for Regular Policies ({regularPoliciesCount})</td>
+                  <td className="px-1 py-0.5 text-right font-mono">
+                    {regularPaTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })} p.a
+                  </td>
+                  <td className="px-1 py-0.5 text-right font-mono">
+                    {grandTotalSum.toLocaleString("en-IN")}
+                  </td>
+                  <td className="px-1 py-0.5 text-right font-mono">
+                    {grandTotalAcc.toLocaleString("en-IN")}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-1 py-0.5">Total for Single Mode Policies ({singlePoliciesCount})</td>
+                  <td className="px-1 py-0.5 text-right font-mono">
+                    {singlePaTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-1 py-0.5 text-right font-mono">0</td>
+                  <td className="px-1 py-0.5 text-right font-mono">0</td>
+                </tr>
+                <tr className="font-bold">
+                  <td className="px-1 pt-1.5 pb-1">Grand Total Portfolio</td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>
                       {grandTotalPa.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-2.5 text-right font-mono border-r border-slate-700">
-                      {grandTotalSum.toLocaleString("en-IN")}
-                    </td>
-                    <td className="p-2.5 text-right font-mono">
-                      {grandTotalAcc.toLocaleString("en-IN")}
-                    </td>
-                  </tr>
-                  <tr className="bg-slate-50 font-bold">
-                    <td className="p-2.5 border-r border-slate-300 text-slate-800">Total No. of Policies</td>
-                    <td colSpan={3} className="p-2.5 text-center font-mono text-sm text-[#0B1220]">
-                      {grandTotalPolicies} Policies Active
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </span>
+                  </td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>{grandTotalSum.toLocaleString("en-IN")}</span>
+                  </td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>{grandTotalAcc.toLocaleString("en-IN")}</span>
+                  </td>
+                </tr>
+                <tr className="font-bold">
+                  <td className="px-1 py-1">Total No. of Policies</td>
+                  <td colSpan={3} className="px-1 py-1 text-right font-mono">
+                    {grandTotalPolicies} Policies Active
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
 
-        <div className="pt-6 border-t border-slate-300 space-y-2 text-[10px] text-slate-700 font-medium">
-          <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span><strong className="font-bold text-[#0B1220]">m :</strong> SSS Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">M :</strong> Monthly Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">Y :</strong> NACH Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">A :</strong> APPS Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">S :</strong> Single Mode</span>
-            <span><strong className="font-bold text-[#0B1220]">* :</strong> Joint Life</span>
+        {/* Legend footer */}
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>m :</strong> SSS Mode</span>
+            <span><strong>M :</strong> Monthly Mode</span>
+            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>A :</strong> APPS Mode</span>
+            <span><strong>S :</strong> Single Mode</span>
+            <span><strong>* :</strong> Joint Life</span>
           </div>
-
-          <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span><strong className="font-bold text-[#0B1220]">P :</strong> Inclusive of GST</span>
-            <span><strong className="font-bold text-[#0B1220]">O :</strong> Exclusive of GST</span>
-            <span><strong className="font-bold text-[#0B1220]">ρ :</strong> PAN Card Registered</span>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>P :</strong> Inclusive of GST</span>
+            <span><strong>O :</strong> Exclusive of GST</span>
+            <span><strong>ρ :</strong> PAN Card Registered</span>
           </div>
-
-          <div className="flex justify-between items-center pt-3 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+          <div className="flex justify-between font-mono text-[8px] pt-1">
             <span>Statement Code: DSS000019899</span>
             <span>Generated via Policy Register Engine</span>
           </div>

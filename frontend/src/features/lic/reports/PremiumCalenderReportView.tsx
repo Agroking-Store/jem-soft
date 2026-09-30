@@ -119,6 +119,19 @@ function generateDueDates(commDate: Date, stepMonths: number, fromDate: Date, to
   return dates;
 }
 
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
 export default function PremiumCalendarReportView({
   formData,
   policies: rawPolicies = [],
@@ -313,21 +326,32 @@ export default function PremiumCalendarReportView({
       const canvas = await html2canvas(reportRef.current, {
         scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false,
       });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
       }
+
       pdf.save(`Premium_Calendar_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
@@ -365,36 +389,21 @@ export default function PremiumCalendarReportView({
         </button>
       </div>
 
+      {/* Printable Statement — plain LIC-style */}
       <div
         ref={reportRef}
-        className="bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 font-sans max-w-6xl mx-auto space-y-4 print:p-0 print:border-none print:shadow-none"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-6xl mx-auto text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        {/* Letterhead */}
-        <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-            <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-            <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-            <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-            <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-          </div>
-          <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-            <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-          <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Premium Calendar</h2>
-          <span className="text-xs font-bold text-slate-200">{fmtDate(new Date())}</span>
-        </div>
-
-        <div className="text-[11px] font-semibold text-slate-800 px-1">
-          Premium Calendar between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            Premium Calendar between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)}
+          </span>
+          <span>As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
         </div>
 
         {groupData.length === 0 ? (
-          <div className="p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
+          <div className="mt-6 p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
             <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
               <FilterX size={32} />
             </div>
@@ -404,105 +413,105 @@ export default function PremiumCalendarReportView({
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div>
             {groupData.map((group: any) => (
-              <div key={group.groupCode} className="space-y-2 rounded-xl border border-slate-300 p-4 bg-white shadow-xs">
-                <div className="text-center">
-                  <h3 className="text-sm font-bold text-slate-900">
-                    {group.groupHeadName} [ {group.groupCode} ]
-                  </h3>
-                  <p className="text-[10px] text-slate-500">
-                    {group.address}
-                    {group.address && (group.mobile || group.email) ? " — " : ""}
-                    {[group.mobile, group.email].filter(Boolean).join(" / ")}
-                  </p>
+              <div key={group.groupCode} className="pt-3">
+                {/* Centered group heading */}
+                <div className="text-center pb-1">
+                  <div className="text-[13px] font-bold">
+                    {group.groupCode}: {group.groupHeadName}
+                  </div>
+                  {(group.mobile || group.email) && (
+                    <div>{[group.mobile && `Mobile : ${group.mobile}`, group.email && `Email : ${group.email}`].filter(Boolean).join("   ")}</div>
+                  )}
+                  {group.address && <div>Address : {group.address}</div>}
                 </div>
 
                 {group.monthList.map((month: any) => (
-                  <div key={month.label} className="space-y-1">
-                    <table className="w-full text-left text-[10.5px] border-collapse">
-                      <thead>
-                        <tr>
-                          <td colSpan={isType2 ? 11 : 9} className="text-center font-bold text-slate-800 py-1 uppercase tracking-wider bg-slate-50">
-                            {month.label}
-                          </td>
-                        </tr>
-                        <tr className="border-y border-slate-300 font-bold text-slate-700 uppercase text-[9.5px]">
-                          <th className="py-1 px-1 text-left">Name of Policy Holder</th>
-                          <th className="py-1 px-1 text-left">Due Date</th>
-                          <th className="py-1 px-1 text-left">Policy No</th>
-                          <th className="py-1 px-1 text-left">Com Date</th>
-                          <th className="py-1 px-1 text-left">{isType2 ? "Pl/Tm/Pt Md" : "Md"}</th>
-                          <th className="py-1 px-1 text-right">Sum</th>
-                          <th className="py-1 px-1 text-right">Premium</th>
-                          {!isType2 && <th className="py-1 px-1 text-right">Policy Holder Total</th>}
-                          {formData.includeLoanInterest && <th className="py-1 px-1 text-right">Loan Interest</th>}
-                          <th className="py-1 px-1 text-center">Brn</th>
+                  <table key={month.label} className="w-full border-collapse text-left mb-2">
+                    <thead>
+                      <tr>
+                        <td colSpan={isType2 ? 11 : 9} className="pt-1 pb-0.5 text-center font-bold text-[11px] uppercase">
+                          {month.label}
+                        </td>
+                      </tr>
+                      <tr className="font-bold">
+                        <th className="px-1 py-1 text-left" style={thStyle}>Name of<br />Policy Holder</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Due<br />Date</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Policy No</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Com<br />Date</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>{isType2 ? "Pl/Tm/Pt Md" : "Md"}</th>
+                        <th className="px-1 py-1 text-right" style={thStyle}>Sum</th>
+                        <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
+                        {!isType2 && <th className="px-1 py-1 text-right" style={thStyle}>Policy Holder<br />Total</th>}
+                        {formData.includeLoanInterest && <th className="px-1 py-1 text-right" style={thStyle}>Loan<br />Interest</th>}
+                        <th className="px-1 py-1 text-center" style={thStyle}>Brn</th>
+                        {isType2 && (
+                          <>
+                            <th className="px-1 py-1 text-center" style={thStyle}>Tax<br />Ben</th>
+                            <th className="px-1 py-1 text-center" style={thStyle}>Date of<br />Pay</th>
+                            <th className="px-1 py-1 text-left" style={thStyle}>Details</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {month.rows.map((row: any, i: number) => (
+                        <tr key={i}>
+                          <td className="px-1 py-0.5 font-semibold">{row.memberName}</td>
+                          <td className="px-1 py-0.5 whitespace-nowrap">{fmtDate(row.dueDate, true)}</td>
+                          <td className="px-1 py-0.5 font-mono whitespace-nowrap">{row.policyNo}</td>
+                          <td className="px-1 py-0.5 whitespace-nowrap">{fmtDate(row.commDate, true)}</td>
+                          <td className="px-1 py-0.5 whitespace-nowrap">{isType2 ? row.planTermPptMode : row.modeLabel}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.sum.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.premium.toLocaleString("en-IN")}</td>
+                          {!isType2 && (
+                            <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">
+                              {row.holderTotal !== undefined ? row.holderTotal.toLocaleString("en-IN") : ""}
+                            </td>
+                          )}
+                          {formData.includeLoanInterest && (
+                            <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.loanInterest}</td>
+                          )}
+                          <td className="px-1 py-0.5 text-center">{row.brn}</td>
                           {isType2 && (
                             <>
-                              <th className="py-1 px-1 text-center">Tax Ben</th>
-                              <th className="py-1 px-1 text-center">Date of Pay</th>
-                              <th className="py-1 px-1 text-left">Details</th>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
                             </>
                           )}
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {month.rows.map((row: any, i: number) => (
-                          <tr key={i}>
-                            <td className="py-1 px-1 font-semibold text-slate-800">{row.memberName}</td>
-                            <td className="py-1 px-1 font-mono">{fmtDate(row.dueDate, true)}</td>
-                            <td className="py-1 px-1 font-mono">{row.policyNo}</td>
-                            <td className="py-1 px-1 font-mono">{fmtDate(row.commDate, true)}</td>
-                            <td className="py-1 px-1 font-mono">{isType2 ? row.planTermPptMode : row.modeLabel}</td>
-                            <td className="py-1 px-1 text-right font-mono">{row.sum.toLocaleString("en-IN")}</td>
-                            <td className="py-1 px-1 text-right font-mono">{row.premium.toLocaleString("en-IN")}</td>
-                            {!isType2 && (
-                              <td className="py-1 px-1 text-right font-mono font-bold">
-                                {row.holderTotal !== undefined ? row.holderTotal.toLocaleString("en-IN") : ""}
-                              </td>
-                            )}
-                            {formData.includeLoanInterest && (
-                              <td className="py-1 px-1 text-right font-mono">{row.loanInterest}</td>
-                            )}
-                            <td className="py-1 px-1 text-center font-mono">{row.brn}</td>
-                            {isType2 && (
-                              <>
-                                <td className="py-1 px-1 text-center"></td>
-                                <td className="py-1 px-1 text-center"></td>
-                                <td className="py-1 px-1"></td>
-                              </>
-                            )}
-                          </tr>
-                        ))}
-                        <tr className="border-t-2 border-slate-700 font-bold">
-                          <td colSpan={isType2 ? 6 : 7} className="text-right py-1 px-1 text-slate-700 uppercase tracking-wider text-[9.5px]">
-                            Month Total
+                      ))}
+                      <tr className="font-bold">
+                        <td colSpan={isType2 ? 6 : 7} className="px-1 pt-1.5 pb-1 text-right pr-3">
+                          Month Total :
+                        </td>
+                        <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                          <span style={totalValueStyle}>{month.total.toLocaleString("en-IN")}</span>
+                        </td>
+                        {formData.includeLoanInterest && (
+                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                            <span style={totalValueStyle}>{month.loanTotal.toLocaleString("en-IN")}</span>
                           </td>
-                          <td className="text-right py-1 px-1 font-mono text-[#0B1220]">
-                            {isType2 ? month.total.toLocaleString("en-IN") : month.total.toLocaleString("en-IN")}
-                          </td>
-                          {formData.includeLoanInterest && (
-                            <td className="text-right py-1 px-1 font-mono text-[#0B1220]">
-                              {month.loanTotal.toLocaleString("en-IN")}
-                            </td>
-                          )}
-                          <td colSpan={isType2 ? 4 : 1}></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                        )}
+                        <td colSpan={isType2 ? 4 : 1}></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 ))}
+                <div style={{ borderBottom: `1px solid ${BLACK}` }} />
               </div>
             ))}
           </div>
         )}
 
-        {/* Show Graph */}
+        {/* Graph */}
         {formData.showGraph && groupData.length > 0 && (
-          <div className="pt-4 overflow-x-auto">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Monthwise Premium Due</h3>
+          <div className="pt-5 overflow-x-auto">
+            <h3 className="text-[11px] font-bold mb-2">Monthwise Premium Due</h3>
             <svg viewBox={`0 0 ${Math.max(500, monthKeys.length * 60 + 40)} 220`} className="w-full max-w-4xl h-auto">
+              <line x1={10} y1={190} x2={Math.max(500, monthKeys.length * 60 + 40) - 10} y2={190} stroke="#000" strokeWidth={1} />
               {monthKeys.map((mk, i) => {
                 const amt = monthlyTotals[mk] || 0;
                 const barHeight = Math.max(2, (amt / maxMonthAmount) * 150);
@@ -511,12 +520,12 @@ export default function PremiumCalendarReportView({
                 const formattedValue = amt >= 100000 ? `${(amt / 100000).toFixed(1)}L` : `${Math.round(amt / 1000)}k`;
                 return (
                   <g key={mk}>
-                    <rect x={x} y={190 - barHeight} width={34} height={barHeight} fill="#B8873A" rx={2} />
-                    <text x={x + 17} y={205} textAnchor="middle" fontSize="8" fill="#334155" fontWeight="600">
+                    <rect x={x} y={190 - barHeight} width={34} height={barHeight} fill="#4b5563" />
+                    <text x={x + 17} y={205} textAnchor="middle" fontSize="8" fill="#000" fontWeight="600">
                       {label}
                     </text>
                     {amt > 0 && (
-                      <text x={x + 17} y={183 - barHeight} textAnchor="middle" fontSize="7" fill="#0B1220" fontWeight="bold">
+                      <text x={x + 17} y={183 - barHeight} textAnchor="middle" fontSize="7" fill="#000" fontWeight="bold">
                         {formattedValue}
                       </text>
                     )}
@@ -527,33 +536,33 @@ export default function PremiumCalendarReportView({
           </div>
         )}
 
-        {/* Statement with PAN — Premium Summary */}
+        {/* Premium Summary (statement with PAN) */}
         {formData.printOptions.statementWithPan && summaryRows.length > 0 && (
-          <div className="pt-4 space-y-2">
-            <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg border-l-4 border-[#B8873A]">
-              <h3 className="text-xs font-bold text-[#E8C77A] uppercase tracking-wider">Premium Summary</h3>
-            </div>
-            <table className="w-full text-left text-[11px] border-collapse">
+          <div className="pt-5">
+            <div className="text-[11px] font-bold pb-0.5">Premium Summary</div>
+            <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                  <th className="py-1.5 px-2">Name</th>
-                  <th className="py-1.5 px-2">PAN No.</th>
-                  <th className="py-1.5 px-2">Date of Birth</th>
-                  <th className="py-1.5 px-2 text-right">Account Premium</th>
+                <tr className="font-bold">
+                  <th className="px-1 py-1" style={thStyle}>Name</th>
+                  <th className="px-1 py-1" style={thStyle}>PAN No.</th>
+                  <th className="px-1 py-1" style={thStyle}>Date of Birth</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Account Premium</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {summaryRows.map((s: any, i: number) => (
                   <tr key={i}>
-                    <td className="py-1 px-2 font-semibold">{s.name}</td>
-                    <td className="py-1 px-2 font-mono">{s.pan || "-"}</td>
-                    <td className="py-1 px-2 font-mono">{fmtDate(s.dob) || "-"}</td>
-                    <td className="py-1 px-2 text-right font-mono">{s.totalPremium.toLocaleString("en-IN")}</td>
+                    <td className="px-1 py-0.5 font-semibold">{s.name}</td>
+                    <td className="px-1 py-0.5 font-mono">{s.pan || "-"}</td>
+                    <td className="px-1 py-0.5">{fmtDate(s.dob) || "-"}</td>
+                    <td className="px-1 py-0.5 text-right font-mono">{s.totalPremium.toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
-                <tr className="bg-slate-100 border-t-2 border-slate-700 font-bold">
-                  <td colSpan={3} className="py-1.5 px-2">Total</td>
-                  <td className="py-1.5 px-2 text-right font-mono">{grandTotal.toLocaleString("en-IN")}</td>
+                <tr className="font-bold">
+                  <td colSpan={3} className="px-1 pt-1.5 pb-1">Total :</td>
+                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN")}</span>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -562,16 +571,14 @@ export default function PremiumCalendarReportView({
 
         {/* Mailing Labels */}
         {formData.printOptions.mailingLabels && groupData.length > 0 && (
-          <div className="pt-4 space-y-2 print:break-before-page">
-            <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg border-l-4 border-[#B8873A]">
-              <h3 className="text-xs font-bold text-[#E8C77A] uppercase tracking-wider">Mailing Labels</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="pt-5 print:break-before-page">
+            <div className="text-[11px] font-bold pb-1" style={{ borderBottom: `1px solid ${BLACK}` }}>Mailing Labels</div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
               {groupData.map((group: any) => (
-                <div key={group.groupCode} className="border border-slate-300 rounded-lg p-3 text-[11px] space-y-0.5">
-                  <p className="font-bold text-slate-900">{group.groupHeadName}</p>
-                  <p className="text-slate-600">{group.address || "Address not on file"}</p>
-                  {group.mobile && <p className="text-slate-600 font-mono">{group.mobile}</p>}
+                <div key={group.groupCode} className="p-2 text-[11px] space-y-0.5" style={{ border: `1px solid ${BLACK}` }}>
+                  <p className="font-bold">{group.groupHeadName}</p>
+                  <p>{group.address || "Address not on file"}</p>
+                  {group.mobile && <p className="font-mono">{group.mobile}</p>}
                 </div>
               ))}
             </div>
@@ -580,41 +587,41 @@ export default function PremiumCalendarReportView({
 
         {/* Despatch List */}
         {formData.printOptions.despatchList && groupData.length > 0 && (
-          <div className="pt-4 space-y-2 print:break-before-page">
-            <div className="bg-[#0B1220] text-white px-4 py-2 rounded-lg border-l-4 border-[#B8873A]">
-              <h3 className="text-xs font-bold text-[#E8C77A] uppercase tracking-wider">Despatch List</h3>
-            </div>
-            <table className="w-full text-left text-[11px] border-collapse">
+          <div className="pt-5 print:break-before-page">
+            <div className="text-[11px] font-bold pb-0.5">Despatch List</div>
+            <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="bg-slate-100 border-y-2 border-slate-800 font-bold text-slate-900">
-                  <th className="py-1.5 px-2 w-10">Sr.</th>
-                  <th className="py-1.5 px-2">Policy Holder / Group</th>
-                  <th className="py-1.5 px-2">Address</th>
-                  <th className="py-1.5 px-2">Purpose</th>
-                  <th className="py-1.5 px-2 text-right">Cost</th>
+                <tr className="font-bold">
+                  <th className="px-1 py-1 w-10" style={thStyle}>Sr.</th>
+                  <th className="px-1 py-1" style={thStyle}>Policy Holder / Group</th>
+                  <th className="px-1 py-1" style={thStyle}>Address</th>
+                  <th className="px-1 py-1" style={thStyle}>Purpose</th>
+                  <th className="px-1 py-1 text-right" style={thStyle}>Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {groupData.map((group: any, i: number) => (
                   <tr key={group.groupCode}>
-                    <td className="py-1 px-2 font-mono">{i + 1}</td>
-                    <td className="py-1 px-2 font-semibold">{group.groupHeadName}</td>
-                    <td className="py-1 px-2">{group.address || "-"}</td>
-                    <td className="py-1 px-2">{formData.purpose || "-"}</td>
-                    <td className="py-1 px-2 text-right font-mono">{formData.costPerDespatch || "0"}</td>
+                    <td className="px-1 py-0.5">{i + 1}</td>
+                    <td className="px-1 py-0.5 font-semibold">{group.groupHeadName}</td>
+                    <td className="px-1 py-0.5">{group.address || "-"}</td>
+                    <td className="px-1 py-0.5">{formData.purpose || "-"}</td>
+                    <td className="px-1 py-0.5 text-right font-mono">{formData.costPerDespatch || "0"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <div style={{ borderBottom: `1px solid ${BLACK}` }} />
           </div>
         )}
 
-        <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
+        {/* Footer */}
+        <div className="pt-4 mt-4 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
           <p>
             Y : Policies with {formData.paymentTypes.nach ? "NACH" : "ECS"} mode &nbsp; S : Cheque dishonoured/ Debit fail &nbsp; A : Policies with APPS mode &nbsp; ρ : PAN Card registered for the Policy
           </p>
           <p>All total payable premiums quoted above are inclusive of GST on applicable plans.</p>
-          <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+          <div className="flex justify-between font-mono text-[8px] pt-1">
             <span>Generated via Premium Calendar Engine</span>
             <span>Report Date: {fmtDate(formData.reportDate)}</span>
           </div>
