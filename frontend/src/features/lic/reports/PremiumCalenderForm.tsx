@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Save,
   RotateCcw,
   FileText,
   Filter,
@@ -10,8 +9,11 @@ import {
   ChevronLeft,
   ArrowRight,
 } from "lucide-react";
+import { format } from "date-fns";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
+import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 
 export interface PremiumCalendarFormData {
   appliedFilters: SelectedFilterItem[];
@@ -27,6 +29,14 @@ export interface PremiumCalendarFormData {
   includeLoanInterest: boolean;
   showGraph: boolean;
   selectedGroups: GroupFilterItem[];
+  sortingOption:
+    | "groupsWise"
+    | "groupMemberwise"
+    | "areaWise"
+    | "subAreaWise"
+    | "branchNoWise"
+    | "policyNoWise";
+  sortingFilterSelection: SortingFilterSelection | null;
   printOptions: {
     mailingLabels: boolean;
     statementWithPan: boolean;
@@ -48,6 +58,8 @@ interface PremiumCalendarFormProps {
     name: string;
     groupName?: string | null;
   }>;
+  policies: Array<any>;
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
@@ -87,6 +99,8 @@ export default function PremiumCalendarForm({
   agencies,
   policyStatuses,
   customers,
+  policies,
+  branches = [],
 }: PremiumCalendarFormProps) {
   const buildDefaultFormData = (): PremiumCalendarFormData => {
     const fy = getFinancialYearRange();
@@ -95,12 +109,14 @@ export default function PremiumCalendarForm({
       yearBasis: "financialYear",
       dateFrom: fy.from,
       dateTo: fy.to,
-      paymentTypes: { nach: false, other: true },
+      paymentTypes: { nach: true, other: true },
       reportDate: getTodayDateStr(),
       reportType: "type1",
       includeLoanInterest: true,
       showGraph: false,
       selectedGroups: [],
+      sortingOption: "groupsWise",
+      sortingFilterSelection: null,
       printOptions: {
         mailingLabels: false,
         statementWithPan: false,
@@ -117,6 +133,7 @@ export default function PremiumCalendarForm({
   });
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   const handleReset = () => {
@@ -134,8 +151,38 @@ export default function PremiumCalendarForm({
   };
 
   const getGroupSelectLabel = () => {
-    if (formData.selectedGroups.length === 0) return "All Groups Selected";
-    return `${formData.selectedGroups.length} group(s) selected`;
+    if (formData.sortingOption === "groupsWise") {
+      const count = formData.selectedGroups.length;
+      return count > 0 ? `${count} group(s) selected` : "All Groups Selected";
+    }
+    const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
+    if (count > 0) return `${count} item(s) selected`;
+    switch (formData.sortingOption) {
+      case "groupMemberwise":
+        return "All Members Selected";
+      case "areaWise":
+        return "All Areas Selected";
+      case "subAreaWise":
+        return "All Sub-Areas Selected";
+      case "branchNoWise":
+        return "All Branches Selected";
+      case "policyNoWise":
+        return "All Policies Selected";
+      default:
+        return "All Groups Selected";
+    }
+  };
+
+  // "Due-Date" style inherent sorts have no item picker — the Select Groups
+  // row + modal only apply to the sorting options that need one.
+  const showSelectGroupsRow = true;
+
+  const openSelectGroupsModal = () => {
+    if (formData.sortingOption === "groupsWise") {
+      setIsGroupModalOpen(true);
+    } else {
+      setIsSortingModalOpen(true);
+    }
   };
 
   return (
@@ -150,7 +197,6 @@ export default function PremiumCalendarForm({
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Premium Calendar</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save"><Save size={17} /></button>
           <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
           <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>
@@ -271,11 +317,12 @@ export default function PremiumCalendarForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Date From
               </label>
-              <input
-                type="date"
-                value={formData.dateFrom}
-                onChange={(e) => setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.dateFrom ? new Date(formData.dateFrom) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, dateFrom: date ? format(date, "yyyy-MM-dd") : "" }))
+                }
+                placeholder="From Date"
               />
             </div>
 
@@ -284,11 +331,12 @@ export default function PremiumCalendarForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 To
               </label>
-              <input
-                type="date"
-                value={formData.dateTo}
-                onChange={(e) => setFormData((prev) => ({ ...prev, dateTo: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.dateTo ? new Date(formData.dateTo) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, dateTo: date ? format(date, "yyyy-MM-dd") : "" }))
+                }
+                placeholder="To Date"
               />
             </div>
 
@@ -297,11 +345,12 @@ export default function PremiumCalendarForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))
+                }
+                placeholder="Report Date"
               />
             </div>
           </div>
@@ -363,36 +412,73 @@ export default function PremiumCalendarForm({
               <span>Show Graph</span>
             </label>
           </div>
-
-          {/* Select Groups */}
-          <div className="pt-5 max-w-lg">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
-                Select Groups
-              </span>
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  readOnly
-                  value={getGroupSelectLabel()}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 cursor-pointer"
-                  onClick={() => setIsGroupModalOpen(true)}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsGroupModalOpen(true)}
-                className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
-                title="Open Group Filter"
-              >
-                <Filter size={16} />
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Section 3: Print Options */}
+        {/* Section 3: Sorting Options */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sorting Options</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3.5 gap-x-6">
+            {[
+              { id: "groupsWise", label: "Groups Wise" },
+              { id: "groupMemberwise", label: "Group Memberwise" },
+              { id: "areaWise", label: "Area Wise" },
+              { id: "subAreaWise", label: "Sub-Area Wise" },
+              { id: "branchNoWise", label: "Branch No. Wise" },
+              { id: "policyNoWise", label: "Policy No. Wise" },
+            ].map((opt) => (
+              <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                <input
+                  type="radio"
+                  name="sortingOption"
+                  value={opt.id}
+                  checked={formData.sortingOption === opt.id}
+                  onChange={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      sortingOption: opt.id as any,
+                      selectedGroups: [],
+                      sortingFilterSelection: null,
+                    }))
+                  }
+                  className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+          </div>
+
+          {showSelectGroupsRow && (
+            <div className="pt-5 max-w-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+                  Select Groups
+                </span>
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={getGroupSelectLabel()}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 cursor-pointer"
+                    onClick={openSelectGroupsModal}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={openSelectGroupsModal}
+                  className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
+                  title="Open Select Groups Modal"
+                >
+                  <Filter size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Print Options */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Print Options</h2>
@@ -496,6 +582,8 @@ export default function PremiumCalendarForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
+        branches={branches}
         selectedFilters={formData.appliedFilters}
         defaultCategory="Agencies"
         enableDefaultStatusSelection={false}
@@ -512,6 +600,20 @@ export default function PremiumCalendarForm({
         selectedGroups={formData.selectedGroups}
         onApplyGroups={(groups) =>
           setFormData((prev) => ({ ...prev, selectedGroups: groups }))
+        }
+      />
+
+      {/* Sorting Filter Modal (members / areas / branches / policies) */}
+      <SortingFilterModal
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
+        customers={customers}
+        policies={policies}
+        branches={branches}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection) =>
+          setFormData((prev) => ({ ...prev, sortingFilterSelection: selection }))
         }
       />
     </div>
