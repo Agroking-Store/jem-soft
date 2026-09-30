@@ -45,6 +45,23 @@ function fmtDayMonth(d: Date | string | null | undefined) {
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" });
 }
 
+/** LIC mode code (Y/M/Q/H/S) from the premium mode master. */
+function resolveModeCode(p: any): string {
+  const raw = String(p?.premiumMode?.modeName || "").toLowerCase().trim();
+  if (raw.startsWith("month") || raw === "m") return "M";
+  if (raw.startsWith("quarter") || raw === "q") return "Q";
+  if (raw.startsWith("half") || raw === "h") return "H";
+  if (raw.startsWith("single") || raw === "s") return "S";
+  return "Y";
+}
+
+/** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
+function isNachPolicy(p: any): boolean {
+  const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
+  if (pay.includes("nach")) return true;
+  return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
+}
+
 export default function PremiumOutstandingReportView({
   formData,
   policies: rawPolicies = [],
@@ -57,16 +74,80 @@ export default function PremiumOutstandingReportView({
   const groupData = useMemo(() => {
     const fupUpto = formData.fupDatesUpto ? new Date(formData.fupDatesUpto) : null;
 
-    const selectedStatusNames = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Policy Status")
-      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
+    const pick = (type: string) =>
+      (formData.appliedFilters || [])
+        .filter((f) => f.type === type)
+        .map((f) => (f.name || f.id || "").toLowerCase().trim())
+        .filter(Boolean);
 
-    const selectedGroupCodesOrNames =
+    const selectedStatusNames = pick("Policy Status").map((s) => s.replace(/[- ]/g, ""));
+    const selectedAgencies = pick("Agencies");
+    const selectedBranches = pick("Branches");
+    const selectedAreas = pick("Areas");
+
+    // Group selection can come from the Filter Options modal ("Groups Wise")
+    // and/or the Select Groups modal used by the groupsWise sorting radio.
+    const selectedGroupKeys = new Set<string>();
+    const addGroupKey = (raw: string) => {
+      const k = (raw || "").toLowerCase().trim();
+      if (!k) return;
+      selectedGroupKeys.add(k);
+      // FilterOptionsModal renders name as "<code> - <head name>"
+      selectedGroupKeys.add(k.split(" - ")[0].trim());
+    };
+    (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups Wise" || f.type === "Groups")
+      .forEach((f) => {
+        if (f.id) addGroupKey(f.id);
+        addGroupKey(f.name || "");
+      });
+    if (formData.sortingOption === "groupsWise") {
+      (formData.selectedGroups || []).forEach((g) =>
+        addGroupKey((g as { groupCode?: string }).groupCode || "")
+      );
+    }
+
+    // Sorting Filter modal selection — its meaning follows the sorting radio.
+    const sortingItems =
       formData.sortingOption === "groupsWise"
-        ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
-        : (formData.sortingFilterSelection?.selectedItems || []).map((item) =>
-            (item.code || item.name).toLowerCase()
-          );
+        ? []
+        : formData.sortingFilterSelection?.selectedItems || [];
+    const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+    const selectedSortingKeys = sortingItems
+      .map((i) => (i.code || i.name || "").toLowerCase().trim())
+      .filter(Boolean);
+
+    const matchesAny = (haystack: string, needles: string[]): boolean => {
+      if (needles.length === 0) return true;
+      const h = (haystack || "").toLowerCase();
+      if (!h) return false;
+      return needles.some((n) => h.includes(n) || n.includes(h));
+    };
+
+    // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const isAgencyMatch = (p: any, filters: string[]) => {
+      if (filters.length === 0) return true;
+      const agCode = String(p.agentCode || p.agency?.agencyCode || "").toLowerCase().trim();
+      const agName = String(
+        p.advisor?.agency?.agencyName || p.agency?.agencyName || ""
+      )
+        .toLowerCase()
+        .trim();
+      return filters.some((f) => {
+        if (!f) return true;
+        if (f.includes("jayant") || f.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(agCode);
+        if (f.includes("manisha") || f.includes("ag003"))
+          return MANISHA_ADVISOR_CODES.includes(agCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return !JAYANT_ADVISOR_CODES.includes(agCode) && !MANISHA_ADVISOR_CODES.includes(agCode);
+        return (
+          (Boolean(agCode) && (agCode.includes(f) || f.includes(agCode))) ||
+          (Boolean(agName) && (agName.includes(f) || f.includes(agName)))
+        );
+      });
+    };
 
     const validDbPolicies = rawPolicies.filter((p) => {
       
@@ -85,28 +166,136 @@ export default function PremiumOutstandingReportView({
         if (!matches) return false;
       }
 
-      const isNach = Boolean(p.premiumMode?.modeName?.toLowerCase().includes("nach") || p.isNach);
+      const isNach = isNachPolicy(p);
       if (isNach && !formData.paymentTypes.nach) return false;
       if (!isNach && !formData.paymentTypes.otherThanNach) return false;
+
+      if (!isAgencyMatch(p, selectedAgencies)) return false;
+
+      if (
+        selectedBranches.length &&
+        !matchesAny(`${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`, selectedBranches)
+      )
+        return false;
+
+      const custRef =
+        p.customer ||
+        rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) ||
+        {};
+
+      if (
+        selectedAreas.length &&
+        !matchesAny(
+          `${custRef.resArea || ""} ${custRef.resCity || ""} ${custRef.offArea || ""}`,
+          selectedAreas
+        )
+      )
+        return false;
+
+      if (selectedGroupKeys.size > 0) {
+        const gCode = String(custRef.groupCode || "").toLowerCase().trim();
+        const gName = String(custRef.groupName || custRef.name || "").toLowerCase().trim();
+        const matched = Array.from(selectedGroupKeys).some(
+          (k) => Boolean(k) && (gCode === k || gCode.includes(k) || (gName && gName.includes(k)))
+        );
+        if (!matched) return false;
+      }
+
+      // Sorting modal selection: memberwise shows ONLY the ticked members.
+      if (sortingItems.length > 0) {
+        if (formData.sortingOption === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "areaWise") {
+          if (!matchesAny(String(custRef.resArea || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "subAreaWise") {
+          if (!matchesAny(String(custRef.resCity || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "branchNoWise") {
+          if (
+            !matchesAny(
+              `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+              selectedSortingKeys
+            )
+          )
+            return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          const pn = String(p.policyNumber || "").toLowerCase().trim();
+          if (!pn || !selectedSortingKeys.some((k) => pn.includes(k))) return false;
+        }
+      }
 
       return true;
     });
 
     if (validDbPolicies.length > 0) {
       const groupMap: { [key: string]: any } = {};
+      const sortOpt = formData.sortingOption;
+      const isFlat = sortOpt === "dueDate" || sortOpt === "policyNoWise";
 
-      validDbPolicies.forEach((p, idx) => {
-        const gCode = p.customer?.groupCode || `0000${p.clientId || "02"}`;
-        const gHeadName = p.customer?.groupName || p.customer?.name || "Customer Group";
+      // dueDate / policyNoWise are FLAT sorts — a single unheaded block.
+      if (isFlat) {
+        groupMap["__flat__"] = {
+          groupCode: "",
+          groupHeadName: "",
+          showHeading: false,
+          address: "",
+          mobile: "",
+          email: "",
+          pan: "",
+          gst: "",
+          membersMap: {},
+          totalPolicies: 0,
+          groupTotalTier1: 0,
+          groupTotalTier2: 0,
+        };
+      }
 
-        if (selectedGroupCodesOrNames.length > 0) {
-          const matches = selectedGroupCodesOrNames.some(
-            (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
-          );
-          if (!matches) return;
-        }
+      const orderedPolicies = isFlat
+        ? [...validDbPolicies].sort((a, b) => {
+            if (sortOpt === "policyNoWise")
+              return String(a.policyNumber || "").localeCompare(String(b.policyNumber || ""), undefined, {
+                numeric: true,
+              });
+            const da = new Date(a.nextPremiumDueDate || a.fupDate || 0).getTime() || 0;
+            const db = new Date(b.nextPremiumDueDate || b.fupDate || 0).getTime() || 0;
+            return da - db;
+          })
+        : validDbPolicies;
 
+      orderedPolicies.forEach((p, idx) => {
         const cust = p.customer || rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) || {};
+
+        // Group key/heading follows the selected sorting radio.
+        let gCode: string;
+        let gHeadName: string;
+        let showHeading = true;
+        if (sortOpt === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || `M${idx + 1}`;
+          gCode = String(memberId);
+          gHeadName = p.CustomerMaster
+            ? `${p.CustomerMaster.salutation || ""} ${p.CustomerMaster.firstName || ""} ${p.CustomerMaster.lastName || ""}`.replace(/\s+/g, " ").trim()
+            : cust.name || "Member";
+          // Memberwise = plain member list, no big block heading.
+          showHeading = false;
+        } else if (sortOpt === "areaWise") {
+          const area = cust.resArea || cust.resCity || "Unassigned";
+          gCode = `A:${area}`;
+          gHeadName = `Area : ${area}`;
+        } else if (sortOpt === "subAreaWise") {
+          const sub = cust.resCity || "Unassigned";
+          gCode = `S:${sub}`;
+          gHeadName = `Sub-Area : ${sub}`;
+        } else if (sortOpt === "branchNoWise") {
+          const brn = p.branch?.branchCode || p.branchNo || "—";
+          gCode = `B:${brn}`;
+          gHeadName = `Branch : ${p.branch?.branchName || brn}`;
+        } else if (isFlat) {
+          gCode = "__flat__";
+          gHeadName = "";
+        } else {
+          gCode = String(p.customer?.groupCode || `0000${p.clientId || "02"}`);
+          gHeadName = p.customer?.groupName || p.customer?.name || "Customer Group";
+        }
 
         const formattedAddressParts = [
           cust.resAddressLine1,
@@ -133,6 +322,7 @@ export default function PremiumOutstandingReportView({
           groupMap[gCode] = {
             groupCode: gCode,
             groupHeadName: gHeadName,
+            showHeading,
             address: addressStr,
             mobile: mobileStr,
             email: emailStr,
@@ -150,6 +340,7 @@ export default function PremiumOutstandingReportView({
           grp.membersMap[memberName] = {
             name: memberName,
             dob,
+            nachInfo: "",
             policies: [],
             memberTotalTier1: 0,
             memberTotalTier2: 0,
@@ -157,17 +348,37 @@ export default function PremiumOutstandingReportView({
         }
         const mem = grp.membersMap[memberName];
 
-        const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "H";
+        const mode = resolveModeCode(p);
         const installmentPremium = Number(
           p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || p.premiumAmount || 0
         );
         const fupRaw = p.nextPremiumDueDate || p.fupDate;
-        const fupDate = fupRaw ? new Date(fupRaw) : new Date(formData.fupDatesUpto || Date.now());
+        const fupDate = fupRaw ? new Date(fupRaw) : new Date(formData.fupDatesUpto || "2000-01-01");
 
         const tier1Date = addDays(fupDate, TIER1_DAYS_AFTER_FUP);
         const tier2Date = addDays(fupDate, TIER2_DAYS_AFTER_FUP);
+        // Latefee Calculation Date decides whether the grace window (FUP + 31)
+        // is already crossed as on that date — only then the ₹30 late fee
+        // applies to the tier-2 amount. Before that, tier-2 = premium only.
+        const lateFeeCalcDate = formData.latefeeCalculationDate
+          ? new Date(formData.latefeeCalculationDate)
+          : new Date();
+        const graceCrossed = lateFeeCalcDate.getTime() > tier1Date.getTime();
         const tier1Amount = installmentPremium + TIER1_LATE_FEE;
-        const tier2Amount = installmentPremium + TIER2_LATE_FEE;
+        const tier2Amount = installmentPremium + (graceCrossed ? TIER2_LATE_FEE : 0);
+
+        // NACH details (Report Options → NACH Details) — real mandate info from
+        // the member's default bank account; NACH auto-debits on the FUP date.
+        const isNach = isNachPolicy(p);
+        if (!mem.nachInfo && isNach) {
+          const banks: any[] = p.CustomerMaster?.bankDetails || [];
+          const bank = banks.find((b) => b?.isDefault) || banks[0];
+          const parts = ["NACH", `Debit Date: ${fmtDate(fupRaw)}`];
+          if (bank?.bankName) parts.push(String(bank.bankName));
+          if (bank?.accountNumber) parts.push(`A/C ****${String(bank.accountNumber).slice(-4)}`);
+          if (bank?.ifscCode) parts.push(`IFSC ${bank.ifscCode}`);
+          mem.nachInfo = parts.join(" • ");
+        }
 
         mem.policies.push({
           policyNo: p.policyNumber || `PO-${idx + 1}`,
@@ -177,7 +388,7 @@ export default function PremiumOutstandingReportView({
           md: mode,
           brn: p.branch?.branchCode || "—",
           installmentPremium,
-          fupDate: fmtDate(fupDate),
+          fupDate: fupRaw ? fmtDate(fupDate) : "—",
           tier1Amount,
           tier1Date: fmtDayMonth(tier1Date),
           tier2Amount,
@@ -204,7 +415,7 @@ export default function PremiumOutstandingReportView({
     // 100% PURE DYNAMIC — No hardcoded/demo data. If nothing in DB matches
     // the applied filters, show an empty state instead of a fake statement.
     return [];
-  }, [rawPolicies, formData]);
+  }, [rawPolicies, rawCustomers, formData]);
 
   const grandTotalTier1 = groupData.reduce((acc, g) => acc + g.groupTotalTier1, 0);
   const grandTotalTier2 = groupData.reduce((acc, g) => acc + g.groupTotalTier2, 0);
@@ -216,6 +427,7 @@ export default function PremiumOutstandingReportView({
   const showPan = formData.reportOptions?.pan;
   const showGst = formData.reportOptions?.gst;
   const showDob = formData.reportOptions?.dob;
+  const showNach = formData.reportOptions?.nachDetails;
 
   const getReportHeaderTitle = () => {
     switch (formData.sortingOption) {
@@ -406,7 +618,7 @@ export default function PremiumOutstandingReportView({
         {/* Report title line */}
         <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
-            Premium Outstanding — {getReportHeaderTitle()} as on {reportDateStr}
+            Premium Outstanding {formData.reportType === "Intimation" ? "Intimation Notice" : "Statement"} — {getReportHeaderTitle()} as on {reportDateStr}
           </span>
           <span>
             Groups: {groupData.length} | Policies: {grandTotalPolicies}
@@ -414,7 +626,14 @@ export default function PremiumOutstandingReportView({
         </div>
         <div className="pb-1 text-[9px] font-normal">
           Premium Outstanding between {fmtDate(windowFrom)} and {fmtDate(formData.fupDatesUpto)}
+          {" | "}Latefee Calculated as on {fmtDate(formData.latefeeCalculationDate)}
         </div>
+        {formData.reportType === "Intimation" && (
+          <div className="pb-2 text-[9px] leading-snug">
+            Notice: You are requested to pay the premium shown below (including late fee, if applicable)
+            on or before the last date shown, to keep the policy in force.
+          </div>
+        )}
 
         {groupData.length === 0 ? (
           <div className="mt-6 p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
@@ -423,7 +642,7 @@ export default function PremiumOutstandingReportView({
             </div>
             <h3 className="text-base font-bold text-slate-800">No Premium Outstanding Policies Match Your Selected Filters</h3>
             <p className="text-xs text-slate-600 max-w-md mx-auto">
-              No policies in the database matched the combined filter criteria. Please adjust your filters or click "Edit Filters" to try again.
+              No policies in the database matched the combined filter criteria. Please adjust your filters or click &quot;Edit Filters&quot; to try again.
             </p>
             <button
               onClick={onBackToForm}
@@ -465,10 +684,12 @@ export default function PremiumOutstandingReportView({
             {groupData.map((group) => (
               <tbody key={group.groupCode}>
                 {/* Centered group heading */}
+                {group.showHeading !== false && (
                 <tr>
                   <td colSpan={totalCols} className="pt-3 pb-1 text-center">
                     <div className="text-[13px] font-bold">
-                      {group.groupCode}: {group.groupHeadName}
+                      {group.groupCode ? `${group.groupCode}: ` : ""}
+                      {group.groupHeadName}
                       {showPan && <span className="text-[10px] font-normal"> &nbsp;(PAN: {group.pan})</span>}
                       {showGst && <span className="text-[10px] font-normal"> &nbsp;(GST: {group.gst})</span>}
                     </div>
@@ -482,6 +703,7 @@ export default function PremiumOutstandingReportView({
                     {showAddress && <div>Address : {group.address}</div>}
                   </td>
                 </tr>
+                )}
 
                 {group.members.map((member: any) => (
                   <Fragment key={member.name}>
@@ -491,6 +713,9 @@ export default function PremiumOutstandingReportView({
                         {member.name}
                         {showDob && member.dob && (
                           <span className="font-normal ml-3">DOB : {member.dob}</span>
+                        )}
+                        {showNach && member.nachInfo && (
+                          <span className="font-normal ml-3">{member.nachInfo}</span>
                         )}
                       </td>
                     </tr>
@@ -590,7 +815,7 @@ export default function PremiumOutstandingReportView({
           <div className="flex flex-wrap gap-x-5 gap-y-0.5">
             <span><strong>m :</strong> SSS Mode</span>
             <span><strong>M :</strong> Monthly Mode</span>
-            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>Y :</strong> Yearly Mode</span>
             <span><strong>S :</strong> Cheque dishonoured/ Debit fail</span>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-0.5">
