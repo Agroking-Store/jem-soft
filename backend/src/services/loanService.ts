@@ -19,7 +19,16 @@ const loanInclude = {
       policyNumber: true,
       commencementDate: true,
       nextPremiumDueDate: true,
+      maturityDate: true,
+      policyTerm: true,
+      premiumPayingTerm: true,
       agentCode: true,
+      premiumMode: {
+        select: {
+          modeName: true,
+          modeCode: true,
+        },
+      },
       CustomerMaster: {
         select: {
           id: true,
@@ -68,6 +77,12 @@ const loanInclude = {
           id: true,
           advisorName: true,
           advisorCode: true,
+          agency: {
+            select: {
+              agencyCode: true,
+              agencyName: true,
+            },
+          },
         },
       },
       branch: {

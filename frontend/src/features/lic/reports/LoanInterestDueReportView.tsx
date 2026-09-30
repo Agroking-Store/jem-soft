@@ -1,8 +1,26 @@
 "use client";
 
 import { useRef, useState, useMemo, Fragment } from "react";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, FilterX } from "lucide-react";
 import { LoanInterestDueFormData } from "./LoanInterestDueForm";
+import {
+  fmtDate,
+  money,
+  round2,
+  getMemberName,
+  getMemberId,
+  getMemberAddress,
+  getMemberMobile,
+  getMemberDob,
+  isAgencyMatch,
+  pickFilterNames,
+  pickGroupKeys,
+  matchesAny,
+  getNextInterestDueDate,
+  getPrevInterestDueDate,
+  daysBetween,
+  hasDueDateInRange,
+} from "./loanReportHelpers";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
@@ -13,52 +31,6 @@ interface LoanInterestDueReportViewProps {
   customers?: any[];
   loans?: any[];
   onBackToForm: () => void;
-}
-
-function fmtDate(d: Date | string | null | undefined) {
-  if (!d) return "";
-  const date = typeof d === "string" ? new Date(d) : d;
-  if (isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("en-GB");
-}
-
-function getPolicyMemberName(loanOrPolicy: any): string {
-  const custMaster = loanOrPolicy.policy?.CustomerMaster || loanOrPolicy.CustomerMaster;
-  if (custMaster) {
-    const salutation = custMaster.salutation ? `${custMaster.salutation} ` : "";
-    const fullName = [custMaster.firstName, custMaster.middleName, custMaster.lastName]
-      .filter(Boolean)
-      .join(" ");
-    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (custMaster.name) return custMaster.name;
-  }
-
-  const lifeAssured = loanOrPolicy.policy?.lifeAssured || loanOrPolicy.lifeAssured;
-  if (lifeAssured) {
-    if (typeof lifeAssured === "string") return lifeAssured;
-    const salutation = lifeAssured.salutation ? `${lifeAssured.salutation} ` : "";
-    const fullName = [lifeAssured.firstName, lifeAssured.middleName, lifeAssured.lastName]
-      .filter(Boolean)
-      .join(" ");
-    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (lifeAssured.name) return lifeAssured.name;
-  }
-
-  const custObj = loanOrPolicy.policy?.customer || loanOrPolicy.customer;
-  if (custObj?.name) return custObj.name;
-
-  return "Policy Holder";
-}
-
-function getNextInterestDueDate(loanDateStr: string | null | undefined, asOf: Date): Date {
-  if (!loanDateStr) return asOf;
-  const lDate = new Date(loanDateStr);
-  if (isNaN(lDate.getTime())) return asOf;
-  const d = new Date(lDate);
-  while (d < asOf) {
-    d.setMonth(d.getMonth() + 6);
-  }
-  return d;
 }
 
 const BLACK = "#000";
@@ -77,14 +49,13 @@ const totalValueStyle = {
 export default function LoanInterestDueReportView({
   formData,
   policies: rawPolicies = [],
-  customers: rawCustomers = [],
   loans = [],
   onBackToForm,
 }: LoanInterestDueReportViewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const groupData = useMemo(() => {
+  const report = useMemo(() => {
     const asOfDate = formData.reportDate ? new Date(formData.reportDate) : new Date();
     asOfDate.setHours(23, 59, 59, 999);
 
@@ -93,114 +64,128 @@ export default function LoanInterestDueReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
-    // Target calculation date for interest computation
+    // Interest is calculated up to the report date, or the "To" date if it is later.
     const calcDate = toDate && toDate > asOfDate ? toDate : asOfDate;
 
-    // Filter selections
-    const selectedAgencies = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Agencies")
-      .map((f) => (f.name || f.id).toLowerCase().trim());
+    const isIntimation = formData.reportType === "Intimation";
+    const showArrear = isIntimation && formData.intimationOptions.includePrevArrear;
 
-    const selectedStatuses = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Policy Status")
-      .map((f) => (f.name || f.id).toLowerCase().trim());
+    /* ---------------- applied filters ---------------- */
+    const selectedAgencies = pickFilterNames(formData.appliedFilters, "Agencies");
+    const selectedStatuses = pickFilterNames(formData.appliedFilters, "Policy Status");
+    const selectedBranches = pickFilterNames(formData.appliedFilters, "Branches");
+    const selectedAreas = pickFilterNames(formData.appliedFilters, "Areas");
+    const selectedGroupsFromFilter = pickGroupKeys(formData.appliedFilters);
 
-    const selectedBranches = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Branches")
-      .map((f) => (f.name || f.id).toLowerCase().trim());
+    const selectedGroupCodesModal = (formData.selectedGroups || [])
+      .map((g) => (g.groupCode || "").toLowerCase().trim())
+      .filter(Boolean);
 
-    const selectedGroupsFromFilter = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Groups")
-      .map((f) => (f.id || f.name).toLowerCase().trim());
-
-    const selectedAreas = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Areas")
-      .map((f) => (f.name || f.id).toLowerCase().trim());
-
-    const selectedGroupCodesModal = (formData.selectedGroups || []).map((g) =>
-      (g.groupCode || g.groupName || "").toLowerCase().trim()
+    const selectedMemberIds = new Set(
+      formData.sortingOption === "groupMemberwise"
+        ? (formData.sortingFilterSelection?.selectedItems || []).map((i) => i.id)
+        : []
     );
 
-    const sortingFilterItems = (formData.sortingFilterSelection?.selectedItems || []).map(
-      (item: any) => (item.name || item.code || item.id || "").toLowerCase().trim()
-    );
+    const sortingPairs = (formData.sortingFilterSelection?.selectedItems || []).map((i) => ({
+      code: ((i as any).code || "").toLowerCase().trim(),
+      name: ((i as any).name || "").toLowerCase().trim(),
+    }));
 
-    // Build raw source items
+    const matchesSorting = (codeVal?: string, nameVal?: string) => {
+      if (sortingPairs.length === 0) return true;
+      const c = (codeVal || "").toLowerCase().trim();
+      const n = (nameVal || "").toLowerCase().trim();
+      return sortingPairs.some((p) => {
+        const tries = [
+          p.code && c && (c.includes(p.code) || p.code.includes(c)),
+          p.name && n && (n.includes(p.name) || p.name.includes(n)),
+          p.code && n && (n.includes(p.code) || p.code.includes(n)),
+          p.name && c && (c.includes(p.name) || p.name.includes(c)),
+        ];
+        return tries.some(Boolean);
+      });
+    };
+
+    /* ---------------- source rows ---------------- */
+    const buildInterest = (outstanding: number, rate: number, accrualFrom: Date, arrearFrom: Date | null) => {
+      const current = round2((outstanding * rate * daysBetween(accrualFrom, calcDate)) / 36500);
+      const arrear =
+        arrearFrom && arrearFrom > accrualFrom
+          ? round2((outstanding * rate * daysBetween(arrearFrom, accrualFrom)) / 36500)
+          : 0;
+      return { current, arrear, total: round2(current + arrear) };
+    };
+
     let sourceItems: any[] = [];
 
     if (loans && loans.length > 0) {
       sourceItems = loans.map((loan) => {
-        const policyObj = loan.policy || {};
-        const custMaster = policyObj.CustomerMaster || {};
-        const custObj = policyObj.customer || {};
-
+        const p = loan.policy || {};
         const repayments = loan.repayments || [];
-        const totalPrincipalRepaid = repayments.reduce(
-          (sum: number, r: any) => sum + Number(r.principalComponent || 0),
+
+        // Repayments up to the calculation date only.
+        const relevant = repayments.filter(
+          (r: any) => r.repaymentDate && new Date(r.repaymentDate) <= calcDate
+        );
+        const totalPrincipalRepaid = relevant.reduce(
+          (s: number, r: any) => s + Number(r.principalComponent || 0),
           0
         );
-        const totalInterestPaid = repayments.reduce(
-          (sum: number, r: any) => sum + Number(r.interestComponent || 0),
+        const totalInterestPaid = relevant.reduce(
+          (s: number, r: any) => s + Number(r.interestComponent || 0),
           0
         );
-        const outstandingPrincipal = Math.max(
-          0,
-          Number(loan.loanAmount || 0) - totalPrincipalRepaid
-        );
+        const outstanding = Math.max(0, Number(loan.loanAmount || 0) - totalPrincipalRepaid);
 
         const lastPaymentDate =
-          repayments.length > 0 && repayments[0]?.repaymentDate
-            ? new Date(repayments[0].repaymentDate)
+          relevant.length > 0 && relevant[0]?.repaymentDate
+            ? new Date(relevant[0].repaymentDate)
             : new Date(loan.loanDate);
 
-        const validLastDate = isNaN(lastPaymentDate.getTime())
-          ? new Date(loan.loanDate)
-          : lastPaymentDate;
+        const rate = Number(loan.interestRate || 0);
+        const loanDate = loan.loanDate ? new Date(loan.loanDate) : new Date();
 
-        const daysSince = isNaN(validLastDate.getTime())
-          ? 0
-          : Math.max(
-              0,
-              Math.floor((calcDate.getTime() - validLastDate.getTime()) / (1000 * 60 * 60 * 24))
-            );
-
-        const annualRate = Number(loan.interestRate || 0);
-        const interestDue =
-          outstandingPrincipal > 0 && loan.loanStatus?.statusCode !== "PAID_OFF"
-            ? Math.round(((outstandingPrincipal * annualRate * daysSince) / 36500) * 100) / 100
-            : 0;
-
-        const nextDueDate = getNextInterestDueDate(loan.loanDate, calcDate);
+        const accrualStart = getPrevInterestDueDate(loan.loanDate, calcDate) || lastPaymentDate;
+        const isActive = outstanding > 0 && loan.loanStatus?.statusCode !== "PAID_OFF";
+        const interest = isActive
+          ? buildInterest(outstanding, rate, accrualStart, lastPaymentDate)
+          : { current: 0, arrear: 0, total: 0 };
 
         return {
           id: loan.id,
-          policyNumber: policyObj.policyNumber || "N/A",
-          policy: policyObj,
-          customer: custObj,
-          CustomerMaster: custMaster,
-          planName: policyObj.product?.productName || "Life Insurance Policy",
-          loanDate: loan.loanDate ? new Date(loan.loanDate) : new Date(),
+          policyNumber: p.policyNumber || "N/A",
+          policy: p,
+          customer: p.customer || {},
+          CustomerMaster: p.CustomerMaster || {},
+          agentCode: p.agentCode || "",
+          advisorName: p.advisor?.advisorName || "",
+          advisorCode: p.advisor?.advisorCode || "",
+          agencyName: p.advisor?.agency?.agencyName || "",
+          agencyCode: p.advisor?.agency?.agencyCode || "",
+          branchCode: p.branch?.branchCode || "",
+          branchName: p.branch?.branchName || "",
+          statusName: p.status?.statusName || loan.loanStatus?.statusName || "Inforce",
+          planNumber: p.product?.planNumber || "",
+          planName: p.product?.productName || "Life Insurance Policy",
+          policyTerm: p.policyTerm ?? "",
+          premiumPayingTerm: p.premiumPayingTerm ?? "",
+          modeName: p.premiumMode?.modeName || "Yearly",
+          maturityDate: p.maturityDate || null,
+          loanDate,
           loanAmount: Number(loan.loanAmount || 0),
-          interestRate: annualRate,
-          outstandingPrincipal,
-          totalPrincipalRepaid,
-          totalInterestPaid,
-          interestDue,
-          lastPaymentDate: validLastDate,
-          nextDueDate,
+          outstandingPrincipal: outstanding,
+          totalPrincipalRepaid: round2(totalPrincipalRepaid),
+          totalInterestPaid: round2(totalInterestPaid),
+          interestRate: rate,
+          lastPaymentDate,
+          nextDueDate: getNextInterestDueDate(loan.loanDate, calcDate),
+          prevDueDate: getPrevInterestDueDate(loan.loanDate, calcDate),
+          accrualStart,
+          interestCurrent: interest.current,
+          interestArrear: interest.arrear,
+          interestDue: showArrear ? interest.total : interest.current,
           loanStatus: loan.loanStatus?.statusName || "Active",
-          agencyName:
-            policyObj.advisor?.advisorName ||
-            policyObj.advisor?.name ||
-            policyObj.advisor?.advisorCode ||
-            policyObj.agentCode ||
-            "",
-          branchName:
-            policyObj.branch?.branchName || policyObj.branch?.branchCode || "",
-          statusName:
-            policyObj.status?.statusName ||
-            loan.loanStatus?.statusName ||
-            "Inforce",
         };
       });
     } else {
@@ -208,172 +193,155 @@ export default function LoanInterestDueReportView({
         .filter((p) => p.loans?.length > 0 || Number(p.loanAmount) > 0)
         .map((p, idx) => {
           const loanAmt = Number(p.loanAmount || 50000);
-          const annualRate = 9.5;
-          const loanDate = new Date(p.commencementDate || new Date());
-          const daysSince = Math.max(
-            0,
-            Math.floor((calcDate.getTime() - loanDate.getTime()) / (1000 * 60 * 60 * 24))
-          );
-          const interestDue = Math.round(((loanAmt * annualRate * daysSince) / 36500) * 100) / 100;
+          const rate = 9.5;
+          const loanDate = p.commencementDate ? new Date(p.commencementDate) : new Date();
+          const accrualStart = getPrevInterestDueDate(loanDate, calcDate) || loanDate;
+          const interest = buildInterest(loanAmt, rate, accrualStart, loanDate);
           return {
             id: `mock-${idx}`,
             policyNumber: p.policyNumber || `98${1000000 + idx}`,
             policy: p,
             customer: p.customer || {},
             CustomerMaster: p.CustomerMaster || {},
+            agentCode: p.agentCode || "",
+            advisorName: p.advisor?.advisorName || "",
+            advisorCode: p.advisor?.advisorCode || "",
+            agencyName: p.advisor?.agency?.agencyName || p.agency?.agencyName || "",
+            agencyCode: p.advisor?.agency?.agencyCode || p.agency?.agencyCode || "",
+            branchCode: p.branch?.branchCode || p.branchNo || "",
+            branchName: p.branch?.branchName || "",
+            statusName: p.status?.statusName || "Inforce",
+            planNumber: p.product?.planNumber || "",
             planName: p.product?.productName || "Endowment Plan",
+            policyTerm: p.policyTerm ?? "",
+            premiumPayingTerm: p.premiumPayingTerm ?? "",
+            modeName: p.premiumMode?.modeName || "Yearly",
+            maturityDate: p.maturityDate || null,
             loanDate,
             loanAmount: loanAmt,
-            interestRate: annualRate,
             outstandingPrincipal: loanAmt,
             totalPrincipalRepaid: 0,
             totalInterestPaid: 0,
-            interestDue,
+            interestRate: rate,
             lastPaymentDate: loanDate,
-            nextDueDate: getNextInterestDueDate(loanDate.toISOString(), calcDate),
+            nextDueDate: getNextInterestDueDate(loanDate, calcDate),
+            prevDueDate: getPrevInterestDueDate(loanDate, calcDate),
+            accrualStart,
+            interestCurrent: interest.current,
+            interestArrear: interest.arrear,
+            interestDue: showArrear ? interest.total : interest.current,
             loanStatus: "Active",
-            agencyName: p.agentCode || p.agency?.agencyName || "",
-            branchName: p.branch?.branchName || "",
-            statusName: p.status?.statusName || "Inforce",
           };
         });
     }
 
-    // Filter items
+    /* ---------------- filters ---------------- */
+    const activeFiltersSummaryList: string[] = [];
+    if (selectedStatuses.length) activeFiltersSummaryList.push(`Status: ${formData.appliedFilters.filter((f) => f.type === "Policy Status").map((f) => f.name).join(", ")}`);
+    if (selectedAgencies.length) activeFiltersSummaryList.push(`Agency: ${formData.appliedFilters.filter((f) => f.type === "Agencies").map((f) => f.name).join(", ")}`);
+    if (selectedBranches.length) activeFiltersSummaryList.push(`Branch: ${formData.appliedFilters.filter((f) => f.type === "Branches").map((f) => f.name).join(", ")}`);
+    if (selectedAreas.length) activeFiltersSummaryList.push(`Area: ${formData.appliedFilters.filter((f) => f.type === "Areas").map((f) => f.name).join(", ")}`);
+    if (selectedGroupCodesModal.length) activeFiltersSummaryList.push(`Groups: ${formData.selectedGroups.map((g) => g.groupCode).join(", ")}`);
+    if (formData.sortingOption === "groupMemberwise" && selectedMemberIds.size)
+      activeFiltersSummaryList.push(`Members: ${(formData.sortingFilterSelection?.selectedItems || []).map((i) => i.name).join(", ")}`);
+    if (formData.sortingOption !== "groupsWise" && formData.sortingOption !== "groupMemberwise" && sortingPairs.length)
+      activeFiltersSummaryList.push(`${formData.sortingFilterSelection?.selectedItems?.map((i) => i.name || i.code).join(", ")}`);
+
     const validItems = sourceItems.filter((item) => {
-      // Must have positive outstanding principal
       if (item.outstandingPrincipal <= 0) return false;
 
-      // Date Range Filter: loan must have been disbursed on or before toDate/calcDate
-      if (toDate && item.loanDate > toDate) return false;
+      // Due-date range: only loans with an interest due date inside the window.
+      if (fromDate && toDate && !hasDueDateInRange(item.loanDate, fromDate, toDate)) return false;
+      if (item.loanDate > calcDate) return false;
 
-      // Status filter
-      if (selectedStatuses.length > 0) {
-        const sName = (item.statusName || "Inforce").toLowerCase();
-        const matches = selectedStatuses.some(
-          (st) => sName.includes(st) || st.includes(sName)
-        );
-        if (!matches) return false;
-      }
+      if (!matchesAny(item.statusName || "Inforce", selectedStatuses)) return false;
+      if (
+        !isAgencyMatch(
+          {
+            agentCode: item.agentCode,
+            advisorName: item.advisorName,
+            advisorCode: item.advisorCode,
+            agencyName: item.agencyName,
+            agencyCode: item.agencyCode,
+          },
+          selectedAgencies
+        )
+      )
+        return false;
 
-      // Agency filter
-      if (selectedAgencies.length > 0) {
-        const ag = (item.agencyName || "").toLowerCase();
-        const matches = selectedAgencies.some(
-          (sel) => ag.includes(sel) || sel.includes(ag)
-        );
-        if (!matches) return false;
-      }
+      if (selectedBranches.length && !matchesAny(`${item.branchCode} ${item.branchName}`, selectedBranches))
+        return false;
 
-      // Branch filter
-      if (selectedBranches.length > 0) {
-        const br = (item.branchName || "").toLowerCase();
-        const matches = selectedBranches.some(
-          (sel) => br.includes(sel) || sel.includes(br)
-        );
-        if (!matches) return false;
-      }
+      const custObj = item.customer || {};
+      const gCode = (custObj.groupCode || "").toLowerCase();
+      const gName = (custObj.groupName || custObj.name || "").toLowerCase();
 
-      // Customer Groups from Modal
-      const gCode = (item.customer?.groupCode || "").toLowerCase();
-      const gName = (item.customer?.groupName || "").toLowerCase();
-      if (selectedGroupCodesModal.length > 0) {
-        const matches = selectedGroupCodesModal.some(
-          (sc) =>
-            (gCode && (gCode.includes(sc) || sc.includes(gCode))) ||
-            (gName && (gName.includes(sc) || sc.includes(gName)))
-        );
-        if (!matches) return false;
-      }
+      if (selectedGroupCodesModal.length && !selectedGroupCodesModal.some((sc) => gCode === sc || gName.includes(sc)))
+        return false;
 
-      // Customer Groups from Filter Modal
-      if (selectedGroupsFromFilter.length > 0) {
-        const matches = selectedGroupsFromFilter.some(
-          (sc) =>
-            (gCode && (gCode.includes(sc) || sc.includes(gCode))) ||
-            (gName && (gName.includes(sc) || sc.includes(gName)))
-        );
-        if (!matches) return false;
-      }
+      if (selectedGroupsFromFilter.length && !selectedGroupsFromFilter.some((sc) => gCode === sc || (gName && gName.includes(sc))))
+        return false;
 
-      // Area filter
-      if (selectedAreas.length > 0) {
-        const area = (item.customer?.resArea || "").toLowerCase();
-        const city = (item.customer?.resCity || "").toLowerCase();
-        const matches = selectedAreas.some(
-          (sel) =>
-            (area && (area.includes(sel) || sel.includes(area))) ||
-            (city && (city.includes(sel) || sel.includes(city)))
-        );
-        if (!matches) return false;
-      }
+      if (selectedAreas.length && !matchesAny(`${custObj.resArea || ""} ${custObj.resCity || ""}`, selectedAreas))
+        return false;
 
-      // Sorting Selection Filter (Area / Branch / SubArea)
-      if (sortingFilterItems.length > 0) {
-        if (formData.sortingOption === "areaWise") {
-          const area = (item.customer?.resArea || "").toLowerCase();
-          if (!sortingFilterItems.some((s) => area.includes(s) || s.includes(area))) {
-            return false;
-          }
-        } else if (formData.sortingOption === "subAreaWise") {
-          const city = (item.customer?.resCity || "").toLowerCase();
-          if (!sortingFilterItems.some((s) => city.includes(s) || s.includes(city))) {
-            return false;
-          }
-        } else if (formData.sortingOption === "branchNoWise") {
-          const br = (item.branchName || "").toLowerCase();
-          if (!sortingFilterItems.some((s) => br.includes(s) || s.includes(br))) {
-            return false;
-          }
-        }
+      if (formData.sortingOption === "groupMemberwise") {
+        if (selectedMemberIds.size > 0 && !selectedMemberIds.has(getMemberId(item))) return false;
+      } else if (formData.sortingOption === "areaWise") {
+        if (!matchesSorting(undefined, custObj.resArea || "")) return false;
+      } else if (formData.sortingOption === "subAreaWise") {
+        if (!matchesSorting(undefined, custObj.resCity || "")) return false;
+      } else if (formData.sortingOption === "branchNoWise") {
+        if (!matchesSorting(item.branchCode, item.branchName)) return false;
       }
 
       return true;
     });
 
+    /* ---------------- grouping ---------------- */
     const groupMap: { [key: string]: any } = {};
+    const summary = {
+      members: new Map<string, any>(),
+      totalPolicies: 0,
+      totalOutstanding: 0,
+      totalInterestDue: 0,
+      totalArrear: 0,
+      totalInterestPaid: 0,
+    };
 
     validItems.forEach((item, idx) => {
-      const custObj = item.customer;
-      const custMaster = item.CustomerMaster;
+      const custObj = item.customer || {};
+      const memberName = getMemberName(item);
+      const memberId = getMemberId(item);
 
-      let gCode = custObj?.groupCode || `A-${(idx + 1).toString().padStart(3, "0")}`;
-      let gHeadName = custObj?.groupName || custObj?.name || "Loan Holder Group";
-      const memberName = getPolicyMemberName(item);
-
-      const contact = custMaster?.contactInfo;
-      const memberMobile =
-        contact?.mobile1 || custObj?.phone || custObj?.mobilePersonal || "";
-      const addresses = custMaster?.addresses;
-      const memberAddress =
-        custObj?.resArea ||
-        custObj?.resCity ||
-        (addresses && addresses.length > 0
-          ? `${addresses[0].addressLine1 || ""} ${addresses[0].city || ""}`.trim()
-          : "");
-      const memberDOB = custMaster?.dob || custObj?.dob || "";
+      let gCode = custObj.groupCode || `GRP-${(idx + 1).toString().padStart(3, "0")}`;
+      let gHeadName = custObj.groupName || custObj.name || "Loan Holder Group";
+      let showGroupHeading = true;
 
       if (formData.sortingOption === "groupMemberwise") {
-        gCode = `${gCode}_${memberName}`;
+        gCode = memberId || `M-${idx}`;
         gHeadName = memberName;
+        showGroupHeading = false;
       } else if (formData.sortingOption === "areaWise") {
-        gCode = custObj?.resArea || "General Area";
-        gHeadName = `Area: ${custObj?.resArea || "General Area"}`;
+        gCode = custObj.resArea || "General Area";
+        gHeadName = `Area : ${custObj.resArea || "General Area"}`;
       } else if (formData.sortingOption === "subAreaWise") {
-        gCode = custObj?.resCity || "General Sub-Area";
-        gHeadName = `City/Sub-Area: ${custObj?.resCity || "General Sub-Area"}`;
+        gCode = custObj.resCity || "General Sub-Area";
+        gHeadName = `Sub-Area : ${custObj.resCity || "General Sub-Area"}`;
       } else if (formData.sortingOption === "branchNoWise") {
-        gCode = item.branchName || "Default Branch";
-        gHeadName = `Branch: ${item.branchName || "Default Branch"}`;
+        gCode = item.branchCode || item.branchName || "Default Branch";
+        gHeadName = `Branch : ${item.branchName || item.branchCode || "Default Branch"}`;
       }
 
       if (!groupMap[gCode]) {
         groupMap[gCode] = {
           groupCode: gCode,
           groupHeadName: gHeadName,
+          showHeading: showGroupHeading,
           membersMap: {},
           totalOutstanding: 0,
           totalInterestDue: 0,
+          totalInterestPaid: 0,
         };
       }
 
@@ -381,47 +349,94 @@ export default function LoanInterestDueReportView({
       if (!grp.membersMap[memberName]) {
         grp.membersMap[memberName] = {
           name: memberName,
-          mobile: memberMobile,
-          address: memberAddress,
-          dob: memberDOB,
+          memberId,
+          mobile: getMemberMobile(item),
+          address: getMemberAddress(item),
+          dob: getMemberDob(item),
           policies: [],
           totalOutstanding: 0,
           totalInterestDue: 0,
+          totalInterestPaid: 0,
         };
       }
 
       const mem = grp.membersMap[memberName];
-
       const row = {
         sr: idx + 1,
         policyNo: item.policyNumber,
-        memberName,
+        agCd: item.agentCode || "—",
+        brn: item.branchCode || item.branchName || "—",
+        planTermPpt: `${item.planNumber || "—"}/${item.policyTerm || "—"}/${item.premiumPayingTerm || "—"}`,
         planName: item.planName,
+        loanDate: fmtDate(item.loanDate),
         loanAmount: item.loanAmount,
         outstandingPrincipal: item.outstandingPrincipal,
         interestRate: item.interestRate,
-        interestFromDate: fmtDate(item.lastPaymentDate),
-        dueDate: fmtDate(item.nextDueDate),
         interestPaid: item.totalInterestPaid,
+        interestCurrent: item.interestCurrent,
+        interestArrear: item.interestArrear,
         interestDue: item.interestDue,
+        accruingFrom: fmtDate(showArrear ? item.lastPaymentDate : item.accrualStart),
+        dueDate: fmtDate(item.nextDueDate),
         loanStatus: item.loanStatus,
       };
 
       mem.policies.push(row);
       mem.totalOutstanding += item.outstandingPrincipal;
       mem.totalInterestDue += item.interestDue;
+      mem.totalInterestPaid += item.totalInterestPaid;
       grp.totalOutstanding += item.outstandingPrincipal;
       grp.totalInterestDue += item.interestDue;
+      grp.totalInterestPaid += item.totalInterestPaid;
+
+      // Mailing label / despatch data (one entry per member)
+      if (!summary.members.has(memberName)) {
+        summary.members.set(memberName, {
+          name: memberName,
+          address: getMemberAddress(item),
+          mobile: getMemberMobile(item),
+          policyNos: [] as string[],
+          interestDue: 0,
+        });
+      }
+      const lbl = summary.members.get(memberName);
+      lbl.policyNos.push(item.policyNumber);
+      lbl.interestDue += item.interestDue;
+
+      summary.totalPolicies += 1;
+      summary.totalOutstanding += item.outstandingPrincipal;
+      summary.totalInterestDue += item.interestDue;
+      summary.totalArrear += item.interestArrear;
+      summary.totalInterestPaid += item.totalInterestPaid;
     });
 
-    return Object.values(groupMap).map((grp: any) => ({
-      ...grp,
-      members: Object.values(grp.membersMap),
+    const groupData = Object.values(groupMap).map((g: any) => ({
+      ...g,
+      members: Object.values(g.membersMap),
     }));
+
+    return {
+      groupData,
+      activeFiltersSummary: activeFiltersSummaryList,
+      mailingLabels: Array.from(summary.members.values()),
+      totalPolicies: summary.totalPolicies,
+      grandOutstanding: summary.totalOutstanding,
+      grandInterestDue: summary.totalInterestDue,
+      grandInterestPaid: summary.totalInterestPaid,
+      grandArrear: summary.totalArrear,
+      showArrear,
+      calcDate,
+    };
   }, [loans, rawPolicies, formData]);
 
-  const grandTotalPrincipal = groupData.reduce((acc, g) => acc + g.totalOutstanding, 0);
-  const grandTotalInterestDue = groupData.reduce((acc, g) => acc + g.totalInterestDue, 0);
+  const showArrearCol = report.showArrear;
+  const totalCols = showArrearCol ? 14 : 13;
+  const costPerDespatch = Number(formData.intimationOptions.costPerDespatch) || 0;
+
+  const reportTitle =
+    formData.reportType === "Statement"
+      ? "Loan Interest Due Statement"
+      : "Loan Interest Due Intimation Notice";
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
@@ -461,9 +476,7 @@ export default function LoanInterestDueReportView({
         pageIndex += 1;
       }
 
-      pdf.save(
-        `Loan_Interest_Due_${formData.reportType}_${formData.reportDate || "Report"}.pdf`
-      );
+      pdf.save(`Loan_Interest_Due_${formData.reportType}_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
     } catch (err: any) {
       console.error(err);
@@ -499,160 +512,314 @@ export default function LoanInterestDueReportView({
         </button>
       </div>
 
-      {/* Printable Statement — plain LIC-style */}
+      {/* Printable Statement — plain LIC-style register */}
       <div
         ref={reportRef}
         style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
-        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-5xl mx-auto text-[11px] leading-snug print:p-0 print:border-none print:shadow-none"
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-6xl mx-auto text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
-            Loan Interest Due {formData.reportType === "Statement" ? "Report" : "Intimation Notice"} as on{" "}
-            {fmtDate(formData.reportDate) || fmtDate(new Date())}
+            {reportTitle} of Interest falling due between{" "}
+            {fmtDate(formData.dateFrom) || "—"} to {fmtDate(formData.dateTo) || "—"}
           </span>
-          {formData.reportType === "Intimation" && formData.dateFrom && (
-            <span>Period: {fmtDate(formData.dateFrom)} to {fmtDate(formData.dateTo)}</span>
-          )}
+          <span>
+            Groups: {report.groupData.length} | Policies: {report.totalPolicies}
+          </span>
+        </div>
+        <div className="flex justify-between items-end pb-1 text-[10px]">
+          <span>As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
+          <span>Interest calculated up to {fmtDate(report.calcDate)}</span>
         </div>
 
+        {report.activeFiltersSummary.length > 0 && (
+          <div className="pb-1 text-[9px] font-normal">{report.activeFiltersSummary.join(" | ")}</div>
+        )}
+
         {formData.reportType === "Intimation" && (
-          <div className="pb-1 flex flex-wrap gap-x-6">
+          <div className="pb-1 flex flex-wrap gap-x-6 text-[10px]">
             <span>
               <strong>Purpose :</strong> {formData.intimationOptions.purpose || "Loan Interest Due Remittance"}
             </span>
             <span>
-              <strong>Cost per despatch :</strong> ₹{formData.intimationOptions.costPerDespatch}
+              <strong>Cost per despatch :</strong> ₹{formData.intimationOptions.costPerDespatch || 0}
+            </span>
+            <span>
+              <strong>Prev. Arrear :</strong> {showArrearCol ? "Included" : "Not included"}
             </span>
           </div>
         )}
 
-        {groupData.length === 0 ? (
-          <div className="mt-6 py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
-            <h3 className="font-bold text-slate-800 text-sm">No Loan Policies Matching Filters Found</h3>
-            <p className="text-xs text-slate-500">
-              There are no policy loans matching the applied filter criteria. Try resetting or adjusting the filters.
+        {report.groupData.length === 0 ? (
+          <div className="mt-6 p-12 text-center border-2 border-dashed border-slate-300 rounded-2xl space-y-3 bg-slate-50">
+            <div className="inline-flex p-3 bg-red-100 text-red-600 rounded-full">
+              <FilterX size={32} />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">No Loans Match Your Selected Filters</h3>
+            <p className="text-xs text-slate-600 max-w-md mx-auto">
+              No policy loans matched the combined filter criteria. Check the Due Date Range
+              (interest must fall due inside it), or click &quot;Edit Filters&quot; to widen the selection.
             </p>
+            <button
+              onClick={onBackToForm}
+              className="px-5 py-2 bg-[#0B1220] text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition"
+            >
+              Modify Filter Selection
+            </button>
           </div>
         ) : (
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="font-bold">
                 <th className="px-1 py-1" style={thStyle}>Sr</th>
-                <th className="px-1 py-1" style={thStyle}>Policy No</th>
-                <th className="px-1 py-1" style={thStyle}>Policy Holder</th>
-                <th className="px-1 py-1" style={thStyle}>Plan</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Outstanding<br />Principal (₹)</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Rate<br />(% p.a.)</th>
+                <th className="px-1 py-1 whitespace-nowrap" style={thStyle}>Policy No</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Ag<br />Cd</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Brn</th>
+                <th className="px-1 py-1 text-center whitespace-nowrap" style={thStyle}>Pl/<br />Tm/Pt</th>
+                <th className="px-1 py-1 text-center whitespace-nowrap" style={thStyle}>Loan<br />Date</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Loan<br />Amount</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Outstanding<br />Principal</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Rate<br />% p.a.</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Int.<br />Paid</th>
                 <th className="px-1 py-1 text-center" style={thStyle}>Accruing<br />From</th>
                 <th className="px-1 py-1 text-center" style={thStyle}>Next<br />Due</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Interest<br />Paid (₹)</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Interest<br />Due (₹)</th>
+                {showArrearCol && (
+                  <th className="px-1 py-1 text-right" style={thStyle}>Prev.<br />Arrear</th>
+                )}
+                <th className="px-1 py-1 text-right" style={thStyle}>Interest<br />Due</th>
               </tr>
             </thead>
-            <tbody>
-              {groupData.map((group) => (
-                <Fragment key={group.groupCode}>
-                  {formData.sortingOption !== "groupMemberwise" && (
-                    <tr>
-                      <td colSpan={10} className="pt-3 pb-1 text-center text-[13px] font-bold">
+
+            {report.groupData.map((group) => (
+              <tbody key={group.groupCode}>
+                {group.showHeading && (
+                  <tr>
+                    <td colSpan={totalCols} className="pt-3 pb-1 text-center">
+                      <div className="text-[13px] font-bold">
                         {formData.sortingOption === "groupsWise" ? `${group.groupCode}: ` : ""}
                         {group.groupHeadName}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                {group.members.map((member: any) => (
+                  <Fragment key={member.name}>
+                    <tr>
+                      <td colSpan={totalCols} className="pt-2 pb-0.5">
+                        <div className="text-[11px] font-bold">{member.name}</div>
+                        {(formData.reportType === "Statement"
+                          ? formData.statementOptions.address
+                          : false) &&
+                          member.address && <div className="text-[10px]">Address : {member.address}</div>}
+                        <div className="text-[10px]">
+                          {[
+                            formData.reportType === "Statement" &&
+                              formData.statementOptions.mobile &&
+                              member.mobile &&
+                              `Mob : ${member.mobile}`,
+                            formData.reportType === "Statement" &&
+                              formData.statementOptions.dob &&
+                              member.dob &&
+                              `DOB : ${fmtDate(member.dob)}`,
+                            formData.reportType === "Intimation" &&
+                              formData.intimationOptions.dob &&
+                              member.dob &&
+                              `DOB : ${fmtDate(member.dob)}`,
+                          ]
+                            .filter(Boolean)
+                            .join("   ")}
+                        </div>
                       </td>
                     </tr>
-                  )}
-                  {group.members.map((member: any) => (
-                    <Fragment key={member.name}>
-                      <tr>
-                        <td colSpan={10} className="pt-2 pb-0.5">
-                          <div className="text-[11px] font-bold">{member.name}</div>
-                          {formData.reportType === "Statement" && (
-                            <div className="text-[10px]">
-                              {[
-                                formData.statementOptions.address && member.address && `Address : ${member.address}`,
-                                formData.statementOptions.mobile && member.mobile && `Mob : ${member.mobile}`,
-                                formData.statementOptions.dob && member.dob && `DOB : ${fmtDate(member.dob)}`,
-                              ].filter(Boolean).join("   ")}
-                            </div>
-                          )}
-                          {formData.reportType === "Intimation" && (
-                            <div className="text-[10px]">
-                              {[
-                                formData.intimationOptions.dob && member.dob && `DOB : ${fmtDate(member.dob)}`,
-                                formData.intimationOptions.includePrevArrear && `Includes Arrears`,
-                              ].filter(Boolean).join("   ")}
-                            </div>
-                          )}
+
+                    {member.policies.map((p: any) => (
+                      <tr key={`${p.policyNo}-${p.sr}`}>
+                        <td className="px-1 py-0.5">{p.sr}</td>
+                        <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
+                        <td className="px-1 py-0.5 text-center">{p.agCd}</td>
+                        <td className="px-1 py-0.5 text-center">{p.brn}</td>
+                        <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.planTermPpt}</td>
+                        <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.loanDate}</td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(p.loanAmount)}</td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(p.outstandingPrincipal)}</td>
+                        <td className="px-1 py-0.5 text-center whitespace-nowrap">
+                          {p.interestRate ? `${p.interestRate}%` : "—"}
                         </td>
+                        <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(p.interestPaid)}</td>
+                        <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.accruingFrom}</td>
+                        <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.dueDate}</td>
+                        {showArrearCol && (
+                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(p.interestArrear)}</td>
+                        )}
+                        <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{money(p.interestDue)}</td>
                       </tr>
-                      {member.policies.map((p: any) => (
-                        <tr key={p.policyNo}>
-                          <td className="px-1 py-0.5">{p.sr}</td>
-                          <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
-                          <td className="px-1 py-0.5">{p.memberName}</td>
-                          <td className="px-1 py-0.5">{p.planName}</td>
-                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.outstandingPrincipal.toLocaleString("en-IN")}</td>
-                          <td className="px-1 py-0.5 text-center">{p.interestRate}%</td>
-                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.interestFromDate}</td>
-                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.dueDate}</td>
-                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.interestPaid.toLocaleString("en-IN")}</td>
-                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.interestDue.toLocaleString("en-IN")}</td>
-                        </tr>
-                      ))}
-                      {member.policies.length > 1 && (
-                        <tr className="font-bold">
-                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
-                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                            <span style={totalValueStyle}>{member.totalOutstanding.toLocaleString("en-IN")}</span>
-                          </td>
-                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-2">Interest Due :</td>
-                          <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                            <span style={totalValueStyle}>{member.totalInterestDue.toLocaleString("en-IN")}</span>
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
-                  ))}
-                  {formData.sortingOption !== "groupMemberwise" && (
-                    <>
+                    ))}
+
+                    {member.policies.length > 1 && (
                       <tr className="font-bold">
-                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total :</td>
+                        <td colSpan={7} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                          <span style={totalValueStyle}>{group.totalOutstanding.toLocaleString("en-IN")}</span>
+                          <span style={totalValueStyle}>{money(member.totalOutstanding)}</span>
                         </td>
-                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-2">Total Interest Due :</td>
+                        <td
+                          colSpan={showArrearCol ? 5 : 4}
+                          className="px-1 pt-1.5 pb-1 text-right pr-3"
+                        >
+                          Total Interest Due :
+                        </td>
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                          <span style={totalValueStyle}>{group.totalInterestDue.toLocaleString("en-IN")}</span>
+                          <span style={totalValueStyle}>{money(member.totalInterestDue)}</span>
                         </td>
                       </tr>
-                      <tr>
-                        <td colSpan={10} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
-                      </tr>
-                    </>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
+                    )}
+                  </Fragment>
+                ))}
+
+                {group.showHeading && (
+                  <>
+                    <tr className="font-bold">
+                      <td colSpan={7} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total :</td>
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{money(group.totalOutstanding)}</span>
+                      </td>
+                      <td
+                        colSpan={showArrearCol ? 5 : 4}
+                        className="px-1 pt-1.5 pb-1 text-right pr-3"
+                      >
+                        Total Interest Due :
+                      </td>
+                      <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{money(group.totalInterestDue)}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={totalCols} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            ))}
           </table>
         )}
 
-        {groupData.length > 0 && (
+        {report.groupData.length > 0 && (
           <div className="pt-5 flex justify-end">
             <table className="w-full max-w-md border-collapse text-[11px]">
               <tbody>
                 <tr>
                   <td className="px-1 py-0.5">Grand Total Outstanding Principal :</td>
-                  <td className="px-1 py-0.5 text-right font-mono">₹ {grandTotalPrincipal.toLocaleString("en-IN")}</td>
+                  <td className="px-1 py-0.5 text-right font-mono">₹ {money(report.grandOutstanding)}</td>
+                </tr>
+                <tr>
+                  <td className="px-1 py-0.5">Total Interest Paid :</td>
+                  <td className="px-1 py-0.5 text-right font-mono">₹ {money(report.grandInterestPaid)}</td>
                 </tr>
                 <tr className="font-bold">
                   <td className="px-1 pt-1.5 pb-1">Grand Total Interest Due :</td>
                   <td className="px-1 pt-1.5 pb-1 text-right font-mono">
-                    <span style={totalValueStyle}>₹ {grandTotalInterestDue.toLocaleString("en-IN")}</span>
+                    <span style={totalValueStyle}>₹ {money(report.grandInterestDue)}</span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
         )}
+
+        {/* Mailing Labels */}
+        {formData.reportType === "Intimation" &&
+          formData.intimationOptions.mailingLabels &&
+          report.groupData.length > 0 && (
+            <div className="pt-5 mt-4" style={{ borderTop: `1px solid ${BLACK}` }}>
+              <div className="text-[11px] font-bold uppercase tracking-wider pb-2">
+                Mailing Labels
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {report.mailingLabels
+                  .filter((l: any) => l.address)
+                  .map((l: any) => (
+                    <div
+                      key={l.name}
+                      className="border border-black p-2 text-[10px] leading-tight break-words"
+                    >
+                      <div className="font-bold uppercase">{l.name}</div>
+                      <div>{l.address}</div>
+                      {l.mobile && <div>Mobile : {l.mobile}</div>}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+        {/* Despatch List */}
+        {formData.reportType === "Intimation" &&
+          formData.intimationOptions.despatchList &&
+          report.groupData.length > 0 && (
+            <div className="pt-5 mt-4" style={{ borderTop: `1px solid ${BLACK}` }}>
+              <div className="text-[11px] font-bold uppercase tracking-wider pb-2">
+                Despatch List — {formData.intimationOptions.purpose || "Loan Interest Due Remittance"}
+              </div>
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="font-bold">
+                    <th className="px-1 py-1" style={thStyle}>Sr</th>
+                    <th className="px-1 py-1" style={thStyle}>Member Name</th>
+                    <th className="px-1 py-1" style={thStyle}>Address</th>
+                    <th className="px-1 py-1 text-center" style={thStyle}>Mobile</th>
+                    <th className="px-1 py-1 text-center" style={thStyle}>Pcs</th>
+                    <th className="px-1 py-1 text-right" style={thStyle}>Interest Due</th>
+                    <th className="px-1 py-1 text-right" style={thStyle}>Cost / Pc</th>
+                    <th className="px-1 py-1 text-right" style={thStyle}>Total Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.mailingLabels.map((l: any, i: number) => (
+                    <tr key={l.name}>
+                      <td className="px-1 py-0.5">{i + 1}</td>
+                      <td className="px-1 py-0.5">{l.name}</td>
+                      <td className="px-1 py-0.5 break-words">{l.address || "—"}</td>
+                      <td className="px-1 py-0.5 text-center whitespace-nowrap">{l.mobile || "—"}</td>
+                      <td className="px-1 py-0.5 text-center">{l.policyNos.length}</td>
+                      <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(l.interestDue)}</td>
+                      <td className="px-1 py-0.5 text-right whitespace-nowrap">{money(costPerDespatch)}</td>
+                      <td className="px-1 py-0.5 text-right font-mono whitespace-nowrap">
+                        <span style={totalValueStyle}>{money(costPerDespatch * l.policyNos.length)}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="font-bold">
+                    <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Total Despatch Charges :</td>
+                    <td colSpan={2} className="px-1 pt-1.5 pb-1 text-right pr-2">
+                      {report.mailingLabels.length} Notice(s) @ ₹{money(costPerDespatch)} :
+                    </td>
+                    <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
+                      <span style={totalValueStyle}>
+                        ₹ {money(report.mailingLabels.reduce((s: number, l: any) => s + costPerDespatch * l.policyNos.length, 0))}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        {/* Legend footer */}
+        <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>Pl/Tm/Pt :</strong> Plan No / Term / Premium Paying Term</span>
+            <span><strong>Ag Cd :</strong> Advisor Code</span>
+            <span><strong>Brn :</strong> Branch Code</span>
+            <span><strong>Rate :</strong> Interest % per annum</span>
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>Interest Due :</strong> interest from &quot;Accruing From&quot; to {fmtDate(report.calcDate)}</span>
+            <span><strong>Prev. Arrear :</strong> interest of earlier half-yearly due dates</span>
+          </div>
+          <div className="flex justify-between font-mono text-[8px] pt-1">
+            <span>Statement Code: DSS000019899</span>
+            <span>Generated via Loan Interest Due Engine</span>
+          </div>
+        </div>
       </div>
     </div>
   );
