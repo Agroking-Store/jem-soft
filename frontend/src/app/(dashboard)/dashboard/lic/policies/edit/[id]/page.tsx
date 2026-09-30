@@ -690,7 +690,7 @@ export default function EditLICPolicyPage() {
     const fetchOptions = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/products/${watchProductId}/options`,
+          `${process.env.NEXT_PUBLIC_API_URL}/products/${watchProductId}/options`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -1016,7 +1016,7 @@ export default function EditLICPolicyPage() {
               const fetchOptions = async () => {
                 try {
                   const response = await axios.get(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
                     {
                       headers: {
                         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -1096,7 +1096,7 @@ export default function EditLICPolicyPage() {
     const timeoutId = window.setTimeout(async () => {
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/premium-preview`,
+          `${process.env.NEXT_PUBLIC_API_URL}/policies/premium-preview`,
           {
             productId: watchProductId,
             age,
@@ -1204,7 +1204,7 @@ export default function EditLICPolicyPage() {
               if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
                 try {
                   const response = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/rider-premium-preview`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/policies/rider-premium-preview`,
                     {
                       riderId,
                       age: watchAge,

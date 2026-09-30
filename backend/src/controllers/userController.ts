@@ -3,7 +3,7 @@ import * as userService from "../services/userService.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { AppError } from "../utils/AppError.js";
 
-export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+export const getAllUsers = catchAsync(async (_req: Request, res: Response) => {
   const users = await userService.getAllUsers();
   res.status(200).json({
     status: "success",
@@ -13,7 +13,7 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getUserById = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const user = await userService.getUserById(req.params.id);
     res.status(200).json({
       status: "success",

@@ -2,10 +2,12 @@
 
 import { Bell } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useNotificationStore } from "@/store/notificationStore";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function NotificationBell() {
+  const router = useRouter();
   const {
     notifications,
     unreadCount,
@@ -19,10 +21,19 @@ export default function NotificationBell() {
 
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Handle outside click and Escape key to close the dropdown
   useEffect(() => {
@@ -51,12 +62,37 @@ export default function NotificationBell() {
     };
   }, [open]);
 
-  // Toggle notification popup
-  const handleToggle = () => {
+  // Open small window on hover
+  const handleMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
     if (!open) {
       hideNotificationCount();
     }
-    setOpen((prev) => !prev);
+    setOpen(true);
+  };
+
+  // Close small window when mouse leaves bell or dropdown
+  const handleMouseLeave = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 200);
+  };
+
+  // Click on bell icon opens the complete notification section
+  const handleBellClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setOpen(false);
+    router.push("/dashboard/notifications");
   };
 
   // Mark single notification as read
@@ -90,13 +126,19 @@ export default function NotificationBell() {
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div
+      className="relative"
+      ref={containerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* YouTube Style Bell Icon Button */}
       <button
         type="button"
-        onClick={handleToggle}
+        onClick={handleBellClick}
         aria-label="Open notifications"
         aria-expanded={open}
+        title="Click to open Notification Center"
         className={`
           relative p-2.5 rounded-full transition-colors cursor-pointer select-none
           ${

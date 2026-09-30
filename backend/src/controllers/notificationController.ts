@@ -14,7 +14,7 @@ import {
 
 
 export const fetchNotifications = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<void> => {
   try {
@@ -35,7 +35,7 @@ export const fetchNotifications = async (
 };
 
 export const fetchUnreadCount = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<void> => {
   try {
@@ -81,7 +81,7 @@ export const readNotification = async (
 
 
 export const markAllRead = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<void> => {
   try {
@@ -125,7 +125,7 @@ export const deleteNotification = async (
 };
 
 export const deleteReadNotifications = async (
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   try {

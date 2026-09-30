@@ -37,7 +37,7 @@ export const getAgency = catchAsync(async (req: Request, res: Response, next: Ne
   });
 });
 
-export const updateAgency = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const updateAgency = catchAsync(async (req: Request, res: Response) => {
   const agency = await agencyService.updateAgency(req.params.id, req.body);
   res.status(200).json({
     status: "success",
@@ -47,7 +47,7 @@ export const updateAgency = catchAsync(async (req: Request, res: Response, next:
   });
 });
 
-export const deleteAgency = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const deleteAgency = catchAsync(async (req: Request, res: Response) => {
   await agencyService.deleteAgency(req.params.id);
   res.status(204).json({
     status: "success",

@@ -224,8 +224,98 @@ function SectionCard({
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────
-export default function CustomerEditPage({ isModal = false, customerId, onClose, onSaved }: CustomerEditPageProps = {}) {
+function GroupAutoComplete({ 
+  value, 
+  onChange, 
+  groups,
+  error,
+}: { 
+  value: string; 
+  onChange: (id: string) => void; 
+  groups: { id: string; groupCode?: string | null; groupName?: string | null }[];
+  error?: string;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = groups.find((g) => g.id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = groups.filter((g) => {
+    const q = query.toLowerCase();
+    return (g.groupName?.toLowerCase().includes(q) || g.groupCode?.toLowerCase().includes(q));
+  }).slice(0, 10);
+
+  return (
+    <div ref={ref} className="relative">
+      <FieldLabel label="Customer Group" required />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Search size={14} /></span>
+          <input
+            value={selected ? `${selected.groupCode ? `[${selected.groupCode}] ` : ""}${selected.groupName || ""}` : query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
+            onFocus={() => setOpen(true)}
+            placeholder="Search group by name or code..."
+            className={`w-full border rounded-lg py-2.5 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all cursor-pointer bg-white focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
+              ${error ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
+          />
+          {selected && (
+            <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={13} /></button>
+          )}
+        </div>
+        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors" title="Add new group">
+          <Plus size={16} />
+        </Link>
+      </div>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-52 overflow-y-auto">
+          {filtered.map((g) => (
+            <button key={g.id} type="button" onClick={() => { onChange(g.id); setQuery(""); setOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left">
+              <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">{g.groupCode || "—"}</span>
+              <span className="text-sm font-medium text-slate-800">{g.groupName || "—"}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatDateForInput(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  try { return new Date(dateStr).toISOString().split("T")[0]; } catch { return ""; }
+}
+
+function calcAgeFromDob(dob?: string | null): number | null {
+  if (!dob) return null;
+  try {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
+  } catch {
+    return null;
+  }
+}
+
+interface CustomerMasterEditPageProps {
+  isModal?: boolean;
+  customerId?: string;
+  onClose?: () => void;
+  onSaved?: () => void;
+  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
+}
+
+export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const params = useParams();

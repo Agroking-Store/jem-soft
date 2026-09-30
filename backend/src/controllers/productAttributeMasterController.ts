@@ -12,7 +12,7 @@ export const createProductAttributeMaster = catchAsync(async (req: Request, res:
   });
 });
 
-export const getProductAttributeMasters = catchAsync(async (req: Request, res: Response) => {
+export const getProductAttributeMasters = catchAsync(async (_req: Request, res: Response) => {
   const attributes = await service.getProductAttributeMasters();
   res.status(200).json({
     status: "success",

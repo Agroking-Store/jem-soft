@@ -5,7 +5,7 @@ import { AppError } from "../utils/AppError.js";
 
 // @desc    Get all insurance providers
 // @route   GET /api/insurance-providers
-export const getInsuranceProviders = catchAsync(async (req: Request, res: Response) => {
+export const getInsuranceProviders = catchAsync(async (_req: Request, res: Response) => {
   const providers = await providerService.getProviders();
   res.status(200).json({ status: "success", data: providers });
 });

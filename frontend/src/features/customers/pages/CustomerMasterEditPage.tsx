@@ -344,7 +344,7 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
-  onOpenModal?: (type: unknown, id?: string, extraId?: string) => void;
+  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
 }
 
 export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {

@@ -79,26 +79,29 @@ export const handleUploadError = (
   _req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "File size must not exceed 10 MB.",
       });
+      return;
     }
     if (err.code === "LIMIT_FILE_COUNT") {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Maximum file count exceeded.",
       });
+      return;
     }
   }
   if (err) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: err.message || "File upload failed.",
     });
+    return;
   }
   next();
 };

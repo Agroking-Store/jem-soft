@@ -17,7 +17,7 @@ export interface LoanInterestOutstandingFormData {
   calculationDate: string;
   reportDate: string;
   reportType: "Statement" | "Intimation";
-  sortingOption: "groupsWise" | "groupMemberwise" | "areaWise" | "subAreaWise";
+  sortingOption: "groupsWise" | "groupMemberwise" | "areaWise" | "subAreaWise" | "branchNoWise";
   selectedGroups: GroupFilterItem[];
   statementOptions: {
     statementWithAddress: boolean;
@@ -99,6 +99,7 @@ export default function LoanInterestOutstandingForm({
     { id: "groupMemberwise", label: "Group Memberwise" },
     { id: "areaWise", label: "Area Wise" },
     { id: "subAreaWise", label: "Sub-Area Wise" },
+    { id: "branchNoWise", label: "Branch No. Wise" },
   ];
 
   const sendToOptions = [

@@ -9,7 +9,7 @@ export interface IProductAttributeMasterInput {
 }
 
 const ATTRIBUTE_MASTER_INCLUDE = {
-  productAttributeValues: {
+  values: {
     select: {
       id: true,
       value: true,
