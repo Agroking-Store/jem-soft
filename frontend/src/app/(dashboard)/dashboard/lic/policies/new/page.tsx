@@ -119,7 +119,17 @@ function NewLICPolicyContent() {
     sumAssured: "",
     age: "",
   });
-  const [productOptionsData, setProductOptionsData] = useState<{ terms: number[], ppts: number[], combinations: { term: number, ppt: number }[] }>({ terms: [], ppts: [], combinations: [] });
+  const [productOptionsData, setProductOptionsData] = useState<{
+    terms: number[];
+    ppts: number[];
+    combinations: { term: number; ppt: number }[];
+    hasData?: boolean;
+  }>({ terms: [], ppts: [], combinations: [] });
+  const [isOptionsLoading, setIsOptionsLoading] = useState(false);
+  const [loadedOptionsProductId, setLoadedOptionsProductId] = useState<string | null>(null);
+  const [isManualTerm, setIsManualTerm] = useState(false);
+  const [isManualPpt, setIsManualPpt] = useState(false);
+  const [isPremiumManual, setIsPremiumManual] = useState(false);
   const policyTypeParam = searchParams.get("policyType")?.toLowerCase();
   const selectedPolicyType =
     policyTypeParam === "other"
@@ -490,6 +500,59 @@ function NewLICPolicyContent() {
     () => products.find((p) => p.id === watchProductId),
     [watchProductId, products],
   );
+
+  const hasDbTerms = useMemo(() => {
+    return Boolean(productOptionsData.terms && productOptionsData.terms.length > 0);
+  }, [productOptionsData.terms]);
+
+  const isFormulaTermPlan = useMemo(() => {
+    return ["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "");
+  }, [selectedProduct?.planNumber]);
+
+  const pptOptionsToRender = useMemo(() => {
+    let list: (number | string)[] = productOptionsData.ppts || [];
+    if (selectedProduct?.planNumber === "887") {
+      if (watchMode === "Single") {
+        list = ["1"];
+      } else {
+        const currentTerm = Number(watchTerm);
+        const allowed = [5, 10, 15];
+        if (currentTerm && !allowed.includes(currentTerm)) {
+          allowed.push(currentTerm);
+        }
+        const filtered = (productOptionsData.ppts || []).filter(p => allowed.includes(Number(p)));
+        list = filtered.length > 0 ? filtered : allowed;
+      }
+    } else if (watchTerm && productOptionsData.combinations.length > 0) {
+      const termValue = Number(watchTerm);
+      const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
+      if (matchingCombs.length > 0) {
+        list = matchingCombs.map(c => c.ppt);
+      }
+    }
+    return list;
+  }, [productOptionsData.ppts, productOptionsData.combinations, selectedProduct?.planNumber, watchMode, watchTerm]);
+
+  const hasDbPpts = useMemo(() => {
+    return Boolean(pptOptionsToRender && pptOptionsToRender.length > 0);
+  }, [pptOptionsToRender]);
+
+  const isPlanDataMissing = useMemo(() => {
+    if (isOtherPolicy || !selectedProduct || !watchProductId) return false;
+    if (isFormulaTermPlan) return false;
+    if (isOptionsLoading || loadedOptionsProductId !== watchProductId) return false;
+
+    if (typeof productOptionsData.hasData === "boolean") {
+      return !productOptionsData.hasData;
+    }
+    return productOptionsData.terms.length === 0 && productOptionsData.combinations.length === 0;
+  }, [isOtherPolicy, selectedProduct, watchProductId, isFormulaTermPlan, isOptionsLoading, loadedOptionsProductId, productOptionsData]);
+
+  useEffect(() => {
+    setIsManualTerm(false);
+    setIsManualPpt(false);
+    setIsPremiumManual(false);
+  }, [watchProductId]);
 
   const groupMembers = useMemo(() => {
     if (!watchGroupId) return [];
@@ -1026,10 +1089,11 @@ function NewLICPolicyContent() {
           );
 
           updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
+            const effectivePremium = newPremium > 0 ? newPremium : currentPremium;
             if (watchRiders[index]?.selected) {
-              totalInstallmentRiderPremium += newPremium;
+              totalInstallmentRiderPremium += effectivePremium;
             }
-            if (isValid && newPremium !== currentPremium) {
+            if (isValid && newPremium > 0 && newPremium !== currentPremium) {
               updateRider(index, {
                 ...watchRiders[index],
                 premium: newPremium
@@ -1093,7 +1157,7 @@ function NewLICPolicyContent() {
 
   // Auto-select PPT when Term is selected
   useEffect(() => {
-    if (isOtherPolicy) return;
+    if (isOtherPolicy || isManualPpt) return;
     if (watchTerm && productOptionsData.combinations.length > 0) {
       const termValue = Number(watchTerm);
       // Find combinations for this term
@@ -1113,7 +1177,7 @@ function NewLICPolicyContent() {
         setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
       }
     }
-  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isOtherPolicy]);
+  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isOtherPolicy, isManualPpt]);
 
   // Auto-select Term and PPT when product options load
   useEffect(() => {
@@ -1210,8 +1274,18 @@ function NewLICPolicyContent() {
           },
         );
 
+        if (response.data?.data?.isManual) {
+          setIsPremiumManual(true);
+          return;
+        }
+
         const premium = response.data?.data?.premium;
-        if (!premium) return;
+        if (!premium) {
+          setIsPremiumManual(true);
+          return;
+        }
+
+        setIsPremiumManual(false);
 
         setValue(
           "basicYearlyPremium",
@@ -1235,9 +1309,12 @@ function NewLICPolicyContent() {
         );
       } catch (error: any) {
         if (!axios.isCancel(error)) {
-          const msg = error?.response?.data?.message || error?.message || "Failed to fetch premium preview";
-          console.error("Failed to fetch premium preview", error);
-          toast.error(msg);
+          setIsPremiumManual(true);
+          const msg = error?.response?.data?.message || error?.message || "";
+          if (error?.response?.status !== 404 && !msg.toLowerCase().includes("not found")) {
+            console.error("Failed to fetch premium preview", error);
+            toast.error(msg || "Failed to fetch premium preview");
+          }
         }
       }
     }, 300);
@@ -1259,15 +1336,15 @@ function NewLICPolicyContent() {
     }
   }, [isOtherPolicy, watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
-  // Auto-calculate Total Installment Premium when in Other policy mode
+  // Auto-calculate Total Installment Premium when in Other policy mode or manual mode
   useEffect(() => {
-    if (isOtherPolicy) {
+    if (isOtherPolicy || isPremiumManual) {
       const installment = parseFloat(String(watchInstallmentPremium)) || 0;
       const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
       const total = installment + rider;
       setValue("totalInstallmentPremium", total > 0 ? parseFloat(total.toFixed(2)) : undefined, { shouldDirty: true });
     }
-  }, [isOtherPolicy, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
+  }, [isOtherPolicy, isPremiumManual, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
 
   useEffect(() => {
     if (isOtherPolicy) return;
@@ -1488,13 +1565,7 @@ function NewLICPolicyContent() {
   }, [watchProductId, productAttributeValues, products, setValue, watchAge, isOtherPolicy]);
 
   useEffect(() => {
-    if (isOtherPolicy) {
-      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
-      return;
-    }
-
-    if (!watchProductId) {
-      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+    if (isOtherPolicy || !watchProductId) {
       return;
     }
 
@@ -1548,13 +1619,19 @@ function NewLICPolicyContent() {
           ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
           : "",
     });
-  }, [watchProductId, productAttributeValues, products, setValue, watchAge]);
+  }, [watchProductId, productAttributeValues, products, setValue, watchAge, isOtherPolicy]);
 
   useEffect(() => {
-    if (!watchProductId) {
+    if (!watchProductId || isOtherPolicy) {
       setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+      setLoadedOptionsProductId(null);
+      setIsOptionsLoading(false);
       return;
     }
+
+    let isMounted = true;
+    setIsOptionsLoading(true);
+
     const fetchOptions = async () => {
       try {
         const response = await axios.get(
@@ -1565,22 +1642,49 @@ function NewLICPolicyContent() {
             },
           }
         );
+        if (!isMounted) return;
         if (response.data?.data) {
-          setProductOptionsData(response.data.data);
-          if (response.data.data.terms && response.data.data.terms.length > 0) {
+          const data = response.data.data;
+          const hasDbData =
+            typeof data.hasData === "boolean"
+              ? data.hasData
+              : Boolean((data.terms && data.terms.length > 0) || (data.combinations && data.combinations.length > 0));
+
+          setProductOptionsData({
+            terms: data.terms || [],
+            ppts: data.ppts || [],
+            combinations: data.combinations || [],
+            hasData: hasDbData,
+          });
+          setLoadedOptionsProductId(watchProductId);
+
+          if (!hasDbData && !isFormulaTermPlan) {
+            setIsManualTerm(true);
+            setIsManualPpt(true);
+          } else if (data.terms && data.terms.length > 0) {
             const product = products.find((p) => p.id === watchProductId);
             if (!["771", "745", "883", "887"].includes(product?.planNumber ?? "")) {
-              const minTerm = Math.min(...response.data.data.terms);
+              const minTerm = Math.min(...data.terms);
               setValue("term", minTerm as any, { shouldValidate: true, shouldDirty: true });
             }
           }
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Failed to fetch product options", error);
+        setLoadedOptionsProductId(watchProductId);
+      } finally {
+        if (isMounted) {
+          setIsOptionsLoading(false);
+        }
       }
     };
     fetchOptions();
-  }, [watchProductId, products, setValue]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [watchProductId, isOtherPolicy, isFormulaTermPlan, products, setValue]);
 
   const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
     console.log("Submit clicked. Form data:", data);
@@ -2012,10 +2116,17 @@ function NewLICPolicyContent() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Term <span className="text-red-500">*</span>
-                      </label>
-                      {isOtherPolicy ? (
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-slate-700">
+                          Term <span className="text-red-500">*</span>
+                        </label>
+                        {isPlanDataMissing && (
+                          <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                            Manual entry
+                          </span>
+                        )}
+                      </div>
+                      {isOtherPolicy || isManualTerm || isPlanDataMissing || (!hasDbTerms && !isFormulaTermPlan) ? (
                         <input
                           type="number"
                           {...register("term")}
@@ -2063,18 +2174,25 @@ function NewLICPolicyContent() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        {selectedProduct?.planNumber === "883"
-                          ? "Gua.Addn.Period"
-                          : "PPT"}
-                        {(isOtherPolicy ||
-                          selectedProduct?.planNumber === "889" ||
-                          selectedProduct?.planNumber === "881" ||
-                          selectedProduct?.planNumber === "912") && (
-                            <span className="text-red-500"> *</span>
-                          )}
-                      </label>
-                      {isOtherPolicy ? (
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-slate-700">
+                          {selectedProduct?.planNumber === "883"
+                            ? "Gua.Addn.Period"
+                            : "PPT"}
+                          {(isOtherPolicy ||
+                            selectedProduct?.planNumber === "889" ||
+                            selectedProduct?.planNumber === "881" ||
+                            selectedProduct?.planNumber === "912") && (
+                              <span className="text-red-500"> *</span>
+                            )}
+                        </label>
+                        {isPlanDataMissing && (
+                          <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                            Manual entry
+                          </span>
+                        )}
+                      </div>
+                      {isOtherPolicy || isManualPpt || isPlanDataMissing || !hasDbPpts ? (
                         <input
                           type="number"
                           {...register("ppt")}
@@ -2094,25 +2212,9 @@ function NewLICPolicyContent() {
                           <option value="">
                             {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
                           </option>
-                          {(() => {
-                            let optionsToRender: (number | string)[] = productOptionsData.ppts;
-                            if (selectedProduct?.planNumber === "887") {
-                              if (watchMode === "Single") {
-                                optionsToRender = ["1"];
-                              } else {
-                                const currentTerm = Number(watch("term"));
-                                const allowed = [5, 10, 15];
-                                if (currentTerm && !allowed.includes(currentTerm)) {
-                                  allowed.push(currentTerm);
-                                }
-                                const filtered = productOptionsData.ppts.filter(p => allowed.includes(Number(p)));
-                                optionsToRender = filtered.length > 0 ? filtered : allowed;
-                              }
-                            }
-                            return optionsToRender.map(p => (
-                              <option key={p} value={p}>{p}</option>
-                            ));
-                          })()}
+                          {pptOptionsToRender.map(p => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
                         </select>
                       )}
                       {errors.ppt && (
@@ -2534,13 +2636,8 @@ function NewLICPolicyContent() {
                                   type="text"
                                   {...register(`riders.${index}.premium`)}
                                   placeholder="Premium"
-                                  readOnly={!isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"}
                                   disabled={!watchRiders?.[index]?.selected}
-                                  className={`w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] ${
-                                    !isOtherPolicy && selectedProduct?.planNumber !== "774" && selectedProduct?.planNumber !== "751" && selectedProduct?.planNumber !== "880"
-                                      ? "bg-slate-50 cursor-not-allowed text-slate-500"
-                                      : "bg-white text-slate-800"
-                                  } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                                  className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] bg-white text-slate-800 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                                 />
                               </td>
                               <td className="px-2 py-1.5 text-center">
@@ -2575,6 +2672,11 @@ function NewLICPolicyContent() {
                   icon={Banknote}
                 >
                   <div className="space-y-4">
+                    {isPlanDataMissing && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                        Terms, PPT, or rates are not present in database for this plan. You can enter all premium values manually.
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
                         Sum Assured
@@ -2620,12 +2722,7 @@ function NewLICPolicyContent() {
                         type="text"
                         {...register("totalYearlyPremium")}
                         placeholder="Enter total yearly premium"
-                        className={`w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm ${
-                          !isOtherPolicy
-                            ? "bg-slate-50 text-slate-500 cursor-not-allowed"
-                            : "focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
-                        }`}
-                        readOnly={!isOtherPolicy}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
                       />
                       {errors.totalYearlyPremium && (
                         <p className="text-xs text-red-500 mt-1">

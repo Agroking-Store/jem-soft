@@ -63,40 +63,55 @@ export const previewPremium = catchAsync(
       return;
     }
 
-    const premium = await calculatePremium({
-      productId,
-      age: Number(age),
-      secondaryAge:
-        secondaryAge !== undefined &&
-          secondaryAge !== null &&
-          secondaryAge !== ""
-          ? Number(secondaryAge)
-          : null,
-      option:
-        option !== undefined &&
-          option !== null &&
-          option !== ""
-          ? Number(option)
-          : null,
-      policyTerm: Number(policyTerm),
-      premiumPayingTerm:
-        premiumPayingTerm !== undefined &&
-          premiumPayingTerm !== null &&
-          premiumPayingTerm !== ""
-          ? Number(premiumPayingTerm)
-          : null,
-      sumAssured: Number(sumAssured),
-      premiumMode,
-      gender,
-      smoker,
-    });
+    try {
+      const premium = await calculatePremium({
+        productId,
+        age: Number(age),
+        secondaryAge:
+          secondaryAge !== undefined &&
+            secondaryAge !== null &&
+            secondaryAge !== ""
+            ? Number(secondaryAge)
+            : null,
+        option:
+          option !== undefined &&
+            option !== null &&
+            option !== ""
+            ? Number(option)
+            : null,
+        policyTerm: Number(policyTerm),
+        premiumPayingTerm:
+          premiumPayingTerm !== undefined &&
+            premiumPayingTerm !== null &&
+            premiumPayingTerm !== ""
+            ? Number(premiumPayingTerm)
+            : null,
+        sumAssured: Number(sumAssured),
+        premiumMode,
+        gender,
+        smoker,
+      });
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        premium,
-      },
-    });
+      res.status(200).json({
+        status: "success",
+        data: {
+          premium,
+        },
+      });
+    } catch (err: any) {
+      if (err.statusCode === 404 || err.message?.toLowerCase().includes("not found")) {
+        res.status(200).json({
+          status: "success",
+          data: {
+            premium: null,
+            isManual: true,
+            message: err.message || "Premium rate not found in database. Manual entry applies.",
+          },
+        });
+        return;
+      }
+      throw err;
+    }
   },
 );
 
@@ -312,17 +327,16 @@ export const previewRiderPremium = catchAsync(
     // =========================================================
 
     if (!riderRate) {
-      const genderText =
-        normalizedGender === Gender.MALE
-          ? "Male"
-          : normalizedGender === Gender.FEMALE
-            ? "Female"
-            : "Gender-independent";
-
-      throw new AppError(
-        `Premium rate not found for Rider ${riderId}, Age ${age}, Term ${riderTerm}, ${genderText}.`,
-        404,
-      );
+      res.status(200).json({
+        status: "success",
+        data: {
+          premium: 0,
+          rate: null,
+          isManual: true,
+          message: "Rider premium rate not found in database. Manual entry applies.",
+        },
+      });
+      return;
     }
 
     // =========================================================
