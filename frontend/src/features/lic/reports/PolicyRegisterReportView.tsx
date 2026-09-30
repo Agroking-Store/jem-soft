@@ -67,10 +67,10 @@ export default function PolicyRegisterReportView({
     // Helper to check agency filter match.
     // DB policy stores `agentCode` = advisor code (A001, A002, A003 etc.)
     // Agency mapping (from DB): A001, A002, A003 → Jayant Mahabole (AG002)
-    //                            A004, A005, A006 → Manisha Y Mahabole (AG003)
+    //                            A004, A005, A006 → Manish Y Mahabole (AG003)
     //                            anything else    → Other Agencies (AG001)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
-    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const MANISH_ADVISOR_CODES = ["a004", "a005", "a006"];
 
     const isAgencyMatch = (p: any, agencyFilters: string[]) => {
       if (!agencyFilters || agencyFilters.length === 0) return true;
@@ -86,14 +86,14 @@ export default function PolicyRegisterReportView({
           return JAYANT_ADVISOR_CODES.includes(pAgCode);
         }
 
-        // Manisha Y Mahabole = AG003 → advisors A004, A005, A006
-        if (fLower.includes("manisha") || fLower.includes("ag003")) {
-          return MANISHA_ADVISOR_CODES.includes(pAgCode);
+        // Manish Y Mahabole = AG003 → advisors A004, A005, A006
+        if (fLower.includes("manish") || fLower.includes("ag003")) {
+          return MANISH_ADVISOR_CODES.includes(pAgCode);
         }
 
         // Other Agencies = AG001 → any agentCode NOT in known advisor lists
         if (fLower.includes("other") || fLower.includes("ag001")) {
-          return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISHA_ADVISOR_CODES.includes(pAgCode);
+          return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISH_ADVISOR_CODES.includes(pAgCode);
         }
 
         // Generic fallback: direct string match

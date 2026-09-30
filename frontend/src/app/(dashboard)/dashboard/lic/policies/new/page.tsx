@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect, Suspense } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -64,7 +64,7 @@ import {
 
 import { riderSchema, nomineeSchema, policySchema, type PolicyFormValues } from "./schema";
 
-export default function NewLICPolicyPage() {
+function NewLICPolicyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
@@ -884,7 +884,7 @@ export default function NewLICPolicyPage() {
               const fetchOptions = async () => {
                 try {
                   const response = await axios.get(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
                     {
                       headers: {
                         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -990,7 +990,7 @@ export default function NewLICPolicyPage() {
               if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
                 try {
                   const response = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/rider-premium-preview`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/policies/rider-premium-preview`,
                     {
                       riderId,
                       age: watchAge,
@@ -1189,7 +1189,7 @@ export default function NewLICPolicyPage() {
       });
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/policies/premium-preview`,
+          `${process.env.NEXT_PUBLIC_API_URL}/policies/premium-preview`,
           {
             productId: watchProductId,
             age,
@@ -1558,7 +1558,7 @@ export default function NewLICPolicyPage() {
     const fetchOptions = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/products/${watchProductId}/options`,
+          `${process.env.NEXT_PUBLIC_API_URL}/products/${watchProductId}/options`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -3454,5 +3454,13 @@ export default function NewLICPolicyPage() {
         </form>
       </FormProvider>
     </div>
+  );
+}
+
+export default function NewLICPolicyPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading policy form...</div>}>
+      <NewLICPolicyContent />
+    </Suspense>
   );
 }

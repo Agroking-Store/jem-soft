@@ -47,6 +47,12 @@ export default function NotificationDropdown({
         right-0
         top-full
         mt-2
+        before:content-['']
+        before:absolute
+        before:-top-2
+        before:left-0
+        before:right-0
+        before:h-2
         w-[440px]
         max-w-[calc(100vw-2rem)]
         bg-white

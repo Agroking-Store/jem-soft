@@ -8,7 +8,7 @@ import {
 } from "../validations/claimValidation.js";
 
 export const getClaims = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (_req: Request, res: Response) => {
     const claims = await claimService.getAllClaims();
     res.status(200).json({ success: true, data: claims });
   },
@@ -117,7 +117,7 @@ export const updateClaim = catchAsync(
 );
 
 export const deleteClaim = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     await claimService.deleteClaimById(req.params.id);
     res
       .status(200)

@@ -7,6 +7,7 @@ import {
   useRef,
   useCallback,
   ReactNode,
+  Suspense,
 } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
@@ -233,7 +234,7 @@ function DeleteConfirmationModal({
   );
 }
 
-export default function LICPoliciesPage() {
+function LICPoliciesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
@@ -827,5 +828,13 @@ export default function LICPoliciesPage() {
         onConfirm={handleDelete}
       />
     </div>
+  );
+}
+
+export default function LICPoliciesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading policies...</div>}>
+      <LICPoliciesContent />
+    </Suspense>
   );
 }

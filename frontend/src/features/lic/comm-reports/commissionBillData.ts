@@ -865,7 +865,7 @@ export function generateCommissionBillItems(
         const matches = agencyFilters.some((f) => {
           const fl = f.toLowerCase().trim();
           if (fl.includes("jayant")) return pAgCode.includes("a001") || pAdvCode.includes("a001") || pAdvName.includes("jayant");
-          if (fl.includes("manisha")) return pAgCode.includes("a004") || pAdvCode.includes("a004") || pAdvName.includes("manisha");
+          if (fl.includes("manish")) return pAgCode.includes("a004") || pAdvCode.includes("a004") || pAdvName.includes("manish");
           return true;
         });
         if (!matches) return;

@@ -24,6 +24,6 @@ export const agenciesData = [
     branchCode: '951',
     address: '123 Kothrud, Pune',
     contactNo: '9876543213',
-    email: 'contact@manisha.com',
+    email: 'contact@manish.com',
   },
 ];

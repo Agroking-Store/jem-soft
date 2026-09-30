@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as loanService from "../services/loanService.js";
 
-export const getLoans = async (req: Request, res: Response) => {
+export const getLoans = async (_req: Request, res: Response) => {
   try {
     const loans = await loanService.getAllLoans();
     res.status(200).json({ success: true, data: loans });

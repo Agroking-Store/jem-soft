@@ -37,7 +37,7 @@ export const getLicBranch = catchAsync(async (req: Request, res: Response, next:
   });
 });
 
-export const updateLicBranch = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const updateLicBranch = catchAsync(async (req: Request, res: Response) => {
   const branch = await licBranchService.updateLicBranch(req.params.id, req.body);
   res.status(200).json({
     status: "success",
@@ -47,7 +47,7 @@ export const updateLicBranch = catchAsync(async (req: Request, res: Response, ne
   });
 });
 
-export const deleteLicBranch = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const deleteLicBranch = catchAsync(async (req: Request, res: Response) => {
   await licBranchService.deleteLicBranch(req.params.id);
   res.status(204).json({
     status: "success",

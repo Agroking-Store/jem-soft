@@ -60,7 +60,7 @@ const initialState: State = {
   isSubmitting: false,
   error: null,
 };
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((c) => {
   if (typeof window !== "undefined") {
