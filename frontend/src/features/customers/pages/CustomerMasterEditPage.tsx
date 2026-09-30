@@ -465,7 +465,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
   useEffect(() => {
     if (selectedGroupId) {
       getCustomersMasterApi().then((res) => {
-        const members = res.data || [];
+        const members = res.data?.customers || [];
         // Find group head that is NOT the current customer being edited
         const existingHead = members.find(
           (m: any) => m.groupId === selectedGroupId && m.isGroupHead && m.id !== id
