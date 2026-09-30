@@ -405,7 +405,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
     }
     // Fetch all customer masters to check for existing group heads
     getCustomersMasterApi().then((res) => {
-      const members = res.data || [];
+      const members = res.data?.customers || [];
       const currentGroup = selectedGroupId || groupId;
       if (currentGroup) {
         const existingHead = members.find(
@@ -490,7 +490,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
   useEffect(() => {
     if (selectedGroupId) {
       getCustomersMasterApi().then((res) => {
-        const members = res.data || [];
+        const members = res.data?.customers || [];
         const existingHead = members.find(
           (m: any) => m.groupId === selectedGroupId && m.isGroupHead
         );

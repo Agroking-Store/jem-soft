@@ -2,7 +2,8 @@
 
 import CustomerModuleNav from "@/features/customers/components/CustomerModuleNav";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -24,6 +25,9 @@ import {
   Building,
   Home,
   ChevronRight,
+  Search,
+  X,
+  Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { SearchableSelect, type SelectOption } from "@/features/customers/components/CustomerUi";
