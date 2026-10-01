@@ -7,7 +7,6 @@ import {
   Printer,
   FileText,
   Users,
-  CalendarDays,
   IndianRupee,
   CheckCircle2,
 } from "lucide-react";
@@ -46,11 +45,6 @@ function asDate(val: unknown): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-function asNum(val: unknown): number {
-  const n = Number(val);
-  return isNaN(n) ? 0 : n;
-}
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DueRow {
   sNo: number;
@@ -62,20 +56,141 @@ interface DueRow {
   sumAssured: number;
   premiumMode: string;
   dueDate: string;
+  dueDateRaw?: number;
   premium: number;
   paymentType: string;
+  memberId?: string;
+  area?: string;
+  subArea?: string;
+  branchCode?: string;
+  branchName?: string;
+  address?: string;
+  mobile?: string;
+  email?: string;
+  pan?: string;
+  gst?: string;
+  dob?: string;
+  nachDetails?: string;
 }
 
-// ─── Sample fallback data ─────────────────────────────────────────────────────
-const SAMPLE_ROWS: DueRow[] = [
-  { sNo: 1, groupCode: "GRP001", groupName: "Test Customer Group", policyNo: "973218099", insuredName: "Rohit Sharma", plan: "Jeevan Anand (915)", sumAssured: 500000, premiumMode: "YLY", dueDate: "01/11/2026", premium: 28450.0, paymentType: "Other" },
-  { sNo: 2, groupCode: "GRP001", groupName: "Test Customer Group", policyNo: "973218100", insuredName: "Shweta Sharma", plan: "New Endowment (814)", sumAssured: 300000, premiumMode: "HLY", dueDate: "01/11/2026", premium: 16220.5, paymentType: "Other" },
-  { sNo: 3, groupCode: "GRP001", groupName: "Test Customer Group", policyNo: "973218101", insuredName: "Aahan Sharma", plan: "Micro Bachat (751)", sumAssured: 100000, premiumMode: "YLY", dueDate: "15/11/2026", premium: 5600.0, paymentType: "NACH" },
-  { sNo: 4, groupCode: "GRP002", groupName: "Patil Family Group", policyNo: "956221045", insuredName: "Manoj Patil", plan: "Jeevan Labh (936)", sumAssured: 750000, premiumMode: "YLY", dueDate: "10/11/2026", premium: 39800.0, paymentType: "Other" },
-  { sNo: 5, groupCode: "GRP002", groupName: "Patil Family Group", policyNo: "956221046", insuredName: "Sunita Patil", plan: "New Bima Gold (179)", sumAssured: 200000, premiumMode: "YLY", dueDate: "20/11/2026", premium: 11350.0, paymentType: "Other" },
-  { sNo: 6, groupCode: "GRP003", groupName: "Kulkarni Group", policyNo: "912034201", insuredName: "Suresh Kulkarni", plan: "Jeevan Umang (945)", sumAssured: 1000000, premiumMode: "QTY", dueDate: "05/11/2026", premium: 15480.0, paymentType: "NACH" },
-  { sNo: 7, groupCode: "GRP003", groupName: "Kulkarni Group", policyNo: "912034202", insuredName: "Rekha Kulkarni", plan: "Money Plus (180)", sumAssured: 250000, premiumMode: "MLY", dueDate: "01/11/2026", premium: 3200.0, paymentType: "Other" },
-];
+/** Every row matches when nothing is selected for that filter type. */
+function matchesAny(haystack: string, needles: string[]): boolean {
+  if (needles.length === 0) return true;
+  const h = (haystack || "").toLowerCase();
+  if (!h) return false;
+  return needles.some((n) => h.includes(n) || n.includes(h));
+}
+
+// ─── DB helpers — 100% dynamic, no sample data anywhere ──────────────────────
+
+/** LIC mode code (Y/M/Q/H/S) from the premium mode master. */
+function resolveModeCode(p: Record<string, any>): string {
+  const raw = String(p?.premiumMode?.modeName || "").toLowerCase().trim();
+  if (raw.startsWith("month") || raw === "m") return "M";
+  if (raw.startsWith("quarter") || raw === "q") return "Q";
+  if (raw.startsWith("half") || raw === "h") return "H";
+  if (raw.startsWith("single") || raw === "s") return "S";
+  return "Y";
+}
+
+/** Premium paying interval in months (12 = yearly … 0 = single/one-time). */
+function modeMonths(p: Record<string, any>): number {
+  const months = Number(p?.premiumMode?.months);
+  if (Number.isFinite(months) && months > 0) return months;
+  const code = resolveModeCode(p);
+  if (code === "M") return 1;
+  if (code === "Q") return 3;
+  if (code === "H") return 6;
+  if (code === "S") return 0;
+  return 12;
+}
+
+/** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
+function isNachPolicy(p: Record<string, any>): boolean {
+  const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
+  if (pay.includes("nach")) return true;
+  return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
+}
+
+/** Month step that keeps LIC due-date day-of-month (31 Jan + 1m → 28/29 Feb). */
+function addMonthsClamped(date: Date, months: number): Date {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return d;
+}
+
+/**
+ * Every premium due date that falls inside the selected window.
+ *  - "FUP Date" basis → only the first unpaid due date (the anchor).
+ *  - "Standard Duedate" → every installment due inside the window
+ *    (monthly/quarterly/half-yearly policies can contribute several rows).
+ * When nextPremiumDueDate is missing, the anchor is derived from the
+ * commencement-date anniversary using the premium mode.
+ */
+function dueOccurrences(
+  p: Record<string, any>,
+  from: Date | null,
+  to: Date | null,
+  basis: string
+): Date[] {
+  const months = modeMonths(p);
+  const ref = from || new Date();
+  let anchor = asDate(p.nextPremiumDueDate) ?? asDate(p.dueDate) ?? asDate(p.fupDate);
+
+  if (!anchor) {
+    const comm = asDate(p.commencementDate);
+    if (!comm) return [];
+    const d = new Date(comm);
+    let guard = 0;
+    while (d < ref && guard < 720) {
+      if (months <= 0) break;
+      d.setTime(addMonthsClamped(d, months).getTime());
+      guard += 1;
+    }
+    anchor = d;
+  }
+
+  const inWindow = (d: Date) => (!from || d >= from) && (!to || d <= to);
+
+  // FUP basis / single mode / partial date range → the anchor alone.
+  if (basis === "FUP Date" || months <= 0 || !from || !to) {
+    return inWindow(anchor) ? [anchor] : [];
+  }
+
+  // Standard basis: fast-forward past the window start, then walk the mode.
+  let cur = new Date(anchor);
+  let guard = 0;
+  while (cur < from && guard < 720) {
+    cur = addMonthsClamped(cur, months);
+    guard += 1;
+  }
+  const out: Date[] = [];
+  while (cur <= to && guard < 800) {
+    if (cur >= from) out.push(new Date(cur));
+    cur = addMonthsClamped(cur, months);
+    guard += 1;
+  }
+  return out;
+}
+
+/** Real NACH mandate info from the member's default bank account. */
+function nachDetailsFor(
+  memberMaster: Record<string, any> | undefined,
+  debitDate: Date | null
+): string {
+  const banks: any[] = memberMaster?.bankDetails || [];
+  const bank = banks.find((b) => b?.isDefault) || banks[0];
+  const parts = ["NACH"];
+  if (debitDate) parts.push(`Debit ${fmtDate(debitDate)}`);
+  if (bank?.bankName) parts.push(String(bank.bankName));
+  if (bank?.accountNumber) parts.push(`A/C ****${String(bank.accountNumber).slice(-4)}`);
+  if (bank?.ifscCode) parts.push(`IFSC ${bank.ifscCode}`);
+  return parts.join(" • ");
+}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function PremiumDueReportView({
@@ -87,25 +202,77 @@ export default function PremiumDueReportView({
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  // ── Build rows from Redux data or fallback to sample ──────────────────────
+  // ── Build rows from DB policies — every form filter is applied here ──────
   const rows = useMemo((): DueRow[] => {
     const fromDate = asDate(formData.fromDueDate);
     const toDate = asDate(formData.toDueDate);
 
-    const selectedStatusNames = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Policy Status")
-      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
+    const pick = (type: string) =>
+      (formData.appliedFilters || [])
+        .filter((f) => f.type === type)
+        .map((f) => (f.name || f.id || "").toLowerCase().trim())
+        .filter(Boolean);
 
-    const validPolicies = rawPolicies.filter((p) => {
-      const dueRaw = p.nextPremiumDueDate ?? p.dueDate;
-      const dueDate = asDate(dueRaw as string);
+    const selectedStatusNames = pick("Policy Status").map((s) => s.replace(/[- ]/g, ""));
+    const selectedAgencies = pick("Agencies");
+    const selectedBranches = pick("Branches");
+    const selectedAreas = pick("Areas");
 
-      if (fromDate && dueDate && dueDate < fromDate) return false;
-      if (toDate && dueDate && dueDate > toDate) return false;
+    // Group selection can come from the Filter Options modal ("Groups Wise")
+    // OR from the Select Groups modal used by the groupsWise sorting radio.
+    const selectedGroupKeys = new Set<string>();
+    const addGroupKey = (raw: string) => {
+      const k = (raw || "").toLowerCase().trim();
+      if (!k) return;
+      selectedGroupKeys.add(k);
+      // FilterOptionsModal renders name as "<code> - <head name>"
+      selectedGroupKeys.add(k.split(" - ")[0].trim());
+    };
+    (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups Wise" || f.type === "Groups")
+      .forEach((f) => {
+        if (f.id) addGroupKey(f.id);
+        addGroupKey(f.name || "");
+      });
+    (formData.selectedGroups || []).forEach((g) => addGroupKey((g as { groupCode?: string }).groupCode || ""));
 
-      const rawStatus = String(
-        (p.status as Record<string, unknown>)?.statusName ?? p.statusName ?? "Active"
-      ).toLowerCase();
+    // Sorting-filter modal selection (members / areas / branches)
+    const sortingItems = formData.sortingFilterSelection?.selectedItems || [];
+    const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+    const selectedSortingKeys = sortingItems
+      .map((i) => (i.code || i.name || "").toLowerCase().trim())
+      .filter(Boolean);
+
+    // Agency match — DB advisor codes map to agencies the same way as
+    // Policy Register: A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003).
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const isAgencyMatch = (p: Record<string, any>, filters: string[]) => {
+      if (filters.length === 0) return true;
+      const agCode = String(p.agentCode || p.agency?.agencyCode || "").toLowerCase().trim();
+      const agName = String(p.advisor?.agency?.agencyName || p.agency?.agencyName || "").toLowerCase().trim();
+      return filters.some((f) => {
+        if (!f) return true;
+        if (f.includes("jayant") || f.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(agCode);
+        if (f.includes("manisha") || f.includes("ag003")) return MANISHA_ADVISOR_CODES.includes(agCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return !JAYANT_ADVISOR_CODES.includes(agCode) && !MANISHA_ADVISOR_CODES.includes(agCode);
+        return (
+          (Boolean(agCode) && (agCode.includes(f) || f.includes(agCode))) ||
+          (Boolean(agName) && (agName.includes(f) || f.includes(agName)))
+        );
+      });
+    };
+
+    const filteredPolicies = rawPolicies.filter((p) => {
+      const cust: Record<string, any> =
+        p.customer || rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) || {};
+
+      // NOTE: the due-date window is NOT applied here — one policy can fall due
+      // several times inside it (one row per installment). Dates are expanded
+      // per occurrence after this filter (see dueOccurrences below).
+
+      const rawStatus = String(p.status?.statusName ?? p.statusName ?? "Active").toLowerCase();
       if (selectedStatusNames.length > 0) {
         const normStatus = rawStatus.replace(/[- ]/g, "");
         const matches = selectedStatusNames.some(
@@ -114,92 +281,253 @@ export default function PremiumDueReportView({
         if (!matches) return false;
       }
 
+      // Lapsed is excluded unless (a) "Include Lapsed Policies" is ticked OR
+      // (b) "Lapsed" was picked explicitly in the Policy Status filter —
+      // every control must have a real effect on the output.
       const isLapsed = rawStatus.includes("lapsed");
-      if (isLapsed && !formData.includeLapsedPolicies) return false;
+      const lapsedPicked = selectedStatusNames.some((st) => st.includes("lapsed"));
+      if (isLapsed && !formData.includeLapsedPolicies && !lapsedPicked) return false;
 
-      const isNach = Boolean(
-        String((p.premiumMode as Record<string, unknown>)?.modeName ?? "")
-          .toLowerCase()
-          .includes("nach") || p.isNach
-      );
+      if (!isAgencyMatch(p, selectedAgencies)) return false;
+
+      if (
+        selectedBranches.length &&
+        !matchesAny(`${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`, selectedBranches)
+      )
+        return false;
+
+      if (
+        selectedAreas.length &&
+        !matchesAny(`${cust.resArea || ""} ${cust.resCity || ""} ${cust.offArea || ""}`, selectedAreas)
+      )
+        return false;
+
+      if (selectedGroupKeys.size > 0) {
+        const gCode = String(cust.groupCode || "").toLowerCase().trim();
+        const gName = String(cust.groupName || cust.name || "").toLowerCase().trim();
+        const matched = Array.from(selectedGroupKeys).some(
+          (k) => Boolean(k) && (gCode === k || gCode.includes(k) || (gName && gName.includes(k)))
+        );
+        if (!matched) return false;
+      }
+
+      // Sorting modal selection: memberwise shows ONLY the ticked members.
+      if (sortingItems.length > 0 && formData.sortingOption !== "groupsWise") {
+        if (formData.sortingOption === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "areaWise") {
+          if (!matchesAny(String(cust.resArea || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "subAreaWise") {
+          if (!matchesAny(String(cust.resCity || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "branchNoWise") {
+          if (
+            !matchesAny(
+              `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+              selectedSortingKeys
+            )
+          )
+            return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          // Sorting modal lists each policy by its DB id — show ONLY the ticked ones.
+          const pid = String(p.id || p.policyNumber || "");
+          if (!selectedMemberIds.has(pid)) return false;
+        }
+      }
+
+      const isNach = isNachPolicy(p);
       if (isNach && !formData.paymentTypes.nach) return false;
       if (!isNach && !formData.paymentTypes.otherThanNach) return false;
 
       return true;
     });
 
-    if (validPolicies.length === 0) {
-      // Filter sample data
-      return SAMPLE_ROWS.filter((r) => {
-        if (!formData.paymentTypes.nach && r.paymentType === "NACH") return false;
-        if (!formData.paymentTypes.otherThanNach && r.paymentType === "Other") return false;
-        return true;
-      });
-    }
+    // 100% PURE DYNAMIC — no hardcoded/demo rows. When nothing in the DB
+    // matches the applied filters, the report shows its empty state.
+    if (filteredPolicies.length === 0) return [];
 
-    // Map real policies → DueRow
+    // Map real policies → DueRow (one row per due date inside the window)
     const customerMap: Record<string, Record<string, unknown>> = {};
     rawCustomers.forEach((c) => {
       const cust = c as Record<string, unknown>;
       if (cust.id) customerMap[String(cust.id)] = cust;
     });
 
-    return validPolicies.map((p, idx) => {
+    const dueRows: DueRow[] = [];
+    filteredPolicies.forEach((p) => {
       const cust =
         (p.customer as Record<string, unknown>) ??
-        customerMap[String(p.customerId)] ??
+        customerMap[String(p.clientId || p.customerId)] ??
         {};
-      const isNach = Boolean(
-        String((p.premiumMode as Record<string, unknown>)?.modeName ?? "")
-          .toLowerCase()
-          .includes("nach") || p.isNach
-      );
-      const dueDate = asDate(
-        (p.nextPremiumDueDate ?? p.dueDate) as string
-      );
-      const plan =
-        (p.product as Record<string, unknown>)?.productName ??
-        p.planName ??
-        "—";
-      return {
-        sNo: idx + 1,
-        groupCode: String(cust.groupCode ?? "GRP000"),
-        groupName: String(cust.groupName ?? cust.name ?? "Unknown Group"),
-        policyNo: String(p.policyNumber ?? p.policyNo ?? "—"),
-        insuredName: String(
-          cust.name ??
-            `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() ??
-            "—"
-        ),
-        plan: String(plan),
-        sumAssured: asNum(p.sumAssured),
-        premiumMode: String(
-          (p.premiumMode as Record<string, unknown>)?.modeName ??
-            p.premiumMode ??
-            "—"
-        ),
-        dueDate: dueDate ? fmtDate(dueDate) : "—",
-        premium: asNum(p.annualPremium ?? p.premium),
-        paymentType: isNach ? "NACH" : "Other",
-      } as DueRow;
+      const c = cust as Record<string, any>;
+      const isNach = isNachPolicy(p);
+      const memberMaster = p.CustomerMaster as Record<string, any> | undefined;
+      const memberId = String(memberMaster?.id || p.CustomerMasterId || "");
+      const memberName = memberMaster
+        ? `${memberMaster.salutation || ""} ${memberMaster.firstName || ""} ${memberMaster.lastName || ""}`
+            .replace(/\s+/g, " ")
+            .trim()
+        : "";
+      const planName = String((p.product as Record<string, unknown>)?.productName ?? p.planName ?? "—");
+      const planNo = String((p.product as Record<string, unknown>)?.planNumber ?? "");
+      const plan = planNo ? `${planName} (${planNo})` : planName;
+
+      const addressParts = [
+        c.resAddressLine1,
+        c.resAddressLine2,
+        c.resArea || c.offArea,
+        c.resCity || c.offCity,
+        c.resPin || c.offPin,
+      ].filter((part: any) => Boolean(part && String(part).trim().length > 0));
+
+      const dobRaw = memberMaster?.dob || c.dob;
+      const occurrences = dueOccurrences(p, fromDate, toDate, formData.reportBasedOn);
+
+      occurrences.forEach((dueDate) => {
+        dueRows.push({
+          sNo: 0, // renumbered in true display order once blocks are built
+          groupCode: String(c.groupCode || c.id || p.clientId || "—"),
+          groupName: String(c.groupName || c.name || "Individual"),
+          policyNo: String(p.policyNumber ?? p.policyNo ?? "—"),
+          insuredName:
+            memberName || String(c.name ?? `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() ?? "—"),
+          plan,
+          sumAssured: Number(p.premium?.sumAssured || p.sumAssured || 0),
+          premiumMode: resolveModeCode(p),
+          dueDate: fmtDate(dueDate),
+          dueDateRaw: dueDate.getTime(),
+          // What the customer actually pays at this due date (one installment).
+          premium: Number(
+            p.premium?.installmentPremium ||
+              p.premium?.totalInstallmentPremium ||
+              p.premiumAmount ||
+              0
+          ),
+          paymentType: isNach ? "NACH" : String(p.paymentMode?.modeName || "Other"),
+          memberId,
+          area: String(c.resArea || c.offArea || ""),
+          subArea: String(c.resCity || c.offCity || ""),
+          branchCode: String((p.branch as Record<string, unknown>)?.branchCode || p.branchNo || ""),
+          branchName: String((p.branch as Record<string, unknown>)?.branchName || ""),
+          address: addressParts.length ? addressParts.join(", ") : "Address Not Provided",
+          mobile: String(
+            memberMaster?.contactInfo?.mobile1 || c.phone || c.mobilePersonal || c.mobile || "N/A"
+          ),
+          email: String(
+            memberMaster?.contactInfo?.emailPersonal ||
+              c.email ||
+              c.emailPersonal ||
+              c.emailBusiness ||
+              "N/A"
+          ),
+          pan: String(memberMaster?.panNumber || c.panNumber || c.pan || "N/A"),
+          gst: String(c.gstNumber || c.gst || "N/A"),
+          dob: dobRaw ? fmtDate(dobRaw) : "—",
+          // Real mandate details: NACH auto-debits on the due date itself.
+          nachDetails: isNach ? nachDetailsFor(memberMaster, dueDate) : "—",
+        });
+      });
     });
+
+    return dueRows;
   }, [rawPolicies, rawCustomers, formData]);
 
-  // ── Group rows by group name ──────────────────────────────────────────────
-  const groupedRows = useMemo(() => {
-    const map: Record<string, DueRow[]> = {};
-    rows.forEach((r) => {
-      if (!map[r.groupName]) map[r.groupName] = [];
-      map[r.groupName].push(r);
-    });
-    return Object.entries(map);
-  }, [rows]);
+  // ── Group / sort rows as per the selected sorting radio ───────────────────
+  const blocks = useMemo(() => {
+    const opt = formData.sortingOption;
+    const map = new Map<
+      string,
+      { key: string; heading: string; showHeading: boolean; rows: DueRow[] }
+    >();
+    const push = (key: string, heading: string, showHeading: boolean, row: DueRow) => {
+      if (!map.has(key)) map.set(key, { key, heading, showHeading, rows: [] });
+      map.get(key)!.rows.push(row);
+    };
+
+    // dueDate / policyNoWise are FLAT sorts — one list, no group headings.
+    let ordered: Array<{ key: string; heading: string; showHeading: boolean; rows: DueRow[] }>;
+    if (opt === "dueDate") {
+      const sorted = [...rows].sort((a, b) => (a.dueDateRaw || 0) - (b.dueDateRaw || 0));
+      ordered = [{ key: "dueDate", heading: "", showHeading: false, rows: sorted }];
+    } else if (opt === "policyNoWise") {
+      const sorted = [...rows].sort((a, b) => {
+        const byNo = a.policyNo.localeCompare(b.policyNo, undefined, { numeric: true });
+        return byNo !== 0 ? byNo : (a.dueDateRaw || 0) - (b.dueDateRaw || 0);
+      });
+      ordered = [{ key: "policyNo", heading: "", showHeading: false, rows: sorted }];
+    } else {
+      rows.forEach((r) => {
+        if (opt === "groupMemberwise") {
+          // Each member is their own block with the member name as heading —
+          // same memberwise look as Policy Register / Premium Outstanding.
+          push(r.memberId || `mem-${r.policyNo}`, r.insuredName, true, r);
+        } else if (opt === "areaWise") {
+          const area = r.area || "Unassigned";
+          push(area, `Area : ${area}`, true, r);
+        } else if (opt === "subAreaWise") {
+          const sub = r.subArea || "Unassigned";
+          push(sub, `Sub-Area : ${sub}`, true, r);
+        } else if (opt === "branchNoWise") {
+          const label = r.branchName || r.branchCode || "Default Branch";
+          push(r.branchCode || label, `Branch : ${label}`, true, r);
+        } else {
+          // groupsWise
+          push(r.groupCode, `${r.groupCode}: ${r.groupName}`, true, r);
+        }
+      });
+      ordered = Array.from(map.values());
+    }
+
+    // Re-number S.No in the true display order (1..n) so numbers never skip,
+    // even after sorting or when one policy has several due dates in the window.
+    let sNo = 0;
+    return ordered.map((b) => ({
+      ...b,
+      rows: b.rows.map((r) => ({ ...r, sNo: (sNo += 1) })),
+    }));
+  }, [rows, formData.sortingOption]);
 
   // ── KPI summaries ─────────────────────────────────────────────────────────
   const totalPolicies = rows.length;
-  const totalGroups = groupedRows.length;
+  const totalGroups = new Set(rows.map((r) => r.groupCode)).size;
   const totalPremium = rows.reduce((s, r) => s + r.premium, 0);
   const nachCount = rows.filter((r) => r.paymentType === "NACH").length;
+
+  // ── Report Options → optional extra columns ───────────────────────────────
+  const opts = formData.reportOptions || ({} as PremiumDueFormData["reportOptions"]);
+  const optCols = [
+    opts.address && { label: "Address", render: (r: DueRow) => r.address || "—" },
+    opts.mobile && { label: "Mobile", render: (r: DueRow) => r.mobile || "—" },
+    opts.email && { label: "Email", render: (r: DueRow) => r.email || "—" },
+    opts.pan && { label: "PAN", render: (r: DueRow) => r.pan || "—" },
+    opts.gst && { label: "GST", render: (r: DueRow) => r.gst || "—" },
+    opts.dob && { label: "DOB", render: (r: DueRow) => r.dob || "—" },
+    opts.nachDetails && { label: "NACH Details", render: (r: DueRow) => r.nachDetails || "—" },
+  ].filter(Boolean) as Array<{ label: string; render: (r: DueRow) => string }>;
+
+  const baseHeaders = [
+    "S.No",
+    "Group Code",
+    "Group Name",
+    "Policy No.",
+    "Insured Name",
+    "Plan",
+    "Sum Assured",
+    "Mode",
+    "Due Date",
+    "Premium",
+    "Payment Type",
+  ];
+  const headerCells = [...baseHeaders, ...optCols.map((c) => c.label)];
+  const totalCols = headerCells.length;
+  // Columns BEFORE "Premium" (S.No..Due Date) — subtotal rows must land the
+  // amount exactly in the Premium column even when extra option columns follow.
+  const PREMIUM_LEAD_COLS = 9;
+
+  const reportTitle =
+    formData.reportType === "Statement"
+      ? "Premium Due Statement"
+      : "Premium Due Intimation Notice";
 
   // ── Export PDF ────────────────────────────────────────────────────────────
   const handleDownloadPDF = async () => {
@@ -373,7 +701,7 @@ export default function PremiumDueReportView({
         {/* Report title line */}
         <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
-            Premium Due Statement as on {reportDateDisplay}
+            {reportTitle} as on {reportDateDisplay}
           </span>
           <span>
             Groups: {totalGroups} | Policies: {totalPolicies}
@@ -383,24 +711,35 @@ export default function PremiumDueReportView({
           Due Date: {displayFromDate} to {displayToDate} | {formData.reportBasedOn} | {formData.reportType}
           {formData.includeLapsedPolicies ? " | Incl. Lapsed" : ""}
         </div>
+        {formData.reportType === "Intimation" && (
+          <div className="pb-2 text-[9px] leading-snug">
+            Notice: You are requested to pay the premium shown below on or before the due date.
+            Kindly ensure the installment is credited in time to keep the policy in force.
+          </div>
+        )}
 
-        {/* Table */}
+        {/* Table (or honest empty state — never fake/sample rows) */}
+        {rows.length === 0 ? (
+          <div className="mt-6 p-10 text-center border-2 border-dashed border-slate-300 space-y-2">
+            <div className="text-[12px] font-bold">
+              No policies match the selected filters
+            </div>
+            <p className="text-[10px]">
+              Nothing in the database matched the applied filters for {displayFromDate} to{" "}
+              {displayToDate}. Please change the date range or other filters.
+            </p>
+            <button
+              onClick={onBackToForm}
+              className="px-4 py-1.5 border border-black text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition"
+            >
+              Modify Filter Selection
+            </button>
+          </div>
+        ) : (
         <table className="w-full text-left text-[10px] border-collapse">
           <thead>
             <tr className="font-bold">
-              {[
-                "S.No",
-                "Group Code",
-                "Group Name",
-                "Policy No.",
-                "Insured Name",
-                "Plan",
-                "Sum Assured",
-                "Mode",
-                "Due Date",
-                "Premium",
-                "Payment Type",
-              ].map((h) => (
+              {headerCells.map((h) => (
                 <th
                   key={h}
                   className="px-1 py-1 text-left font-bold whitespace-nowrap border-t border-b border-black"
@@ -411,18 +750,17 @@ export default function PremiumDueReportView({
             </tr>
           </thead>
           <tbody>
-            {groupedRows.map(([groupName, groupRows]) => (
-              <Fragment key={`grp-block-${groupName}`}>
-                {/* Group heading - centered, bold */}
-                <tr>
-                  <td colSpan={11} className="pt-3 pb-1 text-center">
-                    <div className="text-[13px] font-bold">
-                      {groupRows[0]?.groupCode}: {groupName}
-                    </div>
-                  </td>
-                </tr>
-                {groupRows.map((row, ri) => (
-                  <tr key={`${groupName}-${ri}`}>
+            {blocks.map((block) => (
+              <Fragment key={`blk-${block.key}`}>
+                {block.showHeading && (
+                  <tr>
+                    <td colSpan={totalCols} className="pt-3 pb-1 text-center">
+                      <div className="text-[13px] font-bold">{block.heading}</div>
+                    </td>
+                  </tr>
+                )}
+                {block.rows.map((row) => (
+                  <tr key={`${block.key}-${row.policyNo}-${row.sNo}`}>
                     <td className="px-1 py-0.5 text-slate-500">{row.sNo}</td>
                     <td className="px-1 py-0.5 font-semibold">{row.groupCode}</td>
                     <td className="px-1 py-0.5">{row.groupName}</td>
@@ -434,55 +772,53 @@ export default function PremiumDueReportView({
                     <td className="px-1 py-0.5 text-center font-semibold">{row.dueDate}</td>
                     <td className="px-1 py-0.5 text-right font-mono font-bold">{fmtCurrency(row.premium)}</td>
                     <td className="px-1 py-0.5 text-center">{row.paymentType}</td>
+                    {optCols.map((col) => (
+                      <td key={col.label} className="px-1 py-0.5 whitespace-nowrap">
+                        {col.render(row)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
-                {/* Group subtotal */}
-                <tr className="font-bold">
-                  <td colSpan={9} className="px-1 pt-1.5 pb-1 text-right">
-                    <span className="inline-block border-t border-b border-black px-1">Sub Total — {groupName}</span>
-                  </td>
-                  <td className="px-1 pt-1.5 pb-1 text-right font-mono">
-                    <span className="inline-block border-t border-b border-black px-1">
-                      {fmtCurrency(groupRows.reduce((s, r) => s + r.premium, 0))}
-                    </span>
-                  </td>
-                  <td className="px-1 pt-1.5 pb-1" />
-                </tr>
+                {/* Block subtotal — only when it adds information (matches
+                    Policy Register: single-row blocks skip the redundant row) */}
+                {block.showHeading && block.rows.length > 1 && (
+                  <tr className="font-bold">
+                    <td colSpan={PREMIUM_LEAD_COLS} className="px-1 pt-1.5 pb-1 text-right">
+                      <span className="inline-block border-t border-b border-black px-1">
+                        Sub Total — {block.heading}
+                      </span>
+                    </td>
+                    <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                      <span className="inline-block border-t border-b border-black px-1">
+                        {fmtCurrency(block.rows.reduce((s, r) => s + r.premium, 0))}
+                      </span>
+                    </td>
+                    <td colSpan={totalCols - PREMIUM_LEAD_COLS - 1} className="px-1 pt-1.5 pb-1" />
+                  </tr>
+                )}
               </Fragment>
             ))}
 
             {/* Grand Total */}
-            {rows.length > 0 && (
-              <tr className="font-bold">
-                <td colSpan={6} className="px-1 pt-1.5 pb-1 text-right uppercase">
-                  Grand Total ({totalPolicies} Policies, {totalGroups} Groups)
-                </td>
-                <td className="px-1 pt-1.5 pb-1" />
-                <td className="px-1 pt-1.5 pb-1" />
-                <td className="px-1 pt-1.5 pb-1" />
-                <td className="px-1 pt-1.5 pb-1 text-right font-mono">
-                  <span className="inline-block border-t border-b border-black px-1">
-                    {fmtCurrency(totalPremium)}
-                  </span>
-                </td>
-                <td className="px-1 pt-1.5 pb-1" />
-              </tr>
-            )}
-
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={11} className="px-3 py-8 text-center text-slate-400 text-sm">
-                  No policies match the selected filters.
-                </td>
-              </tr>
-            )}
+            <tr className="font-bold">
+              <td colSpan={PREMIUM_LEAD_COLS} className="px-1 pt-1.5 pb-1 text-right uppercase">
+                Grand Total ({totalPolicies} Policies, {totalGroups} Groups)
+              </td>
+              <td className="px-1 pt-1.5 pb-1 text-right font-mono">
+                <span className="inline-block border-t border-b border-black px-1">
+                  {fmtCurrency(totalPremium)}
+                </span>
+              </td>
+              <td colSpan={totalCols - PREMIUM_LEAD_COLS - 1} className="px-1 pt-1.5 pb-1" />
+            </tr>
           </tbody>
         </table>
+        )}
 
         {/* Legend footer */}
         <div className="pt-5 mt-4 space-y-1 text-[9px]" style={{ borderTop: "1px solid #000" }}>
           <div className="flex flex-wrap gap-x-5 gap-y-0.5">
-            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>Y :</strong> Yearly Mode</span>
             <span><strong>M :</strong> Monthly Mode</span>
             <span><strong>Q :</strong> Quarterly Mode</span>
             <span><strong>H :</strong> Half-Yearly Mode</span>

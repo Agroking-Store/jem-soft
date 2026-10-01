@@ -731,6 +731,8 @@ export default function LICReportsPage() {
           agencies={agencies || []}
           policyStatuses={policyStatuses || []}
           customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
         />
       )}
 

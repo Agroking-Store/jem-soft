@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
-  Save,
   RotateCcw,
   FileText,
   Filter,
@@ -12,13 +11,21 @@ import {
 } from "lucide-react";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface LoanInterestDueFormData {
   dateFrom: string;
   dateTo: string;
   reportDate: string;
   reportType: "Statement" | "Intimation";
-  sortingOption: "groupsWise" | "groupMemberwise" | "areaWise" | "subAreaWise" | "branchNoWise";
+  sortingOption:
+    | "groupsWise"
+    | "groupMemberwise"
+    | "areaWise"
+    | "subAreaWise"
+    | "branchNoWise";
   selectedGroups: GroupFilterItem[];
   statementOptions: {
     address: boolean;
@@ -34,10 +41,7 @@ export interface LoanInterestDueFormData {
     purpose: string;
   };
   appliedFilters: SelectedFilterItem[];
-  sortingFilterSelection: {
-    type: string;
-    selectedItems: any[];
-  } | null;
+  sortingFilterSelection: SortingFilterSelection | null;
 }
 
 interface LoanInterestDueFormProps {
@@ -48,29 +52,37 @@ interface LoanInterestDueFormProps {
   policyStatuses: any[];
   customers: any[];
   policies: any[];
-  branches: any[];
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
   loans?: any[];
 }
 
-const defaultFormData = (): LoanInterestDueFormData => ({
-  dateFrom: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
-  dateTo: new Date(new Date().getFullYear(), new Date().getMonth() + 3, 0).toISOString().split("T")[0],
-  reportDate: new Date().toISOString().split("T")[0],
-  reportType: "Statement",
-  sortingOption: "groupsWise",
-  selectedGroups: [],
-  statementOptions: { address: false, mobile: true, dob: false },
-  intimationOptions: {
-    includePrevArrear: false,
-    mailingLabels: false,
-    despatchList: false,
-    dob: false,
-    costPerDespatch: "0",
-    purpose: "",
-  },
-  appliedFilters: [],
-  sortingFilterSelection: null,
-});
+/** Interest falls due every half year — default window covers the next service date. */
+const defaultFormData = (): LoanInterestDueFormData => {
+  const today = new Date();
+  const halfYearLater = new Date(today);
+  halfYearLater.setMonth(halfYearLater.getMonth() + 6);
+  return {
+    dateFrom: today.toISOString().split("T")[0],
+    dateTo: halfYearLater.toISOString().split("T")[0],
+    reportDate: today.toISOString().split("T")[0],
+    reportType: "Statement",
+    sortingOption: "groupsWise",
+    selectedGroups: [],
+    statementOptions: { address: false, mobile: true, dob: false },
+    intimationOptions: {
+      includePrevArrear: false,
+      mailingLabels: false,
+      despatchList: false,
+      dob: false,
+      costPerDespatch: "0",
+      purpose: "",
+    },
+    appliedFilters: [],
+    sortingFilterSelection: null,
+  };
+};
+
+const VISIBLE_CATEGORIES = ["Groups Wise", "Agencies", "Branches", "Areas", "Policy Status"];
 
 export default function LoanInterestDueForm({
   onBack,
@@ -80,7 +92,7 @@ export default function LoanInterestDueForm({
   policyStatuses,
   customers,
   policies,
-  branches,
+  branches = [],
 }: LoanInterestDueFormProps) {
   const [formData, setFormData] = useState<LoanInterestDueFormData>(
     initialData || defaultFormData()
@@ -88,13 +100,44 @@ export default function LoanInterestDueForm({
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
 
   const getSelectGroupsLabel = () => {
-    const count = formData.selectedGroups.length;
-    return count > 0 ? `${count} Group(s) selected` : "All Groups Selected";
+    if (formData.sortingOption === "groupsWise") {
+      const count = formData.selectedGroups.length;
+      return count > 0 ? `${count} Group(s) selected` : "All Groups Selected";
+    }
+    const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
+    if (count > 0) return `${count} item(s) selected`;
+    switch (formData.sortingOption) {
+      case "groupMemberwise":
+        return "All Members Selected";
+      case "areaWise":
+        return "All Areas Selected";
+      case "subAreaWise":
+        return "All Sub-Areas Selected";
+      case "branchNoWise":
+        return "All Branches Selected";
+      default:
+        return "All Groups Selected";
+    }
   };
 
-  const openSelectGroupsModal = () => setIsGroupModalOpen(true);
+  const selectLabel =
+    formData.sortingOption === "groupsWise"
+      ? "Select Groups"
+      : formData.sortingOption === "groupMemberwise"
+      ? "Select Members"
+      : formData.sortingOption === "areaWise"
+      ? "Select Areas"
+      : formData.sortingOption === "subAreaWise"
+      ? "Select Sub-Areas"
+      : "Select Branches";
+
+  const openSelectGroupsModal = () => {
+    if (formData.sortingOption === "groupsWise") setIsGroupModalOpen(true);
+    else setIsSortingModalOpen(true);
+  };
 
   const handleReset = () => setFormData(defaultFormData());
 
@@ -110,6 +153,9 @@ export default function LoanInterestDueForm({
     { id: "groupsWise", label: "Groups Wise" },
     { id: "groupMemberwise", label: "Group Memberwise" },
   ];
+
+  const activeSortingOptions =
+    formData.reportType === "Statement" ? sortingOptions : sendToOptions;
 
   return (
     <div className="space-y-6">
@@ -131,13 +177,6 @@ export default function LoanInterestDueForm({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => alert("Configuration saved!")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
-            title="Save Configuration"
-          >
-            <Save size={17} />
-          </button>
-          <button
             onClick={handleReset}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Reset Form"
@@ -158,11 +197,9 @@ export default function LoanInterestDueForm({
         {/* Section 1: Filter Options */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-              Filter Options
-            </h2>
-          </div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
+            Filter Options
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
             {/* Selected Filter Box */}
@@ -175,21 +212,28 @@ export default function LoanInterestDueForm({
                   <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Selected Filter
                   </span>
-                  <div className="flex items-center justify-between border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white">
-                    <span className="text-slate-800 font-semibold">
-                      {formData.appliedFilters.length > 0
-                        ? `${formData.appliedFilters.length} filter applied`
-                        : "No filters applied"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsFilterModalOpen(true)}
-                      className="px-2.5 py-1 text-xs font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition cursor-pointer"
-                    >
-                      View Filter
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      formData.appliedFilters.length > 0
+                        ? `${formData.appliedFilters.length} filter${
+                            formData.appliedFilters.length > 1 ? "s" : ""
+                          } selected`
+                        : "All filters Selected"
+                    }
+                    onClick={() => setIsFilterModalOpen(true)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
+                  />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
+                  title="Open Filter Options"
+                >
+                  <Filter size={16} />
+                </button>
                 <button
                   type="button"
                   onClick={() => setFormData((prev) => ({ ...prev, appliedFilters: [] }))}
@@ -201,40 +245,35 @@ export default function LoanInterestDueForm({
               </div>
             </div>
 
-            {/* Due Date From */}
+            {/* Due Date Range */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                DueDate Range (From)
+                Due Date Range
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                  From Date
-                </span>
-                <input
-                  type="date"
-                  value={formData.dateFrom}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <div className="flex items-center gap-2">
+                <DatePicker
+                  value={formData.dateFrom ? new Date(formData.dateFrom) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateFrom: date ? format(date, "yyyy-MM-dd") : "",
+                    }))
+                  }
+                />
+                <span className="text-xs font-bold text-slate-500">To</span>
+                <DatePicker
+                  value={formData.dateTo ? new Date(formData.dateTo) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateTo: date ? format(date, "yyyy-MM-dd") : "",
+                    }))
+                  }
                 />
               </div>
-            </div>
-
-            {/* Due Date To */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                DueDate Range (To)
-              </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                  To Date
-                </span>
-                <input
-                  type="date"
-                  value={formData.dateTo}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
-                />
-              </div>
+              <p className="text-[10px] text-slate-400">
+                Loans whose interest falls due in this period are listed.
+              </p>
             </div>
 
             {/* Report Date */}
@@ -242,11 +281,14 @@ export default function LoanInterestDueForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    reportDate: date ? format(date, "yyyy-MM-dd") : "",
+                  }))
+                }
               />
             </div>
 
@@ -260,7 +302,19 @@ export default function LoanInterestDueForm({
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, reportType: type }))}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        reportType: type,
+                        // Intimation only offers the two "Send To" options — drop any
+                        // Statement-only sorting mode so no orphan radio stays selected.
+                        ...(type === "Intimation" &&
+                        prev.sortingOption !== "groupsWise" &&
+                        prev.sortingOption !== "groupMemberwise"
+                          ? { sortingOption: "groupsWise" as const, sortingFilterSelection: null }
+                          : {}),
+                      }))
+                    }
                     className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
                       formData.reportType === type
                         ? "bg-[#1877F2] text-white shadow-sm"
@@ -278,14 +332,12 @@ export default function LoanInterestDueForm({
         {/* Section 2: Sorting Options / Send To */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-              {formData.reportType === "Statement" ? "Sorting Options" : "Send To"}
-            </h2>
-          </div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
+            {formData.reportType === "Statement" ? "Sorting Options" : "Send To"}
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6 pt-2">
-            {(formData.reportType === "Statement" ? sortingOptions : sendToOptions).map((opt) => (
+            {activeSortingOptions.map((opt) => (
               <label
                 key={opt.id}
                 className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition"
@@ -310,11 +362,11 @@ export default function LoanInterestDueForm({
             ))}
           </div>
 
-          {/* Select Groups */}
+          {/* Select Groups / Members / Areas / Branches */}
           <div className="pt-5 max-w-lg">
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
-                Select Groups
+                {selectLabel}
               </span>
               <div className="relative flex-1">
                 <input
@@ -329,7 +381,7 @@ export default function LoanInterestDueForm({
                 type="button"
                 onClick={openSelectGroupsModal}
                 className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
-                title="Open Select Groups Modal"
+                title="Open Selection Modal"
               >
                 <Filter size={16} />
               </button>
@@ -340,11 +392,9 @@ export default function LoanInterestDueForm({
         {/* Section 3: Report Options */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-              Report Options
-            </h2>
-          </div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
+            Report Options
+          </h2>
 
           {formData.reportType === "Statement" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6 pt-2">
@@ -376,7 +426,7 @@ export default function LoanInterestDueForm({
             <div className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3.5 gap-x-6">
                 {[
-                  { key: "includePrevArrear", label: "Include Prev.Arrear" },
+                  { key: "includePrevArrear", label: "Include Prev. Arrear" },
                   { key: "mailingLabels", label: "Mailing Labels" },
                   { key: "despatchList", label: "Despatch List" },
                   { key: "dob", label: "DOB" },
@@ -466,9 +516,12 @@ export default function LoanInterestDueForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
+        branches={branches}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}
+        visibleCategories={VISIBLE_CATEGORIES}
       />
 
       <SelectGroupModal
@@ -477,6 +530,19 @@ export default function LoanInterestDueForm({
         customers={customers}
         selectedGroups={formData.selectedGroups}
         onApplyGroups={(groups) => setFormData((prev) => ({ ...prev, selectedGroups: groups }))}
+      />
+
+      <SortingFilterModal
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
+        customers={customers}
+        policies={policies}
+        branches={branches}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection) =>
+          setFormData((prev) => ({ ...prev, sortingFilterSelection: selection }))
+        }
       />
     </div>
   );

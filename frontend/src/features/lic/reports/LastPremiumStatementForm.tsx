@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
+import { RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
+import { format } from "date-fns";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 
 export interface LastPremiumStatementFormData {
   appliedFilters: SelectedFilterItem[];
@@ -154,9 +156,6 @@ export default function LastPremiumStatementForm({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save Configuration">
-            <Save size={17} />
-          </button>
           <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset Form">
             <RotateCcw size={17} />
           </button>
@@ -199,29 +198,32 @@ export default function LastPremiumStatementForm({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Date Range (Last Premium Paid)</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={formData.fromDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, fromDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.fromDate ? new Date(formData.fromDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, fromDate: date ? format(date, "yyyy-MM-dd") : "" }))
+                  }
+                  placeholder="From Date"
                 />
                 <span className="text-xs font-bold text-slate-500">To</span>
-                <input
-                  type="date"
-                  value={formData.toDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, toDate: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                <DatePicker
+                  value={formData.toDate ? new Date(formData.toDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, toDate: date ? format(date, "yyyy-MM-dd") : "" }))
+                  }
+                  placeholder="To Date"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, reportDate: e.target.value }))}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))
+                }
+                placeholder="Report Date"
               />
             </div>
           </div>
@@ -372,6 +374,7 @@ export default function LastPremiumStatementForm({
         agencies={agencies}
         policyStatuses={policyStatuses}
         customers={customers}
+        branches={branches}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
         enableDefaultStatusSelection={false}

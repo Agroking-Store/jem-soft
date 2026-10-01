@@ -32,6 +32,13 @@ interface FilterOptionsModalProps {
    */
   enableDefaultStatusSelection?: boolean;
   defaultCategory?: string;
+  branches?: Array<{ id: string; branchCode?: string; branchName?: string }>;
+  /**
+   * Control which filter categories appear in the dropdown.
+   * When provided, only these categories are shown.
+   * When omitted, all categories are shown (backward compatible).
+   */
+  visibleCategories?: string[];
 }
 
 export const SYSTEM_POLICY_STATUSES = [
@@ -55,6 +62,8 @@ export default function FilterOptionsModal({
   onApplyFilters,
   enableDefaultStatusSelection = true,
   defaultCategory = "Agencies",
+  branches = [],
+  visibleCategories,
 }: FilterOptionsModalProps) {
   const [filterCategory, setFilterCategory] = useState<string>(defaultCategory);
   const [searchText, setSearchText] = useState("");
@@ -151,6 +160,13 @@ export default function FilterOptionsModal({
     []
   );
 
+  const dynamicBranches = useMemo(() => {
+    return branches.map((b) => ({
+      id: b.id,
+      name: b.branchName || b.branchCode || "Branch",
+    }));
+  }, [branches]);
+
   const activeCategoryList = useMemo(() => {
     switch (filterCategory) {
       case "Groups Wise":
@@ -168,6 +184,8 @@ export default function FilterOptionsModal({
         return groupRatingList;
       case "Group Category":
         return groupCategoryList;
+      case "Branches":
+        return dynamicBranches;
       default:
         return dynamicGroups.length > 0 ? dynamicGroups : dynamicAgencies;
     }
@@ -180,6 +198,7 @@ export default function FilterOptionsModal({
     crmGroupsList,
     groupRatingList,
     groupCategoryList,
+    dynamicBranches,
   ]);
 
   const filteredList = useMemo(() => {
@@ -313,13 +332,9 @@ export default function FilterOptionsModal({
                 }}
                 className="appearance-none bg-white border border-slate-300 rounded-lg px-4 py-1.5 pr-8 text-xs font-bold text-slate-800 hover:border-[#1877F2] focus:outline-none focus:ring-2 focus:ring-blue-500/15"
               >
-                <option value="Groups Wise">Groups Wise</option>
-                <option value="Agencies">Agencies</option>
-                <option value="Payment Modes">Payment Modes</option>
-                <option value="CRM Groups">CRM Groups</option>
-                <option value="Policy Status">Policy Status</option>
-                <option value="Group Rating">Group Rating</option>
-                <option value="Group Category">Group Category</option>
+                {(visibleCategories || ["Groups Wise", "Agencies", "Branches", "Payment Modes", "CRM Groups", "Policy Status", "Group Rating", "Group Category"]).map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
               <ChevronDown
                 size={14}

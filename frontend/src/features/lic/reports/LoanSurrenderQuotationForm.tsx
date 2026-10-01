@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import type { Policy } from "@/features/policy/policySlice";
 import type { Customer, CustomerMaster } from "@/features/customers/types";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface LoanSurrenderQuotationFormData {
   quotationType: "loan" | "surrender";
@@ -452,28 +454,24 @@ export default function LoanSurrenderQuotationForm({
 
                 <div className="sm:col-span-3 space-y-1">
                   <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Date of Birth</span>
-                  <input
-                    type="date"
-                    value={formData.dob}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, dob: e.target.value }))
+                  <DatePicker
+                    value={formData.dob ? new Date(formData.dob) : undefined}
+                    onChange={(date) =>
+                      setFormData((prev) => ({ ...prev, dob: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
                 <div className="sm:col-span-3 space-y-1">
                   <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Comm. Date</span>
-                  <input
-                    type="date"
-                    value={formData.commencementDate}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={formData.commencementDate ? new Date(formData.commencementDate) : undefined}
+                    onChange={(date) =>
                       setFormData((prev) => ({
                         ...prev,
-                        commencementDate: e.target.value,
+                        commencementDate: date ? format(date, "yyyy-MM-dd") : "",
                       }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
               </div>
@@ -632,13 +630,11 @@ export default function LoanSurrenderQuotationForm({
                   <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Fup Date
                   </span>
-                  <input
-                    type="date"
-                    value={formData.fupDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, fupDate: e.target.value }))
+                  <DatePicker
+                    value={formData.fupDate ? new Date(formData.fupDate) : undefined}
+                    onChange={(date) =>
+                      setFormData((prev) => ({ ...prev, fupDate: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 
@@ -663,16 +659,14 @@ export default function LoanSurrenderQuotationForm({
                   <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Date of Calculation
                   </span>
-                  <input
-                    type="date"
-                    value={formData.dateOfCalculation}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={formData.dateOfCalculation ? new Date(formData.dateOfCalculation) : undefined}
+                    onChange={(date) =>
                       setFormData((prev) => ({
                         ...prev,
-                        dateOfCalculation: e.target.value,
+                        dateOfCalculation: date ? format(date, "yyyy-MM-dd") : "",
                       }))
                     }
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                   />
                 </div>
 

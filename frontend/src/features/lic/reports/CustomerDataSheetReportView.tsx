@@ -79,12 +79,16 @@ export default function CustomerDataSheetReportView({
       const groupIds = new Set<string>();
 
       applied.forEach((f) => {
-        if (f.memberId) memberIds.add(f.memberId);
-        if (f.groupId) groupIds.add(f.groupId);
+        // For Group Memberwise: only add member ID (NOT group ID)
+        // This ensures only the selected member appears, not the whole group
         if (f.type === "Group Memberwise") {
           memberIds.add(f.id);
         } else if (f.type === "Groups Wise" || f.type === "Groups") {
           groupIds.add(f.id);
+        } else {
+          // For other filter types (Agencies, Policy Status, etc.)
+          if (f.memberId) memberIds.add(f.memberId);
+          if (f.groupId) groupIds.add(f.groupId);
         }
       });
 
@@ -267,9 +271,9 @@ export default function CustomerDataSheetReportView({
         {targetMembers.map((member, mIdx) => {
           const group =
             customers.find((c) => c.id === member.groupId) || member.group;
-          const groupCode = group?.groupCode || "000007";
+          const groupCode = group?.groupCode || "—";
           const groupHeadName =
-            (group as any)?.name || group?.groupName || "Mrs. NADGAUDA TRUPTI";
+            (group as any)?.name || group?.groupName || "—";
 
           const memberFullName = [
             member.salutation,
@@ -344,13 +348,12 @@ export default function CustomerDataSheetReportView({
           // Family history records
           const familyRecords = member.familyHistories?.[0]?.records || [];
 
-          // Policies for this member
+          // Policies for this member — only the selected member's policies
           const memberPolicies = policies.filter(
             (p) =>
               p.CustomerMasterId === member.id ||
               p.CustomerMaster?.id === member.id ||
-              p.clientId === member.id ||
-              p.clientId === group?.id
+              p.clientId === member.id
           );
 
           const totalSumAssured = memberPolicies.reduce(

@@ -13,6 +13,8 @@ import {
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 interface RevivalPremiumCalculatorProps {
   onBack: () => void;
@@ -453,23 +455,35 @@ export default function RevivalPremiumCalculator({
               <div className="space-y-4">
                 {/* Row 1: Name, DOB, Comm Date */}
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Name", value: name, set: setName, type: "text" },
-                    { label: "Date of Birth", value: dob, set: setDob, type: "date" },
-                    { label: "Comm. Date", value: commDate, set: setCommDate, type: "date" },
-                  ].map(({ label, value, set, type }) => (
-                    <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                        {label}
-                      </span>
-                      <input
-                        type={type}
-                        value={value}
-                        onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
-                      />
-                    </div>
-                  ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Name
+                    </span>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Birth
+                    </span>
+                    <DatePicker
+                      value={dob ? new Date(dob) : undefined}
+                      onChange={(date) => setDob(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Comm. Date
+                    </span>
+                    <DatePicker
+                      value={commDate ? new Date(commDate) : undefined}
+                      onChange={(date) => setCommDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Row 2: Plan, Mode, Term, PPT */}
@@ -497,23 +511,31 @@ export default function RevivalPremiumCalculator({
                 {/* Row 3: Extra Class, Extra Premium, SB Option, FUP Date */}
                 <div className="grid grid-cols-4 gap-3">
                   {[
-                    { label: "Extra Class", value: extraClass, set: setExtraClass, type: "text" },
-                    { label: "Extra Premium", value: extraPremium, set: setExtraPremium, type: "text" },
-                    { label: "SB Option", value: sbOption, set: setSbOption, type: "text" },
-                    { label: "FUP Date", value: fupDate, set: setFupDate, type: "date" },
-                  ].map(({ label, value, set, type }) => (
+                    { label: "Extra Class", value: extraClass, set: setExtraClass },
+                    { label: "Extra Premium", value: extraPremium, set: setExtraPremium },
+                    { label: "SB Option", value: sbOption, set: setSbOption },
+                  ].map(({ label, value, set }) => (
                     <div key={label} className="relative">
                       <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                         {label}
                       </span>
                       <input
-                        type={type}
+                        type="text"
                         value={value}
                         onChange={(e) => set(e.target.value)}
                         className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                       />
                     </div>
                   ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      FUP Date
+                    </span>
+                    <DatePicker
+                      value={fupDate ? new Date(fupDate) : undefined}
+                      onChange={(date) => setFupDate(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Row 4: Sum Assured, Premium, Rider Premium */}
@@ -539,23 +561,35 @@ export default function RevivalPremiumCalculator({
 
                 {/* Row 5: Loan Taken, Date of Int Calc, Date of Calculation */}
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Loan Taken", value: loanTaken, set: setLoanTaken, type: "number" },
-                    { label: "Date of Int Calc", value: dateOfIntCalc, set: setDateOfIntCalc, type: "date" },
-                    { label: "Date of Calculation", value: dateOfCalc, set: setDateOfCalc, type: "date" },
-                  ].map(({ label, value, set, type }) => (
-                    <div key={label} className="relative">
-                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
-                        {label}
-                      </span>
-                      <input
-                        type={type}
-                        value={value}
-                        onChange={(e) => set(e.target.value)}
-                        className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
-                      />
-                    </div>
-                  ))}
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Loan Taken
+                    </span>
+                    <input
+                      type="number"
+                      value={loanTaken}
+                      onChange={(e) => setLoanTaken(e.target.value)}
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2] font-mono"
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Int Calc
+                    </span>
+                    <DatePicker
+                      value={dateOfIntCalc ? new Date(dateOfIntCalc) : undefined}
+                      onChange={(date) => setDateOfIntCalc(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                      Date of Calculation
+                    </span>
+                    <DatePicker
+                      value={dateOfCalc ? new Date(dateOfCalc) : undefined}
+                      onChange={(date) => setDateOfCalc(date ? format(date, "yyyy-MM-dd") : "")}
+                    />
+                  </div>
                 </div>
 
                 {/* Remarks + Calculate */}
@@ -666,142 +700,134 @@ export default function RevivalPremiumCalculator({
         </div>
       </div>
 
-      {/* Formatted report preview — rendered on-page (not off-screen) so html2canvas captures it
-          reliably, same pattern used by the Premium Outstanding report */}
+      {/* Formatted report preview — Plain LIC-style register */}
       {calculated && (
         <div
           ref={reportRef}
-          style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-          className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 space-y-4 print:p-0 print:border-none print:shadow-none"
+          style={{ fontFamily: "Arial, Helvetica, sans-serif", color: "#000" }}
+          className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
         >
-          {/* Letterhead */}
-          <div className="flex justify-between items-start border-b-2 border-[#0B1220] pb-3">
-            <div className="space-y-0.5">
-              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">Jayant Mahabole</h1>
-              <p className="text-xs font-semibold text-slate-700">MBA in Insurance & Finance</p>
-              <p className="text-[11px] text-slate-600 max-w-xs leading-tight">84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009</p>
-              <p className="text-[11px] text-slate-600 font-mono">9822452896</p>
-              <p className="text-[11px] text-slate-600">office@jayantmahbole.com</p>
-            </div>
-            <div className="h-16 w-36 bg-[#0B1220] rounded-bl-3xl p-3 flex flex-col justify-end text-right">
-              <span className="text-[10px] font-bold text-[#E8C77A] uppercase tracking-widest">LIC INDIA</span>
-            </div>
+          {/* Report title line */}
+          <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+            <span>Revival Premium Quotation as on {fmtDate(dateOfCalc) || fmtDate(new Date())}</span>
+            <span>Policy No: {selectedPolicy?.policyNumber || policySearch || "—"}</span>
+          </div>
+          <div className="pb-1 text-[9px] font-normal">
+            Revival Premium Quotation — LIC Standard Valuation
           </div>
 
-          {/* Title bar */}
-          <div className="bg-[#0B1220] text-white rounded-lg px-4 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A]">
-            <h2 className="text-base font-bold text-[#E8C77A] uppercase tracking-wider">Revival Premium Quotation</h2>
-            <span className="text-xs font-bold text-slate-200">As on {fmtDate(dateOfCalc) || fmtDate(new Date())}</span>
-          </div>
-
-          {/* Policy Details */}
+          {/* Policy Details — Plain table */}
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+            <h3 className="text-[11px] font-bold pb-0.5" style={{ borderBottom: "1px solid #000" }}>
               Policy Details
             </h3>
-            <table className="w-full text-[11px] border-collapse">
+            <table className="w-full text-[10px] border-collapse mt-1">
               <tbody>
                 <tr>
-                  <td className="py-1 pr-2 font-semibold text-slate-600 w-[18%]">Policy No.</td>
+                  <td className="py-1 pr-2 font-semibold w-[18%]">Policy No.</td>
                   <td className="py-1 pr-6 font-mono font-bold w-[32%]">{selectedPolicy?.policyNumber || policySearch || "-"}</td>
-                  <td className="py-1 pr-2 font-semibold text-slate-600 w-[18%]">Name</td>
+                  <td className="py-1 pr-2 font-semibold w-[18%]">Name</td>
                   <td className="py-1 font-bold">{name || "-"}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Date of Birth</td>
+                  <td className="py-1 pr-2 font-semibold">Date of Birth</td>
                   <td className="py-1 pr-6 font-mono">{fmtDate(dob) || "-"}</td>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Comm. Date</td>
+                  <td className="py-1 pr-2 font-semibold">Comm. Date</td>
                   <td className="py-1 font-mono">{fmtDate(commDate) || "-"}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Plan</td>
+                  <td className="py-1 pr-2 font-semibold">Plan</td>
                   <td className="py-1 pr-6">{plan || "-"}</td>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Mode</td>
+                  <td className="py-1 pr-2 font-semibold">Mode</td>
                   <td className="py-1">{mode || "-"}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Term / PPT</td>
+                  <td className="py-1 pr-2 font-semibold">Term / PPT</td>
                   <td className="py-1 pr-6 font-mono">{term || "-"} / {ppt || "-"}</td>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">FUP Date</td>
+                  <td className="py-1 pr-2 font-semibold">FUP Date</td>
                   <td className="py-1 font-mono">{fmtDate(fupDate) || "-"}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Sum Assured</td>
+                  <td className="py-1 pr-2 font-semibold">Sum Assured</td>
                   <td className="py-1 pr-6 font-mono">₹ {Number(sumAssured || 0).toLocaleString("en-IN")}</td>
-                  <td className="py-1 pr-2 font-semibold text-slate-600">Premium</td>
+                  <td className="py-1 pr-2 font-semibold">Premium</td>
                   <td className="py-1 font-mono">₹ {Number(premium || 0).toLocaleString("en-IN")}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Calculation Summary */}
+          {/* Calculation Summary — Plain table */}
           {calcResults && (
             <div>
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+              <h3 className="text-[11px] font-bold pb-0.5 mt-2" style={{ borderBottom: "1px solid #000" }}>
                 Revival Calculation
               </h3>
-              <table className="w-full text-[11px] border-collapse">
-                <tbody className="divide-y divide-slate-100">
+              <table className="w-full text-[10px] border-collapse mt-1">
+                <tbody>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">No. of Premiums Pending</td>
-                    <td className="py-1.5 text-right font-mono">{calcResults.premiumsPending}</td>
+                    <td className="py-1 font-semibold">No. of Premiums Pending</td>
+                    <td className="py-1 text-right font-mono">{calcResults.premiumsPending}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Premium Amount Pending</td>
-                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.premiumAmountPending).toLocaleString("en-IN")}</td>
+                    <td className="py-1 font-semibold">Premium Amount Pending</td>
+                    <td className="py-1 text-right font-mono">₹ {Number(calcResults.premiumAmountPending).toLocaleString("en-IN")}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Rate of Interest</td>
-                    <td className="py-1.5 text-right font-mono">{calcResults.rateOfInterest.toFixed(2)} %</td>
+                    <td className="py-1 font-semibold">Rate of Interest</td>
+                    <td className="py-1 text-right font-mono">{calcResults.rateOfInterest.toFixed(2)} %</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Revival Factor</td>
-                    <td className="py-1.5 text-right font-mono">{calcResults.revivalFactor.toFixed(4)}</td>
+                    <td className="py-1 font-semibold">Revival Factor</td>
+                    <td className="py-1 text-right font-mono">{calcResults.revivalFactor.toFixed(4)}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Interest Payable</td>
-                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.interestPayable).toLocaleString("en-IN")}</td>
+                    <td className="py-1 font-semibold">Interest Payable</td>
+                    <td className="py-1 text-right font-mono">₹ {Number(calcResults.interestPayable).toLocaleString("en-IN")}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">GST on Interest</td>
-                    <td className="py-1.5 text-right font-mono">₹ {Number(calcResults.gstOnInterest).toLocaleString("en-IN")}</td>
+                    <td className="py-1 font-semibold">GST on Interest</td>
+                    <td className="py-1 text-right font-mono">₹ {Number(calcResults.gstOnInterest).toLocaleString("en-IN")}</td>
                   </tr>
-                  <tr className="bg-slate-100 border-y-2 border-slate-700">
-                    <td className="py-2 font-bold text-[#0B1220]">Amount Payable for Revival</td>
-                    <td className="py-2 text-right font-mono font-bold text-[#0B1220]">₹ {Number(calcResults.totalPayable).toLocaleString("en-IN")}</td>
+                  <tr className="font-bold">
+                    <td className="py-1 font-bold">Amount Payable for Revival</td>
+                    <td className="py-1 text-right font-mono font-bold">
+                      <span className="inline-block border-t border-b border-black px-1">
+                        ₹ {Number(calcResults.totalPayable).toLocaleString("en-IN")}
+                      </span>
+                    </td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Validity of Quotation</td>
-                    <td className="py-1.5 text-right">{fmtDate(calcResults.validityDate)}</td>
+                    <td className="py-1 font-semibold">Validity of Quotation</td>
+                    <td className="py-1 text-right">{fmtDate(calcResults.validityDate)}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Loan Available</td>
-                    <td className="py-1.5 text-right font-mono">
+                    <td className="py-1 font-semibold">Loan Available</td>
+                    <td className="py-1 text-right font-mono">
                       {calcResults.loanAvailable > 0 ? `₹ ${Number(calcResults.loanAvailable).toLocaleString("en-IN")}` : "Not Eligible"}
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 font-semibold text-slate-600">Survival Benefit Due</td>
-                    <td className="py-1.5 text-right font-mono">
+                    <td className="py-1 font-semibold">Survival Benefit Due</td>
+                    <td className="py-1 text-right font-mono">
                       {calcResults.sbDue > 0 ? `₹ ${Number(calcResults.sbDue).toLocaleString("en-IN")}` : "0"}
                     </td>
                   </tr>
                 </tbody>
               </table>
 
-              <div className="mt-3 pt-3 border-t border-slate-200">
-                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+              <div className="mt-2 pt-2" style={{ borderTop: "1px solid #000" }}>
+                <p className="text-[9px] font-bold uppercase tracking-wider mb-1">
                   Documents Required for Revival
                 </p>
-                <p className="text-[11px] text-slate-700 whitespace-pre-line leading-relaxed">
+                <p className="text-[10px] whitespace-pre-line leading-relaxed">
                   {calcResults.documentsRequired}
                 </p>
               </div>
 
               {calcResults.premiumsPending > 5 && (
-                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-[10px] text-amber-700 font-medium">
+                <div className="mt-2 p-2" style={{ border: "1px solid #000" }}>
+                  <p className="text-[9px] font-medium">
                     This policy has lapsed for more than 5 premiums. Medical examination may be required for revival.
                   </p>
                 </div>
@@ -811,19 +837,26 @@ export default function RevivalPremiumCalculator({
 
           {remarks && (
             <div className="pt-1">
-              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Remarks</p>
-              <p className="text-[11px] text-slate-700">{remarks}</p>
+              <p className="text-[9px] font-bold uppercase tracking-wider mb-1">Remarks</p>
+              <p className="text-[10px]">{remarks}</p>
             </div>
           )}
 
-          {/* Footer */}
-          <div className="pt-6 border-t border-slate-300 space-y-1 text-[10px] text-slate-700 font-medium">
+          {/* Legend footer */}
+          <div className="pt-4 mt-4 space-y-1 text-[9px]" style={{ borderTop: "1px solid #000" }}>
             <p>
               This is a system-generated indicative quotation for policy revival, calculated at {REVIVAL_INTEREST_RATE * 100}% p.a. interest plus {GST_RATE * 100}% GST. Actual amount payable may vary — please confirm with your LIC branch office before making payment.
             </p>
-            <div className="flex justify-between items-center pt-2 font-mono text-[9px] text-slate-500 border-t border-slate-200">
+            <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+              <span><strong>Y :</strong> NACH Mode</span>
+              <span><strong>M :</strong> Monthly Mode</span>
+              <span><strong>Q :</strong> Quarterly Mode</span>
+              <span><strong>H :</strong> Half-Yearly Mode</span>
+              <span><strong>S :</strong> Single Mode</span>
+            </div>
+            <div className="flex justify-between font-mono text-[8px] pt-1">
+              <span>Statement Code: DSS000019899</span>
               <span>Generated via Revival Premium Calculator</span>
-              <span>Report Date: {fmtDate(dateOfCalc)}</span>
             </div>
           </div>
         </div>

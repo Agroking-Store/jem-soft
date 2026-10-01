@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import type { Policy } from "@/features/policy/policySlice";
 import type { Customer, CustomerMaster } from "@/features/customers/types";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface PolicyStatusFormData {
   policyId: string;
@@ -369,28 +371,24 @@ export default function PolicyStatusReportForm({
 
                   <div className="sm:col-span-3 space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Date of Birth</span>
-                    <input
-                      type="date"
-                      value={formData.dob}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dob: e.target.value }))
+                    <DatePicker
+                      value={formData.dob ? new Date(formData.dob) : undefined}
+                      onChange={(date) =>
+                        setFormData((prev) => ({ ...prev, dob: date ? format(date, "yyyy-MM-dd") : "" }))
                       }
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
 
                   <div className="sm:col-span-3 space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Comm. Date</span>
-                    <input
-                      type="date"
-                      value={formData.commencementDate}
-                      onChange={(e) =>
+                    <DatePicker
+                      value={formData.commencementDate ? new Date(formData.commencementDate) : undefined}
+                      onChange={(date) =>
                         setFormData((prev) => ({
                           ...prev,
-                          commencementDate: e.target.value,
+                          commencementDate: date ? format(date, "yyyy-MM-dd") : "",
                         }))
                       }
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
                 </div>
@@ -532,13 +530,11 @@ export default function PolicyStatusReportForm({
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">FUP Date</span>
-                    <input
-                      type="date"
-                      value={formData.fupDate}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, fupDate: e.target.value }))
+                    <DatePicker
+                      value={formData.fupDate ? new Date(formData.fupDate) : undefined}
+                      onChange={(date) =>
+                        setFormData((prev) => ({ ...prev, fupDate: date ? format(date, "yyyy-MM-dd") : "" }))
                       }
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
                 </div>
@@ -562,25 +558,21 @@ export default function PolicyStatusReportForm({
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Loan Date</span>
-                    <input
-                      type="date"
-                      value={formData.loanDate}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, loanDate: e.target.value }))
+                    <DatePicker
+                      value={formData.loanDate ? new Date(formData.loanDate) : undefined}
+                      onChange={(date) =>
+                        setFormData((prev) => ({ ...prev, loanDate: date ? format(date, "yyyy-MM-dd") : "" }))
                       }
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">FULI Date</span>
-                    <input
-                      type="date"
-                      value={formData.fuliDate}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, fuliDate: e.target.value }))
+                    <DatePicker
+                      value={formData.fuliDate ? new Date(formData.fuliDate) : undefined}
+                      onChange={(date) =>
+                        setFormData((prev) => ({ ...prev, fuliDate: date ? format(date, "yyyy-MM-dd") : "" }))
                       }
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium bg-white focus:outline-none focus:border-[#1877F2]"
                     />
                   </div>
                 </div>
