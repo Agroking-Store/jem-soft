@@ -33,6 +33,8 @@ import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchCommissionBills, fetchCommissionBillById, deleteCommissionBill } from "@/features/lic/commissionSlice";
 import UploadCommissionBillModal from "@/features/lic/comm-reports/UploadCommissionBillModal";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
+import BiMonthlyStatementAlertBanner from "@/features/lic/comm-reports/BiMonthlyStatementAlertBanner";
+import type { FortnightCycle } from "@/features/lic/comm-reports/fortnightTracker";
 import { Search, ArrowRight, ArrowLeft, FileSpreadsheet, Layers, Upload, Clock, IndianRupee, Trash2, Eye, FileText } from "lucide-react";
 
 type ViewState =
@@ -74,6 +76,7 @@ export default function LICCommReportsPage() {
   const { bills } = useSelector((state: RootState) => state.commissions);
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedUploadCycle, setSelectedUploadCycle] = useState<FortnightCycle | null>(null);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -205,7 +208,10 @@ export default function LICCommReportsPage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsUploadModalOpen(true)}
+                onClick={() => {
+                  setSelectedUploadCycle(null);
+                  setIsUploadModalOpen(true);
+                }}
                 className="flex items-center gap-2 bg-gradient-to-r from-[#1877F2] to-[#2563eb] text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 hover:opacity-95 transition cursor-pointer"
               >
                 <Upload size={16} />
@@ -218,6 +224,15 @@ export default function LICCommReportsPage() {
               </div>
             </div>
           </div>
+
+          {/* Bi-Monthly Commission Statement Reminder & Highlighting Alert */}
+          <BiMonthlyStatementAlertBanner
+            bills={bills || []}
+            onOpenUploadModal={(cycle) => {
+              setSelectedUploadCycle(cycle || null);
+              setIsUploadModalOpen(true);
+            }}
+          />
 
           {/* Search Bar Bar */}
           <div className="flex items-center justify-between gap-4">
@@ -560,11 +575,16 @@ export default function LICCommReportsPage() {
       {/* Upload Commission Statement Modal */}
       <UploadCommissionBillModal
         isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        onSuccess={(newBillId) => {
+        onClose={() => {
+          setIsUploadModalOpen(false);
+          setSelectedUploadCycle(null);
+        }}
+        initialCycle={selectedUploadCycle}
+        onSuccess={(newBillId?: string) => {
           if (newBillId) {
             dispatch(fetchCommissionBillById(newBillId));
           }
+          dispatch(fetchCommissionBills());
         }}
       />
     </div>

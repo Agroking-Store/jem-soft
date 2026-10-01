@@ -26,6 +26,7 @@ export interface CommissionBillSummaryItem {
   netPayable: number;
   itemCount: number;
   fileName?: string;
+  fileUrl?: string;
   createdAt: string;
 }
 
