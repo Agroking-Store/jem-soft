@@ -23,12 +23,14 @@ import premiumPaymentReducer from "@/features/premiumPayments/premiumPaymentSlic
 import paymentModeMasterReducer from "@/features/premiumPayments/paymentModeMasterSlice";
 import lapsedPolicyReducer from "@/features/policy360/lapsedPolicySlice";
 import outstandingPremiumReducer from "@/features/policy360/outstandingPremiumSlice";
+import quotationReducer from "@/features/quotations/quotationSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     customers: customerReducer,
     customerMaster: customerMasterReducer,
+    quotations: quotationReducer,
     insuranceProviders: insuranceProviderReducer,
     products: productMasterReducer,
     riderMaster: riderMasterReducer,

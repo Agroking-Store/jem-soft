@@ -13,6 +13,7 @@ import {
   RotateCw,
   WalletCards,
   Megaphone,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -32,6 +33,7 @@ export const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
+    { name: "Quotations", href: "/dashboard/quotations", icon: FileSpreadsheet },
     ...(isMounted && (isAdmin || isAdvisor || isViewer)
       ? [{ name: "LIC", href: "/dashboard/lic", icon: FileText }]
       : []),
