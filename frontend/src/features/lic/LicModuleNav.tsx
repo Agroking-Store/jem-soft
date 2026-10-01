@@ -44,6 +44,11 @@ function LicModuleNavInner() {
             <Link
               key={key}
               href={href}
+              onClick={() => {
+                if (key === "comm-reports" && typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("reset-comm-reports-view"));
+                }
+              }}
               aria-current={isActive ? "page" : undefined}
               className={`
                 relative flex items-center gap-2 px-4 py-2 rounded-xl
