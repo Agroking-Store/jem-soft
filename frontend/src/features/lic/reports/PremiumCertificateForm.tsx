@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
+import { RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 
@@ -99,7 +99,6 @@ export default function PremiumCertificateForm({
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Premium Certificate</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save"><Save size={17} /></button>
           <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
           <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>

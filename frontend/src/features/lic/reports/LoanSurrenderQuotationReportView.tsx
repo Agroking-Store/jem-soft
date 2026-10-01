@@ -142,228 +142,142 @@ export default function LoanSurrenderQuotationReportView({
         </div>
       </div>
 
-      {/* Main Printable Document Canvas */}
+      {/* Main Printable Document Canvas — Plain LIC-style register */}
       <div
         ref={reportRef}
-        style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-        className="w-full bg-white p-8 rounded-2xl border border-slate-300 shadow-xl text-slate-900 space-y-5 print:p-0 print:border-none print:shadow-none max-w-4xl mx-auto"
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: "#000" }}
+        className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
-        {/* Advisor Letterhead Header */}
-        <div
-          style={{ borderBottom: "2px solid #0B1220" }}
-          className="flex justify-between items-start pb-4"
-        >
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-[#0B1220] tracking-tight">
-                Jayant Mahabole
-              </h1>
-              <span className="text-[10px] bg-[#0B1220] text-[#E8C77A] font-bold px-2 py-0.5 rounded uppercase tracking-widest">
-                LIC Authorized Advisor
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-[#B8873A]">
-              MBA in Insurance & Finance
-            </p>
-            <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-              84/2, Darpan Bldg., 201 Sarang Society, Sahakarnagar No. 2 Parvati Pune 411009
-            </p>
-            <div className="flex items-center gap-4 text-xs font-medium text-slate-700 pt-1">
-              <span>Phone: 9822452896</span>
-              <span>Email: office@jayantmahbole.com</span>
-            </div>
-          </div>
-
-          <div className="text-right space-y-1.5">
-            <div className="inline-block bg-[#0B1220] text-[#E8C77A] px-4 py-2 rounded-xl text-right border border-[#B8873A]/40 shadow-sm">
-              <p className="text-xs font-bold tracking-widest uppercase">
-                Life Insurance Corporation
-              </p>
-              <p className="text-[10px] text-slate-300">
-                {isLoanQuotation ? "Loan Value Quotation" : "Surrender Value Quotation"}
-              </p>
-            </div>
-            <p className="text-xs font-bold text-slate-700 pt-1">
-              Date: {formatDate(formData.dateOfCalculation)}
-            </p>
-          </div>
+        {/* Report title line */}
+        <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
+          <span>
+            {isLoanQuotation ? "Loan Value Quotation" : "Surrender Value Quotation"} as on {formatDate(formData.dateOfCalculation)}
+          </span>
+          <span>Policy No: {formData.policyNumber || "—"}</span>
+        </div>
+        <div className="pb-1 text-[9px] font-normal">
+          {isLoanQuotation ? "Loan Value Quotation Statement" : "Surrender & Maturity Value Calculation"}
         </div>
 
-        {/* Title Banner */}
-        <div className="bg-[#0B1220] text-white rounded-xl px-5 py-2.5 flex items-center justify-between border-l-4 border-[#B8873A] shadow-sm">
-          <div>
-            <h2 className="text-sm font-bold text-[#E8C77A] uppercase tracking-wider">
-              {isLoanQuotation
-                ? "Loan Value Quotation Statement"
-                : "Surrender & Maturity Value Calculation"}
-            </h2>
-          </div>
-          <div className="text-right text-xs text-[#E8C77A] font-bold">
-            Policy No: {formData.policyNumber || "—"}
-          </div>
-        </div>
+        {/* Policy & Client Details — Plain table */}
+        <table className="w-full text-left text-[10px] border-collapse">
+          <tbody>
+            <tr>
+              <td className="py-1 pr-2 font-semibold w-[18%]">Policy Number</td>
+              <td className="py-1 pr-6 font-mono font-bold w-[32%]">{formData.policyNumber || "-"}</td>
+              <td className="py-1 pr-2 font-semibold w-[18%]">Client Name</td>
+              <td className="py-1 font-bold">{formData.clientName || "-"}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Date of Birth</td>
+              <td className="py-1 pr-6 font-mono">{formatDate(formData.dob) || "-"}</td>
+              <td className="py-1 pr-2 font-semibold">Commencement Date</td>
+              <td className="py-1 font-mono">{formatDate(formData.commencementDate) || "-"}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Plan / Term / PPT</td>
+              <td className="py-1 pr-6 font-mono font-bold">
+                {formData.plan || "14"} / {formData.term || 20} / {formData.ppt || 20}
+              </td>
+              <td className="py-1 pr-2 font-semibold">Premium Mode</td>
+              <td className="py-1 font-mono">{formData.mode || "Y"}</td>
+            </tr>
+          </tbody>
+        </table>
 
-        {/* Status Grid Table */}
-        <div className="border border-slate-300 rounded-xl overflow-hidden shadow-xs border-collapse text-xs">
-          {/* Top Rows: Policy & Client Details */}
-          <div className="border-b border-slate-300 grid grid-cols-12 divide-x divide-slate-300 bg-slate-50 font-bold">
-            <div className="col-span-3 p-2 text-slate-700">Policy Number</div>
-            <div className="col-span-3 p-2 font-mono text-slate-900">{formData.policyNumber || "-"}</div>
-            <div className="col-span-3 p-2 text-slate-700">Client Name</div>
-            <div className="col-span-3 p-2 text-slate-900">{formData.clientName || "-"}</div>
-          </div>
+        {/* Financial Parameters & Valuation — Plain table */}
+        <table className="w-full text-left text-[10px] border-collapse mt-2">
+          <tbody>
+            <tr>
+              <td className="py-1 pr-2 font-semibold w-[25%]">Sum Assured</td>
+              <td className="py-1 pr-6 font-mono text-right font-bold w-[25%]">{Number(formData.sumAssured).toLocaleString("en-IN")}</td>
+              <td className="py-1 pr-2 font-semibold w-[25%]">Vested Bonus (S.V.)</td>
+              <td className="py-1 font-mono text-right w-[25%]">{Number(formData.vestedBonusSV).toLocaleString("en-IN")}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Basic Premium</td>
+              <td className="py-1 pr-6 font-mono text-right">{Number(formData.basicPremium).toFixed(2)}</td>
+              <td className="py-1 pr-2 font-semibold">Paid Up Value</td>
+              <td className="py-1 font-mono text-right">{Number(formData.paidUpValueSV).toLocaleString("en-IN")}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Rider Premium</td>
+              <td className="py-1 pr-6 font-mono text-right">{Number(formData.riderPremium).toFixed(2)}</td>
+              <td className="py-1 pr-2 font-semibold">S.V. Factor</td>
+              <td className="py-1 font-mono text-right">{formData.svFactor || "0.00"}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Installment Premium</td>
+              <td className="py-1 pr-6 font-mono text-right font-bold">{Number(formData.premium).toFixed(2)}</td>
+              <td className="py-1 pr-2 font-semibold">Special Surrender Value</td>
+              <td className="py-1 font-mono text-right">{Number(formData.specialSurrenderValue).toLocaleString("en-IN")}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">F.U.P. Date</td>
+              <td className="py-1 pr-6 font-mono text-right">{formatDate(formData.fupDate) || "-"}</td>
+              <td className="py-1 pr-2 font-semibold">Guaranteed Surrender Value</td>
+              <td className="py-1 font-mono text-right">{Number(formData.guaranteedSurrenderValue).toLocaleString("en-IN")}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">Loan Taken Outstanding</td>
+              <td className="py-1 pr-6 font-mono text-right">{Number(formData.loanTaken).toLocaleString("en-IN")}</td>
+              <td className="py-1 pr-2 font-semibold">No. of Years Paid</td>
+              <td className="py-1 font-mono text-right font-bold">{formData.yearsPremiumsPaid || 0}</td>
+            </tr>
+            <tr>
+              <td className="py-1 pr-2 font-semibold">No. of Years Elapsed</td>
+              <td className="py-1 pr-6 font-mono text-right">{formData.yearsElapsed || 0}</td>
+              <td className="py-1 pr-2 font-semibold"></td>
+              <td className="py-1"></td>
+            </tr>
+          </tbody>
+        </table>
 
-          <div className="border-b border-slate-300 grid grid-cols-12 divide-x divide-slate-300">
-            <div className="col-span-3 p-2 font-semibold text-slate-700">Date of Birth</div>
-            <div className="col-span-3 p-2 font-mono">{formatDate(formData.dob) || "-"}</div>
-            <div className="col-span-3 p-2 font-semibold text-slate-700">Commencement Date</div>
-            <div className="col-span-3 p-2 font-mono">{formatDate(formData.commencementDate) || "-"}</div>
-          </div>
-
-          <div className="border-b border-slate-300 grid grid-cols-12 divide-x divide-slate-300">
-            <div className="col-span-3 p-2 font-semibold text-slate-700">Plan / Term / PPT</div>
-            <div className="col-span-3 p-2 font-mono font-bold text-slate-900">
-              {formData.plan || "14"} / {formData.term || 20} / {formData.ppt || 20}
-            </div>
-            <div className="col-span-3 p-2 font-semibold text-slate-700">Premium Mode</div>
-            <div className="col-span-3 p-2 font-mono">{formData.mode || "Y"}</div>
-          </div>
-
-          {/* 2-Column Details & Valuation Breakdown */}
-          <div className="grid grid-cols-12 divide-x divide-slate-300">
-            {/* Left Side: Financial Parameters */}
-            <div className="col-span-6 divide-y divide-slate-200">
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">Sum Assured</div>
-                <div className="col-span-3 pl-2 font-mono text-right font-bold text-slate-900">
-                  {Number(formData.sumAssured).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">Basic Premium</div>
-                <div className="col-span-3 pl-2 font-mono text-right">
-                  {Number(formData.basicPremium).toFixed(2)}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">Rider Premium</div>
-                <div className="col-span-3 pl-2 font-mono text-right">
-                  {Number(formData.riderPremium).toFixed(2)}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">Installment Premium</div>
-                <div className="col-span-3 pl-2 font-mono text-right font-bold text-slate-900">
-                  {Number(formData.premium).toFixed(2)}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">F.U.P. Date</div>
-                <div className="col-span-3 pl-2 font-mono text-right">{formatDate(formData.fupDate) || "-"}</div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">Loan Taken Outstanding</div>
-                <div className="col-span-3 pl-2 font-mono text-right text-red-600 font-semibold">
-                  {Number(formData.loanTaken).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">No. of Years Paid</div>
-                <div className="col-span-3 pl-2 font-mono text-right font-bold">{formData.yearsPremiumsPaid || 0}</div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-3 font-semibold text-slate-700">No. of Years Elapsed</div>
-                <div className="col-span-3 pl-2 font-mono text-right">{formData.yearsElapsed || 0}</div>
-              </div>
-
-              <div className="p-2 text-[11px] text-slate-500 italic">
-                Remarks: {formData.remarks || "Standard quotation generated."}
-              </div>
-            </div>
-
-            {/* Right Side: Valuation & Quotation Results */}
-            <div className="col-span-6 divide-y divide-slate-200 bg-slate-50/40">
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-4 font-semibold text-slate-700">Vested Bonus (S.V.)</div>
-                <div className="col-span-2 pl-2 font-mono text-right">
-                  {Number(formData.vestedBonusSV).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-4 font-semibold text-slate-700">Paid Up Value</div>
-                <div className="col-span-2 pl-2 font-mono text-right">
-                  {Number(formData.paidUpValueSV).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200 font-bold bg-[#B8873A]/10">
-                <div className="col-span-4 text-slate-900">Total Value (Paid Up + Bonus)</div>
-                <div className="col-span-2 pl-2 font-mono text-right text-slate-900">
-                  {Number(formData.totalSV).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-4 font-semibold text-slate-700">S.V. Factor</div>
-                <div className="col-span-2 pl-2 font-mono text-right">{formData.svFactor || "0.00"}</div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-4 font-semibold text-slate-700">Special Surrender Value</div>
-                <div className="col-span-2 pl-2 font-mono text-right font-semibold">
-                  {Number(formData.specialSurrenderValue).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200">
-                <div className="col-span-4 font-semibold text-slate-700">Guaranteed Surrender Value</div>
-                <div className="col-span-2 pl-2 font-mono text-right">
-                  {Number(formData.guaranteedSurrenderValue).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              {/* Surrender Value Highlight */}
-              <div className="grid grid-cols-6 p-2.5 divide-x divide-slate-200 font-bold bg-emerald-50 text-emerald-900 border-y border-emerald-200">
-                <div className="col-span-4 font-bold text-xs">Surrender Value Payable</div>
-                <div className="col-span-2 pl-2 font-mono text-right text-sm font-bold text-emerald-800">
+        {/* Valuation Results — Plain table with borders */}
+        <table className="w-full text-left text-[10px] border-collapse mt-2">
+          <tbody>
+            <tr>
+              <td className="py-1 pr-2 font-semibold w-[25%]">Total Value (Paid Up + Bonus)</td>
+              <td className="py-1 pr-6 font-mono text-right font-bold w-[25%]">{Number(formData.totalSV).toLocaleString("en-IN")}</td>
+              <td className="py-1 pr-2 font-semibold w-[25%]">Projected Maturity Amount</td>
+              <td className="py-1 font-mono text-right w-[25%]">{Number(formData.projectedMaturityAmount).toLocaleString("en-IN")}</td>
+            </tr>
+            <tr className="font-bold">
+              <td className="py-1 pr-2 font-bold" colSpan={2}>Surrender Value Payable</td>
+              <td className="py-1 font-mono text-right font-bold" colSpan={2}>
+                <span className="inline-block border-t border-b border-black px-1">
                   {Number(formData.surrenderValuePayable).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              {/* Loan Available Highlight */}
-              <div className="grid grid-cols-6 p-2.5 divide-x divide-slate-200 font-bold bg-[#0B1220] text-white">
-                <div className="col-span-4 font-bold text-xs text-white">Max Loan Available</div>
-                <div className="col-span-2 pl-2 font-mono text-right text-sm font-bold text-[#E8C77A]">
+                </span>
+              </td>
+            </tr>
+            <tr className="font-bold">
+              <td className="py-1 pr-2 font-bold" colSpan={2}>Max Loan Available</td>
+              <td className="py-1 font-mono text-right font-bold" colSpan={2}>
+                <span className="inline-block border-t border-b border-black px-1">
                   {Number(formData.loanAvailable).toLocaleString("en-IN")}
-                </div>
-              </div>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-              {/* Projected Maturity */}
-              <div className="grid grid-cols-6 p-2 divide-x divide-slate-200 font-semibold bg-blue-50/60">
-                <div className="col-span-4 text-blue-900 font-semibold">Projected Maturity Amount</div>
-                <div className="col-span-2 pl-2 font-mono text-right font-bold text-blue-900">
-                  {Number(formData.projectedMaturityAmount).toLocaleString("en-IN")}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Remarks */}
+        <div className="pt-2 text-[9px]">
+          Remarks: {formData.remarks || "Standard quotation generated."}
         </div>
 
-        {/* Footer Disclaimer & Verification Note */}
-        <div className="pt-4 border-t-2 border-slate-300 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-700 font-medium">
-          <div>
-            * Quotation values are calculated based on LIC standard valuation formulas & rules.
+        {/* Legend footer */}
+        <div className="pt-4 mt-4 space-y-1 text-[9px]" style={{ borderTop: "1px solid #000" }}>
+          <div className="flex flex-wrap gap-x-5 gap-y-0.5">
+            <span><strong>Y :</strong> NACH Mode</span>
+            <span><strong>M :</strong> Monthly Mode</span>
+            <span><strong>Q :</strong> Quarterly Mode</span>
+            <span><strong>H :</strong> Half-Yearly Mode</span>
+            <span><strong>S :</strong> Single Mode</span>
           </div>
-          <div className="font-bold text-slate-900 tracking-wider">
-            LIC OFFICIAL QUOTATION REF: LQ{formData.policyNumber || "001"}
+          <div className="flex justify-between font-mono text-[8px] pt-1">
+            <span>Statement Code: DSS000019899</span>
+            <span>LIC OFFICIAL QUOTATION REF: LQ{formData.policyNumber || "001"}</span>
           </div>
         </div>
       </div>

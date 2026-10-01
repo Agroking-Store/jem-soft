@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Save,
   RotateCcw,
   FileText,
   Filter,
@@ -12,6 +11,8 @@ import {
 } from "lucide-react";
 import CustomerDataSheetFilterModal, { SelectedFilterItem } from "./CustomerDataSheetFilterModal";
 import type { Customer, CustomerMaster } from "@/features/customers/types";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
 
 export interface CustomerDataSheetFormData {
   appliedFilters: SelectedFilterItem[];
@@ -161,13 +162,11 @@ export default function CustomerDataSheetForm({
                 <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Report Date
                 </span>
-                <input
-                  type="date"
-                  value={formData.reportDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+                <DatePicker
+                  value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-[#1877F2]/20"
                 />
               </div>
             </div>

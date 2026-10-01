@@ -29,52 +29,52 @@ function fmtDate(d: Date | string | null | undefined, withYear2 = false) {
 }
 
 function getMemberName(policy: any): string {
-  if (policy.lifeAssured) {
-    const la = policy.lifeAssured;
-    if (typeof la === "string") return la;
-    const sal = la.salutation ? `${la.salutation} ` : "";
-    const full = [la.firstName, la.middleName, la.lastName].filter(Boolean).join(" ");
-    if (full.trim()) return `${sal}${full.trim()}`;
-    if (la.name) return la.name;
-  }
-  if (policy.CustomerMaster) {
-    const cm = policy.CustomerMaster;
+  // lifeAssured is NOT a schema field — the member is always CustomerMaster.
+  const cm = policy.CustomerMaster;
+  if (cm) {
     const sal = cm.salutation ? `${cm.salutation} ` : "";
     const full = [cm.firstName, cm.middleName, cm.lastName].filter(Boolean).join(" ");
     if (full.trim()) return `${sal}${full.trim()}`;
-    if (cm.name) return cm.name;
   }
-  if (policy.lifeAssuredName) return policy.lifeAssuredName;
   if (policy.customer?.name) return policy.customer.name;
   return "Policy Holder";
 }
 
 function getMemberDOB(policy: any) {
-  return policy.CustomerMaster?.dob || policy.lifeAssured?.dob || policy.dob || null;
+  return policy.CustomerMaster?.dob || null;
 }
 
 function getMemberPAN(policy: any) {
-  return (
-    policy.CustomerMaster?.panNumber ||
-    policy.lifeAssured?.panNumber ||
-    policy.customer?.panNumber ||
-    policy.panNumber ||
-    ""
-  );
+  return policy.CustomerMaster?.panNumber || "";
 }
 
 function getMemberMobile(policy: any) {
   return (
-    policy.lifeAssured?.mobile ||
     policy.CustomerMaster?.contactInfo?.mobile1 ||
-    policy.customer?.mobile ||
-    policy.customer?.mobile1 ||
+    policy.customer?.phone ||
+    policy.customer?.mobilePersonal ||
     ""
   );
 }
 
 function getMemberAddress(policy: any) {
-  return policy.customer?.address || policy.CustomerMaster?.address || "";
+  // CustomerMaster.addresses (typed) first, then the group Customer's
+  // residence address parts — Customer has no single `address` field.
+  const addrs = policy.CustomerMaster?.addresses;
+  if (Array.isArray(addrs) && addrs.length > 0) {
+    const a = addrs[0];
+    const parts = [a.addressLine1, a.addressLine2, a.area, a.city, a.state, a.pin].filter(Boolean);
+    if (parts.length > 0) return parts.join(", ");
+  }
+  const c = policy.customer || {};
+  const parts = [
+    c.resAddressLine1,
+    c.resAddressLine2,
+    c.resArea || c.offArea,
+    c.resCity || c.offCity,
+    c.resPin || c.offPin,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "";
 }
 
 function modeAbbrev(modeName: string) {
@@ -94,17 +94,37 @@ function modeFreqPerYear(modeName: string) {
   return 1;
 }
 
+/** Month step that keeps the LIC due-date day-of-month (31 Jan + 1m → 28/29 Feb). */
 function addMonths(date: Date, months: number) {
   const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
   d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
   return d;
 }
 
-// Generate every premium due-date occurrence (anniversary of commencement date, stepped
-// by the mode frequency) that falls within [fromDate, toDate].
-function generateDueDates(commDate: Date, stepMonths: number, fromDate: Date, toDate: Date) {
+/** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
+function isNachPolicy(p: any): boolean {
+  const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
+  if (pay.includes("nach")) return true;
+  return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
+}
+
+function matchesAny(haystack: string, needles: string[]): boolean {
+  if (needles.length === 0) return true;
+  const h = (haystack || "").toLowerCase();
+  if (!h) return false;
+  return needles.some((n) => h.includes(n) || n.includes(h));
+}
+
+// Generate every premium due-date occurrence that falls within [fromDate, toDate].
+// Anchor at nextPremiumDueDate when the DB maintains it, otherwise at the
+// commencement-date anniversary, stepped by the mode frequency.
+function generateDueDates(anchor: Date, stepMonths: number, fromDate: Date, toDate: Date) {
   const dates: Date[] = [];
-  let d = new Date(commDate);
+  let d = new Date(anchor);
   let guard = 0;
   while (d < fromDate && guard < 2000) {
     d = addMonths(d, stepMonths);
@@ -135,6 +155,7 @@ const totalValueStyle = {
 export default function PremiumCalendarReportView({
   formData,
   policies: rawPolicies = [],
+  customers: rawCustomers = [],
   onBackToForm,
 }: PremiumCalendarReportViewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -151,16 +172,73 @@ export default function PremiumCalendarReportView({
       return { groupData: [], summaryRows: [], monthKeys: [], monthlyTotals: {}, grandTotal: 0 };
     }
 
-    const selectedStatuses = (formData.appliedFilters || [])
-      .filter((f) => f.type === "Policy Status")
-      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
+    const pick = (type: string) =>
+      (formData.appliedFilters || [])
+        .filter((f) => f.type === type)
+        .map((f) => (f.name || f.id || "").toLowerCase().trim())
+        .filter(Boolean);
 
-    const selectedGroupCodes = (formData.selectedGroups || []).map((g) =>
-      g.groupCode.toLowerCase()
+    const selectedStatuses = pick("Policy Status").map((s) => s.replace(/[- ]/g, ""));
+    const selectedAgencies = pick("Agencies");
+    const selectedBranches = pick("Branches");
+    const selectedAreas = pick("Areas");
+
+    // Groups: Filter Options modal ("Groups Wise") + Select Groups modal
+    const selectedGroupKeys = new Set<string>();
+    const addGroupKey = (raw: string) => {
+      const k = (raw || "").toLowerCase().trim();
+      if (!k) return;
+      selectedGroupKeys.add(k);
+      // FilterOptionsModal renders name as "<code> - <head name>"
+      selectedGroupKeys.add(k.split(" - ")[0].trim());
+    };
+    (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups Wise" || f.type === "Groups")
+      .forEach((f) => {
+        if (f.id) addGroupKey(f.id);
+        addGroupKey(f.name || "");
+      });
+    (formData.selectedGroups || []).forEach((g) =>
+      addGroupKey((g as { groupCode?: string }).groupCode || "")
     );
 
+    // Sorting-filter modal selection — its meaning follows the sorting radio
+    const sortingItems = formData.sortingFilterSelection?.selectedItems || [];
+    const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+    const selectedSortingKeys = sortingItems
+      .map((i) => (i.code || i.name || "").toLowerCase().trim())
+      .filter(Boolean);
+
+    // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const isAgencyMatch = (p: any, filters: string[]) => {
+      if (filters.length === 0) return true;
+      const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
+        .toLowerCase()
+        .trim();
+      const agName = String(p.advisor?.agency?.agencyName || "")
+        .toLowerCase()
+        .trim();
+      return filters.some((f) => {
+        if (!f) return true;
+        if (f.includes("jayant") || f.includes("ag002"))
+          return JAYANT_ADVISOR_CODES.includes(agCode);
+        if (f.includes("manisha") || f.includes("ag003"))
+          return MANISHA_ADVISOR_CODES.includes(agCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return (
+            !JAYANT_ADVISOR_CODES.includes(agCode) &&
+            !MANISHA_ADVISOR_CODES.includes(agCode)
+          );
+        return (
+          (Boolean(agCode) && (agCode.includes(f) || f.includes(agCode))) ||
+          (Boolean(agName) && (agName.includes(f) || f.includes(agName)))
+        );
+      });
+    };
+
     const { nach, other } = formData.paymentTypes;
-    const paymentFilterActive = (nach || other) && !(nach && other);
 
     // Build ordered month buckets ("January 2026", "February 2026", ...) spanning the range
     const monthBuckets: string[] = [];
@@ -173,24 +251,81 @@ export default function PremiumCalendarReportView({
       cursor = addMonths(cursor, 1);
     }
 
+    const customerMap: { [id: string]: any } = {};
+    rawCustomers.forEach((c: any) => {
+      if (c.id) customerMap[String(c.id)] = c;
+    });
+
     const usable = rawPolicies.filter((p) => {
+      const cust = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
+
       const rawStatus = (p.status?.statusName || p.statusName || "Inforce")
         .toLowerCase()
         .replace(/[- ]/g, "");
-      if (selectedStatuses.length > 0 && !selectedStatuses.some((st) => rawStatus.includes(st) || st.includes(rawStatus)))
+      if (
+        selectedStatuses.length > 0 &&
+        !selectedStatuses.some((st) => rawStatus.includes(st) || st.includes(rawStatus))
+      )
         return false;
 
-      if (selectedGroupCodes.length > 0) {
-        const gCode = (p.customer?.groupCode || "").toLowerCase();
-        if (!selectedGroupCodes.includes(gCode)) return false;
+      if (!isAgencyMatch(p, selectedAgencies)) return false;
+
+      if (
+        selectedBranches.length &&
+        !matchesAny(
+          `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+          selectedBranches
+        )
+      )
+        return false;
+
+      if (
+        selectedAreas.length &&
+        !matchesAny(
+          `${cust.resArea || ""} ${cust.resCity || ""} ${cust.offArea || ""}`,
+          selectedAreas
+        )
+      )
+        return false;
+
+      if (selectedGroupKeys.size > 0) {
+        const gCode = String(cust.groupCode || "").toLowerCase().trim();
+        const gName = String(cust.groupName || cust.name || "").toLowerCase().trim();
+        const matched = Array.from(selectedGroupKeys).some(
+          (k) =>
+            Boolean(k) &&
+            (gCode === k || gCode.includes(k) || (gName && gName.includes(k)))
+        );
+        if (!matched) return false;
       }
 
-      if (paymentFilterActive) {
-        const raw = (p.premiumMode?.paymentMode || p.paymentType || p.premiumMode?.modeName || "").toLowerCase();
-        const isNach = Boolean(p.isNach) || raw.includes("nach") || raw.includes("ecs");
-        if (nach && !isNach) return false;
-        if (other && isNach) return false;
+      // Sorting modal: memberwise shows ONLY the ticked members, etc.
+      if (sortingItems.length > 0 && formData.sortingOption !== "groupsWise") {
+        if (formData.sortingOption === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "areaWise") {
+          if (!matchesAny(String(cust.resArea || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "subAreaWise") {
+          if (!matchesAny(String(cust.resCity || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "branchNoWise") {
+          if (
+            !matchesAny(
+              `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+              selectedSortingKeys
+            )
+          )
+            return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          const pn = String(p.policyNumber || "").toLowerCase().trim();
+          if (!pn || !selectedSortingKeys.some((k) => pn.includes(k))) return false;
+        }
       }
+
+      // Payment type — both unchecked = nothing (same convention as other reports)
+      const isNach = isNachPolicy(p);
+      if (isNach && !nach) return false;
+      if (!isNach && !other) return false;
 
       if (!p.commencementDate) return false;
       const cd = new Date(p.commencementDate);
@@ -205,7 +340,42 @@ export default function PremiumCalendarReportView({
     monthBuckets.forEach((mb) => (monthTotalsAcc[mb] = 0));
     let grand = 0;
 
+    const opt = formData.sortingOption;
+    const isFlat = opt === "policyNoWise";
+
     usable.forEach((p, idx) => {
+      const cust = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
+      const memberName = getMemberName(p);
+      const memberId = String(p.CustomerMaster?.id || p.CustomerMasterId || "");
+
+      // Block key/heading follows the selected sorting radio
+      let gCode: string;
+      let gHeadName: string;
+      let showHeading = true;
+      if (opt === "groupMemberwise") {
+        gCode = memberId || `M-${p.policyNumber || idx}`;
+        gHeadName = memberName;
+      } else if (opt === "areaWise") {
+        const area = cust.resArea || cust.resCity || "Unassigned";
+        gCode = `A:${area}`;
+        gHeadName = `Area : ${area}`;
+      } else if (opt === "subAreaWise") {
+        const sub = cust.resCity || "Unassigned";
+        gCode = `S:${sub}`;
+        gHeadName = `Sub-Area : ${sub}`;
+      } else if (opt === "branchNoWise") {
+        const brn = p.branch?.branchCode || p.branchNo || "—";
+        gCode = `B:${brn}`;
+        gHeadName = `Branch : ${p.branch?.branchName || brn}`;
+      } else if (isFlat) {
+        gCode = "__flat__";
+        gHeadName = "";
+        showHeading = false;
+      } else {
+        gCode = String(cust.groupCode || cust.id || p.clientId || "—");
+        gHeadName = cust.groupName || cust.name || memberName;
+      }
+
       const commDate = new Date(p.commencementDate);
       const modeName = p.premiumMode?.modeName || "Yearly";
       const stepMonths = 12 / modeFreqPerYear(modeName);
@@ -213,30 +383,40 @@ export default function PremiumCalendarReportView({
         p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || 0
       );
       const sumAssured = Number(p.premium?.sumAssured || 0);
-      const loanAmount = Number(p.loanAmount || p.loanDetails?.amount || 0);
-      const loanInterestPerDue =
-        formData.includeLoanInterest && loanAmount > 0
-          ? Math.round((loanAmount * LOAN_INTEREST_RATE) / modeFreqPerYear(modeName))
-          : 0;
+
+      // Loan interest from the policy's actual loan records (PolicyLoan) —
+      // each loan's own interestRate is used, with the placeholder as fallback.
+      const loans: any[] = Array.isArray(p.loans) ? p.loans : [];
+      const freqPerYear = modeFreqPerYear(modeName);
+      const loanInterestPerDue = formData.includeLoanInterest
+        ? loans.reduce((s, l) => {
+            const amt = Number(l?.loanAmount || 0);
+            const rate = Number(l?.interestRate) > 0 ? Number(l.interestRate) : LOAN_INTEREST_RATE;
+            return s + Math.round((amt * rate) / freqPerYear);
+          }, 0)
+        : 0;
+
       const brn = p.branchNo || p.branch?.branchCode || "-";
       const planNo = p.product?.planNumber || "-";
       const term = p.policyTerm || "-";
       const ppt = p.premiumPayingTerm || "-";
 
-      const dueDates = generateDueDates(commDate, stepMonths, fromDate, toDate);
+      // Anchor at nextPremiumDueDate when the DB maintains it, otherwise at
+      // the commencement-date anniversary.
+      const nextDue = p.nextPremiumDueDate ? new Date(p.nextPremiumDueDate) : null;
+      const anchor =
+        nextDue && !isNaN(nextDue.getTime()) ? nextDue : commDate;
+      const dueDates = generateDueDates(anchor, stepMonths, fromDate, toDate);
       if (dueDates.length === 0) return;
-
-      const memberName = getMemberName(p);
-      const gCode = p.customer?.groupCode || `A-${(p.clientId || String(idx + 1)).toString().padStart(3, "0")}`;
-      const gHeadName = p.customer?.groupName || p.customer?.name || memberName;
 
       if (!groupMap[gCode]) {
         groupMap[gCode] = {
           groupCode: gCode,
           groupHeadName: gHeadName,
+          showHeading,
           address: getMemberAddress(p),
           mobile: getMemberMobile(p),
-          email: p.customer?.email || "",
+          email: cust.email || "",
           months: {}, // monthLabel -> rows[]
         };
       }
@@ -364,6 +544,28 @@ export default function PremiumCalendarReportView({
 
   const maxMonthAmount = Math.max(1, ...Object.values(monthlyTotals) as number[]);
 
+  // Total column count — month headings/totals must span exactly this many cols
+  const totalCols =
+    (isType2 ? 11 : 9) + (isType2 ? 0 : 1) + (formData.includeLoanInterest ? 1 : 0);
+
+  const getReportHeaderTitle = () => {
+    switch (formData.sortingOption) {
+      case "groupMemberwise":
+        return "Memberwise";
+      case "areaWise":
+        return "Areawise";
+      case "subAreaWise":
+        return "Sub-Areawise";
+      case "branchNoWise":
+        return "Branchwise";
+      case "policyNoWise":
+        return "Policywise";
+      case "groupsWise":
+      default:
+        return "Groupwise";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
@@ -397,7 +599,7 @@ export default function PremiumCalendarReportView({
       >
         <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
-            Premium Calendar between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)}
+            Premium Calendar ({getReportHeaderTitle()}) between {fmtDate(formData.dateFrom)} and {fmtDate(formData.dateTo)}
           </span>
           <span>As on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
         </div>
@@ -416,22 +618,25 @@ export default function PremiumCalendarReportView({
           <div>
             {groupData.map((group: any) => (
               <div key={group.groupCode} className="pt-3">
-                {/* Centered group heading */}
-                <div className="text-center pb-1">
-                  <div className="text-[13px] font-bold">
-                    {group.groupCode}: {group.groupHeadName}
+                {/* Centered block heading — hidden for flat sorts (policyNoWise) */}
+                {group.showHeading !== false && (
+                  <div className="text-center pb-1">
+                    <div className="text-[13px] font-bold">
+                      {group.groupCode ? `${group.groupCode}: ` : ""}
+                      {group.groupHeadName}
+                    </div>
+                    {(group.mobile || group.email) && (
+                      <div>{[group.mobile && `Mobile : ${group.mobile}`, group.email && `Email : ${group.email}`].filter(Boolean).join("   ")}</div>
+                    )}
+                    {group.address && <div>Address : {group.address}</div>}
                   </div>
-                  {(group.mobile || group.email) && (
-                    <div>{[group.mobile && `Mobile : ${group.mobile}`, group.email && `Email : ${group.email}`].filter(Boolean).join("   ")}</div>
-                  )}
-                  {group.address && <div>Address : {group.address}</div>}
-                </div>
+                )}
 
                 {group.monthList.map((month: any) => (
                   <table key={month.label} className="w-full border-collapse text-left mb-2">
                     <thead>
                       <tr>
-                        <td colSpan={isType2 ? 11 : 9} className="pt-1 pb-0.5 text-center font-bold text-[11px] uppercase">
+                        <td colSpan={totalCols} className="pt-1 pb-0.5 text-center font-bold text-[11px] uppercase">
                           {month.label}
                         </td>
                       </tr>
@@ -490,12 +695,15 @@ export default function PremiumCalendarReportView({
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                           <span style={totalValueStyle}>{month.total.toLocaleString("en-IN")}</span>
                         </td>
+                        {/* Type 1 has a Policy Holder Total column between Premium
+                            and Loan Interest — keep the loan figure in its own column */}
+                        {!isType2 && formData.includeLoanInterest && <td />}
                         {formData.includeLoanInterest && (
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                             <span style={totalValueStyle}>{month.loanTotal.toLocaleString("en-IN")}</span>
                           </td>
                         )}
-                        <td colSpan={isType2 ? 4 : 1}></td>
+                        <td colSpan={Math.max(1, totalCols - (isType2 ? 6 : 7) - 1 - (formData.includeLoanInterest ? 1 : 0) - (!isType2 && formData.includeLoanInterest ? 1 : 0))}></td>
                       </tr>
                     </tbody>
                   </table>

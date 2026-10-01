@@ -22,32 +22,25 @@ function fmtDate(d: Date | string | null | undefined) {
 }
 
 function getPolicyMemberName(p: any): string {
-  if (p.lifeAssured) {
-    if (typeof p.lifeAssured === "string") return p.lifeAssured;
-    const salutation = p.lifeAssured.salutation ? `${p.lifeAssured.salutation} ` : "";
-    const fullName = [p.lifeAssured.firstName, p.lifeAssured.middleName, p.lifeAssured.lastName]
+  // lifeAssured / lifeAssuredName / holderName / insuredName are NOT schema
+  // fields — the annuity holder is always CustomerMaster.
+  const cm = p.CustomerMaster;
+  if (cm) {
+    const salutation = cm.salutation ? `${cm.salutation} ` : "";
+    const fullName = [cm.firstName, cm.middleName, cm.lastName]
       .filter(Boolean)
       .join(" ");
     if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.lifeAssured.name) return p.lifeAssured.name;
   }
-
-  if (p.CustomerMaster) {
-    const salutation = p.CustomerMaster.salutation ? `${p.CustomerMaster.salutation} ` : "";
-    const fullName = [p.CustomerMaster.firstName, p.CustomerMaster.middleName, p.CustomerMaster.lastName]
-      .filter(Boolean)
-      .join(" ");
-    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.CustomerMaster.name) return p.CustomerMaster.name;
-  }
-
-  if (p.lifeAssuredName && typeof p.lifeAssuredName === "string") return p.lifeAssuredName;
-  if (p.holderName && typeof p.holderName === "string") return p.holderName;
-  if (p.insuredName && typeof p.insuredName === "string") return p.insuredName;
-
   if (p.customer?.name) return p.customer.name;
-
   return "Annuity Holder";
+}
+
+function matchesAny(haystack: string, needles: string[]) {
+  if (needles.length === 0) return true;
+  const h = (haystack || "").toLowerCase();
+  if (!h) return false;
+  return needles.some((n) => h.includes(n) || n.includes(h));
 }
 
 const BLACK = "#000";
@@ -79,58 +72,190 @@ export default function AnnuityStatementReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
-    const selectedAgencies = (formData.appliedFilters || []).filter((f) => f.type === "Agencies").map((f) => f.name.toLowerCase());
-    const selectedStatuses = (formData.appliedFilters || []).filter((f) => f.type === "Policy Status").map((f) => f.name.toLowerCase());
+    const pick = (type: string) =>
+      (formData.appliedFilters || [])
+        .filter((f) => f.type === type)
+        .map((f) => (f.name || f.id || "").toLowerCase().trim())
+        .filter(Boolean);
 
-    const selectedFilterCodesOrNames =
+    const selectedStatuses = pick("Policy Status").map((s) => s.replace(/[- ]/g, ""));
+    const selectedAgencies = pick("Agencies");
+    const selectedBranches = pick("Branches");
+    const selectedAreas = pick("Areas");
+
+    // Groups: Filter Options modal ("Groups Wise") + Select Groups modal
+    const selectedGroupKeys = new Set<string>();
+    const addGroupKey = (raw: string) => {
+      const k = (raw || "").toLowerCase().trim();
+      if (!k) return;
+      selectedGroupKeys.add(k);
+      // FilterOptionsModal renders name as "<code> - <head name>"
+      selectedGroupKeys.add(k.split(" - ")[0].trim());
+    };
+    (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups Wise" || f.type === "Groups")
+      .forEach((f) => {
+        if (f.id) addGroupKey(f.id);
+        addGroupKey(f.name || "");
+      });
+    if (formData.sortingOption === "groupsWise") {
+      (formData.selectedGroups || []).forEach((g) =>
+        addGroupKey((g as { groupCode?: string }).groupCode || "")
+      );
+    }
+
+    // Sorting-filter modal selection — its meaning follows the sorting radio
+    const sortingItems =
       formData.sortingOption === "groupsWise"
-        ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
-        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
+        ? []
+        : formData.sortingFilterSelection?.selectedItems || [];
+    const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+    const selectedSortingKeys = sortingItems
+      .map((i) => (i.code || i.name || "").toLowerCase().trim())
+      .filter(Boolean);
+
+    // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const isAgencyMatch = (p: any, filters: string[]) => {
+      if (filters.length === 0) return true;
+      const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
+        .toLowerCase()
+        .trim();
+      const agName = String(p.advisor?.agency?.agencyName || "")
+        .toLowerCase()
+        .trim();
+      return filters.some((f) => {
+        if (!f) return true;
+        if (f.includes("jayant") || f.includes("ag002"))
+          return JAYANT_ADVISOR_CODES.includes(agCode);
+        if (f.includes("manisha") || f.includes("ag003"))
+          return MANISHA_ADVISOR_CODES.includes(agCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return (
+            !JAYANT_ADVISOR_CODES.includes(agCode) &&
+            !MANISHA_ADVISOR_CODES.includes(agCode)
+          );
+        return (
+          (Boolean(agCode) && (agCode.includes(f) || f.includes(agCode))) ||
+          (Boolean(agName) && (agName.includes(f) || f.includes(agName)))
+        );
+      });
+    };
+
+    const customerMap: { [id: string]: any } = {};
+    rawCustomers.forEach((c: any) => {
+      if (c.id) customerMap[String(c.id)] = c;
+    });
 
     const validPolicies = rawPolicies.filter((p) => {
-      const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
-      if (selectedStatuses.length > 0 && !selectedStatuses.some((st) => rawStatus.includes(st))) return false;
+      const cust = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
 
-      const agencyName = (p.agentCode || p.agency?.agencyName || p.agencyName || "").toLowerCase();
-      if (selectedAgencies.length > 0 && !selectedAgencies.some((ag) => agencyName.includes(ag))) return false;
+      // Date range — annuity payout proxy is the next premium due date
+      const payout = p.nextPremiumDueDate ? new Date(p.nextPremiumDueDate) : null;
+      if (fromDate && payout && payout < fromDate) return false;
+      if (toDate && payout && payout > toDate) return false;
 
-      if (selectedFilterCodesOrNames.length > 0) {
-        const gCode = (p.customer?.groupCode || "").toLowerCase();
-        const gHeadName = (p.customer?.groupName || p.customer?.name || "").toLowerCase();
-        const polNo = (p.policyNumber || "").toLowerCase();
-        const memName = getPolicyMemberName(p).toLowerCase();
+      const rawStatus = (p.status?.statusName || p.statusName || "Inforce")
+        .toLowerCase()
+        .replace(/[- ]/g, "");
+      if (
+        selectedStatuses.length > 0 &&
+        !selectedStatuses.some((st) => rawStatus.includes(st) || st.includes(rawStatus))
+      )
+        return false;
 
-        const matches = selectedFilterCodesOrNames.some(
-          (sc) => gCode.includes(sc) || gHeadName.includes(sc) || polNo.includes(sc) || memName.includes(sc)
+      if (!isAgencyMatch(p, selectedAgencies)) return false;
+
+      if (
+        selectedBranches.length &&
+        !matchesAny(
+          `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+          selectedBranches
+        )
+      )
+        return false;
+
+      if (
+        selectedAreas.length &&
+        !matchesAny(
+          `${cust.resArea || ""} ${cust.resCity || ""} ${cust.offArea || ""}`,
+          selectedAreas
+        )
+      )
+        return false;
+
+      if (selectedGroupKeys.size > 0) {
+        const gCode = String(cust.groupCode || "").toLowerCase().trim();
+        const gName = String(cust.groupName || cust.name || "").toLowerCase().trim();
+        const matched = Array.from(selectedGroupKeys).some(
+          (k) =>
+            Boolean(k) &&
+            (gCode === k || gCode.includes(k) || (gName && gName.includes(k)))
         );
-        if (!matches) return false;
+        if (!matched) return false;
+      }
+
+      // Sorting modal: memberwise shows ONLY the ticked members, etc.
+      if (sortingItems.length > 0) {
+        if (formData.sortingOption === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          const pid = String(p.id || p.policyNumber || "");
+          if (!pid || !selectedMemberIds.has(pid)) return false;
+        }
       }
 
       return true;
     });
 
+    // Block key/heading follows the selected sorting radio
+    const opt = formData.sortingOption;
+    const isFlat = opt === "policyNoWise";
+
     const groupMap: { [key: string]: any } = {};
 
-    validPolicies.forEach((p, idx) => {
-      const custObj = p.customer;
-      
-      let gCode = custObj?.groupCode || `A-${(p.clientId || "01").toString().padStart(3, "0")}`;
-      let gHeadName = custObj?.groupName || custObj?.name || "Annuity Holder Group";
-      const memberName = getPolicyMemberName(p);
-      const memberMobile = p.lifeAssured?.mobile || p.CustomerMaster?.contactInfo?.mobile1 || custObj?.mobile || custObj?.mobile1 || "";
-      const memberAddress = custObj?.address || "";
-      const policyNo = p.policyNumber || `98${1000000 + idx}`;
+    validPolicies.forEach((p) => {
+      const custMaster = p.CustomerMaster;
+      const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
 
-      if (formData.sortingOption === "policyNoWise") {
-        gCode = policyNo;
-        gHeadName = memberName;
-      } else if (formData.sortingOption === "groupMemberwise") {
-        gCode = `${gCode}_${memberName}`;
-        gHeadName = memberName;
+      let gCode: string;
+      let gHeadName: string;
+      let showHeading = true;
+      if (opt === "groupMemberwise") {
+        // Memberwise = plain member list (member name row is the identity),
+        // same look as Policy Register / Premium Outstanding.
+        const memberId = custMaster?.id || p.CustomerMasterId || "";
+        gCode = memberId || `M-${p.policyNumber}`;
+        gHeadName = "";
+        showHeading = false;
+      } else if (isFlat) {
+        gCode = "__flat__";
+        gHeadName = "";
+        showHeading = false;
+      } else {
+        gCode = String(custObj.groupCode || custObj.id || p.clientId || "—");
+        gHeadName = custObj.groupName || custObj.name || "Annuity Holder Group";
       }
 
+      const memberName = getPolicyMemberName(p);
+      const memberMobile =
+        custMaster?.contactInfo?.mobile1 || custObj?.phone || custObj?.mobilePersonal || "";
+      const memberEmail = custMaster?.contactInfo?.emailPersonal || custObj?.email || "";
+      // Customer has no single `address` field — build it from the parts.
+      const addrParts = [
+        custObj.resAddressLine1,
+        custObj.resAddressLine2,
+        custObj.resArea || custObj.offArea,
+        custObj.resCity || custObj.offCity,
+        custObj.resPin || custObj.offPin,
+      ].filter(Boolean);
+      const memberAddress = addrParts.length > 0 ? addrParts.join(", ") : "";
+      const policyNo = p.policyNumber || "—";
+
       if (!groupMap[gCode]) {
-        groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, membersMap: {}, totalAnnuityAmount: 0 };
+        groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, showHeading, membersMap: {}, totalAnnuityAmount: 0 };
       }
 
       const grp = groupMap[gCode];
@@ -138,6 +263,7 @@ export default function AnnuityStatementReportView({
         grp.membersMap[memberName] = {
           name: memberName,
           mobile: memberMobile,
+          email: memberEmail,
           address: memberAddress,
           policies: [],
           totalAnnuityAmount: 0,
@@ -145,33 +271,34 @@ export default function AnnuityStatementReportView({
       }
 
       const mem = grp.membersMap[memberName];
-      const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 500000);
-      const pensionAmount = Math.round(sumAssured * 0.07);
-      const mode = p.premiumMode?.modeName || "Yearly";
-      const planName = p.product?.productName || "Jeevan Akshay / Annuity Plan";
-      const payoutDate = fmtDate(p.nextPremiumDueDate || p.commencementDate || new Date());
+      // Schema has no annuity/pension amount field — show the real Sum Assured.
+      const sumAssured = Number(p.premium?.sumAssured || 0);
+      const mode = p.premiumMode?.modeName || "—";
+      const planName = p.product?.productName || "—";
+      const payoutDate = fmtDate(p.nextPremiumDueDate || p.commencementDate);
+      // Real payment mode (NACH/Cheque/…) — no hardcoded "NEFT Registered".
+      const payMode = p.paymentMode?.modeName || "—";
 
       const row = {
-        sr: idx + 1,
         policyNo,
         memberName,
         planName,
         mode,
-        pensionAmount,
+        sumAssured,
         payoutDate,
-        neftStatus: "NEFT Registered",
+        payMode,
       };
 
       mem.policies.push(row);
-      mem.totalAnnuityAmount += pensionAmount;
-      grp.totalAnnuityAmount += pensionAmount;
+      mem.totalAnnuityAmount += sumAssured;
+      grp.totalAnnuityAmount += sumAssured;
     });
 
     return Object.values(groupMap).map((grp: any) => ({
       ...grp,
       members: Object.values(grp.membersMap),
     }));
-  }, [rawPolicies, formData]);
+  }, [rawPolicies, rawCustomers, formData]);
 
   const grandTotalAnnuity = groupData.reduce((acc, g) => acc + g.totalAnnuityAmount, 0);
 
@@ -272,31 +399,31 @@ export default function AnnuityStatementReportView({
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="font-bold">
-                <th className="px-1 py-1" style={thStyle}>Sr<br />No</th>
                 <th className="px-1 py-1" style={thStyle}>Policy No</th>
                 <th className="px-1 py-1" style={thStyle}>Annuity Holder</th>
                 <th className="px-1 py-1" style={thStyle}>Plan / Option</th>
                 <th className="px-1 py-1 text-center" style={thStyle}>Mode</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Pension<br />Amount (₹)</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Sum Assured (₹)</th>
                 <th className="px-1 py-1 text-center" style={thStyle}>Payout<br />Date</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Status</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Payment<br />Mode</th>
               </tr>
             </thead>
             <tbody>
               {groupData.map((group) => (
                 <Fragment key={group.groupCode}>
-                  {formData.sortingOption === "groupsWise" && (
+                  {group.showHeading !== false && (
                     <tr>
-                      <td colSpan={8} className="pt-3 pb-1 text-center text-[13px] font-bold">
-                        {group.groupCode}: {group.groupHeadName}
+                      <td colSpan={7} className="pt-3 pb-1 text-center text-[13px] font-bold">
+                        {group.groupCode ? `${group.groupCode}: ` : ""}
+                        {group.groupHeadName}
                       </td>
                     </tr>
                   )}
                   {group.members.map((member: any) => (
                     <Fragment key={member.name}>
-                      {formData.sortingOption !== "policyNoWise" && (
+                      {group.showHeading !== false && (
                         <tr>
-                          <td colSpan={8} className="pt-2 pb-0.5">
+                          <td colSpan={7} className="pt-2 pb-0.5">
                             <div className="text-[11px] font-bold">{member.name}</div>
                             {formData.reportType === "Statement" && (
                               <div className="text-[10px]">
@@ -309,21 +436,20 @@ export default function AnnuityStatementReportView({
                           </td>
                         </tr>
                       )}
-                      {member.policies.map((p: any) => (
-                        <tr key={p.policyNo}>
-                          <td className="px-1 py-0.5">{p.sr}</td>
+                      {member.policies.map((p: any, idx: number) => (
+                        <tr key={p.policyNo + idx}>
                           <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
                           <td className="px-1 py-0.5">{p.memberName}</td>
                           <td className="px-1 py-0.5">{p.planName}</td>
                           <td className="px-1 py-0.5 text-center">{p.mode}</td>
-                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.pensionAmount.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.sumAssured.toLocaleString("en-IN")}</td>
                           <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.payoutDate}</td>
-                          <td className="px-1 py-0.5 text-center">{p.neftStatus}</td>
+                          <td className="px-1 py-0.5 text-center">{p.payMode}</td>
                         </tr>
                       ))}
-                      {formData.sortingOption !== "policyNoWise" && member.policies.length > 1 && (
+                      {group.showHeading !== false && member.policies.length > 1 && (
                         <tr className="font-bold">
-                          <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total Pension :</td>
+                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                             <span style={totalValueStyle}>{member.totalAnnuityAmount.toLocaleString("en-IN")}</span>
                           </td>
@@ -332,17 +458,17 @@ export default function AnnuityStatementReportView({
                       )}
                     </Fragment>
                   ))}
-                  {formData.sortingOption === "groupsWise" && (
+                  {group.showHeading !== false && (
                     <>
                       <tr className="font-bold">
-                        <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total Pension Payout :</td>
+                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total Sum Assured :</td>
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                           <span style={totalValueStyle}>{group.totalAnnuityAmount.toLocaleString("en-IN")}</span>
                         </td>
                         <td colSpan={2}></td>
                       </tr>
                       <tr>
-                        <td colSpan={8} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
+                        <td colSpan={7} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
                       </tr>
                     </>
                   )}
@@ -354,7 +480,7 @@ export default function AnnuityStatementReportView({
 
         {groupData.length > 0 && (
           <div className="pt-4 flex justify-end items-center gap-4 text-[12px] font-bold">
-            <span>Grand Total Annuity Payout :</span>
+            <span>Grand Total Sum Assured :</span>
             <span className="font-mono" style={totalValueStyle}>₹ {grandTotalAnnuity.toLocaleString("en-IN")}</span>
           </div>
         )}

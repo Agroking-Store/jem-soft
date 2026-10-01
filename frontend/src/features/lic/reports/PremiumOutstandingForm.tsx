@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Save,
   RotateCcw,
   FileText,
   Filter,
@@ -10,9 +9,11 @@ import {
   ChevronLeft,
   ArrowRight,
 } from "lucide-react";
+import { format } from "date-fns";
 import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
 import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
 import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
 
 export interface PremiumOutstandingFormData {
   appliedFilters: SelectedFilterItem[];
@@ -69,6 +70,8 @@ function toISODate(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+const VISIBLE_CATEGORIES = ["Groups Wise", "Agencies", "Branches", "Areas", "Policy Status"];
+
 const getDefaultFormData = (): PremiumOutstandingFormData => {
   const today = toISODate(new Date());
   return {
@@ -76,7 +79,7 @@ const getDefaultFormData = (): PremiumOutstandingFormData => {
     fupDatesUpto: today,
     latefeeCalculationDate: today,
     paymentTypes: {
-      nach: false,
+      nach: true,
       otherThanNach: true,
     },
     reportType: "Statement",
@@ -166,7 +169,6 @@ export default function PremiumOutstandingForm({
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Premium Outstanding</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => alert("Filter configuration saved!")} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Save"><Save size={17} /></button>
           <button type="button" onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
           <button type="button" onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
         </div>
@@ -225,13 +227,14 @@ export default function PremiumOutstandingForm({
                 <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   FUP Dates Upto
                 </span>
-                <input
-                  type="date"
-                  value={formData.fupDatesUpto}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, fupDatesUpto: e.target.value }))
+                <DatePicker
+                  value={formData.fupDatesUpto ? new Date(formData.fupDatesUpto) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      fupDatesUpto: date ? format(date, "yyyy-MM-dd") : "",
+                    }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                 />
               </div>
             </div>
@@ -245,13 +248,14 @@ export default function PremiumOutstandingForm({
                 <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Latefee Calculation Date
                 </span>
-                <input
-                  type="date"
-                  value={formData.latefeeCalculationDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, latefeeCalculationDate: e.target.value }))
+                <DatePicker
+                  value={formData.latefeeCalculationDate ? new Date(formData.latefeeCalculationDate) : undefined}
+                  onChange={(date) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      latefeeCalculationDate: date ? format(date, "yyyy-MM-dd") : "",
+                    }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
                 />
               </div>
             </div>
@@ -322,13 +326,14 @@ export default function PremiumOutstandingForm({
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
-              <input
-                type="date"
-                value={formData.reportDate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    reportDate: date ? format(date, "yyyy-MM-dd") : "",
+                  }))
                 }
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#1877F2]"
               />
             </div>
           </div>
@@ -439,28 +444,25 @@ export default function PremiumOutstandingForm({
               </label>
             ))}
 
-            {/* NACH Details — only meaningful once Payment Type "NACH" is ticked */}
-            <label
-              className={`flex items-center gap-2.5 text-xs font-bold transition ${
-                formData.paymentTypes.nach
-                  ? "text-slate-800 hover:text-[#1877F2] cursor-pointer"
-                  : "text-slate-400 cursor-not-allowed"
-              }`}
-            >
+            {/* NACH Details — ticking it also switches the NACH payment type ON
+                so the mandate info actually has rows to show */}
+            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
               <input
                 type="checkbox"
                 checked={formData.reportOptions.nachDetails}
-                disabled={!formData.paymentTypes.nach}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
+                    paymentTypes: e.target.checked
+                      ? { ...prev.paymentTypes, nach: true }
+                      : prev.paymentTypes,
                     reportOptions: {
                       ...prev.reportOptions,
                       nachDetails: e.target.checked,
                     },
                   }))
                 }
-                className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2] disabled:cursor-not-allowed"
+                className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
               />
               <span>NACH Details</span>
             </label>
@@ -494,11 +496,14 @@ export default function PremiumOutstandingForm({
         onClose={() => setIsFilterModalOpen(false)}
         agencies={agencies}
         policyStatuses={policyStatuses}
+        customers={customers}
+        branches={branches}
         selectedFilters={formData.appliedFilters}
         onApplyFilters={(filters) =>
           setFormData((prev) => ({ ...prev, appliedFilters: filters }))
         }
         enableDefaultStatusSelection={false}
+        visibleCategories={VISIBLE_CATEGORIES}
       />
 
       {/* Select Groups Modal — reused as-is, only for the "Groups Wise" sort */}

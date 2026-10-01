@@ -35,39 +35,36 @@ function fmtDateShort(d: Date | string | null | undefined) {
 }
 
 function fmtDateLong(d: Date | string | null | undefined) {
-  if (!d) return "August 17, 2026";
+  if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
-  if (isNaN(date.getTime())) return "August 17, 2026";
+  if (isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
 function getPolicyMemberName(p: any): string {
-  if (p.lifeAssured) {
-    if (typeof p.lifeAssured === "string") return p.lifeAssured;
-    const salutation = p.lifeAssured.salutation ? `${p.lifeAssured.salutation} ` : "";
-    const fullName = [p.lifeAssured.firstName, p.lifeAssured.middleName, p.lifeAssured.lastName]
+  // lifeAssured / holderName / insuredName are NOT schema fields — the
+  // member is always CustomerMaster.
+  const cm = p.CustomerMaster;
+  if (cm) {
+    const salutation = cm.salutation ? `${cm.salutation} ` : "";
+    const fullName = [cm.firstName, cm.middleName, cm.lastName]
       .filter(Boolean)
       .join(" ");
     if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.lifeAssured.name) return p.lifeAssured.name;
   }
-
-  if (p.CustomerMaster) {
-    const salutation = p.CustomerMaster.salutation ? `${p.CustomerMaster.salutation} ` : "";
-    const fullName = [p.CustomerMaster.firstName, p.CustomerMaster.middleName, p.CustomerMaster.lastName]
-      .filter(Boolean)
-      .join(" ");
-    if (fullName.trim()) return `${salutation}${fullName.trim()}`;
-    if (p.CustomerMaster.name) return p.CustomerMaster.name;
-  }
-
-  if (p.lifeAssuredName && typeof p.lifeAssuredName === "string") return p.lifeAssuredName;
-  if (p.holderName && typeof p.holderName === "string") return p.holderName;
-  if (p.insuredName && typeof p.insuredName === "string") return p.insuredName;
-
   if (p.customer?.name) return p.customer.name;
-
   return "Policy Holder";
+}
+
+/** Month step that keeps the LIC due-date day-of-month (31 Jan + 1m → 28/29 Feb). */
+function addMonthsClamped(date: Date, months: number): Date {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, lastDay));
+  return d;
 }
 
 export default function PremiumCertificateReportView({
@@ -80,148 +77,154 @@ export default function PremiumCertificateReportView({
   const [isExporting, setIsExporting] = useState(false);
 
   const reportGroups = useMemo(() => {
-    const fromDate = formData.fromDate ? new Date(formData.fromDate) : new Date();
-    const toDate = formData.toDate ? new Date(formData.toDate) : new Date();
+    const fromDate = formData.fromDate ? new Date(formData.fromDate) : null;
+    const toDate = formData.toDate ? new Date(formData.toDate) : null;
+    if (fromDate) fromDate.setHours(0, 0, 0, 0);
+    if (toDate) toDate.setHours(23, 59, 59, 999);
+    if (!fromDate || !toDate) return [];
 
-    const selectedFilterCodesOrNames =
-      formData.sortingOption === "groupsWise"
-        ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
-        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
+    const customerMap: { [id: string]: any } = {};
+    rawCustomers.forEach((c: any) => {
+      if (c.id) customerMap[String(c.id)] = c;
+    });
+
+    // Groups Wise: selected group codes. Memberwise: selected member DB ids.
+    const selectedGroupCodes = (formData.selectedGroups || []).map((g) =>
+      g.groupCode.toLowerCase()
+    );
+    const selectedMemberIds = new Set(
+      (formData.sortingFilterSelection?.selectedItems || []).map((i) => i.id)
+    );
 
     const groupMap: { [key: string]: any } = {};
 
     rawPolicies.forEach((p) => {
-      const custObj = p.customer;
-      const gCode = custObj?.groupCode || `G-${p.clientId || "101"}`;
-      const gHeadName = custObj?.groupName || custObj?.name || "Policy Holder Group";
+      const cust = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
       const memberName = getPolicyMemberName(p);
-      const memberPan = p.lifeAssured?.pan || custObj?.pan || "";
-      const memberAddress = custObj?.address || "Pune, Maharashtra";
+      const memberId = String(p.CustomerMaster?.id || p.CustomerMasterId || "");
+      const memberPan = p.CustomerMaster?.panNumber || "";
+      const addrParts = [
+        cust.resAddressLine1,
+        cust.resAddressLine2,
+        cust.resArea || cust.offArea,
+        cust.resCity || cust.offCity,
+        cust.resPin || cust.offPin,
+      ].filter(Boolean);
+      const memberAddress = addrParts.length > 0 ? addrParts.join(", ") : "";
 
-      if (selectedFilterCodesOrNames.length > 0) {
-        const matches = selectedFilterCodesOrNames.some(
-          (sc) =>
-            gCode.toLowerCase().includes(sc) ||
-            gHeadName.toLowerCase().includes(sc) ||
-            memberName.toLowerCase().includes(sc) ||
-            (p.policyNumber || "").toLowerCase().includes(sc)
-        );
-        if (!matches) return;
+      // ── Filter: groupsWise by group code, memberwise by member DB id ────
+      if (formData.sortingOption === "groupMemberwise") {
+        if (selectedMemberIds.size > 0 && !selectedMemberIds.has(memberId)) return;
+      } else if (selectedGroupCodes.length > 0) {
+        const gCode = String(cust.groupCode || "").toLowerCase();
+        if (!selectedGroupCodes.includes(gCode)) return;
       }
 
+      // ── Installments: real payment records first ────────────────────────
+      const payments: any[] = Array.isArray(p.premiumPayments) ? p.premiumPayments : [];
+      const comDate = p.commencementDate ? new Date(p.commencementDate) : null;
+      const modeName = p.premiumMode?.modeName || "Yearly";
+      const modeLower = modeName.toLowerCase();
+      const modeShort = modeLower.includes("month")
+        ? "Mly."
+        : modeLower.includes("quarter")
+          ? "Qly."
+          : modeLower.includes("half") || modeLower.includes("semi")
+            ? "Hly."
+            : modeLower.includes("single")
+              ? "SP"
+              : "Yly.";
+      const planTermPpt = `${p.product?.planNumber || "—"}/${p.policyTerm || "—"}/${p.premiumPayingTerm || "—"}`;
+      const policyNo = p.policyNumber || "—";
+      const installmentPremium = Number(
+        p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || 0
+      );
+
+      const installments: Array<{ dueDateStr: string; payDateStr: string; premiumAmount: number }> = [];
+
+      if (payments.length > 0) {
+        // Real PremiumPayment records whose due date falls inside the period
+        payments
+          .filter((pay) => {
+            const dd = pay.dueDate ? new Date(pay.dueDate) : null;
+            return dd && !isNaN(dd.getTime()) && dd >= fromDate && dd <= toDate;
+          })
+          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+          .forEach((pay) => {
+            installments.push({
+              dueDateStr: fmtDateShort(new Date(pay.dueDate)),
+              payDateStr: pay.paidDate ? fmtDateShort(new Date(pay.paidDate)) : "—",
+              premiumAmount: Number(pay.premiumAmount || installmentPremium),
+            });
+          });
+      } else if (comDate && !isNaN(comDate.getTime())) {
+        // Fallback: derive due dates from nextPremiumDueDate / commencement
+        // anniversary. Pay date stays "—" — no payment record exists.
+        const nextDue = p.nextPremiumDueDate ? new Date(p.nextPremiumDueDate) : null;
+        const anchor =
+          nextDue && !isNaN(nextDue.getTime()) ? nextDue : comDate;
+        const modeMonthsMap: Record<string, number> = {
+          Yearly: 12,
+          "Half-Yearly": 6,
+          Quarterly: 3,
+          Monthly: 1,
+        };
+        const intervalMonths = modeMonthsMap[modeName] || 12;
+        let tempDate = new Date(anchor);
+        let guard = 0;
+        while (tempDate <= toDate && guard < 2000) {
+          if (tempDate >= fromDate) {
+            installments.push({
+              dueDateStr: fmtDateShort(tempDate),
+              payDateStr: "—",
+              premiumAmount: installmentPremium,
+            });
+          }
+          tempDate = addMonthsClamped(tempDate, intervalMonths);
+          guard += 1;
+        }
+      }
+
+      if (installments.length === 0) return;
+
+      // ── Block key/heading ───────────────────────────────────────────────
+      let gCode: string;
+      let gHeadName: string;
       if (formData.sortingOption === "groupMemberwise") {
-        const memKey = `${gCode}_${memberName}`;
-        if (!groupMap[memKey]) {
-          groupMap[memKey] = {
-            groupCode: gCode,
-            groupHeadName: memberName,
-            address: memberAddress,
-            pan: memberPan,
-            branchCode: p.branch?.branchCode || p.branchNo || "955",
-            branchName: p.branch?.branchName || "Jeevan Darshan Bldg N C Kelkar Marg Near Sambhaji Pool Katraj",
-            division: "PUNE",
-            members: {
-              [memberName]: {
-                name: memberName,
-                pan: memberPan,
-                address: memberAddress,
-                installments: [],
-                totalPremium: 0,
-              },
-            },
-          };
-        }
-
-        const grp = groupMap[memKey];
-        const mem = grp.members[memberName];
-        const premiumAmount = Number(p.premium?.installmentPremium || p.premiumAmount || 3739);
-        const modeName = p.premiumMode?.modeName || "Yearly";
-        const modeShort = modeName.slice(0, 3) + ".";
-        const planTermPpt = `${p.product?.planNumber || "836"}/${p.policyTerm || 25}/${p.premiumPayingTerm || 16}`;
-        const policyNo = p.policyNumber || "917894577";
-
-        const comDate = p.commencementDate ? new Date(p.commencementDate) : new Date(2020, 0, 1);
-        const modeMonthsMap: Record<string, number> = { Yearly: 12, "Half-Yearly": 6, Quarterly: 3, Monthly: 1 };
-        const intervalMonths = modeMonthsMap[modeName] || 12;
-
-        let tempDate = new Date(comDate);
-        while (tempDate <= toDate) {
-          if (tempDate >= fromDate && tempDate <= toDate) {
-            const dueDateStr = fmtDateShort(tempDate);
-            const payDate = new Date(tempDate);
-            payDate.setDate(payDate.getDate() + 15);
-            const payDateStr = fmtDateShort(payDate);
-
-            mem.installments.push({
-              policyNo,
-              memberName,
-              dueDateStr,
-              modeShort,
-              planTermPpt,
-              payDateStr,
-              premiumAmount,
-            });
-            mem.totalPremium += premiumAmount;
-          }
-          tempDate.setMonth(tempDate.getMonth() + intervalMonths);
-        }
+        // Each member is their own certificate block, headed by member name.
+        gCode = memberId || `M-${policyNo}`;
+        gHeadName = memberName;
       } else {
-        if (!groupMap[gCode]) {
-          groupMap[gCode] = {
-            groupCode: gCode,
-            groupHeadName: gHeadName,
-            address: memberAddress,
-            pan: memberPan,
-            branchCode: p.branch?.branchCode || p.branchNo || "955",
-            branchName: p.branch?.branchName || "Jeevan Darshan Bldg N C Kelkar Marg Near Sambhaji Pool Katraj",
-            division: "PUNE",
-            members: {},
-          };
-        }
+        gCode = String(cust.groupCode || cust.id || p.clientId || "—");
+        gHeadName = cust.groupName || cust.name || memberName;
+      }
 
-        const grp = groupMap[gCode];
-        if (!grp.members[memberName]) {
-          grp.members[memberName] = {
-            name: memberName,
-            pan: memberPan,
-            address: memberAddress,
-            installments: [],
-            totalPremium: 0,
-          };
-        }
+      if (!groupMap[gCode]) {
+        groupMap[gCode] = {
+          groupCode: gCode,
+          groupHeadName: gHeadName,
+          address: memberAddress,
+          pan: memberPan,
+          branchCode: p.branch?.branchCode || p.branchNo || "—",
+          branchName: p.branch?.branchName || "—",
+          members: {},
+        };
+      }
+      const grp = groupMap[gCode];
 
-        const mem = grp.members[memberName];
-        const premiumAmount = Number(p.premium?.installmentPremium || p.premiumAmount || 3739);
-        const modeName = p.premiumMode?.modeName || "Yearly";
-        const modeShort = modeName.slice(0, 3) + ".";
-        const planTermPpt = `${p.product?.planNumber || "836"}/${p.policyTerm || 25}/${p.premiumPayingTerm || 16}`;
-        const policyNo = p.policyNumber || "917894577";
-
-        const comDate = p.commencementDate ? new Date(p.commencementDate) : new Date(2020, 0, 1);
-        const modeMonthsMap: Record<string, number> = { Yearly: 12, "Half-Yearly": 6, Quarterly: 3, Monthly: 1 };
-        const intervalMonths = modeMonthsMap[modeName] || 12;
-
-        let tempDate = new Date(comDate);
-        while (tempDate <= toDate) {
-          if (tempDate >= fromDate && tempDate <= toDate) {
-            const dueDateStr = fmtDateShort(tempDate);
-            const payDate = new Date(tempDate);
-            payDate.setDate(payDate.getDate() + 15);
-            const payDateStr = fmtDateShort(payDate);
-
-            mem.installments.push({
-              policyNo,
-              memberName,
-              dueDateStr,
-              modeShort,
-              planTermPpt,
-              payDateStr,
-              premiumAmount,
-            });
-            mem.totalPremium += premiumAmount;
-          }
-          tempDate.setMonth(tempDate.getMonth() + intervalMonths);
-        }
+      if (!grp.members[memberName]) {
+        grp.members[memberName] = {
+          name: memberName,
+          pan: memberPan,
+          address: memberAddress,
+          installments: [],
+          totalPremium: 0,
+        };
+      }
+      const mem = grp.members[memberName];
+      for (const inst of installments) {
+        mem.installments.push({ ...inst, policyNo, modeShort, planTermPpt });
+        mem.totalPremium += inst.premiumAmount;
       }
     });
 
@@ -229,7 +232,7 @@ export default function PremiumCertificateReportView({
       ...grp,
       membersList: Object.values(grp.members),
     }));
-  }, [rawPolicies, formData]);
+  }, [rawPolicies, rawCustomers, formData]);
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
@@ -296,7 +299,7 @@ export default function PremiumCertificateReportView({
         </button>
       </div>
 
-      {/* Main Certificate Document View matching 2nd & 3rd SS */}
+      {/* Main Certificate Document View */}
       <div ref={reportRef} className="bg-white p-8 rounded-2xl border border-slate-400 shadow-xl text-slate-900 font-sans max-w-4xl mx-auto space-y-6 print:p-0 print:border-none print:shadow-none">
         {reportGroups.length === 0 ? (
           <div className="py-16 text-center bg-slate-50 rounded-xl border border-slate-200 p-8 space-y-2">
@@ -311,16 +314,13 @@ export default function PremiumCertificateReportView({
 
             return (
               <div key={group.groupCode + group.groupHeadName} className="border-2 border-slate-900 p-6 space-y-4">
-                {/* Header Banner matching 2nd/3rd SS */}
+                {/* Header Banner */}
                 <div className="text-center space-y-1">
                   <div className="bg-slate-200 py-1 font-bold text-xl tracking-tight text-slate-900">
                     Life Insurance Corporation of India
                   </div>
                   <p className="text-xs font-semibold text-slate-800">
                     Branch No. : {group.branchCode}, {group.branchName}
-                  </p>
-                  <p className="text-xs font-semibold text-slate-800">
-                    Division : {group.division}
                   </p>
                 </div>
 
@@ -334,7 +334,7 @@ export default function PremiumCertificateReportView({
                   {fmtDateLong(formData.reportDate)}
                 </div>
 
-                {/* Subtitle / Certification paragraph matching SS */}
+                {/* Subtitle / Certification paragraph */}
                 <div className="text-xs text-slate-900 leading-relaxed font-normal">
                   This is to certify that the following payments have been made under life insurance policies held by{" "}
                   <strong className="font-bold text-slate-900">{group.groupHeadName}</strong>, during the period{" "}
@@ -344,7 +344,7 @@ export default function PremiumCertificateReportView({
                   <span className="font-semibold">Holder of Permanent Account Number : {group.pan || "—"}</span>
                 </div>
 
-                {/* Certificate Table matching 2nd SS (Type 1) & 3rd SS (Type 2) */}
+                {/* Certificate Table */}
                 <table className="w-full text-left text-[11px] border-collapse">
                   <thead>
                     <tr className="border-y border-slate-900 font-bold text-slate-900 bg-slate-50">
@@ -363,7 +363,7 @@ export default function PremiumCertificateReportView({
                       mem.installments.map((inst: any, idx: number) => (
                         <tr key={`${inst.policyNo}-${idx}`} className="border-b border-slate-200 text-slate-800">
                           <td className="py-1 px-2 font-mono font-semibold">{inst.policyNo}</td>
-                          <td className="py-1 px-2 font-medium">{inst.memberName}</td>
+                          <td className="py-1 px-2 font-medium">{mem.name}</td>
                           <td className="py-1 px-2 text-right font-mono">
                             {inst.premiumAmount} {inst.dueDateStr}
                           </td>
@@ -378,7 +378,7 @@ export default function PremiumCertificateReportView({
                   </tbody>
                 </table>
 
-                {/* Total Premium Bar matching SS */}
+                {/* Total Premium Bar */}
                 <div className="flex justify-center items-center gap-2 pt-2">
                   <span className="font-bold text-xs">Total Premium :</span>
                   <div className="border border-slate-900 bg-emerald-50 px-4 py-1 text-xs font-bold font-mono text-slate-900">
@@ -386,7 +386,7 @@ export default function PremiumCertificateReportView({
                   </div>
                 </div>
 
-                {/* Signature Block matching SS */}
+                {/* Signature Block */}
                 <div className="pt-8 flex justify-between items-end text-xs font-semibold text-slate-900">
                   <div className="space-y-0.5 max-w-xs">
                     <p className="font-bold">{group.groupHeadName},</p>

@@ -219,6 +219,28 @@ export default function LapsedPolicyReportView({
       if (isNach && !formData.paymentTypes.nach) return false;
       if (!isNach && !formData.paymentTypes.otherThanNach) return false;
 
+      // Sorting filter: groupMemberwise by member id, policyNoWise by policy id
+      const sortingItems = formData.sortingFilterSelection?.selectedItems || [];
+      if (sortingItems.length > 0) {
+        if (formData.sortingOption === "groupMemberwise") {
+          const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!memberId || !selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          const selectedPolicyIds = new Set(sortingItems.map((i) => i.id));
+          const pid = String(p.id || p.policyNumber || "");
+          if (!pid || !selectedPolicyIds.has(pid)) return false;
+        } else {
+          const gCode = (p.customer?.groupCode || "").toLowerCase();
+          const gHeadName = (p.customer?.groupName || p.customer?.name || "").toLowerCase();
+          const polNo = (p.policyNumber || "").toLowerCase();
+          const matches = selectedGroupCodesOrNames.some(
+            (sc) => gCode.includes(sc) || gHeadName.includes(sc) || polNo.includes(sc)
+          );
+          if (!matches) return false;
+        }
+      }
+
       return true;
     });
 

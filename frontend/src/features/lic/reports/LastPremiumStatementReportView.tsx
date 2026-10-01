@@ -86,6 +86,7 @@ const totalValueStyle = {
 export default function LastPremiumStatementReportView({
   formData,
   policies: rawPolicies = [],
+  customers: rawCustomers = [],
   onBackToForm,
 }: LastPremiumStatementReportViewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -121,17 +122,182 @@ export default function LastPremiumStatementReportView({
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
 
-    const selectedGroupCodesOrNames =
+    const pick = (type: string) =>
+      (formData.appliedFilters || [])
+        .filter((f) => f.type === type)
+        .map((f) => (f.name || f.id || "").toLowerCase().trim())
+        .filter(Boolean);
+
+    const selectedStatusNames = pick("Policy Status").map((s) => s.replace(/[- ]/g, ""));
+    const selectedAgencies = pick("Agencies");
+    const selectedBranches = pick("Branches");
+    const selectedAreas = pick("Areas");
+
+    // Groups: Filter Options modal ("Groups Wise") + Select Groups modal
+    const selectedGroupKeys = new Set<string>();
+    const addGroupKey = (raw: string) => {
+      const k = (raw || "").toLowerCase().trim();
+      if (!k) return;
+      selectedGroupKeys.add(k);
+      // FilterOptionsModal renders name as "<code> - <head name>"
+      selectedGroupKeys.add(k.split(" - ")[0].trim());
+    };
+    (formData.appliedFilters || [])
+      .filter((f) => f.type === "Groups Wise" || f.type === "Groups")
+      .forEach((f) => {
+        if (f.id) addGroupKey(f.id);
+        addGroupKey(f.name || "");
+      });
+    if (formData.sortingOption === "groupsWise") {
+      (formData.selectedGroups || []).forEach((g) =>
+        addGroupKey((g as { groupCode?: string }).groupCode || "")
+      );
+    }
+
+    // Sorting-filter modal selection — its meaning follows the sorting radio
+    const sortingItems =
       formData.sortingOption === "groupsWise"
-        ? (formData.selectedGroups || []).map((g) => g.groupCode.toLowerCase())
-        : (formData.sortingFilterSelection?.selectedItems || []).map((item) => (item.code || item.name).toLowerCase());
+        ? []
+        : formData.sortingFilterSelection?.selectedItems || [];
+    const selectedMemberIds = new Set(sortingItems.map((i) => i.id));
+    const selectedSortingKeys = sortingItems
+      .map((i) => (i.code || i.name || "").toLowerCase().trim())
+      .filter(Boolean);
+
+    // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+    const isAgencyMatch = (p: any, filters: string[]) => {
+      if (filters.length === 0) return true;
+      const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
+        .toLowerCase()
+        .trim();
+      const agName = String(p.advisor?.agency?.agencyName || "")
+        .toLowerCase()
+        .trim();
+      return filters.some((f) => {
+        if (!f) return true;
+        if (f.includes("jayant") || f.includes("ag002"))
+          return JAYANT_ADVISOR_CODES.includes(agCode);
+        if (f.includes("manisha") || f.includes("ag003"))
+          return MANISHA_ADVISOR_CODES.includes(agCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return (
+            !JAYANT_ADVISOR_CODES.includes(agCode) &&
+            !MANISHA_ADVISOR_CODES.includes(agCode)
+          );
+        return (
+          (Boolean(agCode) && (agCode.includes(f) || f.includes(agCode))) ||
+          (Boolean(agName) && (agName.includes(f) || f.includes(agName)))
+        );
+      });
+    };
 
     const { nonMonthly, monthly } = formData.modeToInclude;
-    const modeFilterActive = nonMonthly || monthly;
+
+    const customerMap: { [id: string]: any } = {};
+    rawCustomers.forEach((c: any) => {
+      if (c.id) customerMap[String(c.id)] = c;
+    });
+
+    const matchesAny = (haystack: string, needles: string[]) => {
+      if (needles.length === 0) return true;
+      const h = (haystack || "").toLowerCase();
+      if (!h) return false;
+      return needles.some((n) => h.includes(n) || n.includes(h));
+    };
+
+    const validDbPolicies = rawPolicies.filter((p) => {
+      const lastPremiumDate = getLastPremiumDate(p);
+      if (!lastPremiumDate) return false;
+      if (fromDate && lastPremiumDate < fromDate) return false;
+      if (toDate && lastPremiumDate > toDate) return false;
+
+      const cust =
+        p.customer || customerMap[String(p.clientId || p.customerId)] || {};
+
+      const rawStatus = (p.status?.statusName || p.statusName || "Inforce").toLowerCase();
+      if (selectedStatusNames.length > 0) {
+        const normStatus = rawStatus.replace(/[- ]/g, "");
+        const matches = selectedStatusNames.some(
+          (st) => normStatus.includes(st) || st.includes(normStatus)
+        );
+        if (!matches) return false;
+      }
+
+      if (!isAgencyMatch(p, selectedAgencies)) return false;
+
+      if (
+        selectedBranches.length &&
+        !matchesAny(
+          `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+          selectedBranches
+        )
+      )
+        return false;
+
+      if (
+        selectedAreas.length &&
+        !matchesAny(
+          `${cust.resArea || ""} ${cust.resCity || ""} ${cust.offArea || ""}`,
+          selectedAreas
+        )
+      )
+        return false;
+
+      if (selectedGroupKeys.size > 0) {
+        const gCode = String(cust.groupCode || "").toLowerCase().trim();
+        const gName = String(cust.groupName || cust.name || "").toLowerCase().trim();
+        const matched = Array.from(selectedGroupKeys).some(
+          (k) =>
+            Boolean(k) &&
+            (gCode === k || gCode.includes(k) || (gName && gName.includes(k)))
+        );
+        if (!matched) return false;
+      }
+
+      // Sorting modal: memberwise shows ONLY the ticked members, etc.
+      if (sortingItems.length > 0) {
+        if (formData.sortingOption === "groupMemberwise") {
+          const memberId = p.CustomerMaster?.id || p.CustomerMasterId || "";
+          if (!selectedMemberIds.has(memberId)) return false;
+        } else if (formData.sortingOption === "subAreaWise") {
+          if (!matchesAny(String(cust.resCity || ""), selectedSortingKeys)) return false;
+        } else if (formData.sortingOption === "branchNoWise") {
+          if (
+            !matchesAny(
+              `${p.branch?.branchCode || ""} ${p.branch?.branchName || ""}`,
+              selectedSortingKeys
+            )
+          )
+            return false;
+        } else if (formData.sortingOption === "policyNoWise") {
+          const pn = String(p.policyNumber || "").toLowerCase().trim();
+          if (!pn || !selectedSortingKeys.some((k) => pn.includes(k))) return false;
+        } else if (formData.sortingOption === "pincode") {
+          const pin = String(cust.resPin || "").toLowerCase().trim();
+          if (!pin || !selectedSortingKeys.some((k) => pin.includes(k))) return false;
+        } else if (formData.sortingOption === "dueDate") {
+          const dd = p.nextPremiumDueDate
+            ? new Date(p.nextPremiumDueDate).toLocaleDateString("en-GB")
+            : "";
+          if (!dd || !selectedSortingKeys.some((k) => dd.toLowerCase().includes(k)))
+            return false;
+        }
+      }
+
+      // Mode filter — both unchecked = nothing (same convention as other reports)
+      const modeCode = getModeCode(p);
+      const isMonthly = modeCode === "M";
+      if (isMonthly && !monthly) return false;
+      if (!isMonthly && !nonMonthly) return false;
+
+      return true;
+    });
 
     const buildRow = (p: any, lastPremiumDate: Date) => {
       const custMaster = p.CustomerMaster;
-      const custObj = p.customer;
+      const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
       const modeCode = getModeCode(p);
       const modeLabel = modeCode === "M" ? "M" : modeCode;
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
@@ -162,56 +328,75 @@ export default function LastPremiumStatementReportView({
       };
     };
 
-    const validDbPolicies = rawPolicies.filter((p) => {
-      const lastPremiumDate = getLastPremiumDate(p);
-      if (!lastPremiumDate) return false;
-      if (fromDate && lastPremiumDate < fromDate) return false;
-      if (toDate && lastPremiumDate > toDate) return false;
-
-      if (modeFilterActive) {
-        const modeCode = getModeCode(p);
-        const isMonthly = modeCode === "M";
-        if (isMonthly && !monthly) return false;
-        if (!isMonthly && !nonMonthly) return false;
-      }
-
-      return true;
-    });
-
     if (validDbPolicies.length === 0) return [];
+
+    // Block key/heading follows the selected sorting radio
+    const opt = formData.sortingOption;
+    const isFlat = opt === "dueDate" || opt === "policyNoWise";
 
     const groupMap: { [key: string]: any } = {};
     validDbPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
-      const custObj = p.customer;
-      const gCode = custObj?.groupCode || `M${(p.clientId || "01").toString().padStart(3, "0")}`;
-      const gHeadName = custObj?.groupName || custObj?.name || "Customer Group";
+      const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
 
-      if (selectedGroupCodesOrNames.length > 0) {
-        const matches = selectedGroupCodesOrNames.some(
-          (sc) => gCode.toLowerCase().includes(sc) || gHeadName.toLowerCase().includes(sc)
-        );
-        if (!matches) return;
+      let gCode: string;
+      let gHeadName: string;
+      let showHeading = true;
+      if (opt === "groupMemberwise") {
+        // Memberwise = plain member list (member name row is the identity),
+        // same look as Policy Register / Premium Outstanding.
+        const memberId = custMaster?.id || p.CustomerMasterId || "";
+        gCode = memberId || `M-${p.policyNumber}`;
+        gHeadName = "";
+        showHeading = false;
+      } else if (opt === "subAreaWise") {
+        const sub = custObj.resCity || "Unassigned";
+        gCode = `S:${sub}`;
+        gHeadName = `Sub-Area : ${sub}`;
+      } else if (opt === "branchNoWise") {
+        const brn = p.branch?.branchCode || p.branchNo || "—";
+        gCode = `B:${brn}`;
+        gHeadName = `Branch : ${p.branch?.branchName || brn}`;
+      } else if (opt === "pincode") {
+        const pin = custObj.resPin || "Unassigned";
+        gCode = `P:${pin}`;
+        gHeadName = `Pincode : ${pin}`;
+      } else if (isFlat) {
+        gCode = "__flat__";
+        gHeadName = "";
+        showHeading = false;
+      } else {
+        gCode = String(custObj.groupCode || custObj.id || p.clientId || "—");
+        gHeadName = custObj.groupName || custObj.name || "Customer Group";
       }
 
       const memberName = custMaster
         ? [custMaster.salutation, custMaster.firstName, custMaster.middleName, custMaster.lastName].filter(Boolean).join(" ")
         : custObj?.name || "Policy Holder";
 
-      const memberMobile = custMaster?.contactInfo?.mobile1 || custObj?.mobile || custObj?.mobile1 || "";
+      const memberMobile =
+        custMaster?.contactInfo?.mobile1 || custObj?.phone || custObj?.mobilePersonal || "";
       const memberEmail = custMaster?.contactInfo?.emailPersonal || custObj?.email || "";
       let memberAddress = "";
       if (custMaster?.addresses && custMaster.addresses.length > 0) {
         const addr = custMaster.addresses[0];
         memberAddress = [addr.addressLine1, addr.addressLine2, addr.city, addr.state, addr.pin].filter(Boolean).join(", ");
-      } else if (custObj?.address) {
-        memberAddress = custObj.address;
+      } else {
+        // Customer has no single `address` field — build it from the parts.
+        const parts = [
+          custObj.resAddressLine1,
+          custObj.resAddressLine2,
+          custObj.resArea || custObj.offArea,
+          custObj.resCity || custObj.offCity,
+          custObj.resPin || custObj.offPin,
+        ].filter(Boolean);
+        memberAddress = parts.join(", ");
       }
 
       const lastPremiumDate = getLastPremiumDate(p) || new Date();
 
       if (!groupMap[gCode]) {
-        groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, membersMap: {}, totalPolicies: 0, totalLastPremium: 0 };
+        groupMap[gCode] = { groupCode: gCode, groupHeadName: gHeadName, showHeading, membersMap: {}, totalPolicies: 0, totalLastPremium: 0 };
       }
       const grp = groupMap[gCode];
 
@@ -357,11 +542,14 @@ export default function LastPremiumStatementReportView({
             <tbody>
               {groupData.map((group) => (
                 <Fragment key={group.groupCode}>
-                  <tr>
-                    <td colSpan={columns.length} className="pt-3 pb-1 text-center text-[13px] font-bold">
-                      {group.groupCode}: {group.groupHeadName}
-                    </td>
-                  </tr>
+                  {group.showHeading !== false && (
+                    <tr>
+                      <td colSpan={columns.length} className="pt-3 pb-1 text-center text-[13px] font-bold">
+                        {group.groupCode ? `${group.groupCode}: ` : ""}
+                        {group.groupHeadName}
+                      </td>
+                    </tr>
+                  )}
                   {group.members.map((member: any) => (
                     <Fragment key={member.name}>
                       <tr>

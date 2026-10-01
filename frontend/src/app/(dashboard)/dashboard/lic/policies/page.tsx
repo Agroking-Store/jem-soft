@@ -31,6 +31,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
+import LicModuleNav from "@/features/lic/LicModuleNav";
 import toast from "react-hot-toast";
 import {
   CustomerEmptyState,
@@ -442,6 +443,8 @@ function LICPoliciesContent() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      <LicModuleNav />
+
       {/* Top Banner Card */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
         <div className="flex items-center gap-4">

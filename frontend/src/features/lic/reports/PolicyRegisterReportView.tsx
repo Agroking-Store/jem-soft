@@ -128,6 +128,24 @@ export default function PolicyRegisterReportView({
           if (formData.toCommDate && commDateStr > formData.toCommDate) return false;
         }
       }
+
+      // Payment Type Filter (NACH / Other than NACH)
+      const isNach = Boolean(p.premiumMode?.modeName?.toLowerCase().includes("nach") || p.isNach);
+      if (formData.paymentTypes.nach && !formData.paymentTypes.otherThanNach) {
+        if (!isNach) return false;
+      } else if (!formData.paymentTypes.nach && formData.paymentTypes.otherThanNach) {
+        if (isNach) return false;
+      } else if (!formData.paymentTypes.nach && !formData.paymentTypes.otherThanNach) {
+        return false;
+      }
+
+      // Policy Type Filter (ULIP / Traditional)
+      if (formData.policyType !== "Both") {
+        const isUlip = Boolean(p.product?.planNumber?.startsWith("1") || p.isUlip);
+        if (formData.policyType === "ULIP" && !isUlip) return false;
+        if (formData.policyType === "Traditional" && isUlip) return false;
+      }
+
       return true;
     });
 
@@ -136,6 +154,7 @@ export default function PolicyRegisterReportView({
     const isSubAreaWise = formData.sortingOption === "subAreaWise";
     const isBranchWise = formData.sortingOption === "branchNoWise";
     const isPlanWise = formData.sortingOption === "planWise";
+    const isPolicyNoWise = formData.sortingOption === "policyNoWise";
 
     const groupMap: { [key: string]: any } = {};
     const nomineeList: Array<{
@@ -252,6 +271,11 @@ export default function PolicyRegisterReportView({
         pwb: "N",
         taxBen: "",
         nominee: nomineeName,
+        isNach: Boolean(p.premiumMode?.modeName?.toLowerCase().includes("nach") || p.isNach),
+        nachDebitDate: p.nachDebitDate
+          ? new Date(p.nachDebitDate).toLocaleDateString("en-GB")
+          : "—",
+        isExisting: Boolean(p.isExisting),
       };
     };
 
@@ -315,6 +339,14 @@ export default function PolicyRegisterReportView({
             );
             const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
             matches = Boolean(memberId) && selectedMemberIds.has(memberId);
+          } else if (isPolicyNoWise) {
+            // Policy No. Wise: match by the policy's DB id (the modal lists
+            // each policy with id = p.id). Only the ticked policies show.
+            const selectedPolicyIds = new Set(
+              selectedSortingItems.map((item) => item.id)
+            );
+            const pid = String(p.id || p.policyNumber || "");
+            matches = Boolean(pid) && selectedPolicyIds.has(pid);
           } else {
             // All other sorting modes (groupsWise, areaWise, branchNoWise, planWise, ...):
             // fuzzy match against group code, group head name, CustomerMaster full name,
@@ -569,6 +601,9 @@ export default function PolicyRegisterReportView({
   const showMobile = formData.reportOptions?.mobile;
   const showEmail = formData.reportOptions?.email;
   const showStatementWithPan = formData.reportOptions?.statementWithPan;
+  const showNachDetails = formData.reportOptions?.nachDetails;
+  const showNachDebitDatewise = formData.reportOptions?.nachDebitDatewise;
+  const showExistingPolicies = formData.reportOptions?.existingPolicies;
 
   // Group heading: show "CODE: Name" only where the code is a real group code
   // (in Area / Branch / Plan / Memberwise modes the name already carries the label)
@@ -585,7 +620,7 @@ export default function PolicyRegisterReportView({
 
   // Columns before "Premium": Policy No, Ag, Com.Date, Pl/Tm/Pt, Md, Brn, FUP, Status, Mat.Date
   const LEADING_COLS = 9;
-  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + 1;
+  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + (showNachDetails ? 1 : 0) + (showNachDebitDatewise ? 1 : 0) + (showExistingPolicies ? 1 : 0) + 1;
 
   const BLACK = "#000";
   const thStyle: React.CSSProperties = {
@@ -716,6 +751,15 @@ export default function PolicyRegisterReportView({
                     <th className="px-1 py-1 text-center" style={thStyle}>PWB</th>
                   </>
                 )}
+                {showNachDetails && (
+                  <th className="px-1 py-1 text-center" style={thStyle}>NACH<br />Status</th>
+                )}
+                {showNachDebitDatewise && (
+                  <th className="px-1 py-1 text-center" style={thStyle}>NACH Debit<br />Date</th>
+                )}
+                {showExistingPolicies && (
+                  <th className="px-1 py-1 text-center" style={thStyle}>Existing<br />Policy</th>
+                )}
                 <th className="px-1 py-1" style={thStyle}>Nominee</th>
               </tr>
             </thead>
@@ -787,6 +831,15 @@ export default function PolicyRegisterReportView({
                             <td className="px-1 py-0.5 text-right">{p.criticalIllness}</td>
                             <td className="px-1 py-0.5 text-center">{p.pwb}</td>
                           </>
+                        )}
+                        {showNachDetails && (
+                          <td className="px-1 py-0.5 text-center">{p.isNach ? "NACH" : "Other"}</td>
+                        )}
+                        {showNachDebitDatewise && (
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.nachDebitDate || "—"}</td>
+                        )}
+                        {showExistingPolicies && (
+                          <td className="px-1 py-0.5 text-center">{p.isExisting ? "Yes" : "No"}</td>
                         )}
                         <td className="px-1 py-0.5">{p.nominee}</td>
                       </tr>
