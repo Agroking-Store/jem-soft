@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { List } from "lucide-react";
+import { List, Save, Eye, Calculator, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import { AppDispatch, RootState } from "@/store/store";
 import {
   fetchNextRefNo,
@@ -51,7 +52,6 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   const [sec80CLimit, setSec80CLimit] = useState(150000);
   const [taxSlabPercentage, setTaxSlabPercentage] = useState(30.9);
 
-  const [formError, setFormError] = useState<string | null>(null);
   const [combinationDetails, setCombinationDetails] = useState<any>(null);
 
   const termOptions = [10, 12, 15, 16, 18, 20, 21, 25, 30];
@@ -65,9 +65,13 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   }, [dispatch]);
 
   const handleAutoFillRef = () => {
+    const toastId = toast.loading("Generating next quote ref...");
     dispatch(fetchNextRefNo()).then((res: any) => {
       if (res.payload) {
         setQuotationRefNo(res.payload);
+        toast.success(`Generated: ${res.payload}`, { id: toastId });
+      } else {
+        toast.error("Could not fetch ref", { id: toastId });
       }
     });
   };
@@ -101,23 +105,20 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       setDob(client.dob);
       setAge(client.age);
     }
+    toast.success(`Selected client: ${client.fullName}`);
   };
 
   const handleShowCombination = async () => {
-    if (!proposerName.trim()) {
-      setFormError("Please enter Proposer Name.");
-      return;
-    }
     if (!coverRequired || coverRequired <= 0) {
-      setFormError("Please enter valid Cover Required.");
+      toast.error("Please enter valid Cover Required.");
       return;
     }
 
-    setFormError(null);
+    const toastId = toast.loading("Calculating Protect & Earn solution combination...");
     const res: any = await dispatch(
       calculateQuotation({
         productType: "PROTECT_AND_EARN",
-        planNumber: "736", // Jeevan Labh / Endowment combination
+        planNumber: "736",
         age: Number(age),
         gender,
         isSmoker,
@@ -133,14 +134,24 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
 
     if (calculateQuotation.fulfilled.match(res)) {
       setCombinationDetails(res.payload);
+      toast.success("Solution combination calculated!", { id: toastId });
+    } else {
+      toast.error("Calculation failed", { id: toastId });
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (shouldView: boolean) => {
     if (!proposerName.trim()) {
-      setFormError("Please enter Proposer's Name.");
+      toast.error("Please enter or select Proposer's Name.");
       return;
     }
+
+    if (!coverRequired || coverRequired <= 0) {
+      toast.error("Please enter a valid Cover Required amount.");
+      return;
+    }
+
+    const toastId = toast.loading("Saving Protect & Earn quotation...");
 
     let finalRef = quotationRefNo.trim();
     if (!finalRef) {
@@ -183,7 +194,10 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
 
     const action = await dispatch(saveQuotation(payload));
     if (saveQuotation.fulfilled.match(action)) {
-      onSaved(action.payload, false);
+      toast.success("Protect & Earn quotation saved successfully!", { id: toastId });
+      onSaved(action.payload, shouldView);
+    } else {
+      toast.error("Failed to save quotation", { id: toastId });
     }
   };
 
@@ -193,7 +207,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 animate-in fade-in duration-200">
       {/* Existing Client Modal */}
       <ExistingClientModal
         isOpen={isClientModalOpen}
@@ -202,7 +216,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       />
 
       {/* Top Row: Ref No & Dates */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Quotation Ref No */}
         <div className="flex items-center gap-2">
           <div>
@@ -214,15 +228,15 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               value={quotationRefNo}
               onChange={(e) => setQuotationRefNo(e.target.value)}
               placeholder="000000000001"
-              className={`px-3 py-1.5 text-sm font-mono border rounded ${
-                !quotationRefNo.trim() ? "border-red-400" : "border-slate-300"
-              } bg-white text-slate-800 w-44`}
+              className={`px-3 py-2 text-xs font-mono font-bold border rounded-lg ${
+                !quotationRefNo.trim() ? "border-red-300 ring-2 ring-red-50" : "border-slate-300"
+              } bg-white text-blue-900 w-48`}
             />
           </div>
           <button
             type="button"
             onClick={handleAutoFillRef}
-            className="mt-5 px-4 py-1.5 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+            className="mt-5 px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-xs transition-all cursor-pointer"
           >
             Auto Fill
           </button>
@@ -238,7 +252,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               type="date"
               value={quotationDate}
               onChange={(e) => setQuotationDate(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+              className="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium cursor-pointer"
             />
           </div>
 
@@ -253,25 +267,21 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
                 setCommencementDate(e.target.value);
                 setAge(calculateAgeFromDob(dob));
               }}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+              className="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium cursor-pointer"
             />
           </div>
         </div>
       </div>
 
-      {formError && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg font-medium">
-          {formError}
-        </div>
-      )}
-
       {/* Section 1: Proposer's Details */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 border-b border-blue-200">
-          <h2 className="text-sm font-bold text-blue-900">Proposer&apos;s Details</h2>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Proposer&apos;s Details
+          </h2>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="text-xs font-medium text-slate-600 block mb-1">
@@ -280,7 +290,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               <select
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="Mr.">Mr.</option>
                 <option value="Mrs.">Mrs.</option>
@@ -298,16 +308,16 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
                   type="text"
                   value={proposerName}
                   onChange={(e) => setProposerName(e.target.value)}
-                  placeholder="Enter proposer name"
-                  className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                  placeholder="Enter proposer name or choose existing client"
+                  className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                 />
                 <button
                   type="button"
                   onClick={() => setIsClientModalOpen(true)}
                   title="Select Existing Client"
-                  className="p-1.5 text-blue-700 hover:bg-blue-100/80 active:bg-blue-200 rounded border border-blue-300 transition-colors"
+                  className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-lg border border-blue-200 transition-colors cursor-pointer"
                 >
-                  <List size={20} className="stroke-[2.5]" />
+                  <List size={18} className="stroke-[2.5]" />
                 </button>
               </div>
             </div>
@@ -319,7 +329,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -336,7 +346,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
                 type="date"
                 value={dob}
                 onChange={(e) => handleDobChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               />
             </div>
 
@@ -348,7 +358,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
                 type="number"
                 value={age}
                 onChange={(e) => setAge(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               />
             </div>
 
@@ -359,7 +369,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               <select
                 value={isSmoker ? "Yes" : "No"}
                 onChange={(e) => setIsSmoker(e.target.value === "Yes")}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
@@ -370,28 +380,28 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       </div>
 
       {/* Section 2: Protect and Earn Solution Requirements */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 border-b border-blue-200">
-          <h2 className="text-sm font-bold text-blue-900">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
             Protect and Earn Solution Requirements
           </h2>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div className="sm:col-span-6">
               <label className="text-xs font-medium text-slate-600 block mb-1">
                 Cover Required <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
                   ₹
                 </span>
                 <input
                   type="number"
                   value={coverRequired}
                   onChange={(e) => setCoverRequired(Number(e.target.value))}
-                  className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                  className="w-full pl-7 pr-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
               </div>
             </div>
@@ -403,7 +413,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
               <select
                 value={policyTerm}
                 onChange={(e) => setPolicyTerm(Number(e.target.value))}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 {termOptions.map((t) => (
                   <option key={t} value={t}>
@@ -414,20 +424,20 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-3 border-t border-slate-100">
             <div className="sm:col-span-6">
               <label className="text-xs font-medium text-slate-600 block mb-1">
                 Sec.80 C Investment Limit
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
                   ₹
                 </span>
                 <input
                   type="number"
                   value={sec80CLimit}
                   onChange={(e) => setSec80CLimit(Number(e.target.value))}
-                  className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                  className="w-full pl-7 pr-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
               </div>
             </div>
@@ -442,9 +452,9 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
                   step="0.1"
                   value={taxSlabPercentage}
                   onChange={(e) => setTaxSlabPercentage(Number(e.target.value))}
-                  className="w-full pl-3 pr-8 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                  className="w-full pl-3 pr-8 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">
                   %
                 </span>
               </div>
@@ -453,34 +463,34 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
         </div>
       </div>
 
-      {/* Combination Result Card if generated */}
+      {/* Combination Result Card */}
       {combinationDetails && (
-        <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-2">
-          <h3 className="text-sm font-bold text-emerald-900">
-            Recommended Solution Combination:
+        <div className="p-5 bg-gradient-to-r from-emerald-50/90 to-teal-50/90 border border-emerald-200 rounded-2xl shadow-xs space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-950">
+            Calculated Solution Combination:
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div>
-              <span className="text-slate-600 block">Plan:</span>
-              <span className="font-bold text-slate-800">
-                {combinationDetails.planNumber} ({policyTerm} Yrs)
+            <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+              <span className="text-slate-500 block text-[11px]">Recommended Plan</span>
+              <span className="font-bold text-slate-900 text-sm">
+                Plan {combinationDetails.planNumber} ({policyTerm} Yrs)
               </span>
             </div>
-            <div>
-              <span className="text-slate-600 block">Sum Assured:</span>
-              <span className="font-bold text-slate-800">
+            <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+              <span className="text-slate-500 block text-[11px]">Sum Assured</span>
+              <span className="font-bold text-slate-900 text-sm">
                 {formatCurrency(combinationDetails.summaryRow?.sumAssured)}
               </span>
             </div>
-            <div>
-              <span className="text-slate-600 block">Yearly Premium:</span>
-              <span className="font-bold text-emerald-800">
+            <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+              <span className="text-slate-500 block text-[11px]">Yearly Premium</span>
+              <span className="font-black text-emerald-800 text-sm">
                 {formatCurrency(combinationDetails.totalInstallmentPremium)}
               </span>
             </div>
-            <div>
-              <span className="text-slate-600 block">Estimated Maturity:</span>
-              <span className="font-bold text-blue-800">
+            <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+              <span className="text-slate-500 block text-[11px]">Est. Maturity Value</span>
+              <span className="font-black text-blue-900 text-sm">
                 {formatCurrency(combinationDetails.maturityAmount)}
               </span>
             </div>
@@ -494,26 +504,32 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
           type="button"
           onClick={handleShowCombination}
           disabled={isCalculating}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          {isCalculating ? "Calculating..." : "Show Combination"}
+          {isCalculating ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Calculator size={16} />
+          )}
+          {isCalculating ? "Calculating Solution..." : "Show Combination"}
         </button>
 
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => handleSave(false)}
           disabled={isLoading}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          {isLoading ? "Saving..." : "Save"}
+          <Save size={16} />
+          {isLoading ? "Saving..." : "Save to List"}
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="px-6 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          Cancel
+          Cancel &amp; Return
         </button>
       </div>
     </div>

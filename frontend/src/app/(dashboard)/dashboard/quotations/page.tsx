@@ -1,109 +1,139 @@
 "use client";
 
-import React, { useState } from "react";
-import { QuotationNavTabs } from "@/features/quotations/components/QuotationNavTabs";
-import { QuotationList } from "@/features/quotations/components/QuotationList";
-import { LifeGuardForm } from "@/features/quotations/components/LifeGuardForm";
-import { ProtectAndEarnForm } from "@/features/quotations/components/ProtectAndEarnForm";
-import { RetireEnjoyForm } from "@/features/quotations/components/RetireEnjoyForm";
-import { QuotationReportModal } from "@/features/quotations/components/QuotationReportModal";
+import { Suspense, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "next/navigation";
+import { FileText, Plus } from "lucide-react";
+import { AppDispatch, RootState } from "@/store/store";
+import { fetchQuotations } from "@/features/quotations/quotationSlice";
+import QuotationModuleNav from "@/features/quotations/components/QuotationModuleNav";
+import { QuotationPageHero } from "@/features/quotations/components/QuotationUi";
+import QuotationListPage from "@/features/quotations/pages/QuotationListPage";
+import QuotationCreatePage from "@/features/quotations/pages/QuotationCreatePage";
+import QuotationDetailsPage from "@/features/quotations/pages/QuotationDetailsPage";
 import {
-  Quotation,
-  QuotationProductType,
-  ReportOptionsState,
-} from "@/features/quotations/types";
+  QuotationModalShell,
+  type QuotationModalEntry,
+} from "@/features/quotations/components/QuotationModalStack";
+import type { QuotationProductType } from "@/features/quotations/types";
 
-export default function QuotationsPage() {
-  const [productType, setProductType] = useState<QuotationProductType>("LIFE_GUARD");
-  const [activeView, setActiveView] = useState<"list" | "new">("list");
+function QuotationsPageInner() {
+  const dispatch = useDispatch<AppDispatch>();
+  const searchParams = useSearchParams();
+  const { total } = useSelector((state: RootState) => state.quotations);
 
-  // Report Modal State
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const [selectedQuotationForReport, setSelectedQuotationForReport] =
-    useState<Quotation | null>(null);
-  const [reportOptions, setReportOptions] = useState<ReportOptionsState | undefined>(
-    undefined
-  );
+  const productParam = searchParams.get("product");
+  const productType: QuotationProductType =
+    productParam === "PROTECT_AND_EARN" || productParam === "RETIRE_ENJOY_I"
+      ? productParam
+      : "LIFE_GUARD";
 
-  const handleAddNew = () => {
-    setActiveView("new");
-  };
+  const [modalStack, setModalStack] = useState<QuotationModalEntry[]>([]);
 
-  const handleCancelForm = () => {
-    setActiveView("list");
-  };
+  useEffect(() => {
+    dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
+  }, [dispatch, productType]);
 
-  const handleQuotationSaved = (quotation: Quotation, shouldViewReport: boolean) => {
-    if (shouldViewReport) {
-      setSelectedQuotationForReport(quotation);
-      setReportOptions(quotation.reportOptions);
-      setIsReportOpen(true);
+  const openModal = (type: QuotationModalEntry["type"], id?: string, pt?: QuotationProductType) => {
+    const key = `${type}-${id || "new"}-${Date.now()}`;
+    let entry: QuotationModalEntry;
+    if (type === "create") {
+      entry = { key, type, productType: pt || productType };
+    } else {
+      entry = { key, type, id: id || "" };
     }
-    setActiveView("list");
+    setModalStack((prev) => [...prev, entry]);
   };
 
-  const handleViewReportFromList = (
-    quotation: Quotation,
-    options: ReportOptionsState
-  ) => {
-    setSelectedQuotationForReport(quotation);
-    setReportOptions(options);
-    setIsReportOpen(true);
+  const closeTopModal = () => {
+    setModalStack((prev) => prev.slice(0, -1));
+  };
+
+  const closeModalAt = (index: number) => {
+    setModalStack((prev) => prev.slice(0, index));
+  };
+
+  const renderModalContent = (modal: QuotationModalEntry) => {
+    switch (modal.type) {
+      case "create":
+        return (
+          <QuotationCreatePage
+            productType={modal.productType}
+            onClose={closeTopModal}
+            onSaved={() => {
+              dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
+              closeTopModal();
+            }}
+          />
+        );
+      case "details":
+        return (
+          <QuotationDetailsPage
+            quotationId={modal.id}
+            onClose={closeTopModal}
+            onOpenModal={openModal}
+            modalStackLength={modalStack.length}
+          />
+        );
+      case "report":
+        return (
+          <QuotationDetailsPage
+            quotationId={modal.id}
+            onClose={closeTopModal}
+            onOpenModal={openModal}
+            modalStackLength={modalStack.length}
+            initialTab="report"
+          />
+        );
+    }
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Top Navigation Tabs */}
-      <QuotationNavTabs
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      <QuotationPageHero
+        title="Quotations"
+        subtitle={`Manage your LIC quotation illustrations and reports`}
+        icon={FileText}
+        actions={
+          <button
+            type="button"
+            onClick={() => openModal("create")}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+          >
+            <Plus size={16} />
+            Add Quotation
+          </button>
+        }
+      />
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <QuotationModuleNav />
+      </div>
+
+      <QuotationListPage
         productType={productType}
-        activeView={activeView}
-        onChangeProductType={(type) => {
-          setProductType(type);
-        }}
-        onChangeView={(view) => {
-          setActiveView(view);
-        }}
+        onOpenModal={openModal}
       />
 
-      {/* Main Content Area */}
-      {activeView === "list" ? (
-        <QuotationList
-          productType={productType}
-          onAddNew={handleAddNew}
-          onViewReport={handleViewReportFromList}
-        />
-      ) : (
-        <>
-          {productType === "LIFE_GUARD" && (
-            <LifeGuardForm
-              onCancel={handleCancelForm}
-              onSaved={handleQuotationSaved}
-            />
-          )}
-
-          {productType === "PROTECT_AND_EARN" && (
-            <ProtectAndEarnForm
-              onCancel={handleCancelForm}
-              onSaved={handleQuotationSaved}
-            />
-          )}
-
-          {productType === "RETIRE_ENJOY_I" && (
-            <RetireEnjoyForm
-              onCancel={handleCancelForm}
-              onSaved={handleQuotationSaved}
-            />
-          )}
-        </>
-      )}
-
-      {/* Quotation Report Modal */}
-      <QuotationReportModal
-        isOpen={isReportOpen}
-        onClose={() => setIsReportOpen(false)}
-        quotation={selectedQuotationForReport}
-        reportOptions={reportOptions}
-      />
+      {modalStack.map((modal, index) => (
+        <QuotationModalShell
+          key={modal.key}
+          entry={modal}
+          depth={index}
+          isTop={index === modalStack.length - 1}
+          onClose={() => closeModalAt(index)}
+        >
+          {renderModalContent(modal)}
+        </QuotationModalShell>
+      ))}
     </div>
+  );
+}
+
+export default function QuotationsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuotationsPageInner />
+    </Suspense>
   );
 }

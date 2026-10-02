@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { List, Calculator } from "lucide-react";
+import { List, Calculator, Save, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import { AppDispatch, RootState } from "@/store/store";
 import {
   fetchNextRefNo,
@@ -61,7 +62,6 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   const [processBasis, setProcessBasis] = useState("Last declared bonus");
 
   const [incomeRows, setIncomeRows] = useState<any[]>([]);
-  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchNextRefNo()).then((res: any) => {
@@ -72,9 +72,13 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   }, [dispatch]);
 
   const handleAutoFillRef = () => {
+    const toastId = toast.loading("Fetching next reference number...");
     dispatch(fetchNextRefNo()).then((res: any) => {
       if (res.payload) {
         setQuotationRefNo(res.payload);
+        toast.success(`Generated: ${res.payload}`, { id: toastId });
+      } else {
+        toast.error("Could not fetch reference number", { id: toastId });
       }
     });
   };
@@ -110,19 +114,16 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       setAge(client.age);
       setFromAge(Math.max(client.age + 10, 60));
     }
+    toast.success(`Selected client: ${client.fullName}`);
   };
 
   const handleProcess = () => {
-    if (!proposerName.trim()) {
-      setFormError("Please enter Proposer Name.");
-      return;
-    }
     if (!desiredAnnualIncome || desiredAnnualIncome <= 0) {
-      setFormError("Please enter Desired Annual Income.");
+      toast.error("Please enter valid Desired Annual Income.");
       return;
     }
 
-    setFormError(null);
+    const toastId = toast.loading("Processing retirement solution forecast...");
     const rows = [];
     const currentYear = new Date().getFullYear();
     const yearsUntilRetirement = Math.max(0, fromAge - age);
@@ -143,13 +144,21 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
     }
 
     setIncomeRows(rows);
+    toast.success("Retirement forecast updated!", { id: toastId });
   };
 
   const handleSave = async () => {
     if (!proposerName.trim()) {
-      setFormError("Please enter Proposer Name.");
+      toast.error("Please enter Proposer Name.");
       return;
     }
+
+    if (!desiredAnnualIncome || desiredAnnualIncome <= 0) {
+      toast.error("Please enter Desired Annual Income.");
+      return;
+    }
+
+    const toastId = toast.loading("Saving Retire Enjoy I quotation...");
 
     let finalRef = quotationRefNo.trim();
     if (!finalRef) {
@@ -194,12 +203,15 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
     const action = await dispatch(saveQuotation(payload));
     if (saveQuotation.fulfilled.match(action)) {
+      toast.success("Retire Enjoy I quotation saved successfully!", { id: toastId });
       onSaved(action.payload, false);
+    } else {
+      toast.error("Failed to save quotation", { id: toastId });
     }
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 animate-in fade-in duration-200">
       {/* Existing Client Modal */}
       <ExistingClientModal
         isOpen={isClientModalOpen}
@@ -208,7 +220,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       />
 
       {/* Top Row: Ref No & Dates */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Quotation Ref No */}
         <div className="flex items-center gap-2">
           <div>
@@ -220,15 +232,15 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               value={quotationRefNo}
               onChange={(e) => setQuotationRefNo(e.target.value)}
               placeholder="000000000001"
-              className={`px-3 py-1.5 text-sm font-mono border rounded ${
-                !quotationRefNo.trim() ? "border-red-400" : "border-slate-300"
-              } bg-white text-slate-800 w-44`}
+              className={`px-3 py-2 text-xs font-mono font-bold border rounded-lg ${
+                !quotationRefNo.trim() ? "border-red-300 ring-2 ring-red-50" : "border-slate-300"
+              } bg-white text-blue-900 w-48`}
             />
           </div>
           <button
             type="button"
             onClick={handleAutoFillRef}
-            className="mt-5 px-4 py-1.5 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+            className="mt-5 px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-xs transition-all cursor-pointer"
           >
             Auto Fill
           </button>
@@ -244,7 +256,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               type="date"
               value={quotationDate}
               onChange={(e) => setQuotationDate(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+              className="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium cursor-pointer"
             />
           </div>
 
@@ -259,25 +271,21 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
                 setCommencementDate(e.target.value);
                 setAge(calculateAgeFromDob(dob));
               }}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+              className="px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium cursor-pointer"
             />
           </div>
         </div>
       </div>
 
-      {formError && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg font-medium">
-          {formError}
-        </div>
-      )}
-
       {/* Section 1: Proposer's Details */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 border-b border-blue-200">
-          <h2 className="text-sm font-bold text-blue-900">Proposer&apos;s Details</h2>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Proposer&apos;s Details
+          </h2>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="text-xs font-medium text-slate-600 block mb-1">
@@ -286,7 +294,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               <select
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="Mr.">Mr.</option>
                 <option value="Mrs.">Mrs.</option>
@@ -295,7 +303,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               </select>
             </div>
 
-            <div className="sm:col-span-4">
+            <div className="sm:col-span-5">
               <label className="text-xs font-medium text-slate-600 block mb-1">
                 Name <span className="text-red-500">*</span>
               </label>
@@ -304,16 +312,16 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
                   type="text"
                   value={proposerName}
                   onChange={(e) => setProposerName(e.target.value)}
-                  placeholder="Enter name"
-                  className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                  placeholder="Enter proposer name or select existing"
+                  className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                 />
                 <button
                   type="button"
                   onClick={() => setIsClientModalOpen(true)}
                   title="Select Existing Client"
-                  className="p-1.5 text-blue-700 hover:bg-blue-100/80 active:bg-blue-200 rounded border border-blue-300 transition-colors"
+                  className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-lg border border-blue-200 transition-colors cursor-pointer"
                 >
-                  <List size={20} className="stroke-[2.5]" />
+                  <List size={18} className="stroke-[2.5]" />
                 </button>
               </div>
             </div>
@@ -325,7 +333,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -340,37 +348,25 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
                 type="date"
                 value={dob}
                 onChange={(e) => handleDobChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
-              />
-            </div>
-
-            <div className="sm:col-span-1">
-              <label className="text-xs font-medium text-slate-600 block mb-1">
-                Age <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value))}
-                className="w-full px-2 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end pt-3 border-t border-slate-100">
             <div className="sm:col-span-4">
               <label className="text-xs font-medium text-slate-600 block mb-1">
                 Sec.80 C Investment Limit
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
                   ₹
                 </span>
                 <input
                   type="number"
                   value={sec80CLimit}
                   onChange={(e) => setSec80CLimit(Number(e.target.value))}
-                  className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                  className="w-full pl-7 pr-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
               </div>
             </div>
@@ -385,9 +381,9 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
                   step="0.1"
                   value={taxSlabPercentage}
                   onChange={(e) => setTaxSlabPercentage(Number(e.target.value))}
-                  className="w-full pl-3 pr-8 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
+                  className="w-full pl-3 pr-8 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">
                   %
                 </span>
               </div>
@@ -395,12 +391,12 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
             <div className="sm:col-span-4">
               <label className="text-xs font-medium text-slate-600 block mb-1">
-                Extra Premium Class <span className="text-red-500">*</span>
+                Extra Premium Class
               </label>
               <select
                 value={extraPremiumClass}
                 onChange={(e) => setExtraPremiumClass(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800"
               >
                 <option value="None">None</option>
                 <option value="Class I">Class I</option>
@@ -413,60 +409,59 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       </div>
 
       {/* Section 2: Retirement Income Requirement */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 border-b border-blue-200">
-          <h2 className="text-sm font-bold text-blue-900">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
             Retirement Income Requirement
           </h2>
         </div>
 
-        <div className="p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="p-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Controls (6 cols) */}
           <div className="lg:col-span-6 space-y-4">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-slate-700">
+              <span className="text-xs font-semibold text-slate-700">
                 Retirement income needed from Age
               </span>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
-                  placeholder="From Age *"
+                  placeholder="From Age"
                   value={fromAge}
                   onChange={(e) => setFromAge(Number(e.target.value))}
-                  className="w-24 px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
+                  className="w-20 px-2 py-1.5 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
-                <span className="text-xs font-bold text-slate-500">TO</span>
+                <span className="text-xs font-bold text-slate-400">TO</span>
                 <input
                   type="number"
-                  placeholder="To Age *"
+                  placeholder="To Age"
                   value={toAge}
                   onChange={(e) => setToAge(Number(e.target.value))}
-                  className="w-24 px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
+                  className="w-20 px-2 py-1.5 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <input
-                  type="radio"
-                  checked
-                  readOnly
-                  className="text-blue-600 focus:ring-blue-500"
-                />
-                Solution Basis: Desired Annual Income
+              <label className="text-xs font-bold text-slate-700 block">
+                Desired Annual Retirement Income
               </label>
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={desiredAnnualIncome}
-                  onChange={(e) => setDesiredAnnualIncome(Number(e.target.value))}
-                  className="flex-1 px-3 py-1.5 text-sm border border-slate-300 rounded bg-white text-slate-800 font-medium"
-                />
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={desiredAnnualIncome}
+                    onChange={(e) => setDesiredAnnualIncome(Number(e.target.value))}
+                    className="w-full pl-7 pr-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={handleProcess}
-                  className="p-2 text-blue-700 bg-blue-100 hover:bg-blue-200 rounded border border-blue-300"
+                  className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors cursor-pointer"
                 >
                   <Calculator size={18} />
                 </button>
@@ -476,16 +471,16 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
             <div className="flex items-center gap-3">
               <div className="w-48">
                 <label className="text-xs font-medium text-slate-600 block mb-1">
-                  Rate of inflation to be considered
+                  Inflation rate to consider
                 </label>
                 <div className="relative">
                   <input
                     type="number"
                     value={inflationRate}
                     onChange={(e) => setInflationRate(Number(e.target.value))}
-                    className="w-full pl-3 pr-7 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
+                    className="w-full pl-3 pr-7 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-bold"
                   />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">
                     %
                   </span>
                 </div>
@@ -493,12 +488,12 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
               <div className="flex-1">
                 <label className="text-xs font-medium text-slate-600 block mb-1">
-                  How many years you want to pay premium
+                  Premium paying years
                 </label>
                 <select
                   value={premiumPayingYears}
                   onChange={(e) => setPremiumPayingYears(Number(e.target.value))}
-                  className="w-full px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
                 >
                   <option value={10}>10 Years</option>
                   <option value={15}>15 Years</option>
@@ -515,7 +510,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               <select
                 value={planCombination}
                 onChange={(e) => setPlanCombination(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-800"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-800 font-medium"
               >
                 <option value="745 + 771 (Umang + Utsav)">
                   745 + 771 (Jeevan Umang + Jeevan Utsav)
@@ -526,65 +521,36 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-1">
               <input
                 type="checkbox"
                 id="surrender"
                 checked={surrenderMaturedPolicies}
                 onChange={(e) => setSurrenderMaturedPolicies(e.target.checked)}
-                className="rounded text-blue-600 focus:ring-blue-500"
+                className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
-              <label htmlFor="surrender" className="text-xs font-medium text-slate-700">
+              <label htmlFor="surrender" className="text-xs font-medium text-slate-700 cursor-pointer">
                 Surrender of matured policies
               </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">
-                  DAB Limit available
-                </label>
-                <input
-                  type="number"
-                  value={dabLimit}
-                  onChange={(e) => setDabLimit(Number(e.target.value))}
-                  className="w-full px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">
-                  Process solution on the basis of
-                </label>
-                <select
-                  value={processBasis}
-                  onChange={(e) => setProcessBasis(e.target.value)}
-                  className="w-full px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-800"
-                >
-                  <option value="Last declared bonus">Last declared bonus</option>
-                  <option value="LIC 8% Scenario">LIC 8% Scenario</option>
-                  <option value="LIC 4% Scenario">LIC 4% Scenario</option>
-                </select>
-              </div>
             </div>
           </div>
 
           {/* Right Side Table: Addition Income Info (6 cols) */}
-          <div className="lg:col-span-6 border border-slate-200 rounded-lg overflow-hidden flex flex-col bg-slate-50/50">
-            <div className="p-2.5 bg-blue-50 border-b border-blue-200 font-semibold text-xs text-blue-900">
-              Addition Income Info :
+          <div className="lg:col-span-6 border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-slate-50/50 shadow-xs">
+            <div className="px-4 py-2.5 bg-blue-50/80 border-b border-blue-100 font-bold text-xs text-blue-950">
+              Retirement Income Forecast Table :
             </div>
-            <div className="flex-1 overflow-y-auto max-h-64">
+            <div className="flex-1 overflow-y-auto max-h-60">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-200">
                     <th className="py-2 px-3 font-semibold text-slate-700">Year</th>
                     <th className="py-2 px-3 font-semibold text-slate-700">Age</th>
                     <th className="py-2 px-3 font-semibold text-slate-700">
-                      Addition Income needed
+                      Income Needed
                     </th>
                     <th className="py-2 px-3 font-semibold text-slate-700">
-                      Existing cash Provision
+                      Provision
                     </th>
                   </tr>
                 </thead>
@@ -600,7 +566,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
                       <tr key={idx} className="hover:bg-slate-50">
                         <td className="py-2 px-3 font-mono">{r.year}</td>
                         <td className="py-2 px-3">{r.age}</td>
-                        <td className="py-2 px-3 font-semibold text-emerald-700">
+                        <td className="py-2 px-3 font-black text-emerald-700">
                           {r.additionIncomeNeeded}
                         </td>
                         <td className="py-2 px-3 text-slate-500">
@@ -622,26 +588,28 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
           type="button"
           onClick={handleProcess}
           disabled={isCalculating}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          {isCalculating ? "Processing..." : "Process"}
+          <Calculator size={16} />
+          {isCalculating ? "Processing..." : "Process Forecast"}
         </button>
 
         <button
           type="button"
           onClick={handleSave}
           disabled={isLoading}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          {isLoading ? "Saving..." : "Save"}
+          <Save size={16} />
+          {isLoading ? "Saving..." : "Save to List"}
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 text-sm font-semibold text-white bg-[#186a8e] hover:bg-[#135674] active:bg-[#0f445c] rounded shadow-sm transition-all"
+          className="px-6 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl shadow-xs transition-all cursor-pointer"
         >
-          Close
+          Close &amp; Return
         </button>
       </div>
     </div>
