@@ -8,6 +8,7 @@ import type { QuotationProductType } from "../types";
 
 export type QuotationModalEntry =
   | { key: string; type: "create"; productType: QuotationProductType }
+  | { key: string; type: "edit"; id: string }
   | { key: string; type: "details"; id: string }
   | { key: string; type: "report"; id: string };
 

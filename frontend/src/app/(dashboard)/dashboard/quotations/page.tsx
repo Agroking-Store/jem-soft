@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
 import { FileText, Plus } from "lucide-react";
 import { AppDispatch, RootState } from "@/store/store";
-import { fetchQuotations } from "@/features/quotations/quotationSlice";
+import { fetchQuotations, fetchQuotationById } from "@/features/quotations/quotationSlice";
 import QuotationModuleNav from "@/features/quotations/components/QuotationModuleNav";
 import { QuotationPageHero } from "@/features/quotations/components/QuotationUi";
 import QuotationListPage from "@/features/quotations/pages/QuotationListPage";
@@ -15,7 +15,8 @@ import {
   QuotationModalShell,
   type QuotationModalEntry,
 } from "@/features/quotations/components/QuotationModalStack";
-import type { QuotationProductType } from "@/features/quotations/types";
+import type { Quotation, QuotationProductType } from "@/features/quotations/types";
+import { QuotationReportModal } from "@/features/quotations/components/QuotationReportModal";
 
 function QuotationsPageInner() {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,6 +30,7 @@ function QuotationsPageInner() {
       : "LIFE_GUARD";
 
   const [modalStack, setModalStack] = useState<QuotationModalEntry[]>([]);
+  const [reportQuotation, setReportQuotation] = useState<Quotation | null>(null);
 
   useEffect(() => {
     dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
@@ -53,6 +55,21 @@ function QuotationsPageInner() {
     setModalStack((prev) => prev.slice(0, index));
   };
 
+  const handleSaved = (quotation: Quotation, shouldViewReport: boolean) => {
+    dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
+    closeTopModal();
+    if (shouldViewReport) {
+      setReportQuotation(quotation);
+    }
+  };
+
+  const handleViewReport = async (id: string) => {
+    const res: any = await dispatch(fetchQuotationById(id));
+    if (fetchQuotationById.fulfilled.match(res)) {
+      setReportQuotation(res.payload);
+    }
+  };
+
   const renderModalContent = (modal: QuotationModalEntry) => {
     switch (modal.type) {
       case "create":
@@ -60,10 +77,16 @@ function QuotationsPageInner() {
           <QuotationCreatePage
             productType={modal.productType}
             onClose={closeTopModal}
-            onSaved={() => {
-              dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
-              closeTopModal();
-            }}
+            onSaved={handleSaved}
+          />
+        );
+      case "edit":
+        return (
+          <QuotationCreatePage
+            productType={productType}
+            onClose={closeTopModal}
+            onSaved={handleSaved}
+            editQuotationId={modal.id}
           />
         );
       case "details":
@@ -73,16 +96,6 @@ function QuotationsPageInner() {
             onClose={closeTopModal}
             onOpenModal={openModal}
             modalStackLength={modalStack.length}
-          />
-        );
-      case "report":
-        return (
-          <QuotationDetailsPage
-            quotationId={modal.id}
-            onClose={closeTopModal}
-            onOpenModal={openModal}
-            modalStackLength={modalStack.length}
-            initialTab="report"
           />
         );
     }
@@ -113,6 +126,7 @@ function QuotationsPageInner() {
       <QuotationListPage
         productType={productType}
         onOpenModal={openModal}
+        onViewReport={handleViewReport}
       />
 
       {modalStack.map((modal, index) => (
@@ -126,6 +140,16 @@ function QuotationsPageInner() {
           {renderModalContent(modal)}
         </QuotationModalShell>
       ))}
+
+      {/* Report Modal — opens as overlay, has "View in Browser" button */}
+      {reportQuotation && (
+        <QuotationReportModal
+          isOpen={true}
+          onClose={() => setReportQuotation(null)}
+          quotation={reportQuotation}
+          reportOptions={reportQuotation.reportOptions}
+        />
+      )}
     </div>
   );
 }

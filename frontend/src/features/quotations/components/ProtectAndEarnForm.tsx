@@ -9,17 +9,20 @@ import {
   fetchNextRefNo,
   calculateQuotation,
   saveQuotation,
+  updateQuotation,
 } from "../quotationSlice";
 import { ExistingClientModal } from "./ExistingClientModal";
 
 interface ProtectAndEarnFormProps {
   onCancel: () => void;
   onSaved: (quotation: any, shouldViewReport: boolean) => void;
+  editQuotation?: any;
 }
 
 export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   onCancel,
   onSaved,
+  editQuotation,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { calculationResult, isCalculating, isLoading } = useSelector(
@@ -57,12 +60,31 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   const termOptions = [10, 12, 15, 16, 18, 20, 21, 25, 30];
 
   useEffect(() => {
-    dispatch(fetchNextRefNo()).then((res: any) => {
-      if (res.payload) {
-        setQuotationRefNo(res.payload);
-      }
-    });
-  }, [dispatch]);
+    if (editQuotation) {
+      setQuotationRefNo(editQuotation.quotationRefNo || "");
+      setQuotationDate(editQuotation.quotationDate ? new Date(editQuotation.quotationDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+      setCommencementDate(editQuotation.commencementDate ? new Date(editQuotation.commencementDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+      setSelectedCustomerId(editQuotation.customerId || null);
+      setSelectedMemberId(editQuotation.memberId || null);
+      setSelectedGroupCode(editQuotation.groupCode || null);
+      setTitle(editQuotation.title || "Mr.");
+      setProposerName(editQuotation.proposerName || "");
+      setGender(editQuotation.gender || "Male");
+      setDob(editQuotation.dateOfBirth ? new Date(editQuotation.dateOfBirth).toISOString().split("T")[0] : "1995-01-01");
+      setAge(editQuotation.age || 31);
+      setIsSmoker(editQuotation.isSmoker || false);
+      setCoverRequired(editQuotation.coverRequired || 1000000);
+      setPolicyTerm(editQuotation.policyTerm || 20);
+      setSec80CLimit(editQuotation.sec80CLimit || 150000);
+      setTaxSlabPercentage(editQuotation.taxSlabPercentage || 30.9);
+    } else {
+      dispatch(fetchNextRefNo()).then((res: any) => {
+        if (res.payload) {
+          setQuotationRefNo(res.payload);
+        }
+      });
+    }
+  }, [dispatch, editQuotation]);
 
   const handleAutoFillRef = () => {
     const toastId = toast.loading("Generating next quote ref...");
@@ -192,9 +214,19 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       },
     };
 
-    const action = await dispatch(saveQuotation(payload));
-    if (saveQuotation.fulfilled.match(action)) {
-      toast.success("Protect & Earn quotation saved successfully!", { id: toastId });
+    const action = editQuotation
+      ? await dispatch(updateQuotation({ id: editQuotation.id, payload }))
+      : await dispatch(saveQuotation(payload));
+
+    const isSuccess = editQuotation
+      ? updateQuotation.fulfilled.match(action)
+      : saveQuotation.fulfilled.match(action);
+
+    if (isSuccess) {
+      toast.success(
+        editQuotation ? "Quotation updated successfully!" : "Protect & Earn quotation saved successfully!",
+        { id: toastId }
+      );
       onSaved(action.payload, shouldView);
     } else {
       toast.error("Failed to save quotation", { id: toastId });

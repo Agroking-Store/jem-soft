@@ -347,6 +347,78 @@ export const getQuotationById = async (id: string) => {
   return quotation;
 };
 
+export const updateQuotation = async (id: string, data: any) => {
+  const existing = await prisma.quotation.findUnique({ where: { id } });
+  if (!existing) {
+    throw new AppError("Quotation not found", 404);
+  }
+
+  // Recalculate snapshot
+  const calcResult = await calculateQuotation({
+    productType: data.productType || existing.productType,
+    planId: data.planId,
+    planNumber: data.planNumber,
+    age: Number(data.age),
+    gender: data.gender,
+    isSmoker: Boolean(data.isSmoker),
+    policyTerm: Number(data.policyTerm || existing.policyTerm),
+    ppt: data.ppt ? Number(data.ppt) : undefined,
+    sumAssured: Number(data.sumAssured || data.coverRequired || data.budget || existing.sumAssured),
+    premiumMode: data.premiumMode || existing.premiumMode,
+    bonusScenario: data.bonusScenario || existing.bonusScenario,
+    sec80CLimit: Number(data.sec80CLimit || existing.sec80CLimit),
+    taxSlabPercentage: Number(data.taxSlabPercentage || existing.taxSlabPercentage),
+  });
+
+  const quotation = await prisma.quotation.update({
+    where: { id },
+    data: {
+      productType: data.productType || existing.productType,
+      quotationDate: data.quotationDate ? new Date(data.quotationDate) : existing.quotationDate,
+      commencementDate: data.commencementDate ? new Date(data.commencementDate) : existing.commencementDate,
+      customerId: data.customerId !== undefined ? data.customerId : existing.customerId,
+      memberId: data.memberId !== undefined ? data.memberId : existing.memberId,
+      groupCode: data.groupCode !== undefined ? data.groupCode : existing.groupCode,
+      title: data.title || existing.title,
+      proposerName: data.proposerName || existing.proposerName,
+      gender: data.gender || existing.gender,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : existing.dateOfBirth,
+      age: Number(data.age || existing.age),
+      isSmoker: Boolean(data.isSmoker),
+      extraPremiumClass: data.extraPremiumClass || existing.extraPremiumClass,
+      sec80CLimit: Number(data.sec80CLimit || existing.sec80CLimit),
+      taxSlabPercentage: Number(data.taxSlabPercentage || existing.taxSlabPercentage),
+      bonusScenario: data.bonusScenario || existing.bonusScenario,
+      planId: calcResult.productId || data.planId || existing.planId,
+      planNumber: calcResult.planNumber || data.planNumber || existing.planNumber,
+      basis: data.basis || existing.basis,
+      budget: Number(data.budget || existing.budget),
+      coverRequired: Number(data.coverRequired || existing.coverRequired),
+      premiumMode: data.premiumMode || existing.premiumMode,
+      policyTerm: Number(data.policyTerm || existing.policyTerm),
+      ppt: data.ppt ? Number(data.ppt) : existing.ppt,
+      sumAssured: Number(data.sumAssured || data.coverRequired || data.budget || existing.sumAssured),
+      basicPremium: calcResult.basicPremium,
+      gst: calcResult.gst,
+      installmentPremium: calcResult.installmentPremium,
+      totalPremium: calcResult.totalInstallmentPremium,
+      maturityAmount: calcResult.maturityAmount,
+      calculationDetails: calcResult as any,
+      reportOptions: data.reportOptions || existing.reportOptions,
+    },
+    include: {
+      customer: {
+        select: { id: true, name: true, groupCode: true },
+      },
+      member: {
+        select: { id: true, firstName: true, lastName: true },
+      },
+    },
+  });
+
+  return quotation;
+};
+
 export const deleteQuotation = async (id: string) => {
   const quotation = await prisma.quotation.findUnique({ where: { id } });
   if (!quotation) {

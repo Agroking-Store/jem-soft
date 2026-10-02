@@ -5,6 +5,7 @@ import {
   getQuotationsApi,
   getQuotationByIdApi,
   createQuotationApi,
+  updateQuotationApi,
   deleteQuotationApi,
 } from "./services/quotationApi";
 import { QuotationState, Quotation, QuotationCalculationResult } from "./types";
@@ -82,6 +83,18 @@ export const saveQuotation = createAsyncThunk(
       return data.data.quotation as Quotation;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "Failed to save quotation");
+    }
+  }
+);
+
+export const updateQuotation = createAsyncThunk(
+  "quotations/update",
+  async ({ id, payload }: { id: string; payload: any }, { rejectWithValue }) => {
+    try {
+      const data = await updateQuotationApi(id, payload);
+      return data.data.quotation as Quotation;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Failed to update quotation");
     }
   }
 );
@@ -168,6 +181,15 @@ const quotationSlice = createSlice({
     builder.addCase(saveQuotation.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload as string;
+    });
+
+    // Update
+    builder.addCase(updateQuotation.fulfilled, (state, action) => {
+      const index = state.quotations.findIndex((q) => q.id === action.payload.id);
+      if (index !== -1) {
+        state.quotations[index] = action.payload;
+      }
+      state.currentQuotation = action.payload;
     });
 
     // Delete

@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Eye,
   FileText,
   Plus,
   Search,
-  SquarePen,
   Trash2,
-  Copy,
+  SquarePen,
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -17,9 +16,8 @@ import { AppDispatch, RootState } from "@/store/store";
 import {
   fetchQuotations,
   deleteQuotation,
-  saveQuotation,
 } from "@/features/quotations/quotationSlice";
-import type { Quotation, QuotationProductType, ReportOptionsState } from "@/features/quotations/types";
+import type { Quotation, QuotationProductType } from "@/features/quotations/types";
 import {
   QuotationEmptyState,
   QuotationTableFrame,
@@ -70,9 +68,10 @@ function formatCurrency(val?: number | null) {
 interface QuotationListPageProps {
   productType: QuotationProductType;
   onOpenModal: (type: QuotationModalEntry["type"], id?: string, productType?: QuotationProductType) => void;
+  onViewReport: (id: string) => void;
 }
 
-export default function QuotationListPage({ productType, onOpenModal }: QuotationListPageProps) {
+export default function QuotationListPage({ productType, onOpenModal, onViewReport }: QuotationListPageProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { quotations, total, page, limit, totalPages, isLoading, error } = useSelector(
     (state: RootState) => state.quotations
@@ -107,23 +106,6 @@ export default function QuotationListPage({ productType, onOpenModal }: Quotatio
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);
-    }
-  };
-
-  const handleDuplicate = async (quotation: Quotation) => {
-    const toastId = toast.loading("Duplicating quotation...");
-    const { id, quotationRefNo, createdAt, updatedAt, ...cloneData } = quotation;
-    const res: any = await dispatch(
-      saveQuotation({
-        ...cloneData,
-        quotationRefNo: "",
-      })
-    );
-    if (saveQuotation.fulfilled.match(res)) {
-      toast.success("Quotation duplicated successfully!", { id: toastId });
-      dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: 1, limit: 6 }));
-    } else {
-      toast.error("Failed to duplicate quotation", { id: toastId });
     }
   };
 
@@ -316,23 +298,23 @@ export default function QuotationListPage({ productType, onOpenModal }: Quotatio
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onOpenModal("report", q.id);
+                          onOpenModal("edit", q.id);
                         }}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
-                        title="View Report"
+                        title="Edit"
                       >
-                        <FileText size={14} />
+                        <SquarePen size={14} />
                       </button>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDuplicate(q);
+                          onViewReport(q.id);
                         }}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105 cursor-pointer"
-                        title="Duplicate"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
+                        title="View Report"
                       >
-                        <Copy size={14} />
+                        <FileText size={14} />
                       </button>
                       <button
                         onClick={(e) => {

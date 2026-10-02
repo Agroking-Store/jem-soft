@@ -3,6 +3,7 @@ import {
   getNextRefNo,
   calculateQuotationPreview,
   createQuotation,
+  updateQuotation,
   getAllQuotations,
   getQuotationById,
   deleteQuotation,
@@ -24,6 +25,7 @@ router
 router
   .route("/:id")
   .get(restrictTo("ADMIN", "ADVISOR", "VIEWER"), getQuotationById)
+  .put(restrictTo("ADMIN", "ADVISOR"), updateQuotation)
   .delete(restrictTo("ADMIN", "ADVISOR"), deleteQuotation);
 
 export default router;

@@ -5,6 +5,7 @@ import {
   X,
   Printer,
   Download,
+  ExternalLink,
   ShieldCheck,
   UserCheck,
   Calculator,
@@ -42,11 +43,57 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
 }) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   if (!isOpen || !quotation) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  // ── View PDF — opens the report in a new browser tab ──
+  const handleViewPdf = async () => {
+    if (!reportRef.current) return;
+    setIsPreviewing(true);
+    try {
+      const element = reportRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+        heightLeft -= pdfHeight;
+      }
+
+      // Open in new tab (same pattern as pre-sales reports)
+      const blobUrl = pdf.output("bloburl") as unknown as string;
+      window.open(blobUrl, "_blank");
+    } catch (err: any) {
+      console.error("PDF preview failed:", err);
+      toast.error("Failed to open PDF preview.", {
+        id: "pdf-preview-error",
+      });
+    } finally {
+      setIsPreviewing(false);
+    }
   };
 
   const handleDownloadPdf = async () => {
@@ -136,9 +183,22 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
 
           <div className="flex items-center gap-2">
             <button
+              onClick={handleViewPdf}
+              disabled={isPreviewing}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg shadow-sm transition-all cursor-pointer"
+            >
+              {isPreviewing ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <ExternalLink size={16} />
+              )}
+              {isPreviewing ? "Opening..." : "View in Browser"}
+            </button>
+
+            <button
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg shadow-sm transition-all cursor-pointer"
             >
               {isDownloading ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -392,7 +452,7 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
         {/* Modal Footer */}
         <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between rounded-b-2xl print:hidden">
           <p className="text-xs text-slate-500 font-medium">
-            Click Download PDF to export or Print to produce a hard copy.
+            Click "View in Browser" to open the report in a new tab, or "Download PDF" to save it.
           </p>
           <button
             onClick={onClose}

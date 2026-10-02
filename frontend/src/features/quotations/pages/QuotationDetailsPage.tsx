@@ -5,17 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
   FileText,
-  Printer,
-  Download,
-  Loader2,
   Calculator,
   TrendingUp,
   User,
-  Calendar,
-  ShieldCheck,
-  BadgePercent,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import { AppDispatch, RootState } from "@/store/store";
 import { fetchQuotationById } from "@/features/quotations/quotationSlice";
 import type { Quotation } from "@/features/quotations/types";
@@ -57,7 +50,7 @@ export default function QuotationDetailsPage({
   const { currentQuotation, isLoading } = useSelector(
     (state: RootState) => state.quotations
   );
-  const [isReportOpen, setIsReportOpen] = useState(initialTab === "report");
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchQuotationById(quotationId));
@@ -74,6 +67,18 @@ export default function QuotationDetailsPage({
   const q = currentQuotation;
   const calcDetails = q.calculationDetails;
   const yearlyRows = calcDetails?.yearlyIllustration || [];
+
+  // If initialTab is "report", show ONLY the report modal (not the details page)
+  if (initialTab === "report") {
+    return (
+      <QuotationReportModal
+        isOpen={true}
+        onClose={onClose}
+        quotation={q}
+        reportOptions={q.reportOptions}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -193,14 +198,12 @@ export default function QuotationDetailsPage({
       )}
 
       {/* Report Modal */}
-      {isReportOpen && (
-        <QuotationReportModal
-          isOpen={isReportOpen}
-          onClose={() => setIsReportOpen(false)}
-          quotation={q}
-          reportOptions={q.reportOptions}
-        />
-      )}
+      <QuotationReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        quotation={q}
+        reportOptions={q.reportOptions}
+      />
     </div>
   );
 }

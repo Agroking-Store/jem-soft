@@ -46,7 +46,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
       const groupCode = c.group?.groupCode || "-";
       const groupHeadName = c.group?.groupName || (c.isGroupHead ? `${c.lastName || ""} ${c.firstName || ""}`.trim() : "-");
       const fullName = [c.firstName, c.middleName, c.lastName].filter(Boolean).join(" ");
-      
+
       return {
         id: c.id,
         groupId: c.groupId,
@@ -104,7 +104,6 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
   const handleSelectAndClose = () => {
     if (!selectedMemberId) {
       if (currentData.length > 0) {
-        // Default to first item if none clicked
         const item = currentData[0];
         const age = calculateAge(item.dob);
         onSelectClient({
@@ -142,23 +141,30 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] border border-slate-300 animate-in fade-in zoom-in-95 duration-150">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-blue-200">
-          <h2 className="text-xl font-semibold text-blue-900 tracking-tight">
-            Existing Client List
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-3 py-4 sm:px-5 sm:py-6 backdrop-blur-sm">
+      <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-blue-900/30 bg-gradient-to-r from-[#1e3a8a] via-[#1e40af] to-[#2563eb] px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#93c5fd]">
+              Quotation Module
+            </p>
+            <h2 className="mt-0.5 truncate text-lg font-bold text-white">
+              Existing Client List
+            </h2>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-blue-900 hover:text-red-600 transition-colors p-1"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+            title="Close"
           >
-            <X size={22} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center gap-3">
+        <div className="border-b border-slate-200 bg-slate-50/50 p-4 flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[200px] relative">
             <input
               type="text"
@@ -168,11 +174,11 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
                 setCurrentPage(1);
               }}
               placeholder="Search..."
-              className="w-full pl-3 pr-9 py-1.5 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              className="w-full pl-3 pr-9 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white outline-none transition-all"
             />
             <Search
-              size={18}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-600"
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
           </div>
 
@@ -181,14 +187,14 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
             <select
               value={searchField}
               onChange={(e: any) => setSearchField(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-slate-300 rounded bg-white font-medium text-slate-700 focus:ring-1 focus:ring-blue-500"
+              className="px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white font-medium text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
             >
               <option value="groupCode">Group Code</option>
               <option value="groupMember">Group Member</option>
               <option value="groupHeadName">Group Head Name</option>
             </select>
-            <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded border border-transparent">
-              <Filter size={18} />
+            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl border border-slate-200 transition-colors cursor-pointer">
+              <Filter size={16} />
             </button>
           </div>
         </div>
@@ -203,14 +209,14 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
           ) : (
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border-y border-blue-200">
-                  <th className="py-2 px-4 font-semibold text-blue-900 border-r border-blue-100 w-1/4">
+                <tr className="bg-slate-50/70 border-b border-slate-200">
+                  <th className="py-2.5 px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 w-1/4">
                     Group Code
                   </th>
-                  <th className="py-2 px-4 font-semibold text-blue-900 border-r border-blue-100 w-2/5">
+                  <th className="py-2.5 px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 w-2/5">
                     Group Member
                   </th>
-                  <th className="py-2 px-4 font-semibold text-blue-900 w-1/3">
+                  <th className="py-2.5 px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 w-1/3">
                     Group Head Name
                   </th>
                 </tr>
@@ -232,17 +238,17 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
                         onDoubleClick={handleSelectAndClose}
                         className={`cursor-pointer transition-colors ${
                           isSelected
-                            ? "bg-blue-100/80 font-medium text-blue-900"
+                            ? "bg-blue-50 font-bold text-[#1877F2]"
                             : "hover:bg-slate-50 text-slate-800"
                         }`}
                       >
-                        <td className="py-2 px-4 border-r border-slate-100">
-                          {client.groupCode}
+                        <td className="py-2.5 px-4">
+                          <span className="inline-flex rounded-lg bg-[#f1f5f9] px-2.5 py-1 font-mono text-xs font-semibold text-[#475569]">
+                            {client.groupCode}
+                          </span>
                         </td>
-                        <td className="py-2 px-4 border-r border-slate-100">
-                          {client.groupMember}
-                        </td>
-                        <td className="py-2 px-4">{client.groupHeadName}</td>
+                        <td className="py-2.5 px-4 font-medium">{client.groupMember}</td>
+                        <td className="py-2.5 px-4 text-slate-600">{client.groupHeadName}</td>
                       </tr>
                     );
                   })
@@ -253,7 +259,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
         </div>
 
         {/* Modal Footer / Pagination */}
-        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-4">
+        <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/60 flex flex-wrap items-center justify-between gap-4">
           <div className="text-xs font-semibold text-slate-700">
             {totalRecords > 0
               ? `${startIndex + 1} - ${endIndex} of ${totalRecords}`
@@ -264,14 +270,14 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
             <button
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
-              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded"
+              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded cursor-pointer"
             >
               |&lt;
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded"
+              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded cursor-pointer"
             >
               Prev
             </button>
@@ -292,9 +298,9 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-2.5 py-1 rounded font-medium ${
+                  className={`px-2.5 py-1 rounded font-medium cursor-pointer ${
                     currentPage === pageNum
-                      ? "bg-blue-600 text-white shadow-sm"
+                      ? "bg-[#1877F2] text-white shadow-sm"
                       : "text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -306,14 +312,14 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded"
+              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded cursor-pointer"
             >
               Next
             </button>
             <button
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded"
+              className="px-2 py-1 text-slate-600 disabled:opacity-30 hover:bg-slate-200 rounded cursor-pointer"
             >
               &gt;|
             </button>
@@ -321,7 +327,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
 
           <button
             onClick={handleSelectAndClose}
-            className="px-5 py-1.5 text-sm font-medium text-slate-800 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 border border-slate-300 rounded shadow-sm transition-all"
+            className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] rounded-xl shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
           >
             Select & Close
           </button>

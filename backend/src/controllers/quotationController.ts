@@ -30,6 +30,16 @@ export const createQuotation = catchAsync(
   },
 );
 
+export const updateQuotation = catchAsync(
+  async (req: Request, res: Response) => {
+    const quotation = await quotationService.updateQuotation(req.params.id, req.body);
+    res.status(200).json({
+      status: "success",
+      data: { quotation },
+    });
+  },
+);
+
 export const getAllQuotations = catchAsync(
   async (req: Request, res: Response) => {
     const { productType, search, field, page, limit } = req.query;

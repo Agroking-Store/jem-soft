@@ -9,17 +9,20 @@ import {
   fetchNextRefNo,
   calculateQuotation,
   saveQuotation,
+  updateQuotation,
 } from "../quotationSlice";
 import { ExistingClientModal } from "./ExistingClientModal";
 
 interface RetireEnjoyFormProps {
   onCancel: () => void;
   onSaved: (quotation: any, shouldViewReport: boolean) => void;
+  editQuotation?: any;
 }
 
 export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   onCancel,
   onSaved,
+  editQuotation,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isCalculating, isLoading } = useSelector(
@@ -64,12 +67,33 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   const [incomeRows, setIncomeRows] = useState<any[]>([]);
 
   useEffect(() => {
-    dispatch(fetchNextRefNo()).then((res: any) => {
-      if (res.payload) {
-        setQuotationRefNo(res.payload);
-      }
-    });
-  }, [dispatch]);
+    if (editQuotation) {
+      setQuotationRefNo(editQuotation.quotationRefNo || "");
+      setQuotationDate(editQuotation.quotationDate ? new Date(editQuotation.quotationDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+      setCommencementDate(editQuotation.commencementDate ? new Date(editQuotation.commencementDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+      setSelectedCustomerId(editQuotation.customerId || null);
+      setSelectedMemberId(editQuotation.memberId || null);
+      setSelectedGroupCode(editQuotation.groupCode || null);
+      setTitle(editQuotation.title || "Mr.");
+      setProposerName(editQuotation.proposerName || "");
+      setGender(editQuotation.gender || "Male");
+      setDob(editQuotation.dateOfBirth ? new Date(editQuotation.dateOfBirth).toISOString().split("T")[0] : "1985-01-01");
+      setAge(editQuotation.age || 41);
+      setExtraPremiumClass(editQuotation.extraPremiumClass || "None");
+      setSec80CLimit(editQuotation.sec80CLimit || 150000);
+      setTaxSlabPercentage(editQuotation.taxSlabPercentage || 30.9);
+      setFromAge(60);
+      setToAge(85);
+      setDesiredAnnualIncome(editQuotation.budget || 600000);
+      setPremiumPayingYears(editQuotation.ppt || 15);
+    } else {
+      dispatch(fetchNextRefNo()).then((res: any) => {
+        if (res.payload) {
+          setQuotationRefNo(res.payload);
+        }
+      });
+    }
+  }, [dispatch, editQuotation]);
 
   const handleAutoFillRef = () => {
     const toastId = toast.loading("Fetching next reference number...");
@@ -201,9 +225,19 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       },
     };
 
-    const action = await dispatch(saveQuotation(payload));
-    if (saveQuotation.fulfilled.match(action)) {
-      toast.success("Retire Enjoy I quotation saved successfully!", { id: toastId });
+    const action = editQuotation
+      ? await dispatch(updateQuotation({ id: editQuotation.id, payload }))
+      : await dispatch(saveQuotation(payload));
+
+    const isSuccess = editQuotation
+      ? updateQuotation.fulfilled.match(action)
+      : saveQuotation.fulfilled.match(action);
+
+    if (isSuccess) {
+      toast.success(
+        editQuotation ? "Quotation updated successfully!" : "Retire Enjoy I quotation saved successfully!",
+        { id: toastId }
+      );
       onSaved(action.payload, false);
     } else {
       toast.error("Failed to save quotation", { id: toastId });

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { AppDispatch } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
+import { fetchQuotationById } from "@/features/quotations/quotationSlice";
 import { LifeGuardForm } from "@/features/quotations/components/LifeGuardForm";
 import { ProtectAndEarnForm } from "@/features/quotations/components/ProtectAndEarnForm";
 import { RetireEnjoyForm } from "@/features/quotations/components/RetireEnjoyForm";
@@ -12,21 +13,37 @@ import type { Quotation, QuotationProductType } from "@/features/quotations/type
 interface QuotationCreatePageProps {
   productType: QuotationProductType;
   onClose: () => void;
-  onSaved: (quotation: Quotation) => void;
+  onSaved: (quotation: Quotation, shouldViewReport: boolean) => void;
+  editQuotationId?: string;
 }
 
 export default function QuotationCreatePage({
   productType,
   onClose,
   onSaved,
+  editQuotationId,
 }: QuotationCreatePageProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const { currentQuotation, isLoading } = useSelector(
+    (state: RootState) => state.quotations
+  );
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaved = (quotation: Quotation, shouldViewReport: boolean) => {
-    setIsSaving(true);
-    onSaved(quotation);
-  };
+  useEffect(() => {
+    if (editQuotationId) {
+      dispatch(fetchQuotationById(editQuotationId));
+    }
+  }, [dispatch, editQuotationId]);
+
+  const isEditing = Boolean(editQuotationId);
+
+  if (isEditing && isLoading) {
+    return (
+      <div className="flex min-h-[20rem] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -40,10 +57,12 @@ export default function QuotationCreatePage({
         </button>
         <div>
           <h3 className="text-base font-bold text-slate-900">
-            New Quotation — {productType.replace(/_/g, " ")}
+            {isEditing ? "Edit Quotation" : "New Quotation"} — {productType.replace(/_/g, " ")}
           </h3>
           <p className="text-xs text-slate-500">
-            Fill in the details below to calculate and save the quotation.
+            {isEditing
+              ? "Update the quotation details below."
+              : "Fill in the details below to calculate and save the quotation."}
           </p>
         </div>
       </div>
@@ -56,13 +75,25 @@ export default function QuotationCreatePage({
       )}
 
       {productType === "LIFE_GUARD" && (
-        <LifeGuardForm onCancel={onClose} onSaved={handleSaved} />
+        <LifeGuardForm
+          onCancel={onClose}
+          onSaved={onSaved}
+          editQuotation={isEditing ? currentQuotation : undefined}
+        />
       )}
       {productType === "PROTECT_AND_EARN" && (
-        <ProtectAndEarnForm onCancel={onClose} onSaved={handleSaved} />
+        <ProtectAndEarnForm
+          onCancel={onClose}
+          onSaved={onSaved}
+          editQuotation={isEditing ? currentQuotation : undefined}
+        />
       )}
       {productType === "RETIRE_ENJOY_I" && (
-        <RetireEnjoyForm onCancel={onClose} onSaved={handleSaved} />
+        <RetireEnjoyForm
+          onCancel={onClose}
+          onSaved={onSaved}
+          editQuotation={isEditing ? currentQuotation : undefined}
+        />
       )}
     </div>
   );
