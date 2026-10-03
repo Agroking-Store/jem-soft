@@ -26,9 +26,9 @@ const initialState: QuotationState = {
 
 export const fetchNextRefNo = createAsyncThunk(
   "quotations/fetchNextRefNo",
-  async (_, { rejectWithValue }) => {
+  async (productType?: string, { rejectWithValue } = {} as any) => {
     try {
-      const data = await getNextRefNoApi();
+      const data = await getNextRefNoApi(productType);
       return data.data.nextRefNo;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch reference number");

@@ -22,8 +22,10 @@ export interface QuotationCalculateInput {
   option?: number;
 }
 
-export const getNextQuotationRefNo = async (): Promise<string> => {
-  const count = await prisma.quotation.count();
+export const getNextQuotationRefNo = async (productType?: string): Promise<string> => {
+  // Per-product-type sequence: each product starts from 001
+  const where = productType ? { productType } : {};
+  const count = await prisma.quotation.count({ where });
   const nextNumber = count + 1;
   return String(nextNumber).padStart(12, "0");
 };

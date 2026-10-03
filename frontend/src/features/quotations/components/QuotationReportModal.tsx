@@ -390,7 +390,11 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
                       <td style={{ padding: "6px", textAlign: "right", fontWeight: "bold" }}>{formatCurrency(r.accidentalCover)}</td>
                       <td style={{ padding: "6px", textAlign: "right" }}>{formatCurrency(r.surrenderValue)}</td>
                       <td style={{ padding: "6px", textAlign: "right", fontWeight: "bold" }}>
-                        {r.cashFlowReturns > 0 ? formatCurrency(r.cashFlowReturns) : "-"}
+                        {r.policyYear === quotation.policyTerm
+                          ? formatCurrency(r.cashFlowReturns || 0)
+                          : r.surrenderValue > 0
+                            ? formatCurrency(r.surrenderValue)
+                            : "—"}
                       </td>
                     </tr>
                   ))

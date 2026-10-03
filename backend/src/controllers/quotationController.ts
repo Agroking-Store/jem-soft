@@ -2,8 +2,11 @@ import { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
 import * as quotationService from "../services/quotationService.js";
 
-export const getNextRefNo = catchAsync(async (_req: Request, res: Response) => {
-  const nextRefNo = await quotationService.getNextQuotationRefNo();
+export const getNextRefNo = catchAsync(async (req: Request, res: Response) => {
+  const { productType } = req.query;
+  const nextRefNo = await quotationService.getNextQuotationRefNo(
+    productType ? String(productType) : undefined
+  );
   res.status(200).json({
     status: "success",
     data: { nextRefNo },

@@ -25,7 +25,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   editQuotation,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { isCalculating, isLoading } = useSelector(
+  const { isCalculating, isLoading, calculationResult } = useSelector(
     (state: RootState) => state.quotations
   );
 
@@ -87,7 +87,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       setDesiredAnnualIncome(editQuotation.budget || 600000);
       setPremiumPayingYears(editQuotation.ppt || 15);
     } else {
-      dispatch(fetchNextRefNo()).then((res: any) => {
+      dispatch(fetchNextRefNo("RETIRE_ENJOY_I")).then((res: any) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -179,6 +179,11 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
     if (!desiredAnnualIncome || desiredAnnualIncome <= 0) {
       toast.error("Please enter Desired Annual Income.");
+      return;
+    }
+
+    if (!calculationResult) {
+      toast.error("Please click 'Process Forecast' first to calculate the quotation.");
       return;
     }
 

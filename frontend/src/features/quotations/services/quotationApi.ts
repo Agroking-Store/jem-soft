@@ -1,8 +1,10 @@
 import axiosInstance from "@/lib/axios";
 import { Quotation, QuotationCalculationResult } from "../types";
 
-export const getNextRefNoApi = async () => {
-  const response = await axiosInstance.get("/quotations/next-ref");
+export const getNextRefNoApi = async (productType?: string) => {
+  const response = await axiosInstance.get("/quotations/next-ref", {
+    params: productType ? { productType } : {},
+  });
   return response.data;
 };
 

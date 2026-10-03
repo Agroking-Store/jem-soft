@@ -172,7 +172,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
       setPolicyTerm(editQuotation.policyTerm || 15);
       setPpt(editQuotation.ppt || 15);
     } else {
-      dispatch(fetchNextRefNo()).then((res: any) => {
+      dispatch(fetchNextRefNo("LIFE_GUARD")).then((res: any) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -284,6 +284,11 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
 
     if (!budget || budget <= 0) {
       toast.error("Please enter a valid Sum Assured/Budget.");
+      return;
+    }
+
+    if (!calculationResult) {
+      toast.error("Please click Calculate first to generate the quotation.");
       return;
     }
 

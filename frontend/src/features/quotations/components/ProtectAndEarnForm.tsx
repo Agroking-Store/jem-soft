@@ -78,7 +78,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       setSec80CLimit(editQuotation.sec80CLimit || 150000);
       setTaxSlabPercentage(editQuotation.taxSlabPercentage || 30.9);
     } else {
-      dispatch(fetchNextRefNo()).then((res: any) => {
+      dispatch(fetchNextRefNo("PROTECT_AND_EARN")).then((res: any) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -170,6 +170,11 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
 
     if (!coverRequired || coverRequired <= 0) {
       toast.error("Please enter a valid Cover Required amount.");
+      return;
+    }
+
+    if (!combinationDetails) {
+      toast.error("Please click 'Show Combination' first to calculate the quotation.");
       return;
     }
 
