@@ -341,7 +341,7 @@ export default function LICReportsPage() {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-all duration-200 select-none ${
+                    className={`cursor-pointer px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-all duration-200 select-none ${
                       activeCategory === cat
                         ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
                         : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
@@ -872,7 +872,7 @@ export default function LICReportsPage() {
               </div>
               <button
                 onClick={() => setPreviewModalCard(null)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="cursor-pointer text-slate-400 hover:text-slate-600 p-1"
               >
                 <X size={20} />
               </button>
@@ -895,7 +895,7 @@ export default function LICReportsPage() {
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setPreviewModalCard(null)}
-                className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 uppercase tracking-wider"
+                className="cursor-pointer px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 uppercase tracking-wider"
               >
                 Close
               </button>
@@ -904,7 +904,7 @@ export default function LICReportsPage() {
                   setPreviewModalCard(null);
                   setCurrentView("policy-register-form");
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
+                className="cursor-pointer px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
               >
                 Open Policy Register Form
               </button>
