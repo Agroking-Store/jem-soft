@@ -15,6 +15,14 @@ import { Suspense } from "react";
 
 type ModuleTab = "policies" | "reports" | "comm-reports";
 
+/**
+ * Reports page ke andar (form / report view) hote hue "LIC Reports" tab
+ * dobara click ho, toh page ko cards view par wapas jaane ka signal.
+ * (View state page ke local state me hai, URL same rehta hai, isliye
+ * sirf <Link> se reset nahi hota.)
+ */
+export const LIC_REPORTS_RESET_EVENT = "lic-reports:reset";
+
 const TABS: { key: ModuleTab; label: string; icon: typeof FileText; href: string }[] = [
   { key: "policies", label: "Policies", icon: FileText, href: "/dashboard/lic" },
   { key: "reports",  label: "LIC Reports", icon: BarChart3, href: "/dashboard/lic/reports" },
@@ -45,6 +53,11 @@ function LicModuleNavInner() {
               key={key}
               href={href}
               aria-current={isActive ? "page" : undefined}
+              onClick={() => {
+                if (key === "reports" && isActive) {
+                  window.dispatchEvent(new Event(LIC_REPORTS_RESET_EVENT));
+                }
+              }}
               className={`
                 relative flex items-center gap-2 px-4 py-2 rounded-xl
                 text-[13px] font-bold whitespace-nowrap
@@ -78,4 +91,3 @@ export default function LicModuleNav() {
     </Suspense>
   );
 }
-

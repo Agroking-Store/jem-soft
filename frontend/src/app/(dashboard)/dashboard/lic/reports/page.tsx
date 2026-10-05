@@ -10,7 +10,7 @@ import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchLoans } from "@/features/loans/loanSlice";
-import LicModuleNav from "@/features/lic/LicModuleNav";
+import LicModuleNav, { LIC_REPORTS_RESET_EVENT } from "@/features/lic/LicModuleNav";
 import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licReportsData";
 import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
 import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
@@ -153,6 +153,16 @@ export default function LICReportsPage() {
     dispatch(fetchLicBranches());
     dispatch(fetchLoans());
   }, [dispatch]);
+
+  // Navbar ke "LIC Reports" tab click par cards grid par wapas aao
+  useEffect(() => {
+    const backToCards = () => {
+      setCurrentView("cards");
+      setPreviewModalCard(null);
+    };
+    window.addEventListener(LIC_REPORTS_RESET_EVENT, backToCards);
+    return () => window.removeEventListener(LIC_REPORTS_RESET_EVENT, backToCards);
+  }, []);
 
   const categories = ["All", "Register", "Financial", "Due & Statements", "Calculators & Misc"];
 
