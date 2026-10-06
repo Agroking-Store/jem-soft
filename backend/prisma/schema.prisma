@@ -566,6 +566,7 @@ model Policy {
   claims  Claim[]
 
   notifications Notification[]
+  commissionRecords CommissionRecord[]
 }
 
 model Notification {
@@ -729,6 +730,8 @@ model Advisor {
   provider InsuranceProvider @relation(fields: [providerId], references: [id])
 
   policies Policy[]
+  commissionBills   CommissionBill[]
+  commissionRecords CommissionRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1007,6 +1010,8 @@ model Agency {
   isActive     Boolean  @default(true)
 
   advisors     Advisor[]
+  commissionBills   CommissionBill[]
+  commissionRecords CommissionRecord[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -1232,4 +1237,90 @@ model Quotation {
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+}
+
+// Commission Bill Model (Uploaded Statement / Fortnightly Bill)
+
+model CommissionBill {
+  id              String             @id @default(uuid())
+  billNumber      String             // e.g. "12/206"
+  billDate        DateTime
+  agencyId        String?
+  agency          Agency?            @relation(fields: [agencyId], references: [id])
+  advisorId       String?
+  advisor         Advisor?           @relation(fields: [advisorId], references: [id])
+  agencyCode      String?
+  billType        String             @default("consolidated") // "consolidated" | "agent-wise"
+  totalPremium    Float              @default(0)
+  grossCommission Float              @default(0)
+  taxDeduction    Float              @default(0) // TDS (Section 194D)
+  netPayable      Float              @default(0)
+  fileName        String?
+  fileUrl         String?
+  records         CommissionRecord[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([agencyId])
+  @@index([advisorId])
+}
+
+// ======================================================
+// Commission Record Model (Individual Line Items / Ledger)
+// ======================================================
+model CommissionRecord {
+  id               String          @id @default(uuid())
+  policyId         String?
+  policy           Policy?         @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  policyNumber     String
+  policyHolderName String?
+  groupCode        String?
+  advisorId        String?
+  advisor          Advisor?        @relation(fields: [advisorId], references: [id], onDelete: SetNull)
+  agentCode        String?
+  agencyId         String?
+  agency           Agency?         @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  
+  billId           String?
+  bill             CommissionBill? @relation(fields: [billId], references: [id], onDelete: Cascade)
+  
+  dueDate          String?         // e.g. "12/20"
+  dateOfPayment    String?         // e.g. "30/12/20"
+  premiumAmount    Float           @default(0)
+  commissionAmount Float           @default(0)
+  commissionCode   Int             @default(1) // 1 = First Comm, 4 = First Year, 2 = 2nd/3rd Yr, 3 = Subsequent
+  commissionDate   String?         // e.g. "12/20"
+  planTermPpt      String?         // e.g. "855/40/30"
+  category         String          @default("first-comm") // "first-comm", "first-year", "second-third", "subsequent"
+  recoveryCause    String?
+  
+  status           String          @default("RECEIVED") // "DUE", "RECEIVED", "SHORT", "GAP"
+  expectedAmount   Float?
+  differenceAmount Float?
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([policyNumber])
+  @@index([status])
+  @@index([billId])
+  @@index([advisorId])
+  @@index([agencyId])
+}
+
+// ======================================================
+// Commission Rule Matrix
+// ======================================================
+model CommissionRule {
+  id                  String   @id @default(uuid())
+  planCode            String?
+  minPpt              Int      @default(15)
+  maxPpt              Int      @default(99)
+  policyYearFrom      Int      @default(1)
+  policyYearTo        Int      @default(1)
+  commissionCode      Int      @default(1)
+  baseRate            Float    // e.g. 0.25 (25%)
+  bonusRate           Float    @default(0.0) // e.g. 0.10 (10%)
+  createdAt           DateTime @default(now())
 }

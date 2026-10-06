@@ -24,6 +24,7 @@ import paymentModeMasterReducer from "@/features/premiumPayments/paymentModeMast
 import lapsedPolicyReducer from "@/features/policy360/lapsedPolicySlice";
 import outstandingPremiumReducer from "@/features/policy360/outstandingPremiumSlice";
 import quotationReducer from "@/features/quotations/quotationSlice";
+import commissionReducer from "@/features/lic/commissionSlice";
 
 export const store = configureStore({
   reducer: {
@@ -52,6 +53,7 @@ export const store = configureStore({
     paymentModes : paymentModeMasterReducer,
     lapsedPolicies: lapsedPolicyReducer,
     outstandingPremiums: outstandingPremiumReducer,
+    commissions: commissionReducer,
   },
 });
 

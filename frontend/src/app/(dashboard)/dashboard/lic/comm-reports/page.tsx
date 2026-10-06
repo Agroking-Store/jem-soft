@@ -30,8 +30,12 @@ import GapCommissionForm from "@/features/lic/comm-reports/GapCommissionForm";
 import GapCommissionReportView from "@/features/lic/comm-reports/GapCommissionReportView";
 import { GapCommissionFormData } from "@/features/lic/comm-reports/gapCommissionData";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchCommissionBills, fetchCommissionBillById, deleteCommissionBill } from "@/features/lic/commissionSlice";
+import UploadCommissionBillModal from "@/features/lic/comm-reports/UploadCommissionBillModal";
 import { COMM_REPORT_CARDS, CommReportCard } from "@/features/lic/comm-reports/commReportsData";
-import { Search, ArrowRight, FileSpreadsheet, Layers } from "lucide-react";
+import BiMonthlyStatementAlertBanner from "@/features/lic/comm-reports/BiMonthlyStatementAlertBanner";
+import type { FortnightCycle } from "@/features/lic/comm-reports/fortnightTracker";
+import { Search, ArrowRight, ArrowLeft, FileSpreadsheet, Layers, Upload, Clock, IndianRupee, Trash2, Eye, FileText } from "lucide-react";
 
 type ViewState =
   | "cards"
@@ -69,6 +73,10 @@ export default function LICCommReportsPage() {
   const { agencies } = useSelector((state: RootState) => state.agency);
   const { advisors } = useSelector((state: RootState) => state.advisors);
   const { branches } = useSelector((state: RootState) => state.licBranch);
+  const { bills } = useSelector((state: RootState) => state.commissions);
+
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedUploadCycle, setSelectedUploadCycle] = useState<FortnightCycle | null>(null);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -77,7 +85,15 @@ export default function LICCommReportsPage() {
     dispatch(fetchAgencies());
     dispatch(fetchAdvisors());
     dispatch(fetchLicBranches());
+    dispatch(fetchCommissionBills());
   }, [dispatch]);
+
+  // Listen to navigation events from LicModuleNav to return to reports grid
+  useEffect(() => {
+    const handleReset = () => setCurrentView("cards");
+    window.addEventListener("reset-comm-reports-view", handleReset);
+    return () => window.removeEventListener("reset-comm-reports-view", handleReset);
+  }, []);
 
   const filteredCards = useMemo(() => {
     return COMM_REPORT_CARDS.filter((card) => {
@@ -156,6 +172,20 @@ export default function LICCommReportsPage() {
       {/* Top Shared Nav */}
       <LicModuleNav />
 
+      {/* Back to All Reports button when viewing any form or report */}
+      {currentView !== "cards" && (
+        <div className="flex items-center justify-between bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setCurrentView("cards")}
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-[#1877F2] transition cursor-pointer"
+          >
+            <ArrowLeft size={15} className="text-[#1877F2]" />
+            <span>← Back to All Commission Reports</span>
+          </button>
+        </div>
+      )}
+
       {/* VIEW 1: Cards Grid */}
       {currentView === "cards" && (
         <div className="space-y-6">
@@ -175,11 +205,34 @@ export default function LICCommReportsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-white/80 border border-blue-200 px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs">
-              <Layers size={16} className="text-[#1877F2]" />
-              <span><strong>{COMM_REPORT_CARDS.length}</strong> Reports Available</span>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedUploadCycle(null);
+                  setIsUploadModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-gradient-to-r from-[#1877F2] to-[#2563eb] text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 hover:opacity-95 transition cursor-pointer"
+              >
+                <Upload size={16} />
+                <span>Upload Statement</span>
+              </button>
+
+              <div className="flex items-center gap-2 bg-white/80 border border-blue-200 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs">
+                <Layers size={16} className="text-[#1877F2]" />
+                <span><strong>{COMM_REPORT_CARDS.length}</strong> Reports</span>
+              </div>
             </div>
           </div>
+
+          {/* Bi-Monthly Commission Statement Reminder & Highlighting Alert */}
+          <BiMonthlyStatementAlertBanner
+            bills={bills || []}
+            onOpenUploadModal={(cycle) => {
+              setSelectedUploadCycle(cycle || null);
+              setIsUploadModalOpen(true);
+            }}
+          />
 
           {/* Search Bar Bar */}
           <div className="flex items-center justify-between gap-4">
@@ -259,6 +312,125 @@ export default function LICCommReportsPage() {
               <FileSpreadsheet size={40} className="mx-auto text-slate-300" />
               <h3 className="font-semibold text-slate-700">No report cards found</h3>
               <p className="text-xs text-slate-500">Try adjusting your search query.</p>
+            </div>
+          )}
+
+          {/* Uploaded Statements / Bills History Section */}
+          {bills && bills.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-[#1877F2]">
+                    <Clock size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900">
+                      Uploaded Statement Bills History
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      {bills.length} official statement bill{bills.length > 1 ? "s" : ""} recorded in system
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1877F2] hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition"
+                >
+                  <Upload size={14} />
+                  <span>Upload Another Bill</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-600 font-semibold border-y border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">Bill Number</th>
+                      <th className="py-2.5 px-3">Bill Date</th>
+                      <th className="py-2.5 px-3">Agency</th>
+                      <th className="py-2.5 px-3 text-right">Items</th>
+                      <th className="py-2.5 px-3 text-right">Total Premium</th>
+                      <th className="py-2.5 px-3 text-right">Gross Comm.</th>
+                      <th className="py-2.5 px-3 text-right">5% TDS</th>
+                      <th className="py-2.5 px-3 text-right">Net Payable</th>
+                      <th className="py-2.5 px-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                    {bills.map((b) => (
+                      <tr key={b.id} className="hover:bg-slate-50/80 transition">
+                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                          {b.billNumber}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {new Date(b.billDate).toLocaleDateString("en-GB")}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {b.agencyName || "Primary Agency"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-medium">
+                          {b.itemCount || 0}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-medium">
+                          ₹{Number(b.totalPremium || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-semibold text-[#1877F2]">
+                          ₹{Number(b.grossCommission || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-red-600">
+                          ₹{Number(b.taxDeduction || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
+                          ₹{Number(b.netPayable || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {b.fileUrl ? (
+                            <a
+                              href={b.fileUrl.startsWith("http") ? b.fileUrl : `http://localhost:5000${b.fileUrl}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-[#1877F2] font-semibold text-[11px] hover:bg-blue-100 transition mr-2"
+                            >
+                              <FileText size={12} />
+                              <span>View PDF</span>
+                            </a>
+                          ) : (
+                            <button
+                              onClick={async () => {
+                                await dispatch(fetchCommissionBillById(b.id));
+                                setSelectedBillData({
+                                  reportDate: b.billDate,
+                                  billType: (b.billType as any) || "consolidated",
+                                  billCode: b.billNumber,
+                                  dataFilters: b.agencyName
+                                    ? [{ type: "Agencies", id: b.agencyId || "", name: b.agencyName }]
+                                    : [],
+                                });
+                                setCurrentView("commission-bill-report");
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-[#1877F2] font-semibold text-[11px] hover:bg-blue-100 transition mr-2"
+                            >
+                              <Eye size={12} />
+                              <span>View</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete commission bill ${b.billNumber}?`)) {
+                                dispatch(deleteCommissionBill(b.id));
+                              }
+                            }}
+                            className="inline-flex items-center p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -399,6 +571,22 @@ export default function LICCommReportsPage() {
           onBackToForm={() => setCurrentView("gap-commission-form")}
         />
       )}
+
+      {/* Upload Commission Statement Modal */}
+      <UploadCommissionBillModal
+        isOpen={isUploadModalOpen}
+        onClose={() => {
+          setIsUploadModalOpen(false);
+          setSelectedUploadCycle(null);
+        }}
+        initialCycle={selectedUploadCycle}
+        onSuccess={(newBillId?: string) => {
+          if (newBillId) {
+            dispatch(fetchCommissionBillById(newBillId));
+          }
+          dispatch(fetchCommissionBills());
+        }}
+      />
     </div>
   );
 }
