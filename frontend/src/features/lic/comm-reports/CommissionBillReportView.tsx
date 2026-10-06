@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState, useMemo } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import {
   ArrowLeft,
   Download,
@@ -52,10 +54,30 @@ export default function CommissionBillReportView({
       .map((f) => f.name);
   }, [formData.dataFilters]);
 
-  // Generate commission bill items dynamically
+  const { currentBill } = useSelector((state: RootState) => state.commissions);
+
+  // Generate commission bill items dynamically or use uploaded bill records
   const billItems: CommissionBillItem[] = useMemo(() => {
+    if (currentBill?.records && currentBill.records.length > 0) {
+      return currentBill.records.map((r: any) => ({
+        id: r.id,
+        policyNo: r.policyNumber,
+        agentCode: r.agentCode || "J",
+        groupCode: r.groupCode || "-",
+        policyHolderName: r.policyHolderName || "Policyholder",
+        dueDate: r.dueDate || "12/20",
+        premiumAmount: Number(r.premiumAmount || 0),
+        commissionAmount: Number(r.commissionAmount || 0),
+        comCode: Number(r.commissionCode || 1),
+        comDate: r.commissionDate || "12/20",
+        planTermPpt: r.planTermPpt || "815/20/20",
+        dateOfPay: r.dateOfPayment || "30/12/20",
+        recoveryCause: r.recoveryCause || "",
+        category: (r.category as any) || "first-comm",
+      }));
+    }
     return generateCommissionBillItems(policies, selectedAgencyNames);
-  }, [policies, selectedAgencyNames]);
+  }, [currentBill, policies, selectedAgencyNames]);
 
   // Summary calculations
   const summary = useMemo(() => {
