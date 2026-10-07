@@ -3,15 +3,15 @@ import { AppError } from "../utils/AppError.js";
 import bcrypt from "bcryptjs";
 
 export interface ICustomerInput {
-  name: string;
+  groupCode: string;
+  groupName: string;
+  name?: string;
   companyName?: string;
-  email: string;
-  phone: string;
-  password: string;
+  email?: string;
+  phone?: string;
+  password?: string;
 
   // Customer Group fields
-  groupCode?: string;
-  groupName?: string;
   category?: string;
 
   // Contact Info
@@ -203,53 +203,62 @@ export const getCustomerById = async (id: string) => {
 };
 
 export const createCustomer = async (data: ICustomerInput) => {
-  const existing = await prisma.customer.findUnique({ where: { email: data.email } });
-  if (existing) throw new AppError("A customer with this email already exists.", 400);
+  const groupCode = data.groupCode?.trim();
+  if (!groupCode) throw new AppError("Group code is required.", 400);
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(data.password, salt);
+  const groupName = (data.groupName || data.name)?.trim();
+  if (!groupName) throw new AppError("Group name is required.", 400);
 
-  const groupCode = data.groupCode ? data.groupCode.trim() : null;
-  if (groupCode) {
-    const existingGroup = await prisma.customer.findUnique({ where: { groupCode } });
-    if (existingGroup) {
-      throw new AppError("already created group of this code", 400);
-    }
+  const existingGroup = await prisma.customer.findUnique({ where: { groupCode } });
+  if (existingGroup) {
+    throw new AppError("already created group of this code", 400);
+  }
+
+  const email = data.email?.trim() || null;
+  if (email) {
+    const existing = await prisma.customer.findUnique({ where: { email } });
+    if (existing) throw new AppError("A customer with this email already exists.", 400);
+  }
+
+  let hashedPassword: string | null = null;
+  if (data.password?.trim()) {
+    const salt = await bcrypt.genSalt(10);
+    hashedPassword = await bcrypt.hash(data.password.trim(), salt);
   }
 
   const customer = await prisma.customer.create({
     data: {
-      name: data.name,
-      companyName: data.companyName,
-      email: data.email,
-      phone: data.phone,
-      password: hashedPassword,
       groupCode,
-      groupName: data.groupName || data.name,
-      category: data.category,
-      mobilePersonal: data.mobilePersonal,
-      emailPersonal: data.emailPersonal,
-      mobileBusiness: data.mobileBusiness,
-      emailBusiness: data.emailBusiness,
-      prefCommAddress: data.prefCommAddress,
-      resAddressLine1: data.resAddressLine1,
-      resAddressLine2: data.resAddressLine2,
-      resAddressLine3: data.resAddressLine3,
-      resAddressLine4: data.resAddressLine4,
-      resCity: data.resCity,
-      resPin: data.resPin,
-      resState: data.resState,
+      groupName,
+      name: data.name?.trim() || groupName,
+      companyName: data.companyName?.trim() || null,
+      email,
+      phone: data.phone?.trim() || null,
+      password: hashedPassword,
+      category: data.category?.trim() || null,
+      mobilePersonal: data.mobilePersonal?.trim() || null,
+      emailPersonal: data.emailPersonal?.trim() || null,
+      mobileBusiness: data.mobileBusiness?.trim() || null,
+      emailBusiness: data.emailBusiness?.trim() || null,
+      prefCommAddress: data.prefCommAddress || null,
+      resAddressLine1: data.resAddressLine1?.trim() || null,
+      resAddressLine2: data.resAddressLine2?.trim() || null,
+      resAddressLine3: data.resAddressLine3?.trim() || null,
+      resAddressLine4: data.resAddressLine4?.trim() || null,
+      resCity: data.resCity?.trim() || null,
+      resPin: data.resPin?.trim() || null,
+      resState: data.resState?.trim() || null,
       resCountry: data.resCountry || "India",
-      resArea: data.resArea,
-      offAddressLine1: data.offAddressLine1,
-      offAddressLine2: data.offAddressLine2,
-      offAddressLine3: data.offAddressLine3,
-      offAddressLine4: data.offAddressLine4,
-      offCity: data.offCity,
-      offPin: data.offPin,
-      offState: data.offState,
+      resArea: data.resArea?.trim() || null,
+      offAddressLine1: data.offAddressLine1?.trim() || null,
+      offAddressLine2: data.offAddressLine2?.trim() || null,
+      offAddressLine3: data.offAddressLine3?.trim() || null,
+      offAddressLine4: data.offAddressLine4?.trim() || null,
+      offCity: data.offCity?.trim() || null,
+      offPin: data.offPin?.trim() || null,
+      offState: data.offState?.trim() || null,
       offCountry: data.offCountry || "India",
-      offArea: data.offArea,
+      offArea: data.offArea?.trim() || null,
     },
     select: CUSTOMER_GROUP_SELECT,
   });
@@ -297,7 +306,7 @@ export const deleteCustomer = async (id: string) => {
 
 export const loginCustomer = async (email: string, password: string) => {
   const customer = await prisma.customer.findUnique({ where: { email } });
-  if (!customer) throw new AppError("Invalid email or password", 401);
+  if (!customer || !customer.password) throw new AppError("Invalid email or password", 401);
 
   const isValid = await bcrypt.compare(password, customer.password);
   if (!isValid) throw new AppError("Invalid email or password", 401);

@@ -37,15 +37,15 @@ model User {
 
 model Customer {
   id          String  @id @default(uuid())
-  name        String
+  name        String?
   companyName String?
-  email       String  @unique
-  phone       String
-  password    String
+  email       String?  @unique
+  phone       String?
+  password    String?
 
   // Customer Group fields
-  groupCode      String? @unique
-  groupName      String?
+  groupCode      String  @unique
+  groupName      String
   category       String? // Client, Others, personal, etc.
   // Contact Info
   mobilePersonal String?
