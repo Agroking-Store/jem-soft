@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
@@ -24,6 +26,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterForm = () => {
   const { register: registerUser, isLoading } = useAuth();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const {
     register,
@@ -38,7 +41,7 @@ export const RegisterForm = () => {
   };
 
   return (
-    <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-lg">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-10">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-4 w-full"
@@ -60,15 +63,25 @@ export const RegisterForm = () => {
           {...register("email")}
         />
 
+        <div className="relative">
         <Input
           label="Password"
-          type="password"
+          type={isPasswordVisible ? "text" : "password"}
           placeholder="••••••••"
           error={errors.password?.message}
           {...register("password")}
         />
+          <button
+            type="button"
+            onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+            className="absolute right-2 top-7 flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8873A]"
+            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+          >
+            {isPasswordVisible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+          </button>
+        </div>
 
-        <Button type="submit" isLoading={isLoading} className="mt-2">
+        <Button type="submit" isLoading={isLoading} className="mt-2 min-h-12 w-full">
           Create Account
         </Button>
 
