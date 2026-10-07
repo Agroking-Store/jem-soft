@@ -1,8 +1,7 @@
 "use client";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import Link from "next/link";
-import { ArrowRight, CalendarDays, CircleDollarSign, FileCheck2, UsersRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
@@ -16,15 +15,9 @@ import { getUpcomingCelebrationsApi } from "@/features/marketing/services/market
 import DashboardInstantLookup from "@/features/dashboard/components/DashboardInstantLookup";
 import NeedsAttentionWidget from "@/features/dashboard/components/NeedsAttentionWidget";
 
-const statCardStyles = [
-  { icon: UsersRound, iconClass: "bg-blue-50 text-blue-700", valueClass: "text-blue-700" },
-  { icon: FileCheck2, iconClass: "bg-violet-50 text-violet-700", valueClass: "text-violet-700" },
-  { icon: CircleDollarSign, iconClass: "bg-emerald-50 text-emerald-700", valueClass: "text-emerald-700" },
-  { icon: CalendarDays, iconClass: "bg-amber-50 text-amber-700", valueClass: "text-amber-700" },
-];
-
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [isMounted, setIsMounted] = useState(false);
   const [apiCelebrationsCount, setApiCelebrationsCount] = useState<number | null>(null);
@@ -137,6 +130,14 @@ export default function DashboardPage() {
 
   const totalCelebrations = apiCelebrationsCount ?? celebrationsThisWeek;
 
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   const statCards = [
     {
       label: "Total Customers",
@@ -209,33 +210,11 @@ export default function DashboardPage() {
     [loans]
   );
 
-  const isWorkspaceReady =
-    isMounted &&
-    !isLoadingPolicies &&
-    !isLoadingMasterCustomers &&
-    !isLoadingLoans &&
-    !isLoadingClaims &&
-    !isLoadingPayments;
-  const isNewWorkspace =
-    isWorkspaceReady &&
-    policies.length === 0 &&
-    masterCustomers.length === 0 &&
-    payments.length === 0 &&
-    loans.length === 0 &&
-    claims.length === 0;
-
-  if (authLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
-      </div>
-    );
-  }
-
+  // For ADMIN and ADVISOR - show dashboard
   return (
     <div>
       <div className="mb-6">
-        <h1 className="mb-1 text-2xl font-bold text-slate-900 sm:text-3xl">
+        <h1 className="text-3xl font-bold text-slate-900 mb-1">
           Welcome back, {isMounted ? user?.name : "User"}!
         </h1>
         <p className="text-slate-500">
@@ -253,66 +232,30 @@ export default function DashboardPage() {
         isLoading={!isMounted || isLoadingPolicies || isLoadingMasterCustomers}
       />
 
-      {isNewWorkspace && (
-        <section
-          aria-labelledby="getting-started-heading"
-          className="mb-8 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-white p-5 shadow-sm sm:p-6"
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">New workspace</p>
-              <h2 id="getting-started-heading" className="text-xl font-bold text-slate-900">
-                Set up your first customer record
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                Start with a customer group, then add customer details and create a policy when you are ready.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Link
-                href="/dashboard/customers"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-              >
-                Add a customer group
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-              <Link
-                href="/dashboard/lic/policies/new"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-              >
-                Create a policy
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        {statCards.map((card, index) => {
-          const presentation = statCardStyles[index];
-          const Icon = presentation.icon;
-
-          return (
-            <Link
-              key={card.label}
-              href={card.href}
-              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{card.label}</p>
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${presentation.iconClass}`}>
-                  <Icon size={18} aria-hidden="true" />
-                </span>
-              </div>
-              <p className={`mt-4 text-2xl font-bold ${presentation.valueClass}`}>
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            onClick={() => router.push(card.href)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(card.href);
+              }
+            }}
+            className="rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50 p-5 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-[#E8C77A]">
+              {card.label}
+            </p>
+            <p className="mt-2 text-2xl font-bold text-white">
               {card.loading ? "…" : card.value}
-              </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors group-hover:text-slate-700">
-                View details <ArrowRight size={13} aria-hidden="true" />
-              </span>
-            </Link>
-          );
-        })}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Needs Immediate Attention Alert Widget */}

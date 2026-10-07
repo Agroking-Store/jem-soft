@@ -171,6 +171,11 @@ export default function DashboardInstantLookup({
     return items;
   }, [activeCategory, matchedPolicies, matchedCustomers]);
 
+  // Reset selected item when query or category changes
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query, activeCategory]);
+
   const handleSelect = (item: (typeof activeItems)[number]) => {
     setIsOpen(false);
     if (item.type === "policy") {
@@ -215,7 +220,7 @@ export default function DashboardInstantLookup({
   const hasResults = activeItems.length > 0;
 
   return (
-    <div ref={containerRef} className="relative mb-8 w-full">
+    <div ref={containerRef} className="relative w-full mb-8">
       {/* Search Input Bar */}
       <div
         className={`relative flex items-center rounded-2xl border bg-white shadow-sm transition-all duration-200 ${
@@ -235,15 +240,10 @@ export default function DashboardInstantLookup({
           onFocus={() => setIsOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value);
-            setSelectedIndex(0);
             setIsOpen(true);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search a policy or customer"
-          aria-label="Search policies and customers"
-          aria-expanded={isOpen}
-          aria-controls="instant-lookup-results"
-          role="combobox"
+          placeholder="Instant Policy 360 & Customer Lookup (Policy #, Customer Name, Mobile)..."
           className="h-13 w-full bg-transparent pr-4 text-[15px] font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
         />
 
@@ -253,11 +253,10 @@ export default function DashboardInstantLookup({
               type="button"
               onClick={() => {
                 setQuery("");
-                setSelectedIndex(0);
                 inputRef.current?.focus();
               }}
               className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-              aria-label="Clear search"
+              title="Clear search"
             >
               <X size={15} />
             </button>
@@ -270,25 +269,15 @@ export default function DashboardInstantLookup({
         </div>
       </div>
 
-      <p className="mt-2 text-xs text-slate-500 sm:hidden">
-        Search by policy number, customer name, or mobile number.
-      </p>
-
       {/* Live Spotlight Dropdown */}
       {isOpen && (
-        <div
-          id="instant-lookup-results"
-          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-blue-950/15 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150"
-        >
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-blue-950/15 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
           {/* Header & Filter Category Tabs */}
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-2.5">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategory("all");
-                  setSelectedIndex(0);
-                }}
+                onClick={() => setActiveCategory("all")}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   activeCategory === "all"
                     ? "bg-[#1e3a8a] text-white shadow-sm"
@@ -299,10 +288,7 @@ export default function DashboardInstantLookup({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategory("policies");
-                  setSelectedIndex(0);
-                }}
+                onClick={() => setActiveCategory("policies")}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   activeCategory === "policies"
                     ? "bg-[#1e3a8a] text-white shadow-sm"
@@ -313,10 +299,7 @@ export default function DashboardInstantLookup({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setActiveCategory("customers");
-                  setSelectedIndex(0);
-                }}
+                onClick={() => setActiveCategory("customers")}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   activeCategory === "customers"
                     ? "bg-[#1e3a8a] text-white shadow-sm"

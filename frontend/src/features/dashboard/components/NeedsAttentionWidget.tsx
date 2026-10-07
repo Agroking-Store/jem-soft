@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  ArrowRight,
+  AlertTriangle,
   Clock,
   Landmark,
+  ArrowRight,
+  CheckCircle2,
   ShieldAlert,
 } from "lucide-react";
 
@@ -23,6 +25,8 @@ export default function NeedsAttentionWidget({
   activeLoansCount,
   isLoading = false,
 }: NeedsAttentionWidgetProps) {
+  const router = useRouter();
+
   const totalUrgent =
     pendingClaimsCount + (outstandingPremiumsCount > 0 ? 1 : 0) + (activeLoansCount > 0 ? 1 : 0);
 
@@ -71,9 +75,17 @@ export default function NeedsAttentionWidget({
       {/* 3-Column Split Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Pending Claims */}
-        <Link
-          href="/dashboard/claims"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+        <div
+          onClick={() => router.push("/dashboard/claims")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push("/dashboard/claims");
+            }
+          }}
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${
             pendingClaimsCount > 0
               ? "border-rose-200/90 hover:border-rose-400"
               : "border-slate-200 hover:border-slate-300"
@@ -118,12 +130,20 @@ export default function NeedsAttentionWidget({
             <span>Review Claims</span>
             <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
           </div>
-        </Link>
+        </div>
 
         {/* Card 2: Upcoming & Outstanding Premiums */}
-        <Link
-          href="/dashboard/policy-360/outstanding"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+        <div
+          onClick={() => router.push("/dashboard/policy-360/outstanding")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push("/dashboard/policy-360/outstanding");
+            }
+          }}
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${
             outstandingPremiumsCount > 0
               ? "border-amber-200/90 hover:border-amber-400"
               : "border-slate-200 hover:border-slate-300"
@@ -168,12 +188,20 @@ export default function NeedsAttentionWidget({
             <span>View Outstanding Premiums</span>
             <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
           </div>
-        </Link>
+        </div>
 
         {/* Card 3: Overdue Loan Repayments */}
-        <Link
-          href="/dashboard/loans/repay"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+        <div
+          onClick={() => router.push("/dashboard/loans/repay")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push("/dashboard/loans/repay");
+            }
+          }}
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer ${
             activeLoansCount > 0
               ? "border-blue-200/90 hover:border-blue-400"
               : "border-slate-200 hover:border-slate-300"
@@ -218,7 +246,7 @@ export default function NeedsAttentionWidget({
             <span>Record & View Repayments</span>
             <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
           </div>
-        </Link>
+        </div>
       </div>
     </div>
   );
