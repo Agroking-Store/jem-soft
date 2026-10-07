@@ -1875,8 +1875,8 @@ function NewLICPolicyContent() {
   return (
     <div className="max-w-7xl mx-auto pb-20">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => router.push("/dashboard/lic/policies")}
@@ -1892,18 +1892,18 @@ function NewLICPolicyContent() {
               <ChevronRight size={12} />
               <span className="text-slate-600 font-medium">New Policy</span>
             </nav>
-            <h1 className="text-lg font-bold text-slate-900 sm:text-xl">
+            <h1 className="text-xl font-bold text-slate-900">
               {selectedPolicyType === "lic"
                 ? "Create a New LIC Policy"
                 : "Create a New Policy"}
             </h1>
           </div>
         </div>
-        <div className="flex w-full items-center justify-end gap-3 sm:w-auto sm:py-2">
+        <div className="flex items-center justify-end gap-3 py-2">
           <button
             type="button"
             onClick={() => router.push("/dashboard/lic/policies")}
-            className="min-h-11 flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:flex-none sm:px-5"
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
           >
             Cancel
           </button>
@@ -1913,7 +1913,7 @@ function NewLICPolicyContent() {
               console.log("Validation Errors:", errors);
             })}
             disabled={isSubmitting || !canCreate}
-            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:px-6"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save size={16} />
             {isSubmitting ? "Saving..." : "Save Policy"}

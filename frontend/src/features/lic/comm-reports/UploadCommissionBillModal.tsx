@@ -55,7 +55,6 @@ export default function UploadCommissionBillModal({
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (initialCycle) {
@@ -156,7 +155,6 @@ export default function UploadCommissionBillModal({
     const toastId = toast.loading("Uploading and saving commission statement PDF...");
 
     try {
-      setIsUploading(true);
       const res = await dispatch(uploadCommissionBill(formData)).unwrap();
       toast.success(res.message || "Commission bill PDF uploaded successfully!", {
         id: toastId,
@@ -166,8 +164,6 @@ export default function UploadCommissionBillModal({
       onClose();
     } catch (err: any) {
       toast.error(err || "Failed to upload statement", { id: toastId });
-    } finally {
-      setIsUploading(false);
     }
   };
 
