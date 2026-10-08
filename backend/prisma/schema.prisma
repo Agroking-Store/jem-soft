@@ -37,15 +37,15 @@ model User {
 
 model Customer {
   id          String  @id @default(uuid())
-  name        String
+  name        String?
   companyName String?
-  email       String  @unique
-  phone       String
-  password    String
+  email       String? @unique
+  phone       String?
+  password    String?
 
   // Customer Group fields
-  groupCode      String? @unique
-  groupName      String?
+  groupCode      String  @unique
+  groupName      String
   category       String? // Client, Others, personal, etc.
   // Contact Info
   mobilePersonal String?
@@ -842,11 +842,11 @@ model ProductAttributeOption {
 
 model CustomerMaster {
   id               String    @id @default(uuid())
-  groupId          String?
+  groupId          String
   salutation       String?
   firstName        String
   middleName       String?
-  lastName         String
+  lastName         String?
   gender           String?
   dob              DateTime?
   isGroupHead      Boolean   @default(false)
@@ -858,7 +858,7 @@ model CustomerMaster {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  group       Customer?                   @relation(fields: [groupId], references: [id])
+  group       Customer                    @relation(fields: [groupId], references: [id])
   guardian    CustomerMaster?             @relation("GuardianRelation", fields: [guardianId], references: [id])
   dependents  CustomerMaster[]            @relation("GuardianRelation")
   contactInfo CustomerContactInfo?
