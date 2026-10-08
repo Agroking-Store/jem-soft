@@ -48,14 +48,14 @@ export interface Customer {
 }
 
 export interface CustomerPayload {
-  name: string;
+  groupCode: string;
+  groupName: string;
+  name?: string;
   companyName?: string;
-  email: string;
-  phone: string;
-  password: string;
+  email?: string;
+  phone?: string;
+  password?: string;
 
-  groupCode?: string;
-  groupName?: string;
   category?: string;
   mobilePersonal?: string;
   emailPersonal?: string;
