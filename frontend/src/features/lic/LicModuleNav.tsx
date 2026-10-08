@@ -67,13 +67,11 @@ function LicModuleNavInner() {
                 if (key === "comm-reports" && typeof window !== "undefined") {
                   window.dispatchEvent(new CustomEvent("reset-comm-reports-view"));
                 }
-              }}
-              aria-current={isActive ? "page" : undefined}
-              onClick={() => {
-                if (key === "reports" && isActive) {
+                if (key === "reports" && isActive && typeof window !== "undefined") {
                   window.dispatchEvent(new Event(LIC_REPORTS_RESET_EVENT));
                 }
               }}
+              aria-current={isActive ? "page" : undefined}
               className={`
                 relative flex items-center gap-2 px-4 py-2 rounded-xl
                 text-[13px] font-bold whitespace-nowrap
