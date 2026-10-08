@@ -83,6 +83,7 @@ model Customer {
 
   members         CustomerMaster[]
   policies        Policy[]
+  quotations      Quotation[]
   familyHistories FamilyHistory[]
 }
 
@@ -868,6 +869,7 @@ model CustomerMaster {
   policies         Policy[]
   proposerPolicies Policy[] @relation("PolicyProposer")
   spousePolicies   Policy[] @relation("PolicySpouse")
+  quotations       Quotation[]
 
   familyHistories FamilyHistory[]
   medicalHistories MedicalHistory[]
@@ -1185,6 +1187,56 @@ model ReminderSetting {
   cronScheduleTime        String    @default("09:00") // Time of day
   lastRunAt               DateTime?
   updatedAt               DateTime  @updatedAt
+}
+
+model Quotation {
+  id                  String               @id @default(uuid())
+  quotationRefNo      String               @unique
+  productType         String               // "LIFE_GUARD", "PROTECT_AND_EARN", "RETIRE_ENJOY_I"
+  quotationDate       DateTime             @default(now())
+  commencementDate    DateTime             @default(now())
+
+  // Customer & Snapshot Details
+  customerId          String?
+  customer            Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  memberId            String?
+  member              CustomerMaster?      @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  groupCode           String?
+  title               String?              @default("Mr.")
+  proposerName        String
+  gender              String?              @default("Male")
+  dateOfBirth         DateTime?
+  age                 Int
+  isSmoker            Boolean              @default(false)
+  extraPremiumClass   String?              @default("None")
+
+  // Tax Slab
+  sec80CLimit         Float                @default(150000)
+  taxSlabPercentage   Float                @default(30.9)
+
+  // Plan & Configuration
+  bonusScenario       String               @default("LAST_DECLARED") // LAST_DECLARED, LIC_8, LIC_4, FORECAST
+  planId              String?
+  planNumber          String?
+  basis               String?              @default("Sum")
+  budget              Float?               @default(0)
+  coverRequired       Float?               @default(0)
+  premiumMode         String               @default("Yearly")
+  policyTerm          Int?
+  ppt                 Int?
+  sumAssured          Float                @default(0)
+
+  // Calculation Results
+  basicPremium        Float                @default(0)
+  gst                 Float                @default(0)
+  installmentPremium  Float                @default(0)
+  totalPremium        Float                @default(0)
+  maturityAmount      Float?               @default(0)
+  calculationDetails  Json?
+  reportOptions       Json?
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 // Commission Bill Model (Uploaded Statement / Fortnightly Bill)

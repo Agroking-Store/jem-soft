@@ -18,6 +18,14 @@ import { getBiMonthlyCycles } from "./comm-reports/fortnightTracker";
 
 type ModuleTab = "policies" | "reports" | "comm-reports";
 
+/**
+ * Reports page ke andar (form / report view) hote hue "LIC Reports" tab
+ * dobara click ho, toh page ko cards view par wapas jaane ka signal.
+ * (View state page ke local state me hai, URL same rehta hai, isliye
+ * sirf <Link> se reset nahi hota.)
+ */
+export const LIC_REPORTS_RESET_EVENT = "lic-reports:reset";
+
 const TABS: { key: ModuleTab; label: string; icon: typeof FileText; href: string }[] = [
   { key: "policies", label: "Policies", icon: FileText, href: "/dashboard/lic" },
   { key: "reports",  label: "LIC Reports", icon: BarChart3, href: "/dashboard/lic/reports" },
@@ -58,6 +66,9 @@ function LicModuleNavInner() {
               onClick={() => {
                 if (key === "comm-reports" && typeof window !== "undefined") {
                   window.dispatchEvent(new CustomEvent("reset-comm-reports-view"));
+                }
+                if (key === "reports" && isActive && typeof window !== "undefined") {
+                  window.dispatchEvent(new Event(LIC_REPORTS_RESET_EVENT));
                 }
               }}
               aria-current={isActive ? "page" : undefined}
@@ -108,4 +119,3 @@ export default function LicModuleNav() {
     </Suspense>
   );
 }
-

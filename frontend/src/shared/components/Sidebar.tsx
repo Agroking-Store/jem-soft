@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import {
   Calculator,
+  FileSpreadsheet,
   FileText,
   Landmark,
   LayoutDashboard,
@@ -41,6 +42,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
+    { name: "Quotations", href: "/dashboard/quotations", icon: FileSpreadsheet },
     ...(hasDashboardAccess
       ? [{ name: "LIC", href: "/dashboard/lic", icon: FileText }]
       : []),

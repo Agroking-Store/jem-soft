@@ -445,7 +445,7 @@ export default function LoanInterestOutstandingReportView({
             <ArrowLeft size={16} />
             <span>Edit Filters</span>
           </button>
-          <span className="text-xs bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full border border-amber-200 uppercase tracking-wider">
+          <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
             Loan Outstanding Due {formData.reportType}
           </span>
         </div>
@@ -504,7 +504,7 @@ export default function LoanInterestOutstandingReportView({
             </p>
             <button
               onClick={onBackToForm}
-              className="px-5 py-2 bg-[#0B1220] text-white font-bold text-xs rounded-xl hover:bg-slate-900 transition"
+              className="px-5 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition"
             >
               Modify Filter Selection
             </button>
