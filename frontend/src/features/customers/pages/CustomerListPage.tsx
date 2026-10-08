@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
+  ChevronLeft,
   ChevronRight,
   Eye,
   Mail,
@@ -61,6 +62,8 @@ type DeleteTarget = {
 
 type ModalType = CustomerModalEntry["type"];
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
 function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "string") return error;
   if (error instanceof Error) return error.message;
@@ -94,7 +97,7 @@ export function Seal({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <div
       style={{ width: size, height: size, minWidth: size }}
-      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] font-bold text-white shadow-sm"
+      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#1d4ed8] font-bold text-white shadow-sm"
     >
       <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>{getInitials(name)}</span>
     </div>
@@ -119,12 +122,77 @@ function TableHeadCell({
 }) {
   return (
     <th
-      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-600 ${
         align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
       }`}
     >
       {children}
     </th>
+  );
+}
+
+function TablePagination({
+  itemLabel,
+  totalItems,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  itemLabel: string;
+  totalItems: number;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const firstItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const lastItem = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-slate-500">
+        Showing <strong className="text-slate-700">{firstItem}-{lastItem}</strong> of{" "}
+        <strong className="text-slate-700">{totalItems}</strong> {itemLabel}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+          Rows
+          <select
+            aria-label={`Rows per page for ${itemLabel}`}
+            value={pageSize}
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+          >
+            {PAGE_SIZE_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          aria-label={`Previous ${itemLabel} page`}
+          disabled={page === 1}
+          onClick={() => onPageChange(page - 1)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          <ChevronLeft size={16} aria-hidden="true" />
+        </button>
+        <span className="min-w-20 text-center text-xs font-semibold text-slate-600">
+          Page {page} of {totalPages}
+        </span>
+        <button
+          type="button"
+          aria-label={`Next ${itemLabel} page`}
+          disabled={page === totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          <ChevronRight size={16} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -145,6 +213,10 @@ export default function CustomerListPage() {
   const activeTab: Tab = paramTab === "master" ? "master" : "group";
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [groupPage, setGroupPage] = useState(1);
+  const [groupPageSize, setGroupPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
+  const [masterPage, setMasterPage] = useState(1);
+  const [masterPageSize, setMasterPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -194,6 +266,19 @@ export default function CustomerListPage() {
       (customer.customerType || "").toLowerCase().includes(query)
     );
   });
+
+  const groupTotalPages = Math.max(1, Math.ceil(filteredCustomers.length / groupPageSize));
+  const masterTotalPages = Math.max(1, Math.ceil(filteredMasterCustomers.length / masterPageSize));
+  const safeGroupPage = Math.min(groupPage, groupTotalPages);
+  const safeMasterPage = Math.min(masterPage, masterTotalPages);
+  const paginatedCustomers = filteredCustomers.slice(
+    (safeGroupPage - 1) * groupPageSize,
+    safeGroupPage * groupPageSize,
+  );
+  const paginatedMasterCustomers = filteredMasterCustomers.slice(
+    (safeMasterPage - 1) * masterPageSize,
+    safeMasterPage * masterPageSize,
+  );
 
   useEffect(() => {
     setSearchTerm("");
@@ -321,13 +406,18 @@ export default function CustomerListPage() {
             />
           ) : (
             <CustomerTableFrame
-              footer={
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    Showing <strong className="text-slate-700">{filteredCustomers.length}</strong> of{" "}
-                    <strong className="text-slate-700">{customers.length}</strong> groups
-                  </span>
-                </div>
+            footer={
+                <TablePagination
+                  itemLabel="groups"
+                  totalItems={filteredCustomers.length}
+                  page={safeGroupPage}
+                  pageSize={groupPageSize}
+                  onPageChange={setGroupPage}
+                  onPageSizeChange={(pageSize) => {
+                    setGroupPageSize(pageSize);
+                    setGroupPage(1);
+                  }}
+                />
               }
             >
               <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
@@ -341,7 +431,7 @@ export default function CustomerListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCustomers.map((customer, index) => {
+                  {paginatedCustomers.map((customer, index) => {
                     const dotColor = CATEGORY_DOT[customer.category || ""] ?? "bg-slate-400";
                     const memberCount = groupMemberCounts[customer.id] || 0;
                     const displayName = customer.groupName || customer.name;
@@ -372,7 +462,7 @@ export default function CustomerListPage() {
                                   className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                                 />
                               </div>
-                              {customer.email && <div className="mt-0.5 truncate text-xs text-slate-400">{customer.email}</div>}
+                              {customer.email && <div className="mt-0.5 truncate text-xs text-slate-500">{customer.email}</div>}
                             </div>
                           </div>
                         </td>
@@ -471,13 +561,18 @@ export default function CustomerListPage() {
           />
         ) : (
           <CustomerTableFrame
-            footer={
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>
-                  Showing <strong className="text-slate-700">{filteredMasterCustomers.length}</strong> of{" "}
-                  <strong className="text-slate-700">{masterCustomers.length}</strong> customers
-                </span>
-              </div>
+              footer={
+              <TablePagination
+                itemLabel="customers"
+                totalItems={filteredMasterCustomers.length}
+                page={safeMasterPage}
+                pageSize={masterPageSize}
+                onPageChange={setMasterPage}
+                onPageSizeChange={(pageSize) => {
+                  setMasterPageSize(pageSize);
+                  setMasterPage(1);
+                }}
+              />
             }
           >
             <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
@@ -493,7 +588,7 @@ export default function CustomerListPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMasterCustomers.map((customer, index) => {
+                {paginatedMasterCustomers.map((customer, index) => {
                   const fullName = getFullName(customer);
                   const groupLabel = customer.group
                     ? `${customer.group.groupCode ? `[${customer.group.groupCode}] ` : ""}${customer.group.groupName || ""}`
@@ -520,7 +615,7 @@ export default function CustomerListPage() {
                                   className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100"
                                 />
                               </div>
-                              <div className="mt-0.5 text-xs text-slate-400">
+                              <div className="mt-0.5 text-xs text-slate-500">
                                 {[customer.gender, customer.panNumber].filter(Boolean).join(" | ") || "Individual record"}
                               </div>
                             </div>
@@ -746,7 +841,7 @@ export default function CustomerListPage() {
             <button
               type="button"
               onClick={() => openModal(activeTab === "group" ? "group-create" : "master-create")}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
             >
               <Plus size={16} />
               {activeTab === "group" ? "Add Customer Group" : "Add Customer"}
@@ -769,7 +864,14 @@ export default function CustomerListPage() {
                     : "Search by name, group, mobile, email, or type..."
                 }
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (activeTab === "group") {
+                    setGroupPage(1);
+                  } else {
+                    setMasterPage(1);
+                  }
+                }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
               />
             </div>
