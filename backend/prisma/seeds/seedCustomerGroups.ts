@@ -9,7 +9,6 @@ const __dirname = path.dirname(__filename);
 const prisma = new PrismaClient();
 
 async function main() {
-  // Resolve path to imagic_groups_all_1942.json or imagic_groups_top20.json
   const candidatePaths = [
     path.resolve(process.cwd(), "imagic_groups_all_1942.json"),
     path.resolve(process.cwd(), "backend", "imagic_groups_all_1942.json"),
@@ -22,20 +21,20 @@ async function main() {
   const filePath = candidatePaths.find((p) => fs.existsSync(p));
 
   if (!filePath) {
-    console.error("❌ Could not find imagic_groups_top20.json. Please make sure the file is placed in backend/ directory.");
+    console.error("Could not find imagic_groups_top20.json. Please make sure the file is placed in backend/ directory.");
     process.exit(1);
   }
 
-  console.log(`📁 Reading customer groups from: ${filePath}`);
+  console.log(`Reading customer groups from: ${filePath}`);
   const fileContent = fs.readFileSync(filePath, "utf-8");
   const groupsData = JSON.parse(fileContent);
 
   if (!Array.isArray(groupsData)) {
-    console.error("❌ JSON content is not an array.");
+    console.error("JSON content is not an array.");
     process.exit(1);
   }
 
-  console.log(`🚀 Found ${groupsData.length} groups to seed...\n`);
+  console.log(`Found ${groupsData.length} groups to seed...\n`);
 
   let insertedCount = 0;
   let updatedCount = 0;
@@ -45,7 +44,7 @@ async function main() {
     const groupName = item.groupName?.trim() || groupCode;
 
     if (!groupCode) {
-      console.warn("⚠️ Skipping item without groupCode:", item);
+      console.warn("Skipping item without groupCode:", item);
       continue;
     }
 
@@ -95,16 +94,16 @@ async function main() {
         data: payload,
       });
       insertedCount++;
-      console.log(`✅ Created Group: ${groupCode} - ${groupName}`);
+      console.log(`Created Group: ${groupCode} - ${groupName}`);
     }
   }
 
-  console.log(`\n🎉 Finished! Inserted: ${insertedCount}, Updated: ${updatedCount}, Total Processed: ${groupsData.length}`);
+  console.log(`\Finished! Inserted: ${insertedCount}, Updated: ${updatedCount}, Total Processed: ${groupsData.length}`);
 }
 
 main()
   .catch((err) => {
-    console.error("❌ Seeding failed:", err);
+    console.error("Seeding failed:", err);
     process.exit(1);
   })
   .finally(async () => {
