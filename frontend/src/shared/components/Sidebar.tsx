@@ -71,7 +71,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     <aside
       id="primary-navigation"
       aria-label="Primary navigation"
-      className={`fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white shadow-2xl shadow-slate-950/10 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:translate-x-0 lg:shadow-none ${
+      className={`fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white shadow-2xl shadow-slate-950/10 transition-transform duration-200 ease-out lg:h-screen lg:w-64 lg:translate-x-0 lg:shadow-none ${
         isOpen ? "translate-x-0" : ""
       }`}
     >
