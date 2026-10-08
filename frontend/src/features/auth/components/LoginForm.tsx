@@ -4,12 +4,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Mail, Lock, Eye } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/shared/components/ui/Input";
 import { Button } from "@/shared/components/ui/Button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
+import { loginUser } from "@/features/auth/authSlice";
 import { loginPortalCustomer } from "@/features/customers/customerSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -23,10 +24,11 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
-  const { login, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const {
     register,
@@ -40,11 +42,9 @@ export const LoginForm = () => {
     setIsSubmitting(true);
     try {
       // Try system user login first
-      const result = await dispatch(
-        (await import("@/features/auth/authSlice")).loginUser(data)
-      );
-      if ((await import("@/features/auth/authSlice")).loginUser.fulfilled.match(result)) {
-        const user = (result.payload as any).data.user;
+      const result = await dispatch(loginUser(data));
+      if (loginUser.fulfilled.match(result)) {
+        const user = result.payload.data.user;
         toast.success(`Welcome back, ${user.name}!`);
         router.push("/dashboard");
         return;
@@ -53,7 +53,7 @@ export const LoginForm = () => {
       // If system login fails, try customer portal login
       const customerResult = await dispatch(loginPortalCustomer({ email: data.email, password: data.password }));
       if (loginPortalCustomer.fulfilled.match(customerResult)) {
-        const customer = (customerResult.payload as any).data.customer;
+        const customer = customerResult.payload.data.customer;
         toast.success(`Welcome, ${customer.name}!`);
         router.push("/customer-portal");
         return;
@@ -67,7 +67,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-lg">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-10">
       <div className="mb-8 text-left">
         <h2 className="text-3xl font-bold text-slate-900">Welcome Back</h2>
         <p className="text-slate-500 mt-2 text-sm">
@@ -87,7 +87,7 @@ export const LoginForm = () => {
         <div className="relative">
           <Input
             label="Password"
-            type="password"
+            type={isPasswordVisible ? "text" : "password"}
             placeholder="••••••••"
             icon={<Lock size={18} />}
             error={errors.password?.message}
@@ -95,13 +95,15 @@ export const LoginForm = () => {
           />
           <button
             type="button"
-            className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 transition-colors"
+            onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+            className="absolute right-2 top-7 flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8873A]"
+            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
           >
-            <Eye size={18} />
+            {isPasswordVisible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
           </button>
         </div>
 
-        <Button type="submit" isLoading={isLoading || isSubmitting} className="mt-4 text-lg">
+        <Button type="submit" isLoading={isLoading || isSubmitting} className="mt-4 min-h-12 w-full text-base">
           Sign In
         </Button>
 
