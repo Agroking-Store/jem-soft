@@ -13,3 +13,7 @@ log/
 
 # Migration data dumps
 backend/imagic_groups_*.json
+imagic_groups_*.json
+backend/*.json
+!backend/package.json
+!backend/tsconfig.json

@@ -28,6 +28,7 @@ import policy360Routes from "./routes/policy360Routes.js";
 import paymentModeRoutes from "./routes/paymentModeMasterRoutes.js"
 import communicationRoutes from "./routes/communicationRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
+import quotationRoutes from "./routes/quotationRoutes.js";
 import commissionRoutes from "./routes/commissionRoutes.js";
 import { config } from "./config/env.js";
 
@@ -71,6 +72,7 @@ app.use("/api/product-attribute-values", productAttributeValueRoutes);
 app.use("/api/premium-payments", premiumPaymentRoutes);
 app.use("/api/policy-360", policy360Routes);
 app.use("/api/payment-modes",paymentModeRoutes);
+app.use("/api/quotations", quotationRoutes);
 app.use("/api/commissions", commissionRoutes);
 
 app.post("/test", (req, res) => {
