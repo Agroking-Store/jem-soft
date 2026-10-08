@@ -12,3 +12,4 @@ export default function Page() {
     </Suspense>
   );
 }
+// Hot-reload trigger
