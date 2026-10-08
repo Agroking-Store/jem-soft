@@ -46,11 +46,10 @@ const INDIAN_STATES = [
 
 // ─── Schema ───────────────────────────────────────────────────────
 const schema = z.object({
-  // Basic
+  // Basic (Only Group Code and Group Name are mandatory)
   groupCode: z.string().min(1, "Group code is required"),
-  groupName: z.string().min(2, "Group name must be at least 2 characters"),
+  groupName: z.string().min(1, "Group name is required"),
   category: z.string().optional().or(z.literal("")),
-
 
   // Contact
   mobilePersonal: z.string().optional().or(z.literal("")),
@@ -84,67 +83,9 @@ const schema = z.object({
   offArea: z.string().optional().or(z.literal("")),
 
   // Portal
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-}).superRefine((data, ctx) => {
-  if (data.prefCommAddress === "Residence") {
-    const hasAddressLine = !!(
-      data.resAddressLine1?.trim() ||
-      data.resAddressLine2?.trim() ||
-      data.resAddressLine3?.trim() ||
-      data.resAddressLine4?.trim()
-    );
-    if (!hasAddressLine) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one Residence Address Line is required",
-        path: ["resAddressLine1"],
-      });
-    }
-    if (!data.resCity?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "City is required for Residence Address",
-        path: ["resCity"],
-      });
-    }
-    if (!data.resPin?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Pin Code is required for Residence Address",
-        path: ["resPin"],
-      });
-    }
-  } else if (data.prefCommAddress === "Office") {
-    const hasAddressLine = !!(
-      data.offAddressLine1?.trim() ||
-      data.offAddressLine2?.trim() ||
-      data.offAddressLine3?.trim() ||
-      data.offAddressLine4?.trim()
-    );
-    if (!hasAddressLine) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one Office Address Line is required",
-        path: ["offAddressLine1"],
-      });
-    }
-    if (!data.offCity?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "City is required for Office Address",
-        path: ["offCity"],
-      });
-    }
-    if (!data.offPin?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Pin Code is required for Office Address",
-        path: ["offPin"],
-      });
-    }
-  }
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  password: z.string().optional().or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -306,10 +247,10 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
       await dispatch(
         createCustomer({
           name: data.groupName,
-          email: data.email,
-          phone: data.phone,
-          password: data.password,
-          groupCode: data.groupCode || undefined,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          password: data.password || undefined,
+          groupCode: data.groupCode,
           groupName: data.groupName,
           category: data.category || undefined,
 
@@ -487,7 +428,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="Address Line 1" required placeholder="House / Flat No." error={errors.resAddressLine1?.message} {...register("resAddressLine1")} />
+                <FormInput label="Address Line 1" placeholder="House / Flat No." error={errors.resAddressLine1?.message} {...register("resAddressLine1")} />
                 <FormInput label="Address Line 2" placeholder="Street / Colony" error={errors.resAddressLine2?.message} {...register("resAddressLine2")} />
               </div>
 
@@ -497,8 +438,8 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="City" required placeholder="City" error={errors.resCity?.message} {...register("resCity")} />
-                <FormInput label="Pin Code" required placeholder="400001" error={errors.resPin?.message} {...register("resPin")} />
+                <FormInput label="City" placeholder="City" error={errors.resCity?.message} {...register("resCity")} />
+                <FormInput label="Pin Code" placeholder="400001" error={errors.resPin?.message} {...register("resPin")} />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -535,7 +476,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="Address Line 1" required placeholder="Office / Building No." error={errors.offAddressLine1?.message} {...register("offAddressLine1")} />
+                <FormInput label="Address Line 1" placeholder="Office / Building No." error={errors.offAddressLine1?.message} {...register("offAddressLine1")} />
                 <FormInput label="Address Line 2" placeholder="Street / Road" error={errors.offAddressLine2?.message} {...register("offAddressLine2")} />
               </div>
 
@@ -545,8 +486,8 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <FormInput label="City" required placeholder="City" error={errors.offCity?.message} {...register("offCity")} />
-                <FormInput label="Pin Code" required placeholder="400001" error={errors.offPin?.message} {...register("offPin")} />
+                <FormInput label="City" placeholder="City" error={errors.offCity?.message} {...register("offCity")} />
+                <FormInput label="Pin Code" placeholder="400001" error={errors.offPin?.message} {...register("offPin")} />
               </div>
 
 
@@ -576,11 +517,10 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
         </SectionCard>
 
         {/* ── Section 4: Portal Access ── */}
-        <SectionCard title="Portal Access" icon={<Lock size={16} />}>
+        <SectionCard title="Portal Access (Optional)" icon={<Lock size={16} />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Portal Email"
-              required
               type="email"
               placeholder="e.g. user@example.com"
               icon={<Mail size={14} />}
@@ -589,7 +529,6 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
             />
             <FormInput
               label="Phone Number"
-              required
               type="tel"
               placeholder="e.g. 9876543210"
               icon={<Phone size={14} />}
@@ -597,14 +536,14 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               {...register("phone")}
             />
             <div className="sm:col-span-2">
-              <FieldLabel label="Portal Password" required />
+              <FieldLabel label="Portal Password" />
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                   <Lock size={14} />
                 </span>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min. 6 characters"
+                  placeholder="Optional (Min. 6 characters)"
                   {...register("password")}
                   className={`w-full border rounded-lg py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500/15 focus:border-[#1877F2]
                     ${errors.password ? "border-red-300 bg-red-50/30" : "border-slate-200 hover:border-slate-300"}`}
@@ -619,7 +558,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
               </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
               <p className="text-xs text-slate-400 mt-1.5">
-                Customer will use this email &amp; password to log in to the customer portal.
+                Optional: Customer can use this email &amp; password if they need portal login access.
               </p>
             </div>
           </div>
