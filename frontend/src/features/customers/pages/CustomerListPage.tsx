@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
 import {
@@ -222,6 +222,10 @@ export default function CustomerListPage() {
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [modalStack, setModalStack] = useState<CustomerModalEntry[]>([]);
+  const typeaheadBufferRef = useRef("");
+  const typeaheadResetTimerRef = useRef<number | null>(null);
+  const typeaheadRowRef = useRef<HTMLTableRowElement>(null);
+  const [keyboardMatchId, setKeyboardMatchId] = useState<string | null>(null);
   const showListChrome = true;
 
   useEffect(() => {
@@ -267,6 +271,19 @@ export default function CustomerListPage() {
     );
   });
 
+  const keyboardCandidates = useMemo(
+    () => activeTab === "group"
+      ? customers.map((customer) => ({
+          id: customer.id,
+          label: customer.groupName || customer.name,
+        }))
+      : masterCustomers.map((customer) => ({
+          id: customer.id,
+          label: getFullName(customer),
+        })),
+    [activeTab, customers, masterCustomers],
+  );
+
   const groupTotalPages = Math.max(1, Math.ceil(filteredCustomers.length / groupPageSize));
   const masterTotalPages = Math.max(1, Math.ceil(filteredMasterCustomers.length / masterPageSize));
   const safeGroupPage = Math.min(groupPage, groupTotalPages);
@@ -283,6 +300,77 @@ export default function CustomerListPage() {
   useEffect(() => {
     setSearchTerm("");
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleTypeahead = (event: KeyboardEvent) => {
+      const target = event.target;
+      const isEditingText =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable);
+
+      if (
+        isEditingText ||
+        event.defaultPrevented ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        event.key.length !== 1
+      ) {
+        return;
+      }
+
+      const findMatchIndex = (query: string) => keyboardCandidates.findIndex((customer) =>
+        customer.label.toLocaleLowerCase().includes(query),
+      );
+      let query = `${typeaheadBufferRef.current}${event.key}`.toLocaleLowerCase();
+      let matchIndex = findMatchIndex(query);
+
+      if (matchIndex === -1) {
+        query = event.key.toLocaleLowerCase();
+        matchIndex = findMatchIndex(query);
+      }
+
+      if (matchIndex === -1) {
+        typeaheadBufferRef.current = "";
+        return;
+      }
+
+      event.preventDefault();
+      typeaheadBufferRef.current = query;
+      const match = keyboardCandidates[matchIndex];
+      setKeyboardMatchId(match.id);
+
+      if (activeTab === "group") {
+        setGroupPage(Math.floor(matchIndex / groupPageSize) + 1);
+      } else {
+        setMasterPage(Math.floor(matchIndex / masterPageSize) + 1);
+      }
+
+      if (typeaheadResetTimerRef.current) {
+        window.clearTimeout(typeaheadResetTimerRef.current);
+      }
+      typeaheadResetTimerRef.current = window.setTimeout(() => {
+        typeaheadBufferRef.current = "";
+      }, 800);
+    };
+
+    window.addEventListener("keydown", handleTypeahead);
+    return () => {
+      window.removeEventListener("keydown", handleTypeahead);
+      if (typeaheadResetTimerRef.current) {
+        window.clearTimeout(typeaheadResetTimerRef.current);
+      }
+    };
+  }, [activeTab, groupPageSize, keyboardCandidates, masterPageSize]);
+
+  useEffect(() => {
+    if (keyboardMatchId) {
+      typeaheadRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      typeaheadRowRef.current?.focus({ preventScroll: true });
+    }
+  }, [activeTab, keyboardMatchId, safeGroupPage, safeMasterPage]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -439,9 +527,12 @@ export default function CustomerListPage() {
                     return (
                       <tr
                         key={customer.id}
-                        onClick={() => openModal("group-details", customer.id)}
-                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                          index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                        ref={keyboardMatchId === customer.id ? typeaheadRowRef : undefined}
+                        tabIndex={keyboardMatchId === customer.id ? -1 : undefined}
+                        className={`group border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                          keyboardMatchId === customer.id
+                            ? "bg-blue-50 ring-1 ring-inset ring-blue-200"
+                            : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                         }`}
                       >
                         <td className="px-4 py-4 align-top">
@@ -597,9 +688,12 @@ export default function CustomerListPage() {
                   return (
                       <tr
                         key={customer.id}
-                        onClick={() => openModal("master-details", customer.id)}
-                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                          index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+                        ref={keyboardMatchId === customer.id ? typeaheadRowRef : undefined}
+                        tabIndex={keyboardMatchId === customer.id ? -1 : undefined}
+                        className={`group border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                          keyboardMatchId === customer.id
+                            ? "bg-blue-50 ring-1 ring-inset ring-blue-200"
+                            : index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                         }`}
                       >
                         <td className="px-4 py-4 align-top">
@@ -872,7 +966,7 @@ export default function CustomerListPage() {
                     setMasterPage(1);
                   }
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+                className="h-[52px] w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
               />
             </div>
           </div>
