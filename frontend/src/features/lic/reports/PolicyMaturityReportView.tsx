@@ -237,7 +237,7 @@ export default function PolicyMaturityReportView({ formData, policies: rawPolici
     const originalWidth = element.style.width;
     try {
       element.style.width = "1040px";
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
+      const canvas = await html2canvas(element, { scale: 1.25, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
       element.style.width = originalWidth;
       const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
       const pageWidth = 210;
@@ -255,7 +255,7 @@ export default function PolicyMaturityReportView({ formData, policies: rawPolici
         context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
         context.drawImage(canvas, 0, offset, canvas.width, height, 0, 0, canvas.width, height);
         if (page > 0) pdf.addPage();
-        pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, pageWidth, height / pixelsPerMm, undefined, "FAST");
+        pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.75), "JPEG", 0, 0, pageWidth, height / pixelsPerMm, undefined, "FAST");
         offset += height;
       }
       pdf.save(`Maturity_Due_Statement_${formData.reportDate || "Report"}.pdf`);

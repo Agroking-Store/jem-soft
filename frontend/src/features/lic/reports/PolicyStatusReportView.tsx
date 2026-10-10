@@ -81,7 +81,7 @@ export default function PolicyStatusReportView({
       elem.style.width = "950px";
 
       const canvas = await html2canvas(elem, {
-        scale: 2,
+        scale: 1.25,
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
@@ -109,7 +109,7 @@ export default function PolicyStatusReportView({
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
         ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.75);
         if (pageIndex > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
         renderedPx += sliceHeightPx;
