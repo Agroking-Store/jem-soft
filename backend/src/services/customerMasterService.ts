@@ -2,7 +2,7 @@ import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
 
 export interface ICustomerMasterInput {
-  groupId?: string;
+  groupId: string;
   salutation?: string;
   firstName: string;
   middleName?: string;
@@ -173,7 +173,7 @@ export const createCustomerMaster = async (data: ICustomerMasterInput) => {
   // Build nested prisma creation structure
   const customer = await prisma.customerMaster.create({
     data: {
-      groupId: data.groupId || null,
+      groupId: data.groupId,
       salutation: data.salutation || null,
       firstName: data.firstName,
       middleName: data.middleName || null,
@@ -300,7 +300,7 @@ export const updateCustomerMaster = async (id: string, data: ICustomerMasterInpu
   const customer = await prisma.customerMaster.update({
     where: { id },
     data: {
-      groupId: data.groupId !== undefined ? (data.groupId || null) : undefined,
+      groupId: data.groupId,
       salutation: data.salutation !== undefined ? (data.salutation || null) : undefined,
       firstName: data.firstName,
       middleName: data.middleName !== undefined ? (data.middleName || null) : undefined,

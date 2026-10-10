@@ -76,6 +76,20 @@ export const licProducts = [
     providerCode: 'LIC',
     productType: 'Joint Life Savings Plan'
   },
+  {
+    productName: "LIC's New Bima Jyoti",
+    productCode: '512N395V01',
+    planNumber: '890',
+    providerCode: 'LIC',
+    productType: 'Endowment Plan'
+  },
+  {
+    productName: "LIC's Bima Platinum",
+    productCode: '512N397V01',
+    planNumber: '770',
+    providerCode: 'LIC',
+    productType: 'Endowment Plan'
+  },
 
   //Whole Life Plans
 
@@ -196,6 +210,13 @@ export const licProducts = [
     providerCode: "LIC",
     productType: "Term Assurance Plan",
   },
+  {
+    productName: "LIC's Jeevan Raksha",
+    productCode: "512N368V01",
+    planNumber: "894",
+    providerCode: "LIC",
+    productType: "Term Assurance Plan",
+  },
 
   //Pension Plans
   {
@@ -215,7 +236,7 @@ export const licProducts = [
   {
     productName: "LIC New Jeevan Shanti",
     productCode: "512N338V08",
-    planNumber: "858",
+    planNumber: "758",
     providerCode: "LIC",
     productType: "Deferred Annuity Pension Plan",
   },

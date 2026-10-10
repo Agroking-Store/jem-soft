@@ -8,6 +8,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "build:watch": "tsc --watch",
+    "seed:maturity-fixtures": "tsx prisma/seedMaturityReportFixtures.ts",
     "clean": "rm -rf dist"
   },
   "prisma": {

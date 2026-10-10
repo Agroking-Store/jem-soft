@@ -1,4 +1,4 @@
-﻿import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import { DeliveryStatus } from "@prisma/client";
 
 export interface EmailSendOptions {
@@ -14,7 +14,7 @@ export interface EmailSendResult {
   errorMessage?: string;
 }
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 
 const getTransporter = () => {
   if (transporter) return transporter;
