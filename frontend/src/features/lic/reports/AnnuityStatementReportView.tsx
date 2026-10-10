@@ -307,7 +307,7 @@ export default function AnnuityStatementReportView({
     setIsExporting(true);
     const toastId = toast.loading("Generating PDF statement...");
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
+      const canvas = await html2canvas(reportRef.current, { scale: 1.25, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
       const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
       const pageWidthMm = 210;
       const pageHeightMm = 297;
@@ -327,7 +327,7 @@ export default function AnnuityStatementReportView({
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
         ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.75);
         if (pageIndex > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
         renderedPx += sliceHeightPx;
