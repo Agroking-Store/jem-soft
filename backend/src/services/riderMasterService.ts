@@ -1,0 +1,122 @@
+import { prisma } from "../config/database.js";
+import { RiderMaster } from "@prisma/client";
+
+/**
+ * Creates a new rider master.
+ * @param data - The data for the new rider master.
+ * @returns The created rider master.
+ */
+export const createRiderMaster = async (
+  data: Omit<RiderMaster, "id" | "createdAt" | "updatedAt">
+): Promise<RiderMaster> => {
+  return prisma.riderMaster.create({
+    data,
+  });
+};
+
+/**
+ * Retrieves all rider masters.
+ * @returns A list of all rider masters.
+ */
+export const getAllRiderMasters = async (): Promise<RiderMaster[]> => {
+  return prisma.riderMaster.findMany();
+};
+
+/**
+ * Retrieves a rider master by its ID.
+ * @param id - The ID of the rider master to retrieve.
+ * @returns The rider master, or null if not found.
+ */
+export const getRiderMasterById = async (id: string): Promise<RiderMaster | null> => {
+  return prisma.riderMaster.findUnique({
+    where: { id },
+  });
+};
+
+/**
+ * Updates a rider master.
+ * @param id - The ID of the rider master to update.
+ * @param data - The data to update.
+ * @returns The updated rider master.
+ */
+export const updateRiderMaster = async (id: string, data: Partial<Omit<RiderMaster, "id" | "createdAt" | "updatedAt">>): Promise<RiderMaster> => {
+  return prisma.riderMaster.update({
+    where: { id },
+    data,
+  });
+};
+
+/**
+ * Deletes a rider master.
+ * @param id - The ID of the rider master to delete.
+ */
+export const deleteRiderMaster = async (id: string): Promise<void> => {
+  await prisma.riderMaster.delete({
+    where: { id },
+  });
+};
+
+export const getRiderOptions = async (riderId: string, age: number, ppt?: number, productId?: string) => {
+  const whereClause: any = { riderId, entryAge: age };
+  
+  if (productId) {
+    whereClause.productId = productId;
+    
+    // Fetch product to determine PPT behavior
+    const product = await prisma.productMaster.findUnique({
+      where: { id: productId },
+      select: { planNumber: true }
+    });
+
+    if (product) {
+      const rider = await prisma.riderMaster.findUnique({
+        where: { id: riderId },
+        select: { riderCode: true },
+      });
+
+      const usesRiderPPT = [
+        "771",
+        "745",
+        "883",
+        "887",
+        "881",
+        "889",
+        "912"
+      ].includes(product.planNumber || "") || (product.planNumber === "736" && rider?.riderCode === "ADDB");
+
+      if (usesRiderPPT) {
+        if (product.planNumber === "883") {
+          whereClause.premiumPayingTerm = 1;
+        } else if (ppt !== undefined && !Number.isNaN(ppt)) {
+          whereClause.premiumPayingTerm = ppt;
+        }
+      } else {
+        whereClause.premiumPayingTerm = null;
+      }
+    }
+  }
+
+  let rates = await prisma.riderPremiumRate.findMany({
+    where: whereClause,
+    select: { riderTerm: true, premiumPayingTerm: true },
+    distinct: ['riderTerm', 'premiumPayingTerm']
+  });
+
+  if (rates.length === 0 && whereClause.entryAge !== 0) {
+    rates = await prisma.riderPremiumRate.findMany({
+      where: { ...whereClause, entryAge: 0 },
+      select: { riderTerm: true, premiumPayingTerm: true },
+      distinct: ['riderTerm', 'premiumPayingTerm']
+    });
+  }
+
+  const terms = [...new Set(rates.map(r => r.riderTerm))].sort((a, b) => a - b);
+  const ppts = [...new Set(rates.map(r => r.premiumPayingTerm).filter(Boolean) as number[])].sort((a, b) => a - b);
+
+  const combinations = rates.map(r => ({
+    term: r.riderTerm,
+    ppt: r.premiumPayingTerm,
+  }));
+
+  return { terms, ppts, combinations };
+};

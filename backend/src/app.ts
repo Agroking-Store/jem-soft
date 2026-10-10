@@ -1,0 +1,101 @@
+  import express, { Application, Request, Response } from "express";
+  import cors from "cors";
+  import { globalErrorHandler } from "./middlewares/errorHandler.js";
+  import authRoutes from "./routes/authRoutes.js";
+  import customerRoutes from "./routes/customerRoutes.js";
+  import customerMasterRoutes from "./routes/customerMasterRoutes.js";
+  import familyHistoryRoutes from "./routes/familyHistoryRoutes.js";
+  import medicalHistoryRoutes from "./routes/medicalHistoryRoutes.js";
+  import insuranceProviderRoutes from "./routes/insuranceProviderRoutes.js";
+  import productCategoryRoutes from "./routes/productCategoryRoutes.js";
+  import productMasterRoutes from "./routes/productMasterRoutes.js";
+  import riderMasterRoutes from "./routes/riderMasterRoutes.js";
+  import advisorRoutes from "./routes/advisorRoutes.js";
+  import policyRoutes from "./routes/policyRoutes.js";
+  import notificationRoutes from "./routes/notificationRoutes.js";
+  import policyStatusMasterRoutes from "./routes/policyStatusMasterRoutes.js";
+  import premiumModeMasterRoutes from "./routes/premiumModeMasterRoutes.js";
+  import userRoutes from "./routes/userRoutes.js";
+  import claimRoutes from "./routes/claimRoutes.js";
+  import loanRoutes from "./routes/loanRoutes.js";
+  import loanStatusMasterRoutes from "./routes/loanStatusMasterRoutes.js";
+  import licBranchRoutes from "./routes/licBranchRoutes.js";
+  import agencyRoutes from "./routes/agencyRoutes.js";
+  import productAttributeMasterRoutes from "./routes/productAttributeMasterRoutes.js";
+  import productAttributeValueRoutes from "./routes/productAttributeValueRoutes.js";
+  import premiumPaymentRoutes from "./routes/premiumPaymentRoutes.js";
+  import policy360Routes from "./routes/policy360Routes.js";
+  import paymentModeRoutes from "./routes/paymentModeMasterRoutes.js"
+  import communicationRoutes from "./routes/communicationRoutes.js";
+  import marketingRoutes from "./routes/marketingRoutes.js";
+  import { config } from "./config/env.js";
+
+  const app: Application = express();
+
+  app.use(
+    cors({
+      origin: config.clientUrl || "*",
+      credentials: true,
+    })
+  );
+
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+
+  app.use("/api/auth", authRoutes);
+  app.use("/api/customers", customerRoutes);
+  app.use("/api/customer-master", customerMasterRoutes);
+  app.use("/api/family-history", familyHistoryRoutes);
+  app.use("/api/medical-history", medicalHistoryRoutes);
+  app.use("/api/claims", claimRoutes);
+  app.use("/api/loans", loanRoutes);
+  app.use("/api/loan-statuses", loanStatusMasterRoutes);
+  app.use("/api/insurance-providers", insuranceProviderRoutes);
+  app.use("/api/product-categories", productCategoryRoutes);
+  app.use("/api/products", productMasterRoutes);
+  app.use("/api/riders", riderMasterRoutes);
+  app.use("/api/advisors", advisorRoutes);
+  app.use("/api/policies", policyRoutes);
+  app.use("/api/notifications", notificationRoutes);
+  app.use("/api/communications", communicationRoutes);
+  app.use("/api/marketing", marketingRoutes);
+  app.use("/api/policy-statuses", policyStatusMasterRoutes);
+  app.use("/api/premium-modes", premiumModeMasterRoutes);
+  app.use("/api/users", userRoutes);
+  app.use("/api/lic-branches", licBranchRoutes);
+  app.use("/api/agencies", agencyRoutes);
+  app.use("/api/product-attributes-master", productAttributeMasterRoutes);
+  app.use("/api/product-attribute-values", productAttributeValueRoutes);
+  app.use("/api/premium-payments", premiumPaymentRoutes);
+  app.use("/api/policy-360", policy360Routes);
+  app.use("/api/payment-modes",paymentModeRoutes);
+
+
+  app.post("/test", (req, res) => {
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body);
+
+    res.json(req.body);
+  });
+
+  // Backend Health Check
+  app.get("/", (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: "success",
+      message: "JEM Soft Backend API is running",
+    });
+  });
+
+  // 404 Handler
+  app.use((_req: Request, res: Response) => {
+    res.status(404).json({
+      status: "error",
+      message: "Route not found",
+    });
+  });
+
+  // Global Error Handler
+  app.use(globalErrorHandler);
+
+  export default app;

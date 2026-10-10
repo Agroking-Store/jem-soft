@@ -1,0 +1,1183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+enum NotificationType {
+  POLICY_CREATED
+  POLICY_UPDATED
+  POLICY_DELETED
+  PREMIUM_DUE
+  PREMIUM_PAID
+  PREMIUM_UPDATED
+  PREMIUM_DELETED
+  POLICY_LAPSED
+  BIRTHDAY
+  MARKETING
+  GENERAL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("VIEWER")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdClaims Claim[] @relation("ClaimCreatedBy")
+  updatedClaims Claim[] @relation("ClaimUpdatedBy")
+}
+
+model Customer {
+  id          String  @id @default(uuid())
+  name        String
+  companyName String?
+  email       String  @unique
+  phone       String
+  password    String
+
+  // Customer Group fields
+  groupCode      String? @unique
+  groupName      String?
+  category       String? // Client, Others, personal, etc.
+  // Contact Info
+  mobilePersonal String?
+  emailPersonal  String?
+  mobileBusiness String?
+  emailBusiness  String?
+
+  // Preferred Communication Address
+  prefCommAddress String? // "Residence" | "Office"
+
+  // Residence Address
+  resAddressLine1 String?
+  resAddressLine2 String?
+  resAddressLine3 String?
+  resAddressLine4 String?
+  resCity         String?
+  resPin          String?
+  resState        String?
+  resCountry      String? @default("India")
+  resArea         String?
+
+  // Office Address
+  offAddressLine1 String?
+  offAddressLine2 String?
+  offAddressLine3 String?
+  offAddressLine4 String?
+  offCity         String?
+  offPin          String?
+  offState        String?
+  offCountry      String? @default("India")
+  offArea         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members         CustomerMaster[]
+  policies        Policy[]
+  familyHistories FamilyHistory[]
+}
+
+// ======================================================
+// Insurance Provider Master
+// Example: LIC, HDFC Life, SBI Life, ICICI Prudential
+// ======================================================
+
+model InsuranceProvider {
+  id          String  @id @default(uuid())
+  type        String // Insurance, Bank, Investment
+  name        String
+  code        String  @unique // LIC, HDFC_LIFE, SBI_LIFE
+  description String?
+  isActive    Boolean @default(true)
+
+  categories ProductCategory[]
+  products   ProductMaster[]
+
+  advisors Advisor[]
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Claim {
+  id            String   @id @default(cuid())
+  policyId      String   @unique
+  claimantName  String?
+  claimType     String   // e.g., 'Death', 'Maturity', 'Rider', 'Other'
+  claimAmount   Float
+  status        String   @default("Pending") // e.g., 'Pending', 'Approved', 'Rejected', 'In Progress'
+  claimDate     DateTime
+  reasonForClaim String?
+
+  // Payment fields
+  paymentType       String?   // "NEFT" | "Cheque"
+  chequeNumber      String?
+  chequeDate        DateTime?
+  bankName          String?
+  branchName        String?
+  chequeAmount      Float?
+  accountHolderName String?
+  accountNumber     String?
+  ifscCode          String?
+
+  // Nominee relation
+  nomineeId     String?
+  nominee       Nominee? @relation(fields: [nomineeId], references: [id], onDelete: SetNull)
+
+  // Relations
+  policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  createdBy     User     @relation("ClaimCreatedBy", fields: [createdById], references: [id])
+  createdById   String
+  updatedBy     User?    @relation("ClaimUpdatedBy", fields: [updatedById], references: [id])
+  updatedById   String?
+
+  // Documents relation
+  documents     ClaimDocument[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ======================================================
+// Claim Document Model
+// Stores metadata for documents uploaded with a claim
+// ======================================================
+model ClaimDocument {
+  id            String   @id @default(cuid())
+  claimId       String
+  fileName      String   // Storage file name (e.g., UUID.pdf)
+  originalName  String   // Original file name from upload
+  fileUrl       String   // URL/path to access the file
+  fileType      String?  // MIME type (e.g., application/pdf, image/jpeg)
+  fileSize      Int?     // File size in bytes
+
+  claim         Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([claimId])
+}
+
+
+// ======================================================
+// Product Category Master
+// Example:
+// Life Insurance
+// Health Insurance
+// Motor Insurance
+// Mutual Fund
+// ======================================================
+
+model ProductCategory {
+  id         String @id @default(uuid())
+  providerId String
+
+  categoryName String
+  categoryCode String  @unique
+  description  String?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+
+  products ProductMaster[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Product Master
+// Example:
+// Jeevan Anand
+// Jeevan Labh
+// Click2Protect
+// ======================================================
+
+model ProductMaster {
+  id String @id @default(uuid())
+
+  providerId String
+  categoryId String
+
+  productName String
+  productCode String
+
+  planNumber String?
+
+  productType String?
+  description String?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+  category ProductCategory   @relation(fields: [categoryId], references: [id])
+
+  attributes ProductAttributeValue[]
+  policies   Policy[]
+  premiumRates       ProductPremiumRate[]
+  sumAssuredRebates  ProductSumAssuredRebate[]
+  premiumModeFactors ProductPremiumModeFactor[]
+  riders ProductRider[]
+  modeRebates ProductModeRebate[]
+  modeRebateRates  ProductModeRebateRate[]
+
+  riderPremiumRates RiderPremiumRate[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, productCode])
+}
+
+// ======================================================
+// ProductPremiumRate
+// Stores the tabular premium rates published by the insurer.
+// ======================================================
+
+model ProductPremiumRate {
+  id String @id @default(uuid())
+
+  productId String
+
+  entryAge Int
+  secondaryAge Int?
+
+  gender String?
+  smoker Boolean?
+
+  policyTerm Int
+  premiumPayingTerm Int?
+
+  option Int?
+  tabularRate Decimal @db.Decimal(10,2)
+
+  effectiveFrom DateTime?
+  effectiveTo DateTime?
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, entryAge, secondaryAge, gender, smoker, policyTerm, premiumPayingTerm, option])
+}
+
+// ======================================================
+// ProductSumAssuredRebate
+// Stores High Sum Assured rebates.
+// ======================================================
+
+model ProductSumAssuredRebate {
+  id String @id @default(uuid())
+
+  productId String
+
+  minSumAssured Decimal @db.Decimal(18,2)
+  maxSumAssured Decimal? @db.Decimal(18,2)
+
+  rebatePerThousand Decimal @db.Decimal(10,3)
+
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([productId, minSumAssured])
+}
+
+// for plan 717 and 771
+model ProductModeRebate {
+  id String @id @default(uuid())
+
+  productId String
+  premiumModeId String
+
+  rebatePerThousand Decimal @db.Decimal(10,2)
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+  premiumMode PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  @@unique([productId, premiumModeId])
+}
+
+model ProductModeRebateRate {
+  id              String   @id @default(uuid())
+  productId       String
+  premiumModeId   String
+  entryAge        Int
+  policyTerm      Int
+  rebatePerThousand Decimal @db.Decimal(10,2)
+
+  product      ProductMaster     @relation(fields: [productId], references: [id])
+  premiumMode  PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  @@unique([productId, premiumModeId, entryAge, policyTerm])
+}
+
+// ======================================================
+// ProductPremiumModeFactor
+// Different plans have different premium mode rebates/loadings.
+// ======================================================
+
+model ProductPremiumModeFactor {
+  id String @id @default(uuid())
+
+  productId String
+  premiumModeId String
+
+  factor Decimal @db.Decimal(8,4)
+
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  premiumMode PremiumModeMaster @relation(fields: [premiumModeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, premiumModeId])
+}
+
+
+// ======================================================
+// RiderPremiumRate
+// Rider Premium rate
+// ======================================================
+
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model RiderPremiumRate {
+  id String @id @default(uuid())
+
+  riderId   String
+  productId String
+
+  entryAge Int
+  riderTerm Int
+  premiumPayingTerm Int?
+  option Int?
+
+  gender Gender?
+
+  ratePerThousand Decimal @db.Decimal(10,2)
+
+  rider   RiderMaster   @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([riderId, productId, entryAge, riderTerm, premiumPayingTerm, option, gender])
+}
+
+// ======================================================
+// Product Attribute Master
+// Defines configurable product attributes
+// ======================================================
+
+model ProductAttributeMaster {
+  id String @id @default(uuid())
+
+  attributeName String
+  attributeCode String @unique
+
+  dataType String // Text, Number, Date, Boolean, Dropdown
+
+  isRequired Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  values           ProductAttributeValue[]
+  options          ProductAttributeOption[]
+  policyAttributes PolicyAttribute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Product Attribute Values
+// Stores values of attributes for each product
+// ======================================================
+
+model ProductAttributeValue {
+  id String @id @default(uuid())
+
+  productId   String
+  attributeId String
+
+  value String
+
+  product   ProductMaster          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, attributeId])
+}
+
+model PolicyStatusMaster {
+  id          String  @id @default(uuid())
+  statusName  String
+  statusCode  String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumModeMaster {
+  id          String  @id @default(uuid())
+  modeName    String
+  modeCode    String  @unique
+  months      Int?
+  description String?
+
+  policies Policy[]
+
+  premiumModeFactors ProductPremiumModeFactor[]
+  productModeRebates ProductModeRebate[]
+  modeRebateRates  ProductModeRebateRate[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentModeMaster {
+  id          String  @id @default(uuid())
+  modeName    String
+  modeCode    String  @unique
+  description String?
+
+  policies Policy[] 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductRider {
+  id String @id @default(uuid())
+
+  productId String
+  riderId String
+
+  isMandatory Boolean @default(false)
+
+  product ProductMaster @relation(fields:[productId], references:[id], onDelete: Cascade)
+  rider RiderMaster @relation(fields:[riderId], references:[id], onDelete: Cascade)
+
+  @@unique([productId,riderId])
+}
+
+model RiderMaster {
+  id          String  @id @default(uuid())
+  riderName   String
+  riderCode   String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  policyRiders PolicyRider[]
+  premiumRates RiderPremiumRate[]
+  productRiders ProductRider[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Policy {
+  id String @id @default(uuid())
+
+  clientId         String
+  CustomerMasterId String
+  providerId       String
+  productId        String
+
+  statusId      String
+  premiumModeId String
+  paymentModeId String
+
+  advisorId      String?
+  branchId       String?
+
+  policyNumber   String  @unique
+  proposalNumber String?
+
+  issueDate        DateTime?
+  commencementDate DateTime
+  maturityDate     DateTime?
+
+  policyTerm        Int?
+  premiumPayingTerm Int?
+
+  nextPremiumDueDate DateTime?
+
+  agentCode  String?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer       Customer           @relation(fields: [clientId], references: [id])
+  CustomerMaster CustomerMaster     @relation(fields: [CustomerMasterId], references: [id])
+
+  proposerId     String?
+  proposer       CustomerMaster?    @relation("PolicyProposer", fields: [proposerId], references: [id])
+  
+  spouseId       String?
+  spouse         CustomerMaster?    @relation("PolicySpouse", fields: [spouseId], references: [id])
+  provider       InsuranceProvider  @relation(fields: [providerId], references: [id])
+  product        ProductMaster      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  status         PolicyStatusMaster @relation(fields: [statusId], references: [id])
+  premiumMode    PremiumModeMaster  @relation(fields: [premiumModeId], references: [id])
+  paymentMode    PaymentModeMaster  @relation(fields: [paymentModeId], references: [id])
+
+  advisor Advisor? @relation(fields: [advisorId], references: [id])
+  branch LicBranch? @relation(fields: [branchId], references:[id])
+
+  nominees     Nominee[]
+  policyRiders PolicyRider[]
+  documents    PolicyDocument[]
+  premium      PolicyPremiumCalculation?
+
+  policyAttributes PolicyAttribute[]
+  premiumPayments  PremiumPayment[]
+  loans            PolicyLoan[]
+  claims  Claim[]
+
+  notifications Notification[]
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+
+  title     String
+  message   String
+  type      NotificationType
+
+  isRead    Boolean          @default(false)
+
+  policyId  String?
+  policy    Policy?          @relation(fields: [policyId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([createdAt])
+}
+
+model PolicyAttribute {
+  id String @id @default(uuid())
+
+  policyId    String
+  attributeId String
+
+  value String
+
+  policy    Policy                 @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+
+  @@unique([policyId, attributeId])
+}
+
+model PolicyRider {
+  id String @id @default(uuid())
+
+  policyId String
+  riderId  String
+
+  riderAmount  Decimal?
+  riderPremium Decimal?
+
+  policy Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  rider  RiderMaster @relation(fields: [riderId], references: [id])
+
+  @@unique([policyId, riderId])
+}
+
+model Nominee {
+  id String @id @default(uuid())
+
+  policyId String
+
+  nomineeName  String
+  relationship String
+  dateOfBirth  DateTime?
+  percentage   Decimal?
+
+  phone   String?
+  email   String?
+  address String?
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  claims Claim[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PremiumPayment {
+  id String @id @default(uuid())
+
+  policyId String
+
+  installmentNo Int?
+
+  dueDate  DateTime
+  paidDate DateTime?
+
+  premiumAmount Decimal
+  lateFee       Decimal?
+
+  paymentMode String?
+
+  paymentDetails String?
+
+  paymentStatusId String
+
+  paymentStatus PaymentStatusMaster @relation(fields: [paymentStatusId], references: [id])
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model PolicyLoan {
+  id           String   @id @default(uuid())
+  policyId     String
+  loanAmount   Decimal
+  interestRate Decimal
+  loanDate     DateTime
+  remarks      String?
+  loanStatusId String
+
+  loanStatus   LoanStatusMaster @relation(fields: [loanStatusId], references: [id])
+  policy       Policy           @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  repayments   LoanRepayment[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+model PolicyDocument {
+  id String @id @default(uuid())
+
+  policyId String
+
+  documentName String
+  documentType String
+
+  filePath String
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// Advisor Master
+// Insurance Advisor / Agent
+// ======================================================
+
+model Advisor {
+  id String @id @default(uuid())
+
+  providerId String
+
+  advisorCode String
+  advisorName String
+
+  agencyId    String?
+  agency      Agency? @relation(fields: [agencyId], references: [id])
+
+  email String?
+  phone String?
+
+  licenseNumber String?
+  panNumber     String?
+
+  designation String?
+  joiningDate DateTime?
+
+  isActive Boolean @default(true)
+
+  provider InsuranceProvider @relation(fields: [providerId], references: [id])
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, advisorCode])
+}
+
+model PolicyPremiumCalculation {
+  id String @id @default(uuid())
+
+  policyId String @unique
+
+  sumAssured Decimal @db.Decimal(18,2)
+
+  // Premium Table
+  tabularRate Decimal? @db.Decimal(10,2)
+
+  tabularPremium Decimal? @db.Decimal(18,2)
+
+  // Rebate
+  rebateRate Decimal? @db.Decimal(10,3)
+
+  rebateAmount Decimal? @db.Decimal(18,2)
+
+  // Mode
+  modeFactor Decimal? @db.Decimal(8,4)
+
+  // Extra Loading
+  extraClassRate Decimal? @db.Decimal(10,2)
+
+  extraClassAmount Decimal? @db.Decimal(18,2)
+
+  // Riders
+  riderPremium Decimal? @db.Decimal(18,2)
+
+  // Premiums
+  option Int?
+
+  basicYearlyPremium Decimal @db.Decimal(18,2)
+
+  totalYearlyPremium Decimal @db.Decimal(18,2)
+
+  installmentPremium Decimal @db.Decimal(18,2)
+
+  gst Decimal? @db.Decimal(18,2)
+
+  totalInstallmentPremium Decimal @db.Decimal(18,2)
+
+  policy Policy @relation(fields: [policyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoanRepayment {
+  id                 String     @id @default(uuid())
+  loanId             String
+  repaymentDate      DateTime
+  repaymentAmount    Decimal
+  principalComponent Decimal
+  interestComponent  Decimal
+  paymentMode        String
+  referenceNumber    String?
+  remarks            String?
+
+  loan               PolicyLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime   @default(now())
+}
+
+
+model PaymentStatusMaster {
+  id String @id @default(uuid())
+
+  statusName String
+  statusCode String @unique
+
+  payments PremiumPayment[]
+}
+
+model LoanStatusMaster {
+  id         String       @id @default(uuid())
+  statusName String
+  statusCode String       @unique
+  loans      PolicyLoan[]
+}
+
+
+model ProductAttributeOption {
+  id String @id @default(uuid())
+
+  attributeId String
+
+  optionLabel String
+  optionValue String?
+
+  displayOrder Int?
+  isDefault    Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  attribute ProductAttributeMaster @relation(fields: [attributeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([attributeId, optionLabel])
+}
+
+model CustomerMaster {
+  id               String    @id @default(uuid())
+  groupId          String?
+  salutation       String?
+  firstName        String
+  middleName       String?
+  lastName         String
+  gender           String?
+  dob              DateTime?
+  isGroupHead      Boolean   @default(false)
+  customerType     String? // INDIVIDUAL, CORPORATE, etc.
+  panNumber        String?
+  aadhaarNumber    String?
+  guardianId       String?
+  salutationLetter String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  group       Customer?                   @relation(fields: [groupId], references: [id])
+  guardian    CustomerMaster?             @relation("GuardianRelation", fields: [guardianId], references: [id])
+  dependents  CustomerMaster[]            @relation("GuardianRelation")
+  contactInfo CustomerContactInfo?
+  addresses   CustomerAddress[]
+  bankDetails CustomerBankDetails[]
+  miscInfo    CustomerMiscInfo?
+  preferences     CustomerServicePreferences?
+  policies         Policy[]
+  proposerPolicies Policy[] @relation("PolicyProposer")
+  spousePolicies   Policy[] @relation("PolicySpouse")
+
+  familyHistories FamilyHistory[]
+  medicalHistories MedicalHistory[]
+}
+
+model CustomerContactInfo {
+  id              String   @id @default(uuid())
+  customerId      String   @unique
+  mobile1         String?
+  mobile2         String?
+  landline1Std    String?
+  landline1Number String?
+  landline2Std    String?
+  landline2Number String?
+  faxStd          String?
+  faxNumber       String?
+  emailPersonal   String?
+  emailBusiness   String?
+  skypeId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerAddress {
+  id              String   @id @default(uuid())
+  customerId      String
+  addressType     String // "Residence" | "Office" | etc.
+  addressLine1    String?
+  addressLine2    String?
+  addressLine3    String?
+  addressLine4    String?
+  city            String?
+  pin             String?
+  country         String?  @default("India")
+  state           String?
+  area            String?
+  useGroupAddress Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerBankDetails {
+  id            String   @id @default(uuid())
+  customerId    String
+  isDefault     Boolean  @default(false)
+  accountHolderName String?
+  ifscCode      String?
+  bankName      String?
+  bankBranch    String?
+  city          String?
+  accountType   String?
+  accountNumber String?
+  micrNumber    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerMiscInfo {
+  id                 String    @id @default(uuid())
+  customerId         String    @unique
+  relationToGroup    String?
+  dobForGreetings    DateTime?
+  marriageDate       DateTime?
+  isMarried          Boolean   @default(false)
+  demiseDate         DateTime?
+  isDead             Boolean   @default(false)
+  fatherName         String?
+  motherName         String?
+  spouseName         String?
+  nationality        String?   @default("Indian")
+  qualification      String?
+  occupationType     String?
+  occupation         String?
+  employer           String?
+  natureOfDuties     String?
+  referredBy         String?
+  heightFt           String?
+  weightKg           String?
+  incomeSlab         String?
+  religion           String?
+  crmGroups          String?
+  passportNumber     String?
+  passportExpiryDate DateTime?
+  gstNumber          String?
+  specialNote        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerServicePreferences {
+  id                   String   @id @default(uuid())
+  customerId           String   @unique
+  preferredCommAddress String?
+  smsMarketing         Boolean  @default(true)
+  emailMarketing       Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  customer CustomerMaster @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model LicBranch {
+  id          String   @id @default(cuid())
+  branchCode  String   @unique
+  branchName  String
+  division    String?
+  address        String?
+  state       String?
+  pincode        String?
+
+  policies    Policy[]
+  agencies    Agency[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Agency {
+  id           String   @id @default(cuid())
+  agencyCode   String   @unique
+  agencyName   String
+  licenseNo    String?
+
+  branchId     String?
+  branch       LicBranch? @relation(fields: [branchId], references: [id])
+
+  address      String?
+  contactNo    String?
+  email        String?
+  isActive     Boolean  @default(true)
+
+  advisors     Advisor[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+model FamilyHistory {
+  id        String                @id @default(uuid())
+  groupId   String
+  memberId  String
+  date      DateTime              @default(now())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  group     Customer              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member    CustomerMaster        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records   FamilyHistoryRecord[]
+}
+
+model FamilyHistoryRecord {
+  id              String        @id @default(uuid())
+  familyHistoryId String
+  relation        String
+  age             Int
+  stateOfHealth   String
+  isDead          Boolean       @default(false)
+  ageAtDeath      Int?
+  causeOfDeath    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  familyHistory   FamilyHistory @relation(fields: [familyHistoryId], references: [id], onDelete: Cascade)
+}
+
+model MedicalHistory {
+  id        String                 @id @default(uuid())
+  memberId  String
+  date      DateTime               @default(now())
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  member  CustomerMaster        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  records MedicalHistoryRecord[]
+}
+
+model MedicalHistoryRecord {
+  id              String        @id @default(uuid())
+  medicalHistoryId String
+
+  // Basic details
+  medicalHistoryDate DateTime     @default(now())
+  age              Int? // derived from member DOB, read-only in UI
+  gender           String? // derived from member profile, read-only in UI
+
+  // Member's details
+  bloodGroup       String // A+, A-, B+, B-, AB+, AB-, O+, O-
+  bloodPressure    String? // mmHg
+  pulse            String? // bpm
+  height           Float? // Cms
+  weight           Float? // Kgs
+  chest            Float? // Cms
+  abdomen          Float? // Cms
+  identificationMark String?
+  spectaclesDetails String?
+  dentalDetails    String?
+
+  // Examination details
+  majorIllness     String?
+  operationAccident String?
+  specialReport    String?
+  doctorName       String?
+  medicalExaminationDate DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  medicalHistory  MedicalHistory @relation(fields: [medicalHistoryId], references: [id], onDelete: Cascade)
+}
+
+// ======================================================
+// Marketing & Dynamic Communication Models
+// ======================================================
+
+enum TemplateCategory {
+  PREMIUM_DUE
+  POLICY_LAPSED
+  BIRTHDAY
+  ANNIVERSARY
+  MARKETING
+  CUSTOM
+}
+
+enum CommunicationChannel {
+  SMS
+  EMAIL
+  IN_APP
+  ALL
+  WHATSAPP
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model NotificationTemplate {
+  id          String               @id @default(uuid())
+  code        String               @unique
+  name        String
+  category    TemplateCategory     @default(PREMIUM_DUE)
+  channel     CommunicationChannel @default(ALL)
+  subject     String?
+  smsBody     String?
+  emailBody   String?
+  isActive    Boolean              @default(true)
+  variables   String?              // Comma-separated list of placeholder tokens
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  campaigns   MarketingCampaign[]
+}
+
+model CommunicationLog {
+  id           String               @id @default(uuid())
+  customerId   String?
+  customerName String?
+  policyId     String?
+  policyNumber String?
+  channel      CommunicationChannel
+  recipient    String               // Phone number or Email address
+  subject      String?
+  content      String
+  status       DeliveryStatus       @default(SENT)
+  errorMessage String?
+  triggerType  String               // "AUTOMATED_CRON" | "MANUAL_REMINDER" | "MARKETING_CAMPAIGN"
+  metadata     String?              // JSON extra info
+  createdAt    DateTime             @default(now())
+
+  @@index([customerId])
+  @@index([policyId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model MarketingCampaign {
+  id              String                @id @default(uuid())
+  title           String
+  description     String?
+  channel         CommunicationChannel  @default(ALL)
+  templateId      String?
+  template        NotificationTemplate? @relation(fields: [templateId], references: [id])
+  customSubject   String?
+  customMessage   String?
+  targetCriteria  String?               // JSON string with filters e.g. { providerId, crmGroup, minAge, maxAge }
+  status          String                @default("DRAFT") // "DRAFT" | "SCHEDULED" | "RUNNING" | "COMPLETED" | "CANCELLED"
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  totalRecipients Int                   @default(0)
+  successfulCount Int                   @default(0)
+  failedCount     Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
+
+model ReminderSetting {
+  id                      String    @id @default(uuid())
+  isAutoReminderEnabled   Boolean   @default(true)
+  dueDaysBefore           String    @default("30,15,7,1,0") // Comma-separated days
+  sendSms                 Boolean   @default(true)
+  sendEmail               Boolean   @default(true)
+  sendInApp               Boolean   @default(true)
+  isBirthdayWishesEnabled Boolean   @default(true)
+  cronScheduleTime        String    @default("09:00") // Time of day
+  lastRunAt               DateTime?
+  updatedAt               DateTime  @updatedAt
+}

@@ -1,0 +1,74 @@
+import { PrismaClient } from "@prisma/client";
+import { bajajLifePolicyAttributeValues as bajajallianzAttributeValues } from "../masterData/productsAttributeValues/bajajallianzAttributeValues";
+import { canaraHsbcPolicyAttributes as canaraAttributeValues } from "../masterData/productsAttributeValues/canaraAttributeValues";
+import { futureGeneraliPolicyAttributeValues as futuregeneraliAttributeValues } from "../masterData/productsAttributeValues/futuregeneraliAttributeValues";
+import { pnbMetlifePolicyAttributeValues as pnbAttributeValues } from "../masterData/productsAttributeValues/pnbAttributeValues";
+import { shriramLifeProductAttributes as shriramAttributeValues } from "../masterData/productsAttributeValues/shriramAttributeValues";
+import { LicProductAttributeValues } from "../masterData/LicProductAttributeValues";
+import { axisMaxLifePolicyAttributeValues as axisAttributeValues } from "../masterData/productsAttributeValues/axisAttributeValues";
+import { aegonProductAttributeValues } from "../masterData/productsAttributeValues/aegonProductAttributeValues.ts";
+import { dhflProductAttributeValues } from "../masterData/productsAttributeValues/dhflProductAttributeValues.ts";
+import { edelweissProductAttributeValues } from "../masterData/productsAttributeValues/edelweissProductAttributeValues.ts";
+import { hdfcProductAttributeValues } from "../masterData/productsAttributeValues/hdfcProductAttributeValues.ts";
+import { saharaProductAttributeValues } from "../masterData/productsAttributeValues/saharaProductAttributeValues.ts";
+import { unitTrustOfIndiaProductAttributeValues } from "../masterData/productsAttributeValues/unitTrustOfIndiaProductAttributeValues.ts";
+
+const allProductAttributeValues = [
+  ...bajajallianzAttributeValues,
+  ...canaraAttributeValues,
+  ...futuregeneraliAttributeValues,
+  ...pnbAttributeValues,
+  ...shriramAttributeValues,
+  ...LicProductAttributeValues,
+  ...axisAttributeValues,
+  ...aegonProductAttributeValues,
+  ...dhflProductAttributeValues,
+  ...edelweissProductAttributeValues,
+  ...hdfcProductAttributeValues,
+  ...saharaProductAttributeValues,
+  ...unitTrustOfIndiaProductAttributeValues,
+];
+
+export const seedProductAttributeValues = async (prisma: PrismaClient) => {
+  console.log("Seeding product attribute values...");
+  if (allProductAttributeValues.length === 0) {
+    console.log("No product attribute values to seed.");
+    return;
+  }
+
+  for (const attrValue of allProductAttributeValues) {
+    const product = await prisma.productMaster.findFirst({
+      where: { productName: attrValue.productCode },
+    });
+
+    const attribute = await prisma.productAttributeMaster.findUnique({
+      where: { attributeCode: attrValue.attributeCode },
+    });
+
+    if (product && attribute) {
+      await prisma.productAttributeValue.upsert({
+        where: {
+          productId_attributeId: {
+            productId: product.id,
+            attributeId: attribute.id,
+          },
+        },
+        update: {
+          value: attrValue.value,
+        },
+        create: {
+          productId: product.id,
+          attributeId: attribute.id,
+          value: attrValue.value,
+        },
+      });
+      console.log(
+        `Upserted attribute '${attribute.attributeName}' for product '${product.productName}'`,
+      );
+    } else {
+      console.warn(
+        `Could not find product '${attrValue.productCode}' or attribute '${attrValue.attributeCode}'. Skipping.`,
+      );
+    }
+  }
+};
