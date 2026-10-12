@@ -38,9 +38,9 @@ function CustomerModuleNavInner() {
   return (
     <nav
       aria-label="Customer module navigation"
-      className="inline-flex max-w-full bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100"
+      className="w-full bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 sm:inline-flex sm:w-auto"
     >
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+      <div className="grid w-full grid-cols-2 gap-1.5 sm:flex sm:w-auto sm:items-center sm:overflow-x-auto sm:scrollbar-none">
         {TABS.map(({ key, label, icon: Icon, href }) => {
           const isActive = activeTab === key;
           return (
@@ -49,12 +49,12 @@ function CustomerModuleNavInner() {
               href={href}
               aria-current={isActive ? "page" : undefined}
               className={`
-                relative flex items-center gap-2 px-6 py-2.5 rounded-[14px]
-                text-[14px] font-bold whitespace-nowrap
+                relative flex items-center justify-center gap-2 px-2 py-2.5 rounded-[14px]
+                text-xs font-bold whitespace-nowrap sm:px-6 sm:text-[14px]
                 transition-all duration-200 select-none
                 ${
                   isActive
-                    ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                    ? "bg-[#1565C0] text-white shadow-md shadow-blue-200"
                     : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
                 }
                 cursor-pointer
