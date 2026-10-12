@@ -248,6 +248,7 @@ export default function LoansPage() {
                   "Loan Amount",
                   "Interest Rate",
                   "Loan Date",
+                  "Next Interest Due",
                   "Outstanding",
                   "Status",
                   "Actions",
@@ -261,14 +262,14 @@ export default function LoansPage() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
+                  <td colSpan={9} className="px-5 py-12 text-center text-slate-500">
                     Loading loans…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-12 text-center text-slate-500"
                   >
                     No loans found.
@@ -302,6 +303,11 @@ export default function LoansPage() {
                       </td>
                       <td className="px-5 py-4 text-slate-600">
                         {dt(loan.loanDate)}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600 font-medium">
+                        {loan.summary?.nextInterestDueDate
+                          ? dt(loan.summary.nextInterestDueDate)
+                          : "—"}
                       </td>
                       <td className="px-5 py-4 font-semibold text-slate-900">
                         {money(outstanding)}

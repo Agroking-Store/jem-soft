@@ -282,6 +282,70 @@ function RepayFormInner() {
                 </table>
               </div>
 
+              {/* Quick Payment Options for Insurance Agents */}
+              <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/70">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                      Quick Action (Insurance Agent Standard):
+                    </span>
+                    <p className="text-xs text-blue-700 mt-0.5">
+                      Customers usually service interest every 6 months without disturbing the principal.
+                      {currentLoan.summary?.nextInterestDueDate && (
+                        <span className="ml-1 font-semibold text-blue-900">
+                          Next Interest Due: {new Date(currentLoan.summary.nextInterestDueDate).toLocaleDateString("en-IN")}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {accruedInterest > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleChange("repaymentAmount", String(accruedInterest));
+                          if (!form.remarks) {
+                            handleChange("remarks", `Repayment of accrued interest (₹${accruedInterest})`);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition active:scale-95 cursor-pointer"
+                      >
+                        Pay Accrued Interest (₹{accruedInterest.toLocaleString("en-IN")})
+                      </button>
+                    )}
+                    {(currentLoan.summary?.halfYearlyInterestDue ?? 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const halfDue = currentLoan.summary?.halfYearlyInterestDue ?? 0;
+                          handleChange("repaymentAmount", String(halfDue));
+                          if (!form.remarks) {
+                            handleChange("remarks", `Half-Yearly Interest Repayment (₹${halfDue})`);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition active:scale-95 cursor-pointer"
+                      >
+                        Pay Half-Yearly Due (₹{Number(currentLoan.summary?.halfYearlyInterestDue).toLocaleString("en-IN")})
+                      </button>
+                    )}
+                    {totalDue > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleChange("repaymentAmount", String(totalDue));
+                          if (!form.remarks) {
+                            handleChange("remarks", "Full loan closure (Principal + Interest)");
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition active:scale-95 cursor-pointer"
+                      >
+                        Full Settlement (₹{totalDue.toLocaleString("en-IN")})
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Repayment Fields */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
@@ -305,10 +369,16 @@ function RepayFormInner() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>
-                    Repayment Amount (₹){" "}
-                    <span className="text-rose-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-slate-700">
+                      Repayment Amount (₹) <span className="text-rose-500">*</span>
+                    </label>
+                    {repayAmountNum > 0 && repayAmountNum <= accruedInterest && (
+                      <span className="text-[11px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Interest-Only Payment
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
                     min="1"

@@ -238,6 +238,18 @@ export default function LoanDetailsPage() {
                   value={`₹${Number(summary?.accruedInterest || 0).toLocaleString("en-IN")}`}
                   amber
                 />
+                {(summary?.halfYearlyInterestDue ?? 0) > 0 && (
+                  <SummaryRow
+                    label="Half-Yearly Interest Due"
+                    value={`₹${Number(summary?.halfYearlyInterestDue).toLocaleString("en-IN")}`}
+                  />
+                )}
+                {summary?.nextInterestDueDate && (
+                  <SummaryRow
+                    label="Next Interest Due Date"
+                    value={new Date(summary.nextInterestDueDate).toLocaleDateString("en-IN")}
+                  />
+                )}
                 <div className="mt-3 p-3 bg-slate-900 rounded-lg">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E8C77A] mb-1">
                     Total Due (as of today)
