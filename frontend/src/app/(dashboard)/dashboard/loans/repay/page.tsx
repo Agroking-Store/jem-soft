@@ -17,6 +17,7 @@ import {
   FileText,
   HandCoins,
   AlertTriangle,
+  ArrowLeft,
 } from "lucide-react";
 import {
   CustomerSectionCard,
@@ -181,7 +182,7 @@ function RepayFormInner() {
       ).unwrap();
 
       toast.success("Repayment recorded successfully.");
-      router.push(`/dashboard/loans/${form.loanId}`);
+      router.push("/dashboard/loans");
     } catch (err: any) {
       toast.error(err?.message || err || "Failed to record repayment.");
     }
@@ -196,13 +197,23 @@ function RepayFormInner() {
         ]}
       />
 
-      <div>
-        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
-          Record Loan Repayment
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          Record a principal and interest repayment against an active loan.
-        </p>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/loans")}
+          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+          title="Back to Loans"
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <div>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+            Record Loan Repayment
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Record a principal and interest repayment against an active loan.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
