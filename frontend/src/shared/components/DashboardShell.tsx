@@ -10,7 +10,7 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
   const closeNavigation = () => setIsNavigationOpen(false);
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
       <Sidebar isOpen={isNavigationOpen} onClose={closeNavigation} />
       {isNavigationOpen && (
         <button
@@ -20,7 +20,7 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
           onClick={closeNavigation}
         />
       )}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-col lg:pl-64">
         <Header
           isNavigationOpen={isNavigationOpen}
           onMenuToggle={() => setIsNavigationOpen((isOpen) => !isOpen)}
