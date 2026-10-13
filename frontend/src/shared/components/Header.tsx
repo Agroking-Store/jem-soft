@@ -13,7 +13,15 @@ interface HeaderProps {
 }
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
+  { match: "/dashboard/lic/reports", title: "LIC Reports" },
+  { match: "/dashboard/lic/comm-reports", title: "Commission Reports" },
+  { match: "/dashboard/lic/policies/new", title: "Create LIC Policy" },
+  { match: "/dashboard/lic/policies/edit", title: "Edit LIC Policy" },
+  { match: "/dashboard/lic/policies", title: "LIC Policies" },
+  { match: "/dashboard/customers/master", title: "Customer Master" },
   { match: "/dashboard/customers", title: "Customers" },
+  { match: "/dashboard/claims/new", title: "Create Claim" },
+  { match: "/dashboard/claims/edit", title: "Edit Claim" },
   { match: "/dashboard/lic", title: "LIC" },
   { match: "/dashboard/premium-payments", title: "Premium Payments" },
   { match: "/dashboard/claims", title: "Claims" },
@@ -35,6 +43,7 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const pageTitle = getPageTitle(pathname);
 
   useEffect(() => {
@@ -47,6 +56,17 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isProfileOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setIsProfileOpen(false);
+      profileButtonRef.current?.focus();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isProfileOpen]);
 
   const handleLogout = () => {
     setIsProfileOpen(false);
@@ -74,13 +94,14 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
 
         <div className="relative" ref={dropdownRef}>
           <button
+            ref={profileButtonRef}
             type="button"
             onClick={() => setIsProfileOpen((isOpen) => !isOpen)}
             className={`flex items-center gap-2 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:px-3 sm:py-2 ${
               isProfileOpen ? "bg-slate-100" : "hover:bg-slate-50"
             }`}
             aria-label="Open account menu"
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
             aria-controls="account-menu"
             aria-expanded={isProfileOpen}
           >
@@ -107,13 +128,12 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
           {isProfileOpen && (
             <div
               id="account-menu"
-              role="menu"
+              role="dialog"
               aria-label="Account menu"
               className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10"
             >
               <Link
                 href="/dashboard/profile"
-                role="menuitem"
                 onClick={() => setIsProfileOpen(false)}
                 className="block border-b border-slate-100 p-4 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
               >
@@ -131,7 +151,6 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
               <div className="p-2">
                 <button
                   type="button"
-                  role="menuitem"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-rose-600 transition-colors hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600"
                 >

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
@@ -116,15 +116,17 @@ function Chip({ dotColor, children }: { dotColor: string; children: ReactNode })
 function TableHeadCell({
   children,
   align = "left",
+  className = "",
 }: {
   children: ReactNode;
   align?: "left" | "center" | "right";
+  className?: string;
 }) {
   return (
     <th
       className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-600 ${
         align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
-      }`}
+      } ${className}`}
     >
       {children}
     </th>
@@ -198,6 +200,7 @@ function TablePagination({
 
 export default function CustomerListPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { customers, isLoading, error } = useSelector(
@@ -212,11 +215,11 @@ export default function CustomerListPage() {
   const paramTab = searchParams.get("tab");
   const activeTab: Tab = paramTab === "master" ? "master" : "group";
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [groupPage, setGroupPage] = useState(1);
-  const [groupPageSize, setGroupPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
-  const [masterPage, setMasterPage] = useState(1);
-  const [masterPageSize, setMasterPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("q") ?? "");
+  const [groupPage, setGroupPage] = useState(() => Math.max(1, Number(searchParams.get("groupPage")) || 1));
+  const [groupPageSize, setGroupPageSize] = useState<number>(() => PAGE_SIZE_OPTIONS.includes(Number(searchParams.get("groupPageSize")) as typeof PAGE_SIZE_OPTIONS[number]) ? Number(searchParams.get("groupPageSize")) : PAGE_SIZE_OPTIONS[0]);
+  const [masterPage, setMasterPage] = useState(() => Math.max(1, Number(searchParams.get("masterPage")) || 1));
+  const [masterPageSize, setMasterPageSize] = useState<number>(() => PAGE_SIZE_OPTIONS.includes(Number(searchParams.get("masterPageSize")) as typeof PAGE_SIZE_OPTIONS[number]) ? Number(searchParams.get("masterPageSize")) : PAGE_SIZE_OPTIONS[0]);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -226,6 +229,7 @@ export default function CustomerListPage() {
   const typeaheadResetTimerRef = useRef<number | null>(null);
   const typeaheadRowRef = useRef<HTMLTableRowElement>(null);
   const [keyboardMatchId, setKeyboardMatchId] = useState<string | null>(null);
+  const [keyboardMatchAnnouncement, setKeyboardMatchAnnouncement] = useState("");
   const showListChrome = true;
 
   useEffect(() => {
@@ -298,8 +302,24 @@ export default function CustomerListPage() {
   );
 
   useEffect(() => {
-    setSearchTerm("");
-  }, [activeTab]);
+    const params = new URLSearchParams(searchParams.toString());
+    const updates: Record<string, string> = {
+      groupPage: String(groupPage),
+      groupPageSize: String(groupPageSize),
+      masterPage: String(masterPage),
+      masterPageSize: String(masterPageSize),
+    };
+    if (searchTerm) {
+      updates.q = searchTerm;
+    } else {
+      params.delete("q");
+    }
+    Object.entries(updates).forEach(([key, value]) => params.set(key, value));
+    const nextQuery = params.toString();
+    if (nextQuery !== searchParams.toString()) {
+      router.replace(`/dashboard/customers?${nextQuery}`, { scroll: false });
+    }
+  }, [groupPage, groupPageSize, masterPage, masterPageSize, router, searchParams, searchTerm]);
 
   useEffect(() => {
     const handleTypeahead = (event: KeyboardEvent) => {
@@ -341,6 +361,7 @@ export default function CustomerListPage() {
       typeaheadBufferRef.current = query;
       const match = keyboardCandidates[matchIndex];
       setKeyboardMatchId(match.id);
+      setKeyboardMatchAnnouncement(`${match.label}, result ${matchIndex + 1} of ${keyboardCandidates.length} selected.`);
 
       if (activeTab === "group") {
         setGroupPage(Math.floor(matchIndex / groupPageSize) + 1);
@@ -513,9 +534,9 @@ export default function CustomerListPage() {
                   <tr>
                     <TableHeadCell>Group Code</TableHeadCell>
                     <TableHeadCell>Group Name</TableHeadCell>
-                    <TableHeadCell>Category</TableHeadCell>
-                    <TableHeadCell align="center">Members</TableHeadCell>
-                    {isClient && canEdit && <TableHeadCell align="right">Actions</TableHeadCell>}
+                    <TableHeadCell className="hidden sm:table-cell">Category</TableHeadCell>
+                    <TableHeadCell align="center" className="hidden sm:table-cell">Members</TableHeadCell>
+                    {isClient && <TableHeadCell align="right">Actions</TableHeadCell>}
                   </tr>
                 </thead>
                 <tbody>
@@ -557,17 +578,17 @@ export default function CustomerListPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 align-top">
+                        <td className="hidden px-4 py-4 align-top sm:table-cell">
                           {customer.category ? (
                             <Chip dotColor={dotColor}>{customer.category}</Chip>
                           ) : (
                             <span className="text-xs text-slate-300">-</span>
                           )}
                         </td>
-                        <td className="px-4 py-4 text-center align-top">
+                        <td className="hidden px-4 py-4 text-center align-top sm:table-cell">
                           <span className="inline-flex items-center justify-center rounded-xl bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{memberCount}</span>
                         </td>
-                        {isClient && canEdit && (
+                        {isClient && (
                           <td className="px-4 py-4 text-right align-top">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
@@ -578,9 +599,11 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105 cursor-pointer"
                                 title="View"
+                                aria-label={`View ${displayName}`}
                               >
                                 <Eye size={14} />
                               </button>
+                              {canEdit && <>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -589,6 +612,7 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
                                 title="Edit"
+                                aria-label={`Edit ${displayName}`}
                               >
                                 <SquarePen size={14} />
                               </button>
@@ -599,9 +623,11 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
                                 title="Delete"
+                                aria-label={`Delete ${displayName}`}
                               >
                                 <Trash2 size={14} />
                               </button>
+                              </>}
                             </div>
                           </td>
                         )}
@@ -671,11 +697,11 @@ export default function CustomerListPage() {
                 <tr>
                   <TableHeadCell>Customer Name</TableHeadCell>
                   <TableHeadCell>Group</TableHeadCell>
-                  <TableHeadCell>Relation</TableHeadCell>
-                  <TableHeadCell>Contact</TableHeadCell>
-                  <TableHeadCell>Type</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell">Relation</TableHeadCell>
+                  <TableHeadCell className="hidden md:table-cell">Contact</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell">Type</TableHeadCell>
                   <TableHeadCell align="center">Status</TableHeadCell>
-                  {isClient && canEdit && <TableHeadCell align="right">Actions</TableHeadCell>}
+                  {isClient && <TableHeadCell align="right">Actions</TableHeadCell>}
                 </tr>
               </thead>
               <tbody>
@@ -732,10 +758,10 @@ export default function CustomerListPage() {
                             <span className="text-xs text-slate-300">Not mapped</span>
                           )}
                         </td>
-                        <td className="px-4 py-4 align-top text-sm text-slate-600">
+                        <td className="hidden px-4 py-4 align-top text-sm text-slate-600 lg:table-cell">
                           {customer.miscInfo?.relationToGroup || "-"}
                         </td>
-                        <td className="px-4 py-4 align-top">
+                        <td className="hidden px-4 py-4 align-top md:table-cell">
                           <div className="space-y-1">
                             {customer.contactInfo?.mobile1 && (
                               <div className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -754,7 +780,7 @@ export default function CustomerListPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4 align-top text-sm text-slate-700">{customer.customerType || "-"}</td>
+                        <td className="hidden px-4 py-4 align-top text-sm text-slate-700 lg:table-cell">{customer.customerType || "-"}</td>
                         <td className="px-4 py-4 align-top text-center">
                           {customer.isGroupHead ? (
                             <Chip dotColor="bg-[#1877F2]">
@@ -765,7 +791,7 @@ export default function CustomerListPage() {
                             <Chip dotColor="bg-slate-300">Member</Chip>
                           )}
                         </td>
-                        {isClient && canEdit && (
+                        {isClient && (
                           <td className="px-4 py-4 text-right align-top">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
@@ -776,9 +802,11 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] hover:scale-105 cursor-pointer"
                                 title="View"
+                                aria-label={`View ${fullName}`}
                               >
                                 <Eye size={14} />
                               </button>
+                              {canEdit && <>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -787,6 +815,7 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
                                 title="Edit"
+                                aria-label={`Edit ${fullName}`}
                               >
                                 <SquarePen size={14} />
                               </button>
@@ -797,9 +826,11 @@ export default function CustomerListPage() {
                                 }}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
                                 title="Delete"
+                                aria-label={`Delete ${fullName}`}
                               >
                                 <Trash2 size={14} />
                               </button>
+                              </>}
                             </div>
                           </td>
                         )}
@@ -921,13 +952,9 @@ export default function CustomerListPage() {
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
             <Users size={26} />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
-              Customers
-            </h1>
-            <p className="mt-0.5 text-sm font-medium text-slate-500">
-            </p>
-          </div>
+          <p className="text-sm font-medium text-slate-600">
+            Manage customer groups and individual customer records.
+          </p>
         </div>
 
         {isClient && canEdit && (
@@ -942,6 +969,11 @@ export default function CustomerListPage() {
             </button>
           </div>
         )}
+        {isClient && !canEdit && (
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">
+            Read-only access
+          </span>
+        )}
       </div>
 
       {showListChrome && (
@@ -952,6 +984,7 @@ export default function CustomerListPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
+                aria-label="Search customers"
                 placeholder={
                   activeTab === "group"
                     ? "Search by group name, code, or category..."
@@ -976,15 +1009,19 @@ export default function CustomerListPage() {
 
       {activeContent}
 
+      <p className="sr-only" aria-live="polite">{keyboardMatchAnnouncement}</p>
+
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.28)]">
+          <div role="dialog" aria-modal="true" aria-labelledby="delete-customer-title" onKeyDown={(event) => {
+            if (event.key === "Escape") setDeleteTarget(null);
+          }} className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.28)]">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
                 <Trash2 size={18} />
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold text-slate-900">{deleteTitle}</h3>
+                <h3 id="delete-customer-title" className="text-lg font-semibold text-slate-900">{deleteTitle}</h3>
                 <p className="mt-1 text-sm leading-6 text-slate-500">
                   {deleteText}
                 </p>
@@ -993,6 +1030,7 @@ export default function CustomerListPage() {
             </div>
             <div className="mt-6 flex items-center justify-end gap-2">
               <button
+                autoFocus
                 onClick={() => setDeleteTarget(null)}
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 cursor-pointer"
               >

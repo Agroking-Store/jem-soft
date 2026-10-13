@@ -10,6 +10,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, icon, className = "", ...props }, ref) => {
     const generatedId = useId();
     const inputId = props.id ?? generatedId;
+    const errorId = `${inputId}-error`;
 
     return (
       <div className="flex w-full flex-col gap-1.5">
@@ -25,6 +26,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : props["aria-describedby"]}
             className={`
               w-full rounded-xl border bg-white py-2.75 text-sm text-slate-900 transition-all
               ${icon ? "pl-10 pr-3" : "px-3"}
@@ -36,7 +39,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
         </div>
-        {error && <p className="mt-0.5 text-xs text-rose-600">{error}</p>}
+        {error && <p id={errorId} className="mt-0.5 text-xs text-rose-600">{error}</p>}
       </div>
     );
   },

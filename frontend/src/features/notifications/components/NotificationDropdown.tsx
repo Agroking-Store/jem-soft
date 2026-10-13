@@ -42,6 +42,9 @@ export default function NotificationDropdown({
 
   return (
     <div
+      id="notification-dropdown"
+      role="dialog"
+      aria-label="Notifications"
       className="
         absolute
         right-0

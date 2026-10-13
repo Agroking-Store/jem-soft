@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
@@ -17,6 +17,10 @@ export type CustomerModalEntry =
   | { key: string; type: "family-edit"; id: string }
   | { key: string; type: "medical-create"; memberId: string }
   | { key: string; type: "medical-edit"; id: string; memberId: string };
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationState = () => true;
+const getServerHydrationState = () => false;
 
 export function getCustomerModalTitle(entry: CustomerModalEntry) {
   switch (entry.type) {
@@ -58,10 +62,47 @@ export function CustomerModalShell({
   children: ReactNode;
   onClose: () => void;
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationState,
+    getServerHydrationState,
+  );
+  const dialogRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!mounted || !isTop || !dialogRef.current) return;
+    const dialog = dialogRef.current;
+    const focusable = () => Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    const first = focusable()[0];
+    first?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const firstItem = items[0];
+      const lastItem = items[items.length - 1];
+      if (!firstItem || !lastItem) return;
+      if (event.shiftKey && document.activeElement === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && document.activeElement === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isTop, mounted, onClose]);
 
   const modal = (
     <div
@@ -76,6 +117,7 @@ export function CustomerModalShell({
         className="absolute inset-0 cursor-default bg-slate-950/50 backdrop-blur-sm"
       />
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal={isTop}
         aria-label={getCustomerModalTitle(entry)}
@@ -98,6 +140,7 @@ export function CustomerModalShell({
             onClick={onClose}
             className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
             title="Close"
+            aria-label="Close modal"
           >
             <X size={18} />
           </button>

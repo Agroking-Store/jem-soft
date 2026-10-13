@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import {
   Calculator,
   FileSpreadsheet,
@@ -30,6 +30,8 @@ const getServerHydrationState = () => false;
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const { user } = useAuth();
+  const sidebarRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationState,
@@ -38,6 +40,38 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const hasDashboardAccess = isHydrated && ["ADMIN", "ADVISOR", "VIEWER"].includes(
     user?.role ?? ""
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    closeButtonRef.current?.focus();
+  }, [isOpen]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (!isOpen) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key !== "Tab" || !sidebarRef.current) return;
+
+    const focusable = Array.from(
+      sidebarRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -69,8 +103,12 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <aside
+      ref={sidebarRef}
       id="primary-navigation"
       aria-label="Primary navigation"
+      aria-modal={isOpen || undefined}
+      role={isOpen ? "dialog" : undefined}
+      onKeyDown={handleKeyDown}
       className={`fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white shadow-2xl shadow-slate-950/10 transition-transform duration-200 ease-out lg:h-screen lg:w-64 lg:translate-x-0 lg:shadow-none ${
         isOpen ? "translate-x-0" : ""
       }`}
@@ -87,6 +125,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <span className="text-xl font-bold tracking-tight text-slate-900">JEM Soft</span>
         </Link>
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 lg:hidden"

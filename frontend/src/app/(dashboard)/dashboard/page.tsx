@@ -304,8 +304,8 @@ export default function DashboardPage() {
                   <Icon size={18} aria-hidden="true" />
                 </span>
               </div>
-              <p className={`mt-4 text-2xl font-bold ${presentation.valueClass}`}>
-              {card.loading ? "…" : card.value}
+              <p className={`mt-4 text-2xl font-bold ${presentation.valueClass}`} aria-busy={card.loading}>
+                {card.loading ? <span className="inline-block h-7 w-20 animate-pulse rounded bg-slate-100" aria-label={`Loading ${card.label}`} /> : card.value}
               </p>
               <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors group-hover:text-slate-700">
                 View details <ArrowRight size={13} aria-hidden="true" />

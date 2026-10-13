@@ -50,7 +50,12 @@ export const LoginForm = () => {
         return;
       }
 
-      // If system login fails, try customer portal login
+      const systemLoginError = String(result.payload ?? "").toLowerCase();
+      if (systemLoginError && !systemLoginError.includes("invalid")) {
+        toast.error("We could not sign you in right now. Check your connection and try again.");
+        return;
+      }
+
       const customerResult = await dispatch(loginPortalCustomer({ email: data.email, password: data.password }));
       if (loginPortalCustomer.fulfilled.match(customerResult)) {
         const customer = customerResult.payload.data.customer;
@@ -59,7 +64,6 @@ export const LoginForm = () => {
         return;
       }
 
-      // Both failed
       toast.error("Invalid email or password");
     } finally {
       setIsSubmitting(false);
@@ -75,7 +79,7 @@ export const LoginForm = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <Input
           label="Email Address"
           placeholder="name@company.com"
@@ -106,6 +110,15 @@ export const LoginForm = () => {
         <Button type="submit" isLoading={isLoading || isSubmitting} className="mt-4 min-h-12 w-full text-base">
           Sign In
         </Button>
+
+        <p className="text-center text-sm">
+          <Link
+            href="/login/help"
+            className="font-medium text-blue-600 transition-colors hover:text-blue-700"
+          >
+            Need help signing in?
+          </Link>
+        </p>
 
         <p className="text-sm text-center text-slate-500 pt-4">
           Don&apos;t have an account?{" "}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
 import { Check, ChevronDown, Search as SearchIcon } from "lucide-react";
@@ -196,7 +196,10 @@ export function CustomerTableFrame({
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="overflow-x-auto">{children}</div>
+      <p className="border-b border-slate-100 px-4 py-2 text-xs font-medium text-slate-500 sm:hidden">
+        Swipe sideways to view all columns.
+      </p>
+      <div className="overflow-x-auto" role="region" aria-label="Scrollable data table" tabIndex={0}>{children}</div>
       {footer && <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3">{footer}</div>}
     </div>
   );
@@ -242,6 +245,8 @@ function DropdownPanel({
   options: optionsOrGroups,
   value,
   onSelect,
+  onClose,
+  id,
   style,
   panelRef,
 }: {
@@ -251,6 +256,8 @@ function DropdownPanel({
   options: (SelectOption | SelectOptionGroup)[];
   value?: string;
   onSelect: (value: string) => void;
+  onClose: () => void;
+  id: string;
   style: React.CSSProperties;
   panelRef: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -293,13 +300,23 @@ function DropdownPanel({
   return createPortal(
     <div
       ref={panelRef}
+      id={id}
+      role="listbox"
+      aria-label="Options"
       style={style}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          onClose();
+        }
+      }}
       className="absolute z-[1000] mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
     >
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <SearchIcon size={14} className="shrink-0 text-slate-400" />
         <input
           ref={searchInputRef}
+          aria-label="Search options"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder={searchPlaceholder}
@@ -311,7 +328,7 @@ function DropdownPanel({
         {!hasAnyResults ? (
           <p className="px-3 py-4 text-center text-sm text-slate-400">No results found</p>
         ) : (
-          optionsOrGroups.map((item, index) => {
+          optionsOrGroups.map((item) => {
             if ('options' in item) { // It's a group
               const filteredGroupOptions = item.options.filter(filterOption);
               if (filteredGroupOptions.length === 0) return null;
@@ -329,7 +346,7 @@ function DropdownPanel({
                     <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{item.label}</div>
                   )}
                   {!isCollapsed && filteredGroupOptions.map(opt => (
-                    <button key={opt.value} type="button" onClick={() => onSelect(opt.value)} className={`flex w-full items-center justify-between gap-2 pl-6 pr-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"}`}>
+                    <button key={opt.value} role="option" aria-selected={opt.value === value} type="button" onClick={() => onSelect(opt.value)} className={`flex w-full items-center justify-between gap-2 pl-6 pr-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"}`}>
                       <span className="min-w-0">
                         <span className="block truncate">{opt.label}</span>
                         {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
@@ -344,6 +361,8 @@ function DropdownPanel({
               return (
                 <button
                   key={item.value}
+                  role="option"
+                  aria-selected={item.value === value}
                   type="button"
                   onClick={() => onSelect(item.value)}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
@@ -391,6 +410,7 @@ export function SearchableSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const menuId = useId();
   const [pos, setPos] = useState<React.CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -450,6 +470,19 @@ export function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+          }
+          if (event.key === "Escape") {
+            setOpen(false);
+            setQuery("");
+          }
+        }}
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-haspopup="listbox"
         className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 text-sm outline-none transition-all
           ${icon ? "pl-9 pr-3" : "px-3"}
           ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"}
@@ -478,6 +511,12 @@ export function SearchableSelect({
             setOpen(false);
             setQuery("");
           }}
+          onClose={() => {
+            setOpen(false);
+            setQuery("");
+            triggerRef.current?.focus();
+          }}
+          id={menuId}
           style={pos}
           panelRef={panelRef}
         />
@@ -519,6 +558,7 @@ export function FilterSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const menuId = useId();
   const [pos, setPos] = useState<React.CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -571,6 +611,19 @@ export function FilterSelect({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+          }
+          if (event.key === "Escape") {
+            setOpen(false);
+            setQuery("");
+          }
+        }}
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-haspopup="listbox"
         className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer ${
           active || open
             ? "border-blue-200 bg-blue-50/70 text-[#1877F2]"
@@ -594,6 +647,12 @@ export function FilterSelect({
             setOpen(false);
             setQuery("");
           }}
+          onClose={() => {
+            setOpen(false);
+            setQuery("");
+            triggerRef.current?.focus();
+          }}
+          id={menuId}
           style={pos}
           panelRef={panelRef}
         />

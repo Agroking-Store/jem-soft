@@ -550,7 +550,8 @@ function LICPoliciesContent() {
           </div>
         ) : (
           <div>
-            <div className="overflow-x-auto">
+            <p className="mb-2 text-xs font-medium text-slate-500 sm:hidden">Swipe sideways to view policy details.</p>
+            <div className="overflow-x-auto" role="region" aria-label="Scrollable policy table" tabIndex={0}>
               <table className="w-full min-w-[980px] border-separate border-spacing-0 text-left text-sm">
                 <thead>
                   <tr>

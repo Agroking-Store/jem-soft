@@ -13,10 +13,10 @@ export default function LoginPage() {
           <span>© 2025 JEM Soft. All rights reserved.</span>
         </div>
         <div className="flex justify-center gap-4 text-xs text-slate-400">
-          <Link href="#" className="hover:text-blue-600 transition-colors">
+          <Link href="/privacy" className="hover:text-blue-600 transition-colors">
             Privacy Policy
           </Link>
-          <Link href="#" className="hover:text-blue-600 transition-colors">
+          <Link href="/terms" className="hover:text-blue-600 transition-colors">
             Terms of Service
           </Link>
         </div>

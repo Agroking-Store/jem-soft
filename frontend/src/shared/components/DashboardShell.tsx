@@ -20,7 +20,11 @@ export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
           onClick={closeNavigation}
         />
       )}
-      <div className="flex min-w-0 flex-col lg:pl-64">
+      <div
+        className="flex min-w-0 flex-col lg:pl-64"
+        aria-hidden={isNavigationOpen || undefined}
+        inert={isNavigationOpen}
+      >
         <Header
           isNavigationOpen={isNavigationOpen}
           onMenuToggle={() => setIsNavigationOpen((isOpen) => !isOpen)}
