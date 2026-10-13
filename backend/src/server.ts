@@ -1,9 +1,7 @@
+import "dotenv/config";
 import app from "./app.js";
-import dotenv from "dotenv";
 import { initScheduler } from "./services/schedulerService.js";
 import { seedDefaultTemplates } from "./services/templateService.js";
-
-dotenv.config(); // Reload env
 
 const port = process.env.PORT || 5000;
 
