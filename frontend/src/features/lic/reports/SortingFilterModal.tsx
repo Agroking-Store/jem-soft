@@ -22,7 +22,7 @@ interface SortingFilterModalProps {
     resCity?: string | null;
     resPincode?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   /**
    * Real LIC branch master list (from licBranchSlice / fetchLicBranches).
    * Optional & backward compatible — when omitted, Branch No. Wise falls back
@@ -192,7 +192,7 @@ export default function SortingFilterModal({
         const subAreas = Array.from(
           new Set(
             customers
-              .map((c) => (c as any).resCity)
+              .map((c) => (c as LegacyUnsafeValue).resCity)
               .filter((city): city is string => Boolean(city && city.trim().length > 0))
           )
         );

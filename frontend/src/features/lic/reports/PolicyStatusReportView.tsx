@@ -118,7 +118,7 @@ export default function PolicyStatusReportView({
 
       pdf.save(`Policy_Status_${formData.policyNumber || "Report"}.pdf`);
       toast.success("Executive PDF exported successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });

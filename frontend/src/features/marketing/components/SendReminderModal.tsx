@@ -125,7 +125,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
       } else {
         toast.error(res.message || `Failed to send ${channel}`);
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(
         err.response?.data?.message || err.message || `Failed to send ${channel}`
       );
@@ -151,7 +151,7 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
   };
 
   // ── Pill helper ─────────────────────────────────────────────────────────
-  const optPill = (active: boolean | undefined, label: string, Icon: any) => (
+  const optPill = (active: boolean | undefined, label: string, Icon: LegacyUnsafeValue) => (
     <span
       className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
         active

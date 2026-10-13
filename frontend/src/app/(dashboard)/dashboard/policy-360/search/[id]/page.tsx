@@ -144,7 +144,7 @@ export default function ViewPolicy360Page() {
   );
 
   const { register, control, watch, reset } = useForm<PolicyFormValues>({
-    resolver: zodResolver(policySchema) as any,
+    resolver: zodResolver(policySchema) as LegacyUnsafeValue,
     defaultValues: {
       riders: [],
       nominees: [],
@@ -261,7 +261,7 @@ export default function ViewPolicy360Page() {
         : "",
       fuliDate:
         selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "fuliDate",
+          (a: LegacyUnsafeValue) => a.attribute?.attributeCode === "fuliDate",
         )?.value ?? "",
       premiumAdjusted: selectedPolicy.premium?.extraClass?.toString() ?? "",
       dob: selectedPolicy.CustomerMaster?.dob
@@ -281,48 +281,48 @@ export default function ViewPolicy360Page() {
       loanTaken: "",
       annuityDetails:
         selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "annuityDetails",
+          (a: LegacyUnsafeValue) => a.attribute?.attributeCode === "annuityDetails",
         )?.value ?? "",
       otherInformation: selectedPolicy.remarks ?? "",
       bankName:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.bankName ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankName ??
         "",
       bankBranch:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.bankBranch ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.bankBranch ??
         "",
       city:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.city ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.city ??
         "",
       accountType:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.accountType ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountType ??
         "",
       accountNumber:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.accountNumber ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.accountNumber ??
         "",
       ifscCode:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.ifscCode ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.ifscCode ??
         "",
       micrNumber:
         selectedPolicy.CustomerMaster?.bankDetails?.find(
-          (b: any) => b.isDefault,
+          (b: LegacyUnsafeValue) => b.isDefault,
         )?.micrNumber ??
         selectedPolicy.CustomerMaster?.bankDetails?.[0]?.micrNumber ??
         "",
@@ -337,7 +337,7 @@ export default function ViewPolicy360Page() {
       notes: selectedPolicy.remarks ?? "",
 
       riders:
-        selectedPolicy.policyRiders?.map((r: any) => ({
+        selectedPolicy.policyRiders?.map((r: LegacyUnsafeValue) => ({
           description: r.rider.riderName,
           sum: r.riderAmount,
           premium: r.riderPremium,
@@ -1363,7 +1363,7 @@ export default function ViewPolicy360Page() {
                     selectedPolicy.nominees.length > 0 ? (
                       <div className="space-y-4">
                         {selectedPolicy.nominees.map(
-                          (nominee: any, index: number) => (
+                          (nominee: LegacyUnsafeValue, index: number) => (
                             <div
                               key={nominee.id || index}
                               className="border border-slate-200 rounded-lg p-4 space-y-3 relative"

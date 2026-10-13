@@ -22,9 +22,9 @@ import toast from "react-hot-toast";
 
 interface LoanInterestOutstandingReportViewProps {
   formData: LoanInterestOutstandingFormData;
-  policies?: any[];
-  customers?: any[];
-  loans?: any[];
+  policies?: LegacyUnsafeValue[];
+  customers?: LegacyUnsafeValue[];
+  loans?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -74,8 +74,8 @@ export default function LoanInterestOutstandingReportView({
     );
 
     const sortingPairs = (formData.sortingFilterSelection?.selectedItems || []).map((i) => ({
-      code: ((i as any).code || "").toLowerCase().trim(),
-      name: ((i as any).name || "").toLowerCase().trim(),
+      code: ((i as LegacyUnsafeValue).code || "").toLowerCase().trim(),
+      name: ((i as LegacyUnsafeValue).name || "").toLowerCase().trim(),
     }));
 
     const matchesSorting = (codeVal?: string, nameVal?: string) => {
@@ -94,22 +94,22 @@ export default function LoanInterestOutstandingReportView({
     };
 
     /* ---------------- source rows ---------------- */
-    let sourceItems: any[] = [];
+    let sourceItems: LegacyUnsafeValue[] = [];
 
     if (loans && loans.length > 0) {
       sourceItems = loans.map((loan) => {
         const p = loan.policy || {};
         const repayments = loan.repayments || [];
         const relevant = repayments.filter(
-          (r: any) => r.repaymentDate && new Date(r.repaymentDate) <= calculationDate
+          (r: LegacyUnsafeValue) => r.repaymentDate && new Date(r.repaymentDate) <= calculationDate
         );
 
         const totalPrincipalRepaid = relevant.reduce(
-          (s: number, r: any) => s + Number(r.principalComponent || 0),
+          (s: number, r: LegacyUnsafeValue) => s + Number(r.principalComponent || 0),
           0
         );
         const totalInterestPaid = relevant.reduce(
-          (s: number, r: any) => s + Number(r.interestComponent || 0),
+          (s: number, r: LegacyUnsafeValue) => s + Number(r.interestComponent || 0),
           0
         );
 
@@ -255,9 +255,9 @@ export default function LoanInterestOutstandingReportView({
     });
 
     /* ---------------- grouping ---------------- */
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
     const summary = {
-      members: new Map<string, any>(),
+      members: new Map<string, LegacyUnsafeValue>(),
       totalPolicies: 0,
       totalLoanAmount: 0,
       totalPrincipalPaid: 0,
@@ -359,7 +359,7 @@ export default function LoanInterestOutstandingReportView({
       summary.totalOutstanding += item.outstandingDue;
     });
 
-    const groupData = Object.values(groupMap).map((g: any) => ({
+    const groupData = Object.values(groupMap).map((g: LegacyUnsafeValue) => ({
       ...g,
       members: Object.values(g.membersMap),
     }));
@@ -425,7 +425,7 @@ export default function LoanInterestOutstandingReportView({
 
       pdf.save(`Loan_Outstanding_Due_${formData.reportType}_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -542,7 +542,7 @@ export default function LoanInterestOutstandingReportView({
                   </tr>
                 )}
 
-                {group.members.map((member: any) => (
+                {group.members.map((member: LegacyUnsafeValue) => (
                   <Fragment key={member.name}>
                     <tr>
                       <td colSpan={totalCols} className="pt-2 pb-0.5">
@@ -568,7 +568,7 @@ export default function LoanInterestOutstandingReportView({
                       </td>
                     </tr>
 
-                    {member.policies.map((p: any) => (
+                    {member.policies.map((p: LegacyUnsafeValue) => (
                       <tr key={`${p.policyNo}-${p.sr}`}>
                         <td className="px-1 py-0.5">{p.sr}</td>
                         <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
@@ -664,8 +664,8 @@ export default function LoanInterestOutstandingReportView({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {report.mailingLabels
-                  .filter((l: any) => l.address)
-                  .map((l: any) => (
+                  .filter((l: LegacyUnsafeValue) => l.address)
+                  .map((l: LegacyUnsafeValue) => (
                     <div key={l.name} className="border border-black p-2 text-[10px] leading-tight break-words">
                       <div className="font-bold uppercase">{l.name}</div>
                       <div>{l.address}</div>
@@ -699,7 +699,7 @@ export default function LoanInterestOutstandingReportView({
                   </tr>
                 </thead>
                 <tbody>
-                  {report.mailingLabels.map((l: any, i: number) => (
+                  {report.mailingLabels.map((l: LegacyUnsafeValue, i: number) => (
                     <tr key={l.name}>
                       <td className="px-1 py-0.5">{i + 1}</td>
                       <td className="px-1 py-0.5">{l.name}</td>
@@ -720,7 +720,7 @@ export default function LoanInterestOutstandingReportView({
                     </td>
                     <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                       <span style={totalValueStyle}>
-                        ₹ {money(report.mailingLabels.reduce((s: number, l: any) => s + costPerDespatch * l.policyNos.length, 0))}
+                        ₹ {money(report.mailingLabels.reduce((s: number, l: LegacyUnsafeValue) => s + costPerDespatch * l.policyNos.length, 0))}
                       </span>
                     </td>
                   </tr>

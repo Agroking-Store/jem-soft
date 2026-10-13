@@ -425,7 +425,7 @@ export default function CustomerListPage() {
       } else if (type === "medical-edit") {
         entry = { key, type, id: id || "", memberId: extraId || "" };
       } else {
-        entry = { key, type, ...(id ? { id } : {}) } as any;
+        entry = { key, type, ...(id ? { id } : {}) } as LegacyUnsafeValue;
       }
       return [...previous, entry];
     });

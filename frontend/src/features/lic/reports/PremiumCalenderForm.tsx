@@ -58,7 +58,7 @@ interface PremiumCalendarFormProps {
     name: string;
     groupName?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
@@ -437,7 +437,7 @@ export default function PremiumCalendarForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))

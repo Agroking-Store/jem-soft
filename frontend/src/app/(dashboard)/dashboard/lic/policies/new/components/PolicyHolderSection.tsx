@@ -11,9 +11,9 @@ export function PolicyHolderSection({
   selectedGroup,
   attributeHintsAge,
 }: {
-  groups: any[];
-  groupMembers: any[];
-  selectedGroup: any;
+  groups: LegacyUnsafeValue[];
+  groupMembers: LegacyUnsafeValue[];
+  selectedGroup: LegacyUnsafeValue;
   attributeHintsAge?: string;
 }) {
   const { register, control, watch, formState: { errors } } = useFormContext<PolicyFormValues>();

@@ -28,7 +28,7 @@ interface CommissionOutstandingFormProps {
   initialData?: CommissionOutstandingFormData | null;
   agencies?: Array<{ id: string; agencyCode: string; agencyName: string; branchId?: string }>;
   branches?: BranchFilterItem[];
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBack: () => void;
   onGenerateReport: (data: CommissionOutstandingFormData) => void;
 }

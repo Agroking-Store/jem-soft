@@ -101,7 +101,7 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
       await dispatch(deleteQuotation(deleteTarget.id)).unwrap();
       toast.success("Quotation deleted successfully");
       dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: 1, limit: 6 }));
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err?.message || "Failed to delete");
     } finally {
       setIsDeleting(false);

@@ -306,7 +306,7 @@ export default function PremiumDuePage() {
           <div className="p-5 grid grid-cols-3">
             {policyRiders?.map((pr, idx) => {
               return (
-                <div key={(pr as any).id ?? idx} className="contents">
+                <div key={(pr as LegacyUnsafeValue).id ?? idx} className="contents">
                   <span className="mt-5">{idx + 1}) Rider Plan Name :</span>
                   <span className="mt-5">Rider Amount :</span>
                   <span className="mt-5">Rider premium :</span>
@@ -631,7 +631,7 @@ export default function PremiumDuePage() {
               setReminderModalOpen(false);
               setSelectedReminderPolicy(null);
             }}
-            policy={selectedReminderPolicy as any}
+            policy={selectedReminderPolicy as LegacyUnsafeValue}
             onSuccess={() => {
               dispatch(fetchPolicies());
             }}

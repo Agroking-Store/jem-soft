@@ -18,8 +18,8 @@ import { format } from "date-fns";
 
 interface RevivalPremiumCalculatorProps {
   onBack: () => void;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
 }
 
 function fmtDate(d: string | Date | null | undefined) {
@@ -40,7 +40,7 @@ function toInputDate(d: string | Date | null | undefined) {
   return date.toISOString().split("T")[0];
 }
 
-function getMemberName(policy: any): string {
+function getMemberName(policy: LegacyUnsafeValue): string {
   if (policy.lifeAssured) {
     const la = policy.lifeAssured;
     if (typeof la === "string") return la;
@@ -61,7 +61,7 @@ function getMemberName(policy: any): string {
   return "Policy Holder";
 }
 
-function getMemberDOB(policy: any): string {
+function getMemberDOB(policy: LegacyUnsafeValue): string {
   return (
     policy.CustomerMaster?.dob ||
     policy.lifeAssured?.dob ||
@@ -75,7 +75,7 @@ const REVIVAL_INTEREST_RATE = 0.09;
 // GST on interest: 18%
 const GST_RATE = 0.18;
 
-function calcRevivalData(policy: any, calcDate: Date) {
+function calcRevivalData(policy: LegacyUnsafeValue, calcDate: Date) {
   const fupDate = policy.fupDate || policy.nextPremiumDueDate;
   if (!fupDate) return null;
 
@@ -90,7 +90,7 @@ function calcRevivalData(policy: any, calcDate: Date) {
   const sumAssured = Number(policy.premium?.sumAssured || 0);
   const gstAmount = Number(policy.premium?.gst || yearlyPremium * 0.045); // 4.5% approx
   const riderPremium = (policy.policyRiders || []).reduce(
-    (s: number, r: any) => s + Number(r.premium || 0),
+    (s: number, r: LegacyUnsafeValue) => s + Number(r.premium || 0),
     0
   );
 
@@ -170,7 +170,7 @@ export default function RevivalPremiumCalculator({
   // Policy search/dropdown
   const [policySearch, setPolicySearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<LegacyUnsafeValue | null>(null);
 
   // Form fields (auto-filled + editable)
   const [name, setName] = useState("");
@@ -194,7 +194,7 @@ export default function RevivalPremiumCalculator({
 
   // Calculation results
   const [calculated, setCalculated] = useState(false);
-  const [calcResults, setCalcResults] = useState<any>(null);
+  const [calcResults, setCalcResults] = useState<LegacyUnsafeValue>(null);
 
   // Filtered dropdown policies
   const dropdownPolicies = useMemo(() => {
@@ -209,7 +209,7 @@ export default function RevivalPremiumCalculator({
   }, [policies, policySearch]);
 
   // Auto-fill when policy selected
-  const handlePolicySelect = (p: any) => {
+  const handlePolicySelect = (p: LegacyUnsafeValue) => {
     setSelectedPolicy(p);
     setPolicySearch(p.policyNumber);
     setDropdownOpen(false);
@@ -225,11 +225,11 @@ export default function RevivalPremiumCalculator({
     setPpt(String(p.premiumPayingTerm || ""));
     setExtraClass(String(p.premium?.extraClass || ""));
     setExtraPremium(String(p.premium?.extraClass || ""));
-    setSbOption(p.policyAttributes?.find((a: any) => a.attribute?.attributeCode === "SB_OPTION")?.value || "");
+    setSbOption(p.policyAttributes?.find((a: LegacyUnsafeValue) => a.attribute?.attributeCode === "SB_OPTION")?.value || "");
     setFupDate(toInputDate(p.fupDate || p.nextPremiumDueDate));
     setSumAssured(String(p.premium?.sumAssured || "0"));
     setPremium(String(p.premium?.installmentPremium || p.premium?.totalInstallmentPremium || "0"));
-    const riders = (p.policyRiders || []).reduce((s: number, r: any) => s + Number(r.premium || 0), 0);
+    const riders = (p.policyRiders || []).reduce((s: number, r: LegacyUnsafeValue) => s + Number(r.premium || 0), 0);
     setRiderPremium(String(riders));
     setLoanTaken(String(p.loanAmount || p.loanDetails?.amount || "0"));
   };
@@ -329,7 +329,7 @@ export default function RevivalPremiumCalculator({
 
       pdf.save(`Revival_Quote_${selectedPolicy?.policyNumber || "Policy"}_${dateOfCalc}.pdf`);
       toast.success("Executive PDF exported successfully!", { id: toastId });
-    } catch (e: any) {
+    } catch (e: LegacyUnsafeValue) {
       console.error(e);
       elem.style.width = originalWidth;
       toast.error(e?.message || "Failed to generate PDF.", { id: toastId });

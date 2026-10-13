@@ -18,8 +18,8 @@ import toast from "react-hot-toast";
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface PremiumDueReportViewProps {
   formData: PremiumDueFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -84,7 +84,7 @@ function matchesAny(haystack: string, needles: string[]): boolean {
 // ─── DB helpers — 100% dynamic, no sample data anywhere ──────────────────────
 
 /** LIC mode code (Y/M/Q/H/S) from the premium mode master. */
-function resolveModeCode(p: Record<string, any>): string {
+function resolveModeCode(p: Record<string, LegacyUnsafeValue>): string {
   const raw = String(p?.premiumMode?.modeName || "").toLowerCase().trim();
   if (raw.startsWith("month") || raw === "m") return "M";
   if (raw.startsWith("quarter") || raw === "q") return "Q";
@@ -94,7 +94,7 @@ function resolveModeCode(p: Record<string, any>): string {
 }
 
 /** Premium paying interval in months (12 = yearly … 0 = single/one-time). */
-function modeMonths(p: Record<string, any>): number {
+function modeMonths(p: Record<string, LegacyUnsafeValue>): number {
   const months = Number(p?.premiumMode?.months);
   if (Number.isFinite(months) && months > 0) return months;
   const code = resolveModeCode(p);
@@ -106,7 +106,7 @@ function modeMonths(p: Record<string, any>): number {
 }
 
 /** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
-function isNachPolicy(p: Record<string, any>): boolean {
+function isNachPolicy(p: Record<string, LegacyUnsafeValue>): boolean {
   const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
   if (pay.includes("nach")) return true;
   return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
@@ -132,7 +132,7 @@ function addMonthsClamped(date: Date, months: number): Date {
  * commencement-date anniversary using the premium mode.
  */
 function dueOccurrences(
-  p: Record<string, any>,
+  p: Record<string, LegacyUnsafeValue>,
   from: Date | null,
   to: Date | null,
   basis: string
@@ -179,10 +179,10 @@ function dueOccurrences(
 
 /** Real NACH mandate info from the member's default bank account. */
 function nachDetailsFor(
-  memberMaster: Record<string, any> | undefined,
+  memberMaster: Record<string, LegacyUnsafeValue> | undefined,
   debitDate: Date | null
 ): string {
-  const banks: any[] = memberMaster?.bankDetails || [];
+  const banks: LegacyUnsafeValue[] = memberMaster?.bankDetails || [];
   const bank = banks.find((b) => b?.isDefault) || banks[0];
   const parts = ["NACH"];
   if (debitDate) parts.push(`Debit ${fmtDate(debitDate)}`);
@@ -247,7 +247,7 @@ export default function PremiumDueReportView({
     // Policy Register: A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003).
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: Record<string, any>, filters: string[]) => {
+    const isAgencyMatch = (p: Record<string, LegacyUnsafeValue>, filters: string[]) => {
       if (filters.length === 0) return true;
       const agCode = String(p.agentCode || p.agency?.agencyCode || "").toLowerCase().trim();
       const agName = String(p.advisor?.agency?.agencyName || p.agency?.agencyName || "").toLowerCase().trim();
@@ -265,8 +265,8 @@ export default function PremiumDueReportView({
     };
 
     const filteredPolicies = rawPolicies.filter((p) => {
-      const cust: Record<string, any> =
-        p.customer || rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) || {};
+      const cust: Record<string, LegacyUnsafeValue> =
+        p.customer || rawCustomers.find((c: LegacyUnsafeValue) => c.id === p.customerId || c.id === p.clientId) || {};
 
       // NOTE: the due-date window is NOT applied here — one policy can fall due
       // several times inside it (one row per installment). Dates are expanded
@@ -359,9 +359,9 @@ export default function PremiumDueReportView({
         (p.customer as Record<string, unknown>) ??
         customerMap[String(p.clientId || p.customerId)] ??
         {};
-      const c = cust as Record<string, any>;
+      const c = cust as Record<string, LegacyUnsafeValue>;
       const isNach = isNachPolicy(p);
-      const memberMaster = p.CustomerMaster as Record<string, any> | undefined;
+      const memberMaster = p.CustomerMaster as Record<string, LegacyUnsafeValue> | undefined;
       const memberId = String(memberMaster?.id || p.CustomerMasterId || "");
       const memberName = memberMaster
         ? `${memberMaster.salutation || ""} ${memberMaster.firstName || ""} ${memberMaster.lastName || ""}`
@@ -378,7 +378,7 @@ export default function PremiumDueReportView({
         c.resArea || c.offArea,
         c.resCity || c.offCity,
         c.resPin || c.offPin,
-      ].filter((part: any) => Boolean(part && String(part).trim().length > 0));
+      ].filter((part: LegacyUnsafeValue) => Boolean(part && String(part).trim().length > 0));
 
       const dobRaw = memberMaster?.dob || c.dob;
       const occurrences = dueOccurrences(p, fromDate, toDate, formData.reportBasedOn);

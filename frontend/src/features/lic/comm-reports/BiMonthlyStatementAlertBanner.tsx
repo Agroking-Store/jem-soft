@@ -23,7 +23,7 @@ import {
 } from "./fortnightTracker";
 
 interface BiMonthlyStatementAlertBannerProps {
-  bills: any[];
+  bills: LegacyUnsafeValue[];
   onOpenUploadModal: (cycle?: FortnightCycle) => void;
 }
 

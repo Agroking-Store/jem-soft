@@ -17,12 +17,12 @@ export const getFamilyHistoriesByMemberApi = async (memberId: string) => {
   return res.data;
 };
 
-export const createFamilyHistoryApi = async (payload: any) => {
+export const createFamilyHistoryApi = async (payload: LegacyUnsafeValue) => {
   const res = await axiosInstance.post(BASE, payload);
   return res.data;
 };
 
-export const updateFamilyHistoryApi = async (id: string, payload: any) => {
+export const updateFamilyHistoryApi = async (id: string, payload: LegacyUnsafeValue) => {
   const res = await axiosInstance.put(`${BASE}/${id}`, payload);
   return res.data;
 };

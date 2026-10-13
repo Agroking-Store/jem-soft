@@ -42,7 +42,7 @@ interface AnnuityStatementFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies?: Array<any>;
+  policies?: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
@@ -233,7 +233,7 @@ export default function AnnuityStatementForm({
                   type="radio"
                   name="sortingOption"
                   checked={formData.sortingOption === opt.id}
-                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id as any, selectedGroups: [], sortingFilterSelection: null }))}
+                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id as LegacyUnsafeValue, selectedGroups: [], sortingFilterSelection: null }))}
                   className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
                 />
                 <span>{opt.label}</span>

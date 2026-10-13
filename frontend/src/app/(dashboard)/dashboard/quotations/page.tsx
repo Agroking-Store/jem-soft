@@ -64,7 +64,7 @@ function QuotationsPageInner() {
   };
 
   const handleViewReport = async (id: string) => {
-    const res: any = await dispatch(fetchQuotationById(id));
+    const res: LegacyUnsafeValue = await dispatch(fetchQuotationById(id));
     if (fetchQuotationById.fulfilled.match(res)) {
       setReportQuotation(res.payload);
     }

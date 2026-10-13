@@ -112,7 +112,7 @@ export const QuotationList: React.FC<QuotationListProps> = ({
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this quotation?")) {
       const toastId = toast.loading("Deleting quotation...");
-      const res: any = await dispatch(deleteQuotation(id));
+      const res: LegacyUnsafeValue = await dispatch(deleteQuotation(id));
       if (deleteQuotation.fulfilled.match(res)) {
         toast.success("Quotation deleted successfully!", { id: toastId });
         dispatch(
@@ -134,7 +134,7 @@ export const QuotationList: React.FC<QuotationListProps> = ({
   const handleDuplicate = async (quotation: Quotation) => {
     const toastId = toast.loading("Duplicating quotation...");
     const { id, quotationRefNo, createdAt, updatedAt, ...cloneData } = quotation;
-    const res: any = await dispatch(
+    const res: LegacyUnsafeValue = await dispatch(
       saveQuotation({
         ...cloneData,
         quotationRefNo: "", // trigger next ref generation

@@ -90,7 +90,7 @@ export default function LoanSurrenderQuotationReportView({
         }.pdf`
       );
       toast.success("Executive PDF exported successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });

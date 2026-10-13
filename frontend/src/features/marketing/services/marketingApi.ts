@@ -92,7 +92,7 @@ export const sendCampaignApi = async (id: string) => {
   return res.data;
 };
 
-export const getAudienceEstimationApi = async (params?: any) => {
+export const getAudienceEstimationApi = async (params?: LegacyUnsafeValue) => {
   const res = await axiosInstance.get<{
     success: boolean;
     data: { totalMembers: number; whatsappEligible?: number; smsEligible?: number; emailEligible: number };

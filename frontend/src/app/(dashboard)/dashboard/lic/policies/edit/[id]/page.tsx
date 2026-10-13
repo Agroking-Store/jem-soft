@@ -220,15 +220,15 @@ export default function EditLICPolicyPage() {
       const isOther =
         values.providerType === "OTHER" ||
         selectedPolicy?.provider?.type === "OTHER" ||
-        ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
-        (values.productId && (providers.find((p) => p.id === products.find(pr => pr.id === values.productId)?.providerId) as any)?.code?.toUpperCase() !== "LIC");
+        ((selectedPolicy?.provider as LegacyUnsafeValue)?.code && (selectedPolicy?.provider as LegacyUnsafeValue)?.code.toUpperCase() !== "LIC") ||
+        (values.productId && (providers.find((p) => p.id === products.find(pr => pr.id === values.productId)?.providerId) as LegacyUnsafeValue)?.code?.toUpperCase() !== "LIC");
 
       if (isOther) {
-        return zodResolver(refinedSchema as any)(
-          values as any,
-          context as any,
-          options as any,
-        ) as any;
+        return zodResolver(refinedSchema as LegacyUnsafeValue)(
+          values as LegacyUnsafeValue,
+          context as LegacyUnsafeValue,
+          options as LegacyUnsafeValue,
+        ) as LegacyUnsafeValue;
       }
 
       const selectedProductAttributes = productAttributeValues.filter(
@@ -345,11 +345,11 @@ export default function EditLICPolicyPage() {
         );
       }
 
-      return zodResolver(refinedSchema as any)(
-        values as any,
-        context as any,
-        options as any,
-      ) as any;
+      return zodResolver(refinedSchema as LegacyUnsafeValue)(
+        values as LegacyUnsafeValue,
+        context as LegacyUnsafeValue,
+        options as LegacyUnsafeValue,
+      ) as LegacyUnsafeValue;
     },
     defaultValues: {
       riders: [],
@@ -424,8 +424,8 @@ export default function EditLICPolicyPage() {
   const isOtherPolicy =
     watchProviderType === "OTHER" ||
     selectedPolicy?.provider?.type === "OTHER" ||
-    ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
-    (selectedProduct?.providerId && (providers.find((p) => p.id === selectedProduct.providerId) as any)?.code?.toUpperCase() !== "LIC");
+    ((selectedPolicy?.provider as LegacyUnsafeValue)?.code && (selectedPolicy?.provider as LegacyUnsafeValue)?.code.toUpperCase() !== "LIC") ||
+    (selectedProduct?.providerId && (providers.find((p) => p.id === selectedProduct.providerId) as LegacyUnsafeValue)?.code?.toUpperCase() !== "LIC");
 
   const hasDbTerms = useMemo(() => {
     return Boolean(productOptionsData.terms && productOptionsData.terms.length > 0);
@@ -504,18 +504,18 @@ export default function EditLICPolicyPage() {
       : "";
 
     let targetBankCustomer = selectedPolicy.CustomerMaster;
-    if ((selectedPolicy as any).proposerId) {
-      const proposer = (selectedPolicy as any).proposer || masterCustomers.find((m: any) => m.id === (selectedPolicy as any).proposerId);
+    if ((selectedPolicy as LegacyUnsafeValue).proposerId) {
+      const proposer = (selectedPolicy as LegacyUnsafeValue).proposer || masterCustomers.find((m: LegacyUnsafeValue) => m.id === (selectedPolicy as LegacyUnsafeValue).proposerId);
       if (proposer) targetBankCustomer = proposer;
     }
 
     const targetBankDetails =
-      targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault) ||
+      targetBankCustomer?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) ||
       targetBankCustomer?.bankDetails?.[0] ||
-      selectedPolicy.CustomerMaster?.bankDetails?.find((b: any) => b.isDefault) ||
+      selectedPolicy.CustomerMaster?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) ||
       selectedPolicy.CustomerMaster?.bankDetails?.[0];
 
-    const paymentModeCode = (selectedPolicy as any).paymentMode?.modeCode?.toUpperCase();
+    const paymentModeCode = (selectedPolicy as LegacyUnsafeValue).paymentMode?.modeCode?.toUpperCase();
     const isPolicyNach = paymentModeCode === "NACH";
     const isPolicyNeft = paymentModeCode === "NEFT";
 
@@ -538,7 +538,7 @@ export default function EditLICPolicyPage() {
 
       fuliDate:
         selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "fuliDate",
+          (a: LegacyUnsafeValue) => a.attribute?.attributeCode === "fuliDate",
         )?.value ?? "",
 
       commencementDate: selectedPolicy.commencementDate?.substring(0, 10),
@@ -547,7 +547,7 @@ export default function EditLICPolicyPage() {
         ? selectedPolicy.maturityDate.substring(0, 10)
         : "",
 
-      productType: (selectedPolicy.product as any)?.productType ?? "",
+      productType: (selectedPolicy.product as LegacyUnsafeValue)?.productType ?? "",
 
       advisorId: selectedPolicy.advisorId ?? selectedPolicy.advisor?.id ?? "",
       agencyId: selectedPolicy.advisor?.agencyId ?? "",
@@ -560,7 +560,7 @@ export default function EditLICPolicyPage() {
 
       ppt:
         selectedPolicy.premiumPayingTerm != null
-          ? (String(selectedPolicy.premiumPayingTerm) as any)
+          ? (String(selectedPolicy.premiumPayingTerm) as LegacyUnsafeValue)
           : undefined,
 
       option:
@@ -579,7 +579,7 @@ export default function EditLICPolicyPage() {
         selectedPolicy.premium?.totalYearlyPremium ?? undefined,
 
       totalRiderPremium:
-        (selectedPolicy.premium as any)?.totalRiderPremium ?? undefined,
+        (selectedPolicy.premium as LegacyUnsafeValue)?.totalRiderPremium ?? undefined,
 
       installmentPremium:
         selectedPolicy.premium?.installmentPremium ?? undefined,
@@ -598,22 +598,22 @@ export default function EditLICPolicyPage() {
       gender: selectedPolicy.CustomerMaster?.gender ?? "",
       pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
 
-      proposerId: (selectedPolicy as any).proposerId ?? "",
+      proposerId: (selectedPolicy as LegacyUnsafeValue).proposerId ?? "",
       proposerDob: 
-        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+        (selectedPolicy as LegacyUnsafeValue).proposerId && targetBankCustomer?.dob
           ? new Date(targetBankCustomer.dob).toISOString().substring(0, 10)
           : "",
       proposerAge: 
-        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+        (selectedPolicy as LegacyUnsafeValue).proposerId && targetBankCustomer?.dob
           ? Math.floor(
               (Date.now() - new Date(targetBankCustomer.dob).getTime()) /
                 (365.25 * 24 * 60 * 60 * 1000)
             )
           : undefined,
-      spouseId: (selectedPolicy as any).spouseId ?? "",
-      smoker: (selectedPolicy as any).smoker ?? false,
+      spouseId: (selectedPolicy as LegacyUnsafeValue).spouseId ?? "",
+      smoker: (selectedPolicy as LegacyUnsafeValue).smoker ?? false,
       extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
-      ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
+      ratePercent: (selectedPolicy.premium as LegacyUnsafeValue)?.ratePercent ?? undefined,
 
       bankName: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
         ? targetBankDetails?.bankName ?? ""
@@ -661,12 +661,12 @@ export default function EditLICPolicyPage() {
         : "",
       neftSubmissionDate:
         selectedPolicy.policyAttributes?.find(
-          (a: any) => a.attribute?.attributeCode === "neftSubmissionDate",
+          (a: LegacyUnsafeValue) => a.attribute?.attributeCode === "neftSubmissionDate",
         )?.value ?? "",
 
       riders:
         selectedPolicy.policyRiders && selectedPolicy.policyRiders.length > 0
-          ? selectedPolicy.policyRiders.map((r: any) => ({
+          ? selectedPolicy.policyRiders.map((r: LegacyUnsafeValue) => ({
               description: r.rider?.riderName || "",
               sum: r.riderAmount,
               premium: r.riderPremium,
@@ -721,7 +721,7 @@ export default function EditLICPolicyPage() {
             : [],
 
       nominees:
-        selectedPolicy.nominees?.map((n: any) => ({
+        selectedPolicy.nominees?.map((n: LegacyUnsafeValue) => ({
           nomineeName: n.nomineeName,
           relationship: n.relationship,
           dateOfBirth: n.dateOfBirth ? n.dateOfBirth.substring(0, 10) : "",
@@ -797,10 +797,10 @@ export default function EditLICPolicyPage() {
               ppts.includes(Number(currentPpt)) ||
               combinations.some((c) => c.ppt === Number(currentPpt));
             if (isValidPpt) {
-              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+              setValue("ppt", String(currentPpt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
             } else {
               setIsManualPpt(true);
-              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+              setValue("ppt", String(currentPpt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
             }
           }
 
@@ -838,12 +838,12 @@ export default function EditLICPolicyPage() {
       const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
       if (matchingCombs.length === 1) {
         // Only one possible PPT for this term, auto select it
-        setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+        setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
       } else if (matchingCombs.length > 0 && watchPpt) {
         // If current PPT is not in the valid list for this term, clear or reset it
         const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
         if (!isValid && !isManualPpt) {
-          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+          setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
         }
       }
     }
@@ -855,7 +855,7 @@ export default function EditLICPolicyPage() {
 
   useEffect(() => {
     if (!watchLifeAssuredId) return;
-    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    let member: LegacyUnsafeValue = masterCustomers.find((m) => m.id === watchLifeAssuredId);
     if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
       member = selectedPolicy?.CustomerMaster;
     }
@@ -869,7 +869,7 @@ export default function EditLICPolicyPage() {
       "age",
       member?.dob
         ? Number(new Date().getFullYear() - new Date(member.dob).getFullYear())
-        : (undefined as any),
+        : (undefined as LegacyUnsafeValue),
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -877,7 +877,7 @@ export default function EditLICPolicyPage() {
     // Auto-fill bank details from the selected customer's default bank account
     if (member && member.bankDetails && member.bankDetails.length > 0) {
       const defaultBank =
-        member.bankDetails.find((b: any) => b.isDefault) || member.bankDetails[0];
+        member.bankDetails.find((b: LegacyUnsafeValue) => b.isDefault) || member.bankDetails[0];
       if (defaultBank) {
         // NACH fields
         setValue("bankName", defaultBank.bankName || "");
@@ -887,35 +887,35 @@ export default function EditLICPolicyPage() {
         setValue("accountNumber", defaultBank.accountNumber || "");
         setValue("ifscCode", defaultBank.ifscCode || "");
         setValue("micrNumber", defaultBank.micrNumber || "");
-        setValue("accountHolderName", getFullName(member as any));
+        setValue("accountHolderName", getFullName(member as LegacyUnsafeValue));
 
         // NEFT fields
         setValue("neftBankName", defaultBank.bankName || "");
         setValue("neftBankBranch", defaultBank.bankBranch || "");
         setValue("neftAccountNumber", defaultBank.accountNumber || "");
         setValue("neftIfscCode", defaultBank.ifscCode || "");
-        setValue("neftAccountHolderName", getFullName(member as any));
+        setValue("neftAccountHolderName", getFullName(member as LegacyUnsafeValue));
       }
     }
   }, [watchLifeAssuredId, masterCustomers, selectedPolicy, setValue]);
 
   useEffect(() => {
-    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    let member: LegacyUnsafeValue = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
     if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
       member = selectedPolicy?.CustomerMaster;
     }
-    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
+    const proposerId = watchProposerId || (selectedPolicy as LegacyUnsafeValue)?.proposerId;
     if (proposerId) {
       const proposer =
-        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        ((selectedPolicy as LegacyUnsafeValue)?.proposer?.id === proposerId ? (selectedPolicy as LegacyUnsafeValue)?.proposer : null) ||
         masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
     if (useNach && (member || selectedPolicy?.CustomerMaster)) {
-      const target: any = member || selectedPolicy?.CustomerMaster;
+      const target: LegacyUnsafeValue = member || selectedPolicy?.CustomerMaster;
       const defaultBank =
-        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
+        target?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) || target?.bankDetails?.[0];
       if (defaultBank) {
         setValue("bankName", defaultBank.bankName || "");
         setValue("bankBranch", defaultBank.bankBranch || "");
@@ -930,22 +930,22 @@ export default function EditLICPolicyPage() {
   }, [useNach, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
 
   useEffect(() => {
-    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    let member: LegacyUnsafeValue = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
     if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
       member = selectedPolicy?.CustomerMaster;
     }
-    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
+    const proposerId = watchProposerId || (selectedPolicy as LegacyUnsafeValue)?.proposerId;
     if (proposerId) {
       const proposer =
-        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        ((selectedPolicy as LegacyUnsafeValue)?.proposer?.id === proposerId ? (selectedPolicy as LegacyUnsafeValue)?.proposer : null) ||
         masterCustomers.find((m) => m.id === proposerId);
       if (proposer) member = proposer;
     }
 
     if (useNeft && (member || selectedPolicy?.CustomerMaster)) {
-      const target: any = member || selectedPolicy?.CustomerMaster;
+      const target: LegacyUnsafeValue = member || selectedPolicy?.CustomerMaster;
       const defaultBank =
-        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
+        target?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) || target?.bankDetails?.[0];
       if (defaultBank) {
         setValue("neftBankName", defaultBank.bankName || "");
         setValue("neftBankBranch", defaultBank.bankBranch || "");
@@ -1110,11 +1110,11 @@ export default function EditLICPolicyPage() {
           ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
         ) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
-          let expectedTerm = watchTerm ? Number(watchTerm) : null;
-          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
 
           if (isWholeLife && watchAge && expectedPpt) {
-            const riderRecord = riders.find((rv: any) => rv.riderName === r.description);
+            const riderRecord = riders.find((rv: LegacyUnsafeValue) => rv.riderName === r.description);
             if (riderRecord) {
               const fetchOptions = async () => {
                 try {
@@ -1260,7 +1260,7 @@ export default function EditLICPolicyPage() {
             : undefined,
         );
 
-      } catch (error: any) {
+      } catch (error: LegacyUnsafeValue) {
         if (!axios.isCancel(error)) {
           console.error("Failed to fetch premium preview", error);
           setIsPremiumManual(true);
@@ -1281,7 +1281,7 @@ export default function EditLICPolicyPage() {
 
       if (isOtherPolicy || selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
         let totalManualRiderPremium = 0;
-        watchRiders.forEach((rider: any) => {
+        watchRiders.forEach((rider: LegacyUnsafeValue) => {
           if (rider?.selected) {
             totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
           }
@@ -1305,7 +1305,7 @@ export default function EditLICPolicyPage() {
               const term = parseFloat(String(rider.term)) || 0;
               const ppt = parseFloat(String(rider.ppt)) || 0;
               const mode = rider.mode || watchMode;
-              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
+              const riderRecord = riders.find((rv: LegacyUnsafeValue) => rv.riderName === rider.description);
               const riderId = riderRecord?.id;
               const currentPremium = parseFloat(String(rider.premium)) || 0;
 
@@ -1494,7 +1494,7 @@ export default function EditLICPolicyPage() {
     }
 
     try {
-      const normalizeNumber = (value: any) =>
+      const normalizeNumber = (value: LegacyUnsafeValue) =>
         value === undefined || value === null || value === ""
           ? undefined
           : Number(value);
@@ -1543,7 +1543,7 @@ export default function EditLICPolicyPage() {
 
       toast.success("Policy updated successfully!");
       router.push("/dashboard/lic/policies");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err.message || "Failed to update policy.");
       console.error("Failed to update policy:", err);
     } finally {
@@ -1551,7 +1551,7 @@ export default function EditLICPolicyPage() {
     }
   };
 
-  const onInvalid = (formErrors: any) => {
+  const onInvalid = (formErrors: LegacyUnsafeValue) => {
     const selectedProduct = products.find(
       (product) => product.id === watchProductId,
     );
@@ -1757,7 +1757,7 @@ export default function EditLICPolicyPage() {
                               );
                               setValue(
                                 "productType",
-                                (selectedProduct as any).productType || "",
+                                (selectedProduct as LegacyUnsafeValue).productType || "",
                               );
                             }
                           }}

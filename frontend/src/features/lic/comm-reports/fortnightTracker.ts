@@ -49,7 +49,7 @@ export function createFortnightCycle(
   year: number,
   month: number,
   fortnight: 1 | 2,
-  bills: any[] = []
+  bills: LegacyUnsafeValue[] = []
 ): FortnightCycle {
   const lastDay = getLastDayOfMonth(year, month);
   const startDate = new Date(year, month, fortnight === 1 ? 1 : 16);
@@ -142,7 +142,7 @@ export function createFortnightCycle(
 export function getBiMonthlyCyclesForMonth(
   year: number,
   month: number,
-  bills: any[] = []
+  bills: LegacyUnsafeValue[] = []
 ): FortnightCycle[] {
   return [
     createFortnightCycle(year, month, 1, bills),
@@ -154,7 +154,7 @@ export function getBiMonthlyCyclesForMonth(
  * Generate recent bi-monthly cycles and match against uploaded bills
  */
 export function getBiMonthlyCycles(
-  bills: any[] = [],
+  bills: LegacyUnsafeValue[] = [],
   cycleCount: number = 4,
   refDate: Date = new Date()
 ): {

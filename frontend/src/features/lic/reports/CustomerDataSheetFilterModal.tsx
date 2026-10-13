@@ -50,7 +50,7 @@ export default function CustomerDataSheetFilterModal({
         const group = customers.find((c) => c.id === cm.groupId) || cm.group;
         const groupCode = group?.groupCode || "000000";
         const groupHeadName =
-          (group as any)?.name || group?.groupName || `${cm.firstName} ${cm.lastName}`;
+          (group as LegacyUnsafeValue)?.name || group?.groupName || `${cm.firstName} ${cm.lastName}`;
         const memberFullName = [cm.salutation, cm.firstName, cm.middleName, cm.lastName]
           .filter(Boolean)
           .join(" ")
@@ -225,7 +225,7 @@ export default function CustomerDataSheetFilterModal({
     }
   };
 
-  const toggleItem = (item: any) => {
+  const toggleItem = (item: LegacyUnsafeValue) => {
     const exists = selectedItems.some((s) => s.id === item.id);
     if (exists) {
       setSelectedItems((prev) => prev.filter((s) => s.id !== item.id));

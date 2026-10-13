@@ -164,7 +164,7 @@ export default function UploadCommissionBillModal({
       dispatch(fetchCommissionBills(selectedAgencyId || undefined));
       onSuccess(res.bill?.id);
       onClose();
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to upload statement", { id: toastId });
     } finally {
       setIsUploading(false);
@@ -350,7 +350,7 @@ export default function UploadCommissionBillModal({
               </label>
               <select
                 value={billType}
-                onChange={(e) => setBillType(e.target.value as any)}
+                onChange={(e) => setBillType(e.target.value as LegacyUnsafeValue)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 px-3 text-sm text-slate-800 outline-none focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
               >
                 <option value="consolidated">Consolidated</option>

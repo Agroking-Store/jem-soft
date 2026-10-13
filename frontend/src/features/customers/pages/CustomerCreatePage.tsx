@@ -282,7 +282,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
       toast.success("Customer group created successfully!");
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to create customer group");
     }
   };

@@ -21,7 +21,7 @@ export const fetchCustomersMaster = createAsyncThunk(
     try {
       const data = await getCustomersMasterApi();
       return data.data.customers;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch customers");
     }
   }
@@ -33,7 +33,7 @@ export const fetchCustomerMaster = createAsyncThunk(
     try {
       const data = await getCustomerMasterApi(id);
       return data.data.customer;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch customer");
     }
   }
@@ -45,7 +45,7 @@ export const createCustomerMaster = createAsyncThunk(
     try {
       const data = await createCustomerMasterApi(payload);
       return data.data.customer;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to create customer");
     }
   }
@@ -57,7 +57,7 @@ export const updateCustomerMaster = createAsyncThunk(
     try {
       const data = await updateCustomerMasterApi(id, payload);
       return data.data.customer;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to update customer");
     }
   }
@@ -69,7 +69,7 @@ export const deleteCustomerMaster = createAsyncThunk(
     try {
       await deleteCustomerMasterApi(id);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to delete customer");
     }
   }

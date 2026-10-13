@@ -194,7 +194,7 @@ export default function LoanSurrenderQuotationForm({
       Number(pol.premium?.basicYearlyPremium) ||
       Number(pol.premium?.installmentPremium) ||
       0;
-    const riderPrem = Number((pol.premium as any)?.riderPremium) || 0;
+    const riderPrem = Number((pol.premium as LegacyUnsafeValue)?.riderPremium) || 0;
     const totalInstPrem =
       Number(pol.premium?.totalInstallmentPremium) ||
       Number(pol.premium?.totalYearlyPremium) ||
@@ -217,7 +217,7 @@ export default function LoanSurrenderQuotationForm({
         ? "S"
         : "Y";
 
-    const loan = (pol as any).loans?.[0];
+    const loan = (pol as LegacyUnsafeValue).loans?.[0];
     const loanTaken = Number(loan?.loanAmount) || 0;
 
     // Calculation estimates
@@ -853,7 +853,7 @@ export default function LoanSurrenderQuotationForm({
                     <div className="col-span-3 text-right">Sum</div>
                     <div className="col-span-3 text-right">Premium</div>
                   </div>
-                  {selectedPolicyRiders.map((r: any, idx: number) => (
+                  {selectedPolicyRiders.map((r: LegacyUnsafeValue, idx: number) => (
                     <div key={r.id || idx} className="px-3 py-2 grid grid-cols-12 text-slate-700">
                       <div className="col-span-6 font-medium">
                         {r.rider?.riderName || r.description || "Accidental Rider"}

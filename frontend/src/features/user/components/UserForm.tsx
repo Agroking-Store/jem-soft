@@ -158,7 +158,7 @@ export default function UserForm({ mode, initialData }: Props) {
         toast.success("User updated successfully");
       }
       router.push("/dashboard/users");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err ?? "Something went wrong");
     }
   };

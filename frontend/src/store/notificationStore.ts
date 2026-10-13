@@ -9,7 +9,7 @@ import {
 } from "@/features/notifications/api/notificationApi";
 
 interface NotificationState {
-  notifications: any[];
+  notifications: LegacyUnsafeValue[];
 
   unreadCount: number;
 
@@ -41,7 +41,7 @@ export const useNotificationStore =
 
       const notifications = response.data;
       const unreadCount = notifications.filter(
-        (n: any) => !n.isRead
+        (n: LegacyUnsafeValue) => !n.isRead
       ).length;
 
       set((state) => ({

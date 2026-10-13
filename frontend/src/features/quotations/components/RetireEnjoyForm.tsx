@@ -15,8 +15,8 @@ import { ExistingClientModal } from "./ExistingClientModal";
 
 interface RetireEnjoyFormProps {
   onCancel: () => void;
-  onSaved: (quotation: any, shouldViewReport: boolean) => void;
-  editQuotation?: any;
+  onSaved: (quotation: LegacyUnsafeValue, shouldViewReport: boolean) => void;
+  editQuotation?: LegacyUnsafeValue;
 }
 
 export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
@@ -64,7 +64,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
   const [dabLimit, setDabLimit] = useState<number>(10000000);
   const [processBasis, setProcessBasis] = useState("Last declared bonus");
 
-  const [incomeRows, setIncomeRows] = useState<any[]>([]);
+  const [incomeRows, setIncomeRows] = useState<LegacyUnsafeValue[]>([]);
 
   useEffect(() => {
     if (editQuotation) {
@@ -87,7 +87,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
       setDesiredAnnualIncome(editQuotation.budget || 600000);
       setPremiumPayingYears(editQuotation.ppt || 15);
     } else {
-      dispatch(fetchNextRefNo("RETIRE_ENJOY_I")).then((res: any) => {
+      dispatch(fetchNextRefNo("RETIRE_ENJOY_I")).then((res: LegacyUnsafeValue) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -97,7 +97,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
   const handleAutoFillRef = () => {
     const toastId = toast.loading("Fetching next reference number...");
-    dispatch(fetchNextRefNo()).then((res: any) => {
+    dispatch(fetchNextRefNo()).then((res: LegacyUnsafeValue) => {
       if (res.payload) {
         setQuotationRefNo(res.payload);
         toast.success(`Generated: ${res.payload}`, { id: toastId });
@@ -126,7 +126,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
     setFromAge(Math.max(calculatedAge + 10, 60));
   };
 
-  const handleSelectClient = (client: any) => {
+  const handleSelectClient = (client: LegacyUnsafeValue) => {
     setSelectedCustomerId(client.customerId || null);
     setSelectedMemberId(client.memberId);
     setSelectedGroupCode(client.groupCode || null);
@@ -191,7 +191,7 @@ export const RetireEnjoyForm: React.FC<RetireEnjoyFormProps> = ({
 
     let finalRef = quotationRefNo.trim();
     if (!finalRef) {
-      const res: any = await dispatch(fetchNextRefNo());
+      const res: LegacyUnsafeValue = await dispatch(fetchNextRefNo());
       finalRef = res.payload || "000000000001";
     }
 

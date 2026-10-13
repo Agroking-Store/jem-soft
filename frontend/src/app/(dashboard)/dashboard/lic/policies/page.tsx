@@ -187,7 +187,7 @@ function DeleteConfirmationModal({
   onCancel,
   onConfirm,
 }: {
-  target: any;
+  target: LegacyUnsafeValue;
   isDeleting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -250,7 +250,7 @@ function LICPoliciesContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [policyAgeFilter, setPolicyAgeFilter] = useState<"All" | "New" | "Old">("All");
-  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<LegacyUnsafeValue | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPolicyTypeModalOpen, setIsPolicyTypeModalOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -422,7 +422,7 @@ function LICPoliciesContent() {
       await fetchNotifications();
 
       toast.success(`Policy #${result.policyNumber} deleted successfully.`);
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err.message || "Failed to delete policy.");
       console.error("Failed to delete policy:", err);
     } finally {

@@ -23,7 +23,7 @@ export function round2(n: number): number {
  * Full member name.
  * Priority: CustomerMaster (salutation + first + middle + last) -> lifeAssured -> customer -> group name.
  */
-export function getMemberName(item: any): string {
+export function getMemberName(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   if (custMaster) {
     const salutation = custMaster.salutation ? `${custMaster.salutation} ` : "";
@@ -52,7 +52,7 @@ export function getMemberName(item: any): string {
 }
 
 /** Primary CustomerMaster id — used for memberwise filtering. */
-export function getMemberId(item: any): string {
+export function getMemberId(item: LegacyUnsafeValue): string {
   return (
     item?.policy?.CustomerMaster?.id ||
     item?.CustomerMaster?.id ||
@@ -63,14 +63,14 @@ export function getMemberId(item: any): string {
 }
 
 /** Postal address: CustomerMaster addresses first, then the Customer record's own address. */
-export function getMemberAddress(item: any): string {
+export function getMemberAddress(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   const custObj = item?.policy?.customer || item?.customer;
 
   const addresses = custMaster?.addresses;
   if (Array.isArray(addresses) && addresses.length > 0) {
     const preferred =
-      addresses.find((a: any) => (a.addressType || "").toLowerCase().includes("communication")) ||
+      addresses.find((a: LegacyUnsafeValue) => (a.addressType || "").toLowerCase().includes("communication")) ||
       addresses[0];
     const line = [
       preferred?.addressLine1,
@@ -79,7 +79,7 @@ export function getMemberAddress(item: any): string {
       preferred?.state || "",
       preferred?.pin,
     ]
-      .filter((s: any) => s && String(s).trim().length > 0)
+      .filter((s: LegacyUnsafeValue) => s && String(s).trim().length > 0)
       .join(", ")
       .replace(/,\s*,/g, ", ")
       .trim();
@@ -89,12 +89,12 @@ export function getMemberAddress(item: any): string {
   if (custObj?.address) return custObj.address;
 
   const legacy = [custObj?.resArea, custObj?.resCity, custObj?.resPincode]
-    .filter((s: any) => s && String(s).trim().length > 0)
+    .filter((s: LegacyUnsafeValue) => s && String(s).trim().length > 0)
     .join(", ");
   return legacy.trim();
 }
 
-export function getMemberMobile(item: any): string {
+export function getMemberMobile(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   const custObj = item?.policy?.customer || item?.customer;
   return (
@@ -107,19 +107,19 @@ export function getMemberMobile(item: any): string {
   );
 }
 
-export function getMemberEmail(item: any): string {
+export function getMemberEmail(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   const custObj = item?.policy?.customer || item?.customer;
   return custMaster?.contactInfo?.emailPersonal || custObj?.email || "";
 }
 
-export function getMemberDob(item: any): string {
+export function getMemberDob(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   const custObj = item?.policy?.customer || item?.customer;
   return custMaster?.dob || custObj?.dob || custObj?.dateOfBirth || "";
 }
 
-export function getMemberPan(item: any): string {
+export function getMemberPan(item: LegacyUnsafeValue): string {
   const custMaster = item?.policy?.CustomerMaster || item?.CustomerMaster;
   const custObj = item?.policy?.customer || item?.customer;
   return custMaster?.panNumber || custObj?.pan || "";

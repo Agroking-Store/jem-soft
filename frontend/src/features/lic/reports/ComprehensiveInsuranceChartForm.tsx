@@ -57,7 +57,7 @@ interface ComprehensiveInsuranceChartFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
@@ -339,7 +339,7 @@ export default function ComprehensiveInsuranceChartForm({
                 <label key={opt.key} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
                   <input
                     type="checkbox"
-                    checked={(formData.printOptions as any)[opt.key]}
+                    checked={(formData.printOptions as LegacyUnsafeValue)[opt.key]}
                     onChange={(e) => setFormData((prev) => ({ ...prev, printOptions: { ...prev.printOptions, [opt.key]: e.target.checked } }))}
                     className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                   />
@@ -381,7 +381,7 @@ export default function ComprehensiveInsuranceChartForm({
                 <label key={opt.key} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
                   <input
                     type="checkbox"
-                    checked={(formData.optionalColumns as any)[opt.key]}
+                    checked={(formData.optionalColumns as LegacyUnsafeValue)[opt.key]}
                     onChange={(e) => setFormData((prev) => ({ ...prev, optionalColumns: { ...prev.optionalColumns, [opt.key]: e.target.checked } }))}
                     className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                   />

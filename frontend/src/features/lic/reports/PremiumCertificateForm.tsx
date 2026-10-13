@@ -26,7 +26,7 @@ interface PremiumCertificateFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 

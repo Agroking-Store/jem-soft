@@ -27,7 +27,7 @@ export const fetchAllUsers = createAsyncThunk(
     try {
       const data = await getAllUsersApi();
       return data.data.users;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to fetch users",
       );
@@ -41,7 +41,7 @@ export const fetchUserById = createAsyncThunk(
     try {
       const data = await getUserByIdApi(id);
       return data.data.user;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to fetch user",
       );
@@ -55,7 +55,7 @@ export const createUser = createAsyncThunk(
     try {
       const data = await createUserApi(payload);
       return data.data.user;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to create user",
       );
@@ -72,7 +72,7 @@ export const updateUser = createAsyncThunk(
     try {
       const data = await updateUserApi(id, payload);
       return data.data.user;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to update user",
       );
@@ -86,7 +86,7 @@ export const deleteUser = createAsyncThunk(
     try {
       await deleteUserApi(id);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to delete user",
       );
@@ -103,7 +103,7 @@ export const resetUserPassword = createAsyncThunk(
     try {
       await resetUserPasswordApi(id, payload);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to reset password",
       );

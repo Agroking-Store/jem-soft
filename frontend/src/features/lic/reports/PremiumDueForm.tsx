@@ -61,7 +61,7 @@ interface PremiumDueFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   /** LIC branch master (licBranchSlice) — used for Branch No. Wise sorting */
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
@@ -406,7 +406,7 @@ export default function PremiumDueForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))
@@ -468,7 +468,7 @@ export default function PremiumDueForm({
               >
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
+                  checked={(formData.reportOptions as LegacyUnsafeValue)[opt.key]}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

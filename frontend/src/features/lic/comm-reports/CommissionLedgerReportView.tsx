@@ -21,8 +21,8 @@ import { getCustomerFullName } from "./commReportsUtils";
 
 interface CommissionLedgerReportViewProps {
   formData: CommissionLedgerFormData;
-  policies: any[];
-  customers?: any[];
+  policies: LegacyUnsafeValue[];
+  customers?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -45,7 +45,7 @@ export default function CommissionLedgerReportView({
       .map((f) => f.name.toLowerCase().trim());
   }, [formData.dataFilters]);
 
-  const isAgencyMatch = (p: any, agencyFilters: string[]) => {
+  const isAgencyMatch = (p: LegacyUnsafeValue, agencyFilters: string[]) => {
     if (!agencyFilters || agencyFilters.length === 0) return true;
 
     const pAgCode = (p.agentCode || "").toLowerCase().trim();
@@ -301,7 +301,7 @@ export default function CommissionLedgerReportView({
 
       pdf.save(`Commission_Ledger_${formData.fromDate || "start"}_to_${formData.toDate || "end"}.pdf`);
       toast.success("Commission Ledger PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });

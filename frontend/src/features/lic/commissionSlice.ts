@@ -74,7 +74,7 @@ export interface CommissionForecastItem {
 
 interface CommissionState {
   bills: CommissionBillSummaryItem[];
-  currentBill: any | null;
+  currentBill: LegacyUnsafeValue | null;
   ledgerRecords: CommissionRecordItem[];
   ledgerSummary: {
     totalRecords: number;
@@ -119,7 +119,7 @@ export const fetchCommissionBills = createAsyncThunk(
       const url = agencyId ? `/commissions/bills?agencyId=${agencyId}` : `/commissions/bills`;
       const res = await api.get(url);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch commission bills");
     }
   }
@@ -131,7 +131,7 @@ export const fetchCommissionBillById = createAsyncThunk(
     try {
       const res = await api.get(`/commissions/bills/${id}`);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch bill details");
     }
   }
@@ -145,7 +145,7 @@ export const uploadCommissionBill = createAsyncThunk(
         headers: { "Content-Type": "multipart/form-data" },
       });
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to process commission statement");
     }
   }
@@ -173,7 +173,7 @@ export const fetchCommissionLedger = createAsyncThunk(
 
       const res = await api.get(`/commissions/ledger?${params.toString()}`);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch commission ledger");
     }
   }
@@ -185,7 +185,7 @@ export const fetchCommissionForecast = createAsyncThunk(
     try {
       const res = await api.get(`/commissions/forecast?days=${days}`);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch commission forecast");
     }
   }
@@ -197,7 +197,7 @@ export const fetchCommissionDiscrepancies = createAsyncThunk(
     try {
       const res = await api.get("/commissions/discrepancies");
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch discrepancies");
     }
   }
@@ -209,7 +209,7 @@ export const deleteCommissionBill = createAsyncThunk(
     try {
       await api.delete(`/commissions/bills/${id}`);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to delete bill");
     }
   }

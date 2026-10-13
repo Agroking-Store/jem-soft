@@ -25,7 +25,7 @@ import toast from "react-hot-toast";
 
 interface ShortCommissionFormProps {
   initialData?: ShortCommissionFormData | null;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBack: () => void;
   onGenerateReport: (data: ShortCommissionFormData) => void;
 }

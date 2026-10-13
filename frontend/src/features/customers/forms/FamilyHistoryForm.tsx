@@ -75,7 +75,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
     return new Date().toISOString().substring(0, 10);
   });
   const [memberId, setMemberId] = useState("");
-  const [membersList, setMembersList] = useState<any[]>([]);
+  const [membersList, setMembersList] = useState<LegacyUnsafeValue[]>([]);
 
   // Sub-records list
   const [tempRecords, setTempRecords] = useState<FamilyHistoryRecordItem[]>([]);
@@ -132,7 +132,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
       setMembersList(currentGroup.members || []);
       // If we are editing, keep the memberId. Otherwise, pre-select if provided, or reset.
       if (!isEditMode) {
-        if (preselectedMemberId && (currentGroup.members || []).some((m: any) => m.id === preselectedMemberId)) {
+        if (preselectedMemberId && (currentGroup.members || []).some((m: LegacyUnsafeValue) => m.id === preselectedMemberId)) {
           setMemberId(preselectedMemberId);
         } else {
           setMemberId("");
@@ -142,7 +142,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
   }, [currentGroup, isEditMode, preselectedMemberId]);
 
   // Handle selecting a group from the SearchableSelect dropdown
-  const handleSelectGroup = (g: any) => {
+  const handleSelectGroup = (g: LegacyUnsafeValue) => {
     const name = g.groupName || g.name || "";
     setGroupName(name);
     setGroupCode(g.groupCode || "");
@@ -221,14 +221,14 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
         toast.success("Family history created successfully!");
       }
       onClose();
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to save record");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getMemberFullName = (m: any) => {
+  const getMemberFullName = (m: LegacyUnsafeValue) => {
     return [m.salutation, m.firstName, m.middleName, m.lastName].filter(Boolean).join(" ");
   };
 
@@ -291,10 +291,10 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
               error={basicErrors.groupName}
               value={groupId}
               onChange={(id) => {
-                const g = allGroups.find((grp: any) => grp.id === id);
+                const g = allGroups.find((grp: LegacyUnsafeValue) => grp.id === id);
                 if (g) handleSelectGroup(g);
               }}
-              options={allGroups.map((g: any) => ({
+              options={allGroups.map((g: LegacyUnsafeValue) => ({
                 value: g.id,
                 label: g.groupName || g.name || "Unnamed group",
                 sublabel: g.groupCode || undefined,

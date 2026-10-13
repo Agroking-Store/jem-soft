@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface PolicyRegisterReportViewProps {
   formData: PolicyRegisterFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -72,7 +72,7 @@ export default function PolicyRegisterReportView({
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISH_ADVISOR_CODES = ["a004", "a005", "a006"];
 
-    const isAgencyMatch = (p: any, agencyFilters: string[]) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, agencyFilters: string[]) => {
       if (!agencyFilters || agencyFilters.length === 0) return true;
 
       const pAgCode = (p.agentCode || "").toLowerCase().trim();
@@ -156,7 +156,7 @@ export default function PolicyRegisterReportView({
     const isPlanWise = formData.sortingOption === "planWise";
     const isPolicyNoWise = formData.sortingOption === "policyNoWise";
 
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
     const nomineeList: Array<{
       srNo: number;
       policyNo: string;
@@ -173,7 +173,7 @@ export default function PolicyRegisterReportView({
     let singleCount = 0;
 
     // Resolve mode code from premiumMode.modeName (e.g. "Yearly" -> "Y", "Half-Yearly" -> "H")
-    const resolveModeCode = (p: any): string => {
+    const resolveModeCode = (p: LegacyUnsafeValue): string => {
       const raw = (p.premiumMode?.modeName || p.mode || "").toLowerCase().trim();
       if (raw.startsWith("monthly") || raw === "m") return "M";
       if (raw.startsWith("quarterly") || raw === "q") return "Q";
@@ -183,7 +183,7 @@ export default function PolicyRegisterReportView({
     };
 
     // Helper to format a single policy — all data comes 100% from DB
-    const formatPolicy = (p: any, idx: number, ownerName: string) => {
+    const formatPolicy = (p: LegacyUnsafeValue, idx: number, ownerName: string) => {
       const mode = resolveModeCode(p);
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
       const instPremium = Number(
@@ -213,7 +213,7 @@ export default function PolicyRegisterReportView({
 
       // All nominees from the policy push to the nominee list (support multiple nominees per policy)
       const nominees = p.nominees && p.nominees.length > 0 ? p.nominees : [];
-      nominees.forEach((nom: any) => {
+      nominees.forEach((nom: LegacyUnsafeValue) => {
         const pct = nom.percentage != null ? `${Number(nom.percentage).toFixed(2)} %` : "100.00 %";
         nomineeList.push({
           srNo: nomineeList.length + 1,
@@ -443,7 +443,7 @@ export default function PolicyRegisterReportView({
       });
     }
 
-    const result = Object.values(groupMap).map((grp: any) => ({
+    const result = Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
       ...grp,
       members: Object.values(grp.membersMap),
     }));
@@ -585,7 +585,7 @@ export default function PolicyRegisterReportView({
 
       pdf.save(`Policy_Register_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF exported successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
@@ -795,7 +795,7 @@ export default function PolicyRegisterReportView({
                   </td>
                 </tr>
 
-                {group.members.map((member: any) => (
+                {group.members.map((member: LegacyUnsafeValue) => (
                   <Fragment key={member.name}>
                     {/* Member name (bold) */}
                     <tr>
@@ -807,7 +807,7 @@ export default function PolicyRegisterReportView({
                       </td>
                     </tr>
 
-                    {member.policies.map((p: any) => (
+                    {member.policies.map((p: LegacyUnsafeValue) => (
                       <tr key={p.policyNo}>
                         <td className="px-1 py-0.5 text-left font-mono whitespace-nowrap">{p.policyNo}</td>
                         <td className="px-1 py-0.5 text-center">{p.agCd}</td>

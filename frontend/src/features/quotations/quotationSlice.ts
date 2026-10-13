@@ -26,11 +26,11 @@ const initialState: QuotationState = {
 
 export const fetchNextRefNo = createAsyncThunk(
   "quotations/fetchNextRefNo",
-  async (productType?: string, { rejectWithValue } = {} as any) => {
+  async (productType?: string, { rejectWithValue } = {} as LegacyUnsafeValue) => {
     try {
       const data = await getNextRefNoApi(productType);
       return data.data.nextRefNo;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch reference number");
     }
   }
@@ -38,11 +38,11 @@ export const fetchNextRefNo = createAsyncThunk(
 
 export const calculateQuotation = createAsyncThunk(
   "quotations/calculate",
-  async (payload: any, { rejectWithValue }) => {
+  async (payload: LegacyUnsafeValue, { rejectWithValue }) => {
     try {
       const data = await calculateQuotationApi(payload);
       return data.data as QuotationCalculationResult;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to calculate quotation");
     }
   }
@@ -57,7 +57,7 @@ export const fetchQuotations = createAsyncThunk(
     try {
       const data = await getQuotationsApi(params);
       return data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch quotations");
     }
   }
@@ -69,7 +69,7 @@ export const fetchQuotationById = createAsyncThunk(
     try {
       const data = await getQuotationByIdApi(id);
       return data.data.quotation as Quotation;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch quotation");
     }
   }
@@ -77,11 +77,11 @@ export const fetchQuotationById = createAsyncThunk(
 
 export const saveQuotation = createAsyncThunk(
   "quotations/create",
-  async (payload: any, { rejectWithValue }) => {
+  async (payload: LegacyUnsafeValue, { rejectWithValue }) => {
     try {
       const data = await createQuotationApi(payload);
       return data.data.quotation as Quotation;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to save quotation");
     }
   }
@@ -89,11 +89,11 @@ export const saveQuotation = createAsyncThunk(
 
 export const updateQuotation = createAsyncThunk(
   "quotations/update",
-  async ({ id, payload }: { id: string; payload: any }, { rejectWithValue }) => {
+  async ({ id, payload }: { id: string; payload: LegacyUnsafeValue }, { rejectWithValue }) => {
     try {
       const data = await updateQuotationApi(id, payload);
       return data.data.quotation as Quotation;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to update quotation");
     }
   }
@@ -105,7 +105,7 @@ export const deleteQuotation = createAsyncThunk(
     try {
       await deleteQuotationApi(id);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message || "Failed to delete quotation");
     }
   }

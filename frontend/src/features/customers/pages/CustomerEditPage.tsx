@@ -282,7 +282,7 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
-  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
+  onOpenModal?: (type: LegacyUnsafeValue, id?: string, extraId?: string) => void;
 }
 
 export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
@@ -424,7 +424,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
       toast.success("Customer group updated successfully!");
       if (isModal) onSaved?.();
       else router.push("/dashboard/customers");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to update customer group");
     }
   };

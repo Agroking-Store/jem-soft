@@ -56,7 +56,7 @@ interface LapsedPolicyFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   /** LIC branch master (licBranchSlice) — kept for parity with the other reports, unused here since Lapsed Policies has no Branch No. Wise sort */
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
@@ -368,7 +368,7 @@ export default function LapsedPolicyForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))
@@ -432,7 +432,7 @@ export default function LapsedPolicyForm({
               >
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
+                  checked={(formData.reportOptions as LegacyUnsafeValue)[opt.key]}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

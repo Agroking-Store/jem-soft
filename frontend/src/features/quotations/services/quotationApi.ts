@@ -8,7 +8,7 @@ export const getNextRefNoApi = async (productType?: string) => {
   return response.data;
 };
 
-export const calculateQuotationApi = async (data: any) => {
+export const calculateQuotationApi = async (data: LegacyUnsafeValue) => {
   const response = await axiosInstance.post("/quotations/calculate", data);
   return response.data;
 };
@@ -29,12 +29,12 @@ export const getQuotationByIdApi = async (id: string) => {
   return response.data;
 };
 
-export const createQuotationApi = async (data: any) => {
+export const createQuotationApi = async (data: LegacyUnsafeValue) => {
   const response = await axiosInstance.post("/quotations", data);
   return response.data;
 };
 
-export const updateQuotationApi = async (id: string, data: any) => {
+export const updateQuotationApi = async (id: string, data: LegacyUnsafeValue) => {
   const response = await axiosInstance.put(`/quotations/${id}`, data);
   return response.data;
 };

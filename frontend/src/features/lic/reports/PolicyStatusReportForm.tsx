@@ -193,12 +193,12 @@ export default function PolicyStatusReportForm({
       ? new Date(pol.nextPremiumDueDate).toISOString().split("T")[0]
       : "";
 
-    const resAddr = (cm as any)?.addresses?.find((a: any) => a.addressType === "Residence") || (cm as any)?.addresses?.[0];
+    const resAddr = (cm as LegacyUnsafeValue)?.addresses?.find((a: LegacyUnsafeValue) => a.addressType === "Residence") || (cm as LegacyUnsafeValue)?.addresses?.[0];
     const addressStr = resAddr
       ? [resAddr.addressLine1, resAddr.addressLine2, resAddr.city, resAddr.state, resAddr.pin]
           .filter(Boolean)
           .join(", ")
-      : [(c as any)?.resAddressLine1, (c as any)?.resCity, (c as any)?.resState, (c as any)?.resPin]
+      : [(c as LegacyUnsafeValue)?.resAddressLine1, (c as LegacyUnsafeValue)?.resCity, (c as LegacyUnsafeValue)?.resState, (c as LegacyUnsafeValue)?.resPin]
           .filter(Boolean)
           .join(", ");
 
@@ -226,7 +226,7 @@ export default function PolicyStatusReportForm({
 
     const branchStr = pol.branch?.branchName || pol.branch?.branchCode || "Sbi";
 
-    const loan = (pol as any).loans?.[0];
+    const loan = (pol as LegacyUnsafeValue).loans?.[0];
     const loanTaken = Number(loan?.loanAmount) || 0;
     const loanDateStr = loan?.loanDate
       ? new Date(loan.loanDate).toISOString().split("T")[0]

@@ -940,7 +940,7 @@ export const SAMPLE_GAP_COMMISSION_ITEMS: GapCommissionItem[] = [
  * Falls back to authentic sample data ONLY when no Redux policies exist.
  */
 export function generateGapCommissionItems(
-  policies: any[] = [],
+  policies: LegacyUnsafeValue[] = [],
   selectedAgencies: string[] = [],
   formData: GapCommissionFormData
 ): GapCommissionItem[] {

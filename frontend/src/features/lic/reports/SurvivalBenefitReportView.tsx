@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface SurvivalBenefitReportViewProps {
   formData: SurvivalBenefitFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -25,7 +25,7 @@ interface ColumnDef {
   key: string;
   label: string;
   align?: "left" | "right" | "center";
-  render: (p: any) => ReactNode;
+  render: (p: LegacyUnsafeValue) => ReactNode;
 }
 
 export default function SurvivalBenefitReportView({
@@ -103,7 +103,7 @@ export default function SurvivalBenefitReportView({
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
 
-    const isAgencyMatch = (p: any, agencyFilters: string[]): boolean => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, agencyFilters: string[]): boolean => {
       if (!agencyFilters || agencyFilters.length === 0) return true;
       const pAgCode = (p.agentCode || "").toLowerCase().trim();
       return agencyFilters.some((f) => {
@@ -118,7 +118,7 @@ export default function SurvivalBenefitReportView({
 
     // Compute Survival Benefit date from commencement date
     // LIC plans typically pay survival benefits every 5 years from commencement
-    const getPolicySBDate = (p: any): Date | null => {
+    const getPolicySBDate = (p: LegacyUnsafeValue): Date | null => {
       if (p.survivalBenefitDate) {
         const d = new Date(p.survivalBenefitDate);
         if (!isNaN(d.getTime())) return d;
@@ -210,7 +210,7 @@ export default function SurvivalBenefitReportView({
       return true;
     });
 
-    const buildRow = (p: any, computedSbDate: Date) => {
+    const buildRow = (p: LegacyUnsafeValue, computedSbDate: Date) => {
       const custMaster = p.CustomerMaster;
       const custObj = p.customer;
       const mode = p.premiumMode?.modeName?.[0]?.toUpperCase() || "Y";
@@ -245,7 +245,7 @@ export default function SurvivalBenefitReportView({
     }
 
     // Grouping logic based on sortingOption
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
 
     validDbPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
@@ -343,7 +343,7 @@ export default function SurvivalBenefitReportView({
       grp.totalSB += row.sbAmount;
     });
 
-    return Object.values(groupMap).map((grp: any) => ({ ...grp, members: Object.values(grp.membersMap) }));
+    return Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({ ...grp, members: Object.values(grp.membersMap) }));
   }, [rawPolicies, formData]);
 
   const grandTotal = groupData.reduce((acc, g) => acc + g.totalSB, 0);
@@ -396,7 +396,7 @@ export default function SurvivalBenefitReportView({
 
       pdf.save(`Survival_Benefit_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -488,7 +488,7 @@ export default function SurvivalBenefitReportView({
                         </div>
                       </td>
                     </tr>
-                    {group.members.map((member: any) => (
+                    {group.members.map((member: LegacyUnsafeValue) => (
                       <Fragment key={member.name}>
                         {/* Member name - bold */}
                         <tr>
@@ -504,7 +504,7 @@ export default function SurvivalBenefitReportView({
                             )}
                           </td>
                         </tr>
-                        {member.policies.map((p: any) => (
+                        {member.policies.map((p: LegacyUnsafeValue) => (
                           <tr key={p.policyNo}>
                             {columns.map((col) => (
                               <td key={col.key} className={`px-1 py-0.5 ${alignClass(col.align)} ${col.align === "right" ? "font-mono" : ""}`}>{col.render(p)}</td>

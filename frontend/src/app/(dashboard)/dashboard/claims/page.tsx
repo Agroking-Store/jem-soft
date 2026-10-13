@@ -109,7 +109,7 @@ export default function ClaimsPage() {
     try {
       await dispatch(deleteClaim(claimToDelete.id)).unwrap();
       toast.success("Claim deleted successfully.");
-    } catch (message: any) {
+    } catch (message: LegacyUnsafeValue) {
       toast.error(String(message?.message || message || "Failed to delete claim."));
     } finally {
       setShowDeleteModal(false);

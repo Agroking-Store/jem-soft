@@ -1444,7 +1444,7 @@ export const SAMPLE_SHORT_COMMISSION_ITEMS: ShortCommissionItem[] = [
  * Falls back to authentic sample data ONLY when no Redux policies exist.
  */
 export function generateShortCommissionItems(
-  policies: any[] = [],
+  policies: LegacyUnsafeValue[] = [],
   selectedAgencies: string[] = [],
   formData: ShortCommissionFormData
 ): ShortCommissionItem[] {

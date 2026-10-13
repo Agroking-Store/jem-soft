@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface PremiumCertificateReportViewProps {
   formData: PremiumCertificateFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -41,7 +41,7 @@ function fmtDateLong(d: Date | string | null | undefined) {
   return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
-function getPolicyMemberName(p: any): string {
+function getPolicyMemberName(p: LegacyUnsafeValue): string {
   // lifeAssured / holderName / insuredName are NOT schema fields — the
   // member is always CustomerMaster.
   const cm = p.CustomerMaster;
@@ -83,8 +83,8 @@ export default function PremiumCertificateReportView({
     if (toDate) toDate.setHours(23, 59, 59, 999);
     if (!fromDate || !toDate) return [];
 
-    const customerMap: { [id: string]: any } = {};
-    rawCustomers.forEach((c: any) => {
+    const customerMap: { [id: string]: LegacyUnsafeValue } = {};
+    rawCustomers.forEach((c: LegacyUnsafeValue) => {
       if (c.id) customerMap[String(c.id)] = c;
     });
 
@@ -96,7 +96,7 @@ export default function PremiumCertificateReportView({
       (formData.sortingFilterSelection?.selectedItems || []).map((i) => i.id)
     );
 
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
 
     rawPolicies.forEach((p) => {
       const cust = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
@@ -121,7 +121,7 @@ export default function PremiumCertificateReportView({
       }
 
       // ── Installments: real payment records first ────────────────────────
-      const payments: any[] = Array.isArray(p.premiumPayments) ? p.premiumPayments : [];
+      const payments: LegacyUnsafeValue[] = Array.isArray(p.premiumPayments) ? p.premiumPayments : [];
       const comDate = p.commencementDate ? new Date(p.commencementDate) : null;
       const modeName = p.premiumMode?.modeName || "Yearly";
       const modeLower = modeName.toLowerCase();
@@ -228,7 +228,7 @@ export default function PremiumCertificateReportView({
       }
     });
 
-    return Object.values(groupMap).map((grp: any) => ({
+    return Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
       ...grp,
       membersList: Object.values(grp.members),
     }));
@@ -268,7 +268,7 @@ export default function PremiumCertificateReportView({
 
       pdf.save(`Premium_Certificate_${formData.certificateType.replace(" ", "_")}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -310,7 +310,7 @@ export default function PremiumCertificateReportView({
           </div>
         ) : (
           reportGroups.map((group) => {
-            const grandTotalPremium = group.membersList.reduce((acc: number, m: any) => acc + m.totalPremium, 0);
+            const grandTotalPremium = group.membersList.reduce((acc: number, m: LegacyUnsafeValue) => acc + m.totalPremium, 0);
 
             return (
               <div key={group.groupCode + group.groupHeadName} className="border-2 border-slate-900 p-6 space-y-4">
@@ -359,8 +359,8 @@ export default function PremiumCertificateReportView({
                     </tr>
                   </thead>
                   <tbody>
-                    {group.membersList.flatMap((mem: any) =>
-                      mem.installments.map((inst: any, idx: number) => (
+                    {group.membersList.flatMap((mem: LegacyUnsafeValue) =>
+                      mem.installments.map((inst: LegacyUnsafeValue, idx: number) => (
                         <tr key={`${inst.policyNo}-${idx}`} className="border-b border-slate-200 text-slate-800">
                           <td className="py-1 px-2 font-mono font-semibold">{inst.policyNo}</td>
                           <td className="py-1 px-2 font-medium">{mem.name}</td>

@@ -27,10 +27,10 @@ export interface CommissionLedgerFormData {
 
 interface CommissionLedgerFormProps {
   initialData?: CommissionLedgerFormData | null;
-  agencies?: Array<any>;
-  advisors?: Array<any>;
-  customers?: Array<any>;
-  policies?: Array<any>;
+  agencies?: Array<LegacyUnsafeValue>;
+  advisors?: Array<LegacyUnsafeValue>;
+  customers?: Array<LegacyUnsafeValue>;
+  policies?: Array<LegacyUnsafeValue>;
   onBack: () => void;
   onGenerateReport: (formData: CommissionLedgerFormData) => void;
 }

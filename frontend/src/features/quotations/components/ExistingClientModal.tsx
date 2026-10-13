@@ -42,7 +42,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
   }, [isOpen, customers.length, dispatch]);
 
   const clientRows = useMemo(() => {
-    return customers.map((c: any) => {
+    return customers.map((c: LegacyUnsafeValue) => {
       const groupCode = c.group?.groupCode || "-";
       const groupHeadName = c.group?.groupName || (c.isGroupHead ? `${c.lastName || ""} ${c.firstName || ""}`.trim() : "-");
       const fullName = [c.firstName, c.middleName, c.lastName].filter(Boolean).join(" ");
@@ -186,7 +186,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
             <span className="text-xs font-medium text-slate-600">In</span>
             <select
               value={searchField}
-              onChange={(e: any) => setSearchField(e.target.value)}
+              onChange={(e: LegacyUnsafeValue) => setSearchField(e.target.value)}
               className="px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white font-medium text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
             >
               <option value="groupCode">Group Code</option>

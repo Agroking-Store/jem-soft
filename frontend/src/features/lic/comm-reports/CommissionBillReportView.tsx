@@ -25,7 +25,7 @@ import {
 
 interface CommissionBillReportViewProps {
   formData: CommissionBillFormData;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -59,7 +59,7 @@ export default function CommissionBillReportView({
   // Generate commission bill items dynamically or use uploaded bill records
   const billItems: CommissionBillItem[] = useMemo(() => {
     if (currentBill?.records && currentBill.records.length > 0) {
-      return currentBill.records.map((r: any) => ({
+      return currentBill.records.map((r: LegacyUnsafeValue) => ({
         id: r.id,
         policyNo: r.policyNumber,
         agentCode: r.agentCode || "J",
@@ -73,7 +73,7 @@ export default function CommissionBillReportView({
         planTermPpt: r.planTermPpt || "815/20/20",
         dateOfPay: r.dateOfPayment || "30/12/20",
         recoveryCause: r.recoveryCause || "",
-        category: (r.category as any) || "first-comm",
+        category: (r.category as LegacyUnsafeValue) || "first-comm",
       }));
     }
     return generateCommissionBillItems(policies, selectedAgencyNames);

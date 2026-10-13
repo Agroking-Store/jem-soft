@@ -41,12 +41,12 @@ interface LoanInterestOutstandingFormProps {
   onBack: () => void;
   onGenerateReport: (data: LoanInterestOutstandingFormData) => void;
   initialData?: LoanInterestOutstandingFormData | null;
-  agencies: any[];
-  policyStatuses: any[];
-  customers: any[];
-  policies: any[];
+  agencies: LegacyUnsafeValue[];
+  policyStatuses: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
+  policies: LegacyUnsafeValue[];
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
-  loans?: any[];
+  loans?: LegacyUnsafeValue[];
 }
 
 const defaultFormData = (): LoanInterestOutstandingFormData => ({
@@ -320,7 +320,7 @@ export default function LoanInterestOutstandingForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))
@@ -379,7 +379,7 @@ export default function LoanInterestOutstandingForm({
                 >
                   <input
                     type="checkbox"
-                    checked={(formData.statementOptions as any)[opt.key]}
+                    checked={(formData.statementOptions as LegacyUnsafeValue)[opt.key]}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -406,7 +406,7 @@ export default function LoanInterestOutstandingForm({
                   >
                     <input
                       type="checkbox"
-                      checked={(formData.intimationOptions as any)[opt.key]}
+                      checked={(formData.intimationOptions as LegacyUnsafeValue)[opt.key]}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,

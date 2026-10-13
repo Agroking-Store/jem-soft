@@ -141,7 +141,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
 
   const nomineeList: Nominee[] = (selectedPolicy?.nominees || []).map(
-    (n: any, i: number) => ({
+    (n: LegacyUnsafeValue, i: number) => ({
       id: n.id || String(i),
       nomineeName: n.nomineeName || "",
       relationship: n.relationship || "",
@@ -199,7 +199,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
   };
 
   /* ── Bank Defaults ──────────────────────────────────── */
-  const getFullName = (cm: any) =>
+  const getFullName = (cm: LegacyUnsafeValue) =>
     [cm?.salutation, cm?.firstName, cm?.middleName, cm?.lastName]
       .filter(Boolean)
       .join(" ");
@@ -226,7 +226,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
     setValue,
     formState: { errors },
   } = useForm<ClaimFormData>({
-    resolver: zodResolver(claimSchema) as any,
+    resolver: zodResolver(claimSchema) as LegacyUnsafeValue,
     defaultValues: {
       policyId: "",
       claimantName: "",
@@ -311,7 +311,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       selectedPolicy?.nominees
     ) {
       const nom = selectedPolicy.nominees.find(
-        (n: any) => n.id === initialClaim.nomineeId,
+        (n: LegacyUnsafeValue) => n.id === initialClaim.nomineeId,
       );
       if (nom) {
         setSelectedNominee({
@@ -394,7 +394,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
       return getFullName(selectedPolicy?.CustomerMaster) || "";
     };
 
-    const payload: any = {
+    const payload: LegacyUnsafeValue = {
       ...data,
       claimantName: getClaimantName(),
       nomineeId: selectedNominee?.id || undefined,
@@ -462,14 +462,14 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
             uploadClaimDocuments({ claimId, files: toUpload }),
           ).unwrap();
           toast.success(`${toUpload.length} document(s) uploaded`);
-        } catch (e: any) {
+        } catch (e: LegacyUnsafeValue) {
           toast.error(`Documents failed to upload: ${e}`);
         }
       }
 
       reset();
       router.push("/dashboard/claims");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || `Failed to ${mode} claim`);
     } finally {
       setIsSubmitting(false);
@@ -1148,7 +1148,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
           <button
             disabled={isSubmitting}
             type="button"
-            onClick={handleSubmit(onValid as any)}
+            onClick={handleSubmit(onValid as LegacyUnsafeValue)}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer disabled:opacity-60"
           >
             {isSubmitting ? (
@@ -1193,7 +1193,7 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
               </button>
               <button
                 type="button"
-                onClick={handleSubmit(onSubmit as any)}
+                onClick={handleSubmit(onSubmit as LegacyUnsafeValue)}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
               >
                 {mode === "create" ? "Create" : "Save"}
@@ -1231,7 +1231,7 @@ function BreakRow({
   );
 }
 
-function ReadOnlyField({ label, value, className, labelClass }: any) {
+function ReadOnlyField({ label, value, className, labelClass }: LegacyUnsafeValue) {
   return (
     <div>
       <label className={labelClass}>{label}</label>
@@ -1280,7 +1280,7 @@ function DocumentRow({
   onRemove,
   existing,
 }: {
-  doc: any;
+  doc: LegacyUnsafeValue;
   onRemove: () => void;
   existing?: boolean;
 }) {

@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface AnnuityStatementReportViewProps {
   formData: AnnuityStatementFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -21,7 +21,7 @@ function fmtDate(d: Date | string | null | undefined) {
   return date.toLocaleDateString("en-GB");
 }
 
-function getPolicyMemberName(p: any): string {
+function getPolicyMemberName(p: LegacyUnsafeValue): string {
   // lifeAssured / lifeAssuredName / holderName / insuredName are NOT schema
   // fields — the annuity holder is always CustomerMaster.
   const cm = p.CustomerMaster;
@@ -117,7 +117,7 @@ export default function AnnuityStatementReportView({
     // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: any, filters: string[]) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, filters: string[]) => {
       if (filters.length === 0) return true;
       const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
         .toLowerCase()
@@ -143,8 +143,8 @@ export default function AnnuityStatementReportView({
       });
     };
 
-    const customerMap: { [id: string]: any } = {};
-    rawCustomers.forEach((c: any) => {
+    const customerMap: { [id: string]: LegacyUnsafeValue } = {};
+    rawCustomers.forEach((c: LegacyUnsafeValue) => {
       if (c.id) customerMap[String(c.id)] = c;
     });
 
@@ -214,7 +214,7 @@ export default function AnnuityStatementReportView({
     const opt = formData.sortingOption;
     const isFlat = opt === "policyNoWise";
 
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
 
     validPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
@@ -294,7 +294,7 @@ export default function AnnuityStatementReportView({
       grp.totalAnnuityAmount += sumAssured;
     });
 
-    return Object.values(groupMap).map((grp: any) => ({
+    return Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
       ...grp,
       members: Object.values(grp.membersMap),
     }));
@@ -336,7 +336,7 @@ export default function AnnuityStatementReportView({
 
       pdf.save(`Annuity_${formData.reportType}_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -419,7 +419,7 @@ export default function AnnuityStatementReportView({
                       </td>
                     </tr>
                   )}
-                  {group.members.map((member: any) => (
+                  {group.members.map((member: LegacyUnsafeValue) => (
                     <Fragment key={member.name}>
                       {group.showHeading !== false && (
                         <tr>
@@ -436,7 +436,7 @@ export default function AnnuityStatementReportView({
                           </td>
                         </tr>
                       )}
-                      {member.policies.map((p: any, idx: number) => (
+                      {member.policies.map((p: LegacyUnsafeValue, idx: number) => (
                         <tr key={p.policyNo + idx}>
                           <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
                           <td className="px-1 py-0.5">{p.memberName}</td>

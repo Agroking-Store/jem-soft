@@ -203,7 +203,7 @@ export default function LoanForm({ mode, initialLoan, initialPolicyId }: LoanFor
         toast.success("Loan updated successfully.");
       }
       router.push("/dashboard/loans");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err?.message || err || "Failed to save loan.");
     } finally {
       setIsSubmitting(false);

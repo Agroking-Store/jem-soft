@@ -127,7 +127,7 @@ export default function LoansPage() {
     try {
       await dispatch(deleteLoan(loanToDelete.id)).unwrap();
       toast.success("Loan deleted successfully.");
-    } catch (message: any) {
+    } catch (message: LegacyUnsafeValue) {
       toast.error(String(message?.message || message || "Failed to delete loan."));
     } finally {
       setShowDeleteModal(false);

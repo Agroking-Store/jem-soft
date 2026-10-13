@@ -24,7 +24,7 @@ import {
   CustomerBreadcrumbs,
 } from "@/features/customers/components/CustomerUi";
 
-const STATUS_MAP: Record<string, { color: string; icon: any }> = {
+const STATUS_MAP: Record<string, { color: string; icon: LegacyUnsafeValue }> = {
   Approved: { color: "bg-green-100 text-green-700", icon: CheckCircle },
   Settled: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
   Rejected: { color: "bg-red-100 text-red-700", icon: XCircle },

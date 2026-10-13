@@ -31,7 +31,7 @@ export const fetchProductAttributes = createAsyncThunk(
       // It should return all records from the ProductAttributeMaster table.
       const response = await axios.get(`${API_URL}/product-attributes`);
       return response.data.data.attributes;
-    } catch (error: any) {
+    } catch (error: LegacyUnsafeValue) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch product attributes");
     }
   }

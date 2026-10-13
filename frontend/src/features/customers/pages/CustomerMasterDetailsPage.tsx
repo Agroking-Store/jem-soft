@@ -143,7 +143,7 @@ export default function CustomerMasterDetailsPage({
       toast.success("Customer deleted successfully");
       if (isModal) onDeleted?.();
       else router.push("/dashboard/customers?tab=master");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to delete customer");
     } finally {
       setIsDeleting(false);
@@ -285,8 +285,8 @@ export default function CustomerMasterDetailsPage({
                         ].filter(Boolean);
 
                         let displayLines = lineParts.join(", ");
-                        if (!displayLines && addr.useGroupAddress && (c.group as any)) {
-                          const grp = c.group as any;
+                        if (!displayLines && addr.useGroupAddress && (c.group as LegacyUnsafeValue)) {
+                          const grp = c.group as LegacyUnsafeValue;
                           const grpParts = [
                             grp.resAddressLine1 || grp.offAddressLine1,
                             grp.resAddressLine2 || grp.offAddressLine2,
@@ -345,7 +345,7 @@ export default function CustomerMasterDetailsPage({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {memberPolicies.map((policy: any) => {
+                      {memberPolicies.map((policy: LegacyUnsafeValue) => {
                         const statusDetails = getStatusBadge(policy.status?.statusName || "Active");
                         const StatusIcon = statusDetails.icon;
                         return (

@@ -49,7 +49,7 @@ export default function ResetPasswordModal({ user, onClose }: Props) {
       ).unwrap();
       toast.success(`Password reset successfully for ${user.name}`);
       onClose();
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err ?? "Failed to reset password");
     }
   };

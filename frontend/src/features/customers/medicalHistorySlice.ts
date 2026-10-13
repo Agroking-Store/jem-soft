@@ -62,7 +62,7 @@ export const fetchMedicalHistoriesByMember = createAsyncThunk(
     try {
       const data = await getMedicalHistoriesByMemberApi(memberId);
       return data.data.records as MedicalHistoryItem[];
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch medical history records");
     }
   }
@@ -74,7 +74,7 @@ export const fetchMedicalHistory = createAsyncThunk(
     try {
       const data = await getMedicalHistoryApi(id);
       return data.data.record as MedicalHistoryItem;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch medical history details");
     }
   }
@@ -82,11 +82,11 @@ export const fetchMedicalHistory = createAsyncThunk(
 
 export const createMedicalHistory = createAsyncThunk(
   "medicalHistory/create",
-  async (payload: any, { rejectWithValue }) => {
+  async (payload: LegacyUnsafeValue, { rejectWithValue }) => {
     try {
       const data = await createMedicalHistoryApi(payload);
       return data.data.record as MedicalHistoryItem;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to create medical history");
     }
   }
@@ -94,11 +94,11 @@ export const createMedicalHistory = createAsyncThunk(
 
 export const updateMedicalHistory = createAsyncThunk(
   "medicalHistory/update",
-  async ({ id, payload }: { id: string; payload: any }, { rejectWithValue }) => {
+  async ({ id, payload }: { id: string; payload: LegacyUnsafeValue }, { rejectWithValue }) => {
     try {
       const data = await updateMedicalHistoryApi(id, payload);
       return data.data.record as MedicalHistoryItem;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to update medical history");
     }
   }
@@ -110,7 +110,7 @@ export const deleteMedicalHistory = createAsyncThunk(
     try {
       await deleteMedicalHistoryApi(id);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to delete medical history");
     }
   }

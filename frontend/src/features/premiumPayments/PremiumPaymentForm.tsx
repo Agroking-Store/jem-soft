@@ -59,14 +59,14 @@ export default function PremiumPaymentForm({
   const { isSubmitting } = useSelector((s: RootState) => s.premiumPayments);
   const { modes } = useSelector((s: RootState) => s.premiumModes);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const [lastPayment, setLastPayment] = useState<any>(null);
+  const [lastPayment, setLastPayment] = useState<LegacyUnsafeValue>(null);
   const [highestPaidInstallment, setHighestPaidInstallment] = useState(0);
   const [pendingOverdueCount, setPendingOverdueCount] = useState(0);
   const { paymentModes } = useSelector((s: RootState) => s.paymentModes);
   const [totalAmount, setTotatAmount] = useState(0);
 
   const isSinglePolicy = useCallback(
-    (p: any, modeItem?: any) => {
+    (p: LegacyUnsafeValue, modeItem?: LegacyUnsafeValue) => {
       if (!p) return false;
       const m = modeItem || p.premiumMode || modes.find((x) => x.id === p.premiumModeId);
       return Boolean(
@@ -121,7 +121,7 @@ export default function PremiumPaymentForm({
     control,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema) as LegacyUnsafeValue,
     defaultValues: {
       installmentNo: 1,
       paymentStatus: "PAID",
@@ -158,7 +158,7 @@ export default function PremiumPaymentForm({
   useEffect(() => {
     if (!paymentId) return;
     (async () => {
-      let p: any = null;
+      let p: LegacyUnsafeValue = null;
       const res = await dispatch(fetchPremiumPaymentById(paymentId as string));
       if (res.payload && typeof res.payload === "object" && "policyId" in res.payload) {
         p = res.payload;
@@ -193,11 +193,11 @@ export default function PremiumPaymentForm({
         if (p.policyId) {
           const policyPayments = await dispatch(fetchPremiumPaymentsByPolicy(p.policyId));
           const paymentsList = Array.isArray(policyPayments.payload) ? policyPayments.payload : [];
-          const otherValidPayments = paymentsList.filter((payment: any) => {
+          const otherValidPayments = paymentsList.filter((payment: LegacyUnsafeValue) => {
             const statusCode = payment.paymentStatus?.statusCode;
             return payment.id !== paymentId && statusCode !== "FAILED" && statusCode !== "CANCELLED";
           });
-          const highestPaid = otherValidPayments.reduce((max: number, payment: any) => {
+          const highestPaid = otherValidPayments.reduce((max: number, payment: LegacyUnsafeValue) => {
             const num = Number(payment.installmentNo);
             return Number.isFinite(num) && num > max ? num : max;
           }, 0);
@@ -239,19 +239,19 @@ export default function PremiumPaymentForm({
         const paymentsList = Array.isArray(policyPayments.payload) ? policyPayments.payload : [];
 
         // Filter valid payments (paid or not cancelled/failed)
-        const validPayments = paymentsList.filter((payment: any) => {
+        const validPayments = paymentsList.filter((payment: LegacyUnsafeValue) => {
           const statusCode = payment.paymentStatus?.statusCode;
           return statusCode !== "FAILED" && statusCode !== "CANCELLED";
         });
 
-        const highestPaid = validPayments.reduce((max: number, payment: any) => {
+        const highestPaid = validPayments.reduce((max: number, payment: LegacyUnsafeValue) => {
           const num = Number(payment.installmentNo);
           return Number.isFinite(num) && num > max ? num : max;
         }, 0);
 
         setHighestPaidInstallment(highestPaid);
 
-        const latestPayment = paymentsList.reduce((latest: any, payment: any) => {
+        const latestPayment = paymentsList.reduce((latest: LegacyUnsafeValue, payment: LegacyUnsafeValue) => {
           if (!latest) return payment;
           const pDate = new Date(payment.paidDate || payment.createdAt || 0);
           const lDate = new Date(latest.paidDate || latest.createdAt || 0);

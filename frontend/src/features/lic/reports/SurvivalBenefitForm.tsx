@@ -41,7 +41,7 @@ interface SurvivalBenefitFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
@@ -267,7 +267,7 @@ export default function SurvivalBenefitForm({
                   type="radio"
                   name="sortingOption"
                   checked={formData.sortingOption === opt.id}
-                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id as any, selectedGroups: [], sortingFilterSelection: null }))}
+                  onChange={() => setFormData((prev) => ({ ...prev, sortingOption: opt.id as LegacyUnsafeValue, selectedGroups: [], sortingFilterSelection: null }))}
                   className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
                 />
                 <span>{opt.label}</span>
@@ -304,7 +304,7 @@ export default function SurvivalBenefitForm({
               <label key={opt.key} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
+                  checked={(formData.reportOptions as LegacyUnsafeValue)[opt.key]}
                   onChange={(e) => setFormData((prev) => ({ ...prev, reportOptions: { ...prev.reportOptions, [opt.key]: e.target.checked } }))}
                   className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
                 />

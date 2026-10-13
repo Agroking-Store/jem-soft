@@ -84,8 +84,8 @@ export interface Policy {
     extraClass?: number;
   } | null;
   // Kept custom fields from the feature branch below:
-  nominees?: any[];
-  policyRiders?: any[];
+  nominees?: LegacyUnsafeValue[];
+  policyRiders?: LegacyUnsafeValue[];
   policyAttributes?: {
     id: string;
     attributeId: string;
@@ -96,9 +96,9 @@ export interface Policy {
       attributeName: string;
     };
   }[];
-  advisor?: any;
+  advisor?: LegacyUnsafeValue;
   agentCode?: string;
-  branch?: any;
+  branch?: LegacyUnsafeValue;
   mode?: string;
   policyStatus?: string;
 }
@@ -155,7 +155,7 @@ const getPoliciesApi = (params?: FetchPoliciesParams) =>
 const getPoliciesByMemberApi = (memberId: string) =>
   api.get(`${API_URL}/policies/member/${memberId}`);
 const deletePolicyApi = (id: string) => api.delete(`${API_URL}/policies/${id}`);
-const createPolicyApi = (policyData: any) =>
+const createPolicyApi = (policyData: LegacyUnsafeValue) =>
   api.post(`${API_URL}/policies`, policyData);
 
 export const fetchPolicies = createAsyncThunk<
@@ -166,7 +166,7 @@ export const fetchPolicies = createAsyncThunk<
   try {
     const response = await getPoliciesApi(params || undefined);
     return response.data.data.policies;
-  } catch (err: any) {
+  } catch (err: LegacyUnsafeValue) {
     return rejectWithValue(
       err.response?.data?.message ?? "Failed to fetch policies",
     );
@@ -181,7 +181,7 @@ export const fetchPoliciesByMember = createAsyncThunk<
   try {
     const response = await getPoliciesByMemberApi(memberId);
     return response.data.data.policies;
-  } catch (err: any) {
+  } catch (err: LegacyUnsafeValue) {
     return rejectWithValue(
       err.response?.data?.message ?? "Failed to fetch member policies",
     );
@@ -199,7 +199,7 @@ export const deletePolicy = createAsyncThunk<
     );
     await deletePolicyApi(id);
     return { id, policyNumber: policyToDelete?.policyNumber ?? "Unknown" };
-  } catch (err: any) {
+  } catch (err: LegacyUnsafeValue) {
     return rejectWithValue(
       err.response?.data?.message ?? "Failed to delete policy",
     );
@@ -208,13 +208,13 @@ export const deletePolicy = createAsyncThunk<
 
 export const createPolicy = createAsyncThunk<
   Policy,
-  any,
+  LegacyUnsafeValue,
   { rejectValue: string }
->("policies/create", async (policyData: any, { rejectWithValue }) => {
+>("policies/create", async (policyData: LegacyUnsafeValue, { rejectWithValue }) => {
   try {
     const response = await createPolicyApi(policyData);
     return response.data.data.policy;
-  } catch (err: any) {
+  } catch (err: LegacyUnsafeValue) {
     return rejectWithValue(
       err.response?.data?.message ?? "Failed to create policy",
     );
@@ -251,7 +251,7 @@ export const fetchPolicyById = createAsyncThunk<
 
 export const updatePolicy = createAsyncThunk<
   Policy,
-  { id: string; data: any },
+  { id: string; data: LegacyUnsafeValue },
   { rejectValue: string; state: RootState }
 >(
   "policies/updatePolicy",

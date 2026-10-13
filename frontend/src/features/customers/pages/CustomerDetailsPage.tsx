@@ -45,7 +45,7 @@ interface CustomerDetailsPageProps {
   modalStackLength?: number;
 }
 
-function InfoRow({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: any }) {
+function InfoRow({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: LegacyUnsafeValue }) {
   if (!value) return null;
   return (
     <div className="flex flex-col rounded-xl border border-[#F1F3F6] bg-[#F8F9FB] p-3.5 transition-all duration-200 hover:border-blue-100 hover:bg-white hover:shadow-sm">
@@ -164,7 +164,7 @@ export default function CustomerDetailsPage({
         if (id) {
           dispatch(fetchCustomer(id));
         }
-      } catch (err: any) {
+      } catch (err: LegacyUnsafeValue) {
         toast.error(err || "Failed to delete member");
       }
     }

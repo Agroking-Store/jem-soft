@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface ComprehensiveInsuranceChartReportViewProps {
   formData: ComprehensiveInsuranceChartFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -82,7 +82,7 @@ export default function ComprehensiveInsuranceChartReportView({
       .filter((f) => f.type === "Policy Status")
       .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
 
-    const isAgencyMatch = (p: any) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue) => {
       if (selectedAgencyFilters.length === 0) return true;
       const pAgCode = (p.agentCode || "").toLowerCase().trim();
       return selectedAgencyFilters.some((f) => {
@@ -100,14 +100,14 @@ export default function ComprehensiveInsuranceChartReportView({
       });
     };
 
-    const isStatusMatch = (p: any) => {
+    const isStatusMatch = (p: LegacyUnsafeValue) => {
       if (selectedStatusFilters.length === 0) return true;
       const rawStatus = (p.status?.statusName || "Inforce").toLowerCase().replace(/[- ]/g, "");
       return selectedStatusFilters.some((st) => rawStatus.includes(st) || st.includes(rawStatus));
     };
 
     // ── Helper to build a policy row ─────────────────────────────────────
-    const buildPolicyRow = (p: any, srNo: number) => {
+    const buildPolicyRow = (p: LegacyUnsafeValue, srNo: number) => {
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 500000);
       const premium = Number(p.premium?.installmentPremium || p.premiumAmount || 5000);
       const comDate = p.commencementDate || "2020-01-01";
@@ -146,7 +146,7 @@ export default function ComprehensiveInsuranceChartReportView({
       };
     };
 
-    const getMemberName = (p: any) => {
+    const getMemberName = (p: LegacyUnsafeValue) => {
       const cm = p.CustomerMaster;
       if (cm) {
         const n = `${cm.salutation || ""} ${cm.firstName || ""} ${cm.lastName || ""}`.replace(/\s+/g, " ").trim();
@@ -162,7 +162,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
       // Match by CustomerMaster.id — each selected item in the SortingFilterModal
       // carries the CustomerMaster.id as its `id` field.
-      const selectedMemberIds = new Set(selectedItems.map((item: any) => item.id));
+      const selectedMemberIds = new Set(selectedItems.map((item: LegacyUnsafeValue) => item.id));
 
       const memberPolicies = rawPolicies.filter((p) => {
         const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
@@ -172,7 +172,7 @@ export default function ComprehensiveInsuranceChartReportView({
       if (memberPolicies.length === 0) return null;
 
       // Build members map keyed by CustomerMaster.id (one block per selected member)
-      const membersMap: { [id: string]: any } = {};
+      const membersMap: { [id: string]: LegacyUnsafeValue } = {};
       memberPolicies.forEach((p) => {
         const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
         if (!membersMap[memberId]) {
@@ -192,7 +192,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
       return {
         groupCode,
-        groupHeadName: selectedItems.map((item: any) => item.name).join(", ") || "Member",
+        groupHeadName: selectedItems.map((item: LegacyUnsafeValue) => item.name).join(", ") || "Member",
         address: groupCustomer?.address || "",
         mobile: groupCustomer?.mobile || "",
         email: groupCustomer?.email || "",
@@ -215,7 +215,7 @@ export default function ComprehensiveInsuranceChartReportView({
     if (groupPolicies.length === 0) return null;
 
     // Key by CustomerMaster.id so distinct members with same customer name don't collapse
-    const membersMap: { [id: string]: any } = {};
+    const membersMap: { [id: string]: LegacyUnsafeValue } = {};
     groupPolicies.forEach((p, idx) => {
       const memberId = p.CustomerMaster?.id || p.CustomerMasterId || `C${idx}`;
       if (!membersMap[memberId]) {
@@ -242,15 +242,15 @@ export default function ComprehensiveInsuranceChartReportView({
   }, [rawPolicies, rawCustomers, formData]);
 
   // ---------- Policy Details totals ----------
-  const memberTotals = (member: any) => ({
-    sumAssured: member.policies.reduce((a: number, p: any) => a + p.sumAssured, 0),
-    premium: member.policies.reduce((a: number, p: any) => a + p.premium, 0),
-    accidentalRiskcover: member.policies.reduce((a: number, p: any) => a + p.accidentalRiskcover, 0),
+  const memberTotals = (member: LegacyUnsafeValue) => ({
+    sumAssured: member.policies.reduce((a: number, p: LegacyUnsafeValue) => a + p.sumAssured, 0),
+    premium: member.policies.reduce((a: number, p: LegacyUnsafeValue) => a + p.premium, 0),
+    accidentalRiskcover: member.policies.reduce((a: number, p: LegacyUnsafeValue) => a + p.accidentalRiskcover, 0),
   });
 
   const grandPolicyTotal = family
     ? family.members.reduce(
-        (acc: any, m: any) => {
+        (acc: LegacyUnsafeValue, m: LegacyUnsafeValue) => {
           const t = memberTotals(m);
           return { sumAssured: acc.sumAssured + t.sumAssured, premium: acc.premium + t.premium };
         },
@@ -271,7 +271,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
   const modeInterval: Record<string, number> = { "Qly.": 3, "Hly.": 6, "Mly.": 1, "Yly.": 12, "Sgl.": 0 };
 
-  function premiumCalendarRow(policy: any) {
+  function premiumCalendarRow(policy: LegacyUnsafeValue) {
     const interval = modeInterval[policy.md] ?? 12;
     const comDate = new Date(policy.comDate);
     return calendarMonths.map((m) => {
@@ -283,9 +283,9 @@ export default function ComprehensiveInsuranceChartReportView({
   }
 
   // ---------- Current Status totals ----------
-  const statusTotals = (member: any) =>
+  const statusTotals = (member: LegacyUnsafeValue) =>
     member.policies.reduce(
-      (acc: any, p: any) => ({
+      (acc: LegacyUnsafeValue, p: LegacyUnsafeValue) => ({
         riskCover: acc.riskCover + p.riskCover,
         loanTaken: acc.loanTaken + p.loanTaken,
         surrenderValue: acc.surrenderValue + p.surrenderValue,
@@ -298,7 +298,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
   const groupStatusTotal = family
     ? family.members.reduce(
-        (acc: any, m: any) => {
+        (acc: LegacyUnsafeValue, m: LegacyUnsafeValue) => {
           const t = statusTotals(m);
           return {
             riskCover: acc.riskCover + t.riskCover,
@@ -316,9 +316,9 @@ export default function ComprehensiveInsuranceChartReportView({
   // ---------- Projected Cash Flow (maturing policies only) ----------
   const cashFlowRows = useMemo(() => {
     if (!family) return [];
-    const rows: any[] = [];
-    family.members.forEach((m: any) => {
-      m.policies.forEach((p: any) => {
+    const rows: LegacyUnsafeValue[] = [];
+    family.members.forEach((m: LegacyUnsafeValue) => {
+      m.policies.forEach((p: LegacyUnsafeValue) => {
         if (!p.maturityDate) return; // whole-life plans with no term maturity are excluded, matching the sample
         const maturityDate = new Date(p.maturityDate);
         const netOfLoans = p.sumAssured;
@@ -349,12 +349,12 @@ export default function ComprehensiveInsuranceChartReportView({
     const startYear = asOfDate.getFullYear();
     const endYear = Math.max(...cashFlowRows.map((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear()));
     const annualOutflow = grandPolicyTotal.premium;
-    const rows: any[] = [];
+    const rows: LegacyUnsafeValue[] = [];
     for (let y = startYear; y <= endYear; y++) {
       const maturingThisYear = cashFlowRows.filter((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear() === y);
       const cashIn = maturingThisYear.reduce((a, r) => a + r.total, 0);
-      const stillPayingPolicies = family!.members.flatMap((m: any) => m.policies).filter((p: any) => !p.maturityDate || new Date(p.maturityDate).getFullYear() >= y);
-      const cashOut = stillPayingPolicies.reduce((a: number, p: any) => {
+      const stillPayingPolicies = family!.members.flatMap((m: LegacyUnsafeValue) => m.policies).filter((p: LegacyUnsafeValue) => !p.maturityDate || new Date(p.maturityDate).getFullYear() >= y);
+      const cashOut = stillPayingPolicies.reduce((a: number, p: LegacyUnsafeValue) => {
         const interval = modeInterval[p.md] ?? 12;
         const occurrencesPerYear = interval > 0 ? 12 / interval : 1;
         return a + p.premium * occurrencesPerYear;
@@ -400,7 +400,7 @@ export default function ComprehensiveInsuranceChartReportView({
 
       pdf.save(`Comprehensive_Insurance_Chart_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -491,14 +491,14 @@ export default function ComprehensiveInsuranceChartReportView({
             </tr>
           </thead>
           <tbody>
-            {family.members.map((member: any) => {
+            {family.members.map((member: LegacyUnsafeValue) => {
               const t = memberTotals(member);
               return (
                 <Fragment key={member.name}>
                   <tr>
                     <td colSpan={12} className="text-center font-bold text-[11px] py-1.5">{member.name}</td>
                   </tr>
-                  {member.policies.map((p: any) => (
+                  {member.policies.map((p: LegacyUnsafeValue) => (
                     <tr key={p.policyNo} className="">
                       <td className="py-1 px-1">{p.sr}</td>
                       <td className="py-1 px-1">{p.agCd}</td>
@@ -552,7 +552,7 @@ export default function ComprehensiveInsuranceChartReportView({
                 </tr>
               </thead>
               <tbody>
-                {family.members.flatMap((m: any) => m.policies.map((p: any) => (
+                {family.members.flatMap((m: LegacyUnsafeValue) => m.policies.map((p: LegacyUnsafeValue) => (
                   <tr key={p.policyNo} className="">
                     <td className="py-1 px-1">{p.sr}</td>
                     <td className="py-1 px-1">{m.name}</td>
@@ -585,7 +585,7 @@ export default function ComprehensiveInsuranceChartReportView({
                 </tr>
               </thead>
               <tbody>
-                {family.members.map((m: any, idx: number) => {
+                {family.members.map((m: LegacyUnsafeValue, idx: number) => {
                   const t = memberTotals(m);
                   return (
                     <tr key={m.name} className="">
@@ -598,7 +598,7 @@ export default function ComprehensiveInsuranceChartReportView({
                     </tr>
                   );
                 })}
-                {(family.dependents || []).map((dep: any, idx: number) => (
+                {(family.dependents || []).map((dep: LegacyUnsafeValue, idx: number) => (
                   <tr key={dep.name} className="">
                     <td className="py-1 px-1">{family.members.length + idx + 1}</td>
                     <td className="py-1 px-1">{dep.name}</td>
@@ -633,14 +633,14 @@ export default function ComprehensiveInsuranceChartReportView({
                 </tr>
               </thead>
               <tbody>
-                {family.members.map((member: any) => {
+                {family.members.map((member: LegacyUnsafeValue) => {
                   const monthTotals = new Array(12).fill(0);
                   return (
                     <Fragment key={member.name}>
                       <tr>
                         <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
                       </tr>
-                      {member.policies.map((p: any) => {
+                      {member.policies.map((p: LegacyUnsafeValue) => {
                         const row = premiumCalendarRow(p);
                         row.forEach((v, i) => (monthTotals[i] += v));
                         return (
@@ -664,8 +664,8 @@ export default function ComprehensiveInsuranceChartReportView({
                 <tr className="font-bold" style={grandRowStyle}>
                   <td className="py-1.5 px-1">Total Premium per Annum : {grandPolicyTotal.premium.toFixed(2)}</td>
                   {calendarMonths.map((m, i) => {
-                    const monthTotal = family.members.reduce((acc: number, member: any) => {
-                      return acc + member.policies.reduce((a: number, p: any) => a + premiumCalendarRow(p)[i], 0);
+                    const monthTotal = family.members.reduce((acc: number, member: LegacyUnsafeValue) => {
+                      return acc + member.policies.reduce((a: number, p: LegacyUnsafeValue) => a + premiumCalendarRow(p)[i], 0);
                     }, 0);
                     return (
                       <td key={i} className="py-1.5 px-1 text-right font-mono">{monthTotal.toFixed(2)}</td>
@@ -701,14 +701,14 @@ export default function ComprehensiveInsuranceChartReportView({
                 </tr>
               </thead>
               <tbody>
-                {family.members.map((member: any) => {
+                {family.members.map((member: LegacyUnsafeValue) => {
                   const t = statusTotals(member);
                   return (
                     <Fragment key={member.name}>
                       <tr>
                         <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
                       </tr>
-                      {member.policies.map((p: any) => (
+                      {member.policies.map((p: LegacyUnsafeValue) => (
                         <tr key={p.policyNo} className="">
                           <td className="py-1 px-1">{p.sr}</td>
                           <td className="py-1 px-1 font-mono">{p.policyNo}</td>
@@ -728,7 +728,7 @@ export default function ComprehensiveInsuranceChartReportView({
                       ))}
                       <tr className="font-bold" style={totalRowStyle}>
                         <td colSpan={3} className="text-right pr-2 py-1">Total :</td>
-                        <td className="text-right py-1 font-mono">{member.policies.reduce((a: number, p: any) => a + p.sumAssured, 0).toLocaleString("en-IN")}</td>
+                        <td className="text-right py-1 font-mono">{member.policies.reduce((a: number, p: LegacyUnsafeValue) => a + p.sumAssured, 0).toLocaleString("en-IN")}</td>
                         <td colSpan={3}></td>
                         <td className="text-right py-1 font-mono">{t.riskCover.toLocaleString("en-IN")}</td>
                         <td className="text-right py-1 font-mono">{t.loanTaken.toLocaleString("en-IN")}</td>

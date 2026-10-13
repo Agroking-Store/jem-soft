@@ -344,7 +344,7 @@ interface CustomerMasterEditPageProps {
   customerId?: string;
   onClose?: () => void;
   onSaved?: () => void;
-  onOpenModal?: (type: any, id?: string, extraId?: string) => void;
+  onOpenModal?: (type: LegacyUnsafeValue, id?: string, extraId?: string) => void;
 }
 
 export default function CustomerMasterEditPage({ isModal = false, customerId, onClose, onSaved, onOpenModal }: CustomerMasterEditPageProps = {}) {
@@ -468,7 +468,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
         const members = res.data?.customers || [];
         // Find group head that is NOT the current customer being edited
         const existingHead = members.find(
-          (m: any) => m.groupId === selectedGroupId && m.isGroupHead && m.id !== id
+          (m: LegacyUnsafeValue) => m.groupId === selectedGroupId && m.isGroupHead && m.id !== id
         );
         setExistingGroupHeadId(existingHead?.id || null);
       }).catch(() => {

@@ -49,7 +49,7 @@ export interface CommissionOutstandingTotals {
 /**
  * Format any policy identifier into an authentic 9-digit LIC policy number
  */
-export function format9DigitPolicyNo(rawNo: any, fallbackIndex = 1): string {
+export function format9DigitPolicyNo(rawNo: LegacyUnsafeValue, fallbackIndex = 1): string {
   if (!rawNo) {
     return String(910000000 + fallbackIndex);
   }
@@ -70,8 +70,8 @@ export function format9DigitPolicyNo(rawNo: any, fallbackIndex = 1): string {
  * Dynamically extract all unique branches from policies created in the system and Redux state
  */
 export function extractDynamicBranches(
-  policies: Array<any> = [],
-  reduxBranches: Array<any> = []
+  policies: Array<LegacyUnsafeValue> = [],
+  reduxBranches: Array<LegacyUnsafeValue> = []
 ): Array<{ id: string; branchCode: string; branchName: string }> {
   const branchMap = new Map<string, { id: string; branchCode: string; branchName: string }>();
 
@@ -286,7 +286,7 @@ export const SAMPLE_OUTSTANDING_ITEMS: CommissionOutstandingItem[] = [
  * Generate outstanding commission items based on form filters
  */
 export function generateCommissionOutstandingItems(
-  policies: Array<any> = [],
+  policies: Array<LegacyUnsafeValue> = [],
   agencyFilters: string[] = [],
   formData: CommissionOutstandingFormData
 ): CommissionOutstandingItem[] {

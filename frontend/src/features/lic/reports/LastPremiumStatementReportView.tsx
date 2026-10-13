@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface LastPremiumStatementReportViewProps {
   formData: LastPremiumStatementFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -37,13 +37,13 @@ const MODE_INTERVAL_MONTHS: Record<string, number> = {
   S: 0,
 };
 
-function getModeCode(p: any): string {
+function getModeCode(p: LegacyUnsafeValue): string {
   const raw = (p.premiumMode?.modeName || p.mode || "Y").toString();
   const first = raw[0]?.toUpperCase() || "Y";
   return ["Y", "H", "Q", "M", "S"].includes(first) ? first : "Y";
 }
 
-function getLastPremiumDate(p: any): Date | null {
+function getLastPremiumDate(p: LegacyUnsafeValue): Date | null {
   if (p.lastPremiumPaidDate) {
     const d = new Date(p.lastPremiumPaidDate);
     if (!isNaN(d.getTime())) return d;
@@ -65,7 +65,7 @@ interface ColumnDef {
   key: string;
   label: string;
   align?: "left" | "right" | "center";
-  render: (p: any) => ReactNode;
+  render: (p: LegacyUnsafeValue) => ReactNode;
 }
 
 // Index of the "Last Premium Amt" column — totals are printed under it
@@ -167,7 +167,7 @@ export default function LastPremiumStatementReportView({
     // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: any, filters: string[]) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, filters: string[]) => {
       if (filters.length === 0) return true;
       const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
         .toLowerCase()
@@ -195,8 +195,8 @@ export default function LastPremiumStatementReportView({
 
     const { nonMonthly, monthly } = formData.modeToInclude;
 
-    const customerMap: { [id: string]: any } = {};
-    rawCustomers.forEach((c: any) => {
+    const customerMap: { [id: string]: LegacyUnsafeValue } = {};
+    rawCustomers.forEach((c: LegacyUnsafeValue) => {
       if (c.id) customerMap[String(c.id)] = c;
     });
 
@@ -295,7 +295,7 @@ export default function LastPremiumStatementReportView({
       return true;
     });
 
-    const buildRow = (p: any, lastPremiumDate: Date) => {
+    const buildRow = (p: LegacyUnsafeValue, lastPremiumDate: Date) => {
       const custMaster = p.CustomerMaster;
       const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
       const modeCode = getModeCode(p);
@@ -334,7 +334,7 @@ export default function LastPremiumStatementReportView({
     const opt = formData.sortingOption;
     const isFlat = opt === "dueDate" || opt === "policyNoWise";
 
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
     validDbPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
       const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
@@ -419,7 +419,7 @@ export default function LastPremiumStatementReportView({
       grp.totalLastPremium += row.lastPremiumAmount;
     });
 
-    return Object.values(groupMap).map((grp: any) => ({ ...grp, members: Object.values(grp.membersMap) }));
+    return Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({ ...grp, members: Object.values(grp.membersMap) }));
   }, [rawPolicies, formData]);
 
   const grandTotal = groupData.reduce((acc, g) => acc + g.totalLastPremium, 0);
@@ -478,7 +478,7 @@ export default function LastPremiumStatementReportView({
 
       pdf.save(`Last_Premium_Statement_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -550,7 +550,7 @@ export default function LastPremiumStatementReportView({
                       </td>
                     </tr>
                   )}
-                  {group.members.map((member: any) => (
+                  {group.members.map((member: LegacyUnsafeValue) => (
                     <Fragment key={member.name}>
                       <tr>
                         <td colSpan={columns.length} className="pt-2 pb-0.5">
@@ -565,7 +565,7 @@ export default function LastPremiumStatementReportView({
                           )}
                         </td>
                       </tr>
-                      {member.policies.map((p: any) => (
+                      {member.policies.map((p: LegacyUnsafeValue) => (
                         <tr key={p.policyNo}>
                           {columns.map((col) => (
                             <td key={col.key} className={`px-1 py-0.5 whitespace-nowrap ${alignClass(col.align)}`}>

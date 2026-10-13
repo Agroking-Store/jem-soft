@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface CashFlowChartReportViewProps {
   formData: CashFlowChartFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -148,7 +148,7 @@ export default function CashFlowChartReportView({
 
       pdf.save(`Cash_Flow_Chart_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {

@@ -63,7 +63,7 @@ interface PolicyRegisterFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
 }
 
 export default function PolicyRegisterForm({
@@ -356,7 +356,7 @@ export default function PolicyRegisterForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       sortingFilterSelection: null,
                     }))
                   }
@@ -420,7 +420,7 @@ export default function PolicyRegisterForm({
               >
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
+                  checked={(formData.reportOptions as LegacyUnsafeValue)[opt.key]}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

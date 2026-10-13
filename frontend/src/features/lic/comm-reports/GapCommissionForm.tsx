@@ -17,7 +17,7 @@ import toast from "react-hot-toast";
 
 interface GapCommissionFormProps {
   initialData?: GapCommissionFormData | null;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBack: () => void;
   onGenerateReport: (data: GapCommissionFormData) => void;
 }

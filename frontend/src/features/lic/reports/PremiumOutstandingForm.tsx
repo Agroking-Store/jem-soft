@@ -59,7 +59,7 @@ interface PremiumOutstandingFormProps {
     groupName?: string | null;
     resArea?: string | null;
   }>;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
 }
 
@@ -366,7 +366,7 @@ export default function PremiumOutstandingForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))
@@ -428,7 +428,7 @@ export default function PremiumOutstandingForm({
               >
                 <input
                   type="checkbox"
-                  checked={(formData.reportOptions as any)[opt.key]}
+                  checked={(formData.reportOptions as LegacyUnsafeValue)[opt.key]}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,

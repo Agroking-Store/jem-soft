@@ -43,7 +43,7 @@ export const fetchOutstandingPremiums = createAsyncThunk<
       token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
     );
     return response.data.data.outstandingPremiums;
-  } catch (err: any) {
+  } catch (err: LegacyUnsafeValue) {
     if (isAxiosError(err)) {
       return rejectWithValue(
         err.response?.data?.message ?? "Failed to fetch outstanding premiums",

@@ -102,7 +102,7 @@ function RepayFormInner() {
         return {
           value: l.id,
           label: `${l.policy?.policyNumber || "Loan"}${cust ? ` — ${cust}` : ""} (₹${Number(l.loanAmount).toLocaleString("en-IN")})`,
-          sublabel: (l.policy as any)?.product?.productName || `Policy #${l.policy?.policyNumber || ""}`,
+          sublabel: (l.policy as LegacyUnsafeValue)?.product?.productName || `Policy #${l.policy?.policyNumber || ""}`,
         };
       }),
     [activeLoans],
@@ -182,7 +182,7 @@ function RepayFormInner() {
 
       toast.success("Repayment recorded successfully.");
       router.push(`/dashboard/loans/${form.loanId}`);
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err?.message || err || "Failed to record repayment.");
     }
   };

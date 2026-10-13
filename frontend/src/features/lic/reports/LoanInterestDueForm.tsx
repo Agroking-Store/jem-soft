@@ -48,12 +48,12 @@ interface LoanInterestDueFormProps {
   onBack: () => void;
   onGenerateReport: (data: LoanInterestDueFormData) => void;
   initialData?: LoanInterestDueFormData | null;
-  agencies: any[];
-  policyStatuses: any[];
-  customers: any[];
-  policies: any[];
+  agencies: LegacyUnsafeValue[];
+  policyStatuses: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
+  policies: LegacyUnsafeValue[];
   branches?: Array<{ id: string; branchCode: string; branchName: string }>;
-  loans?: any[];
+  loans?: LegacyUnsafeValue[];
 }
 
 /** Interest falls due every half year — default window covers the next service date. */
@@ -350,7 +350,7 @@ export default function LoanInterestDueForm({
                   onChange={() =>
                     setFormData((prev) => ({
                       ...prev,
-                      sortingOption: opt.id as any,
+                      sortingOption: opt.id as LegacyUnsafeValue,
                       selectedGroups: [],
                       sortingFilterSelection: null,
                     }))
@@ -409,7 +409,7 @@ export default function LoanInterestDueForm({
                 >
                   <input
                     type="checkbox"
-                    checked={(formData.statementOptions as any)[opt.key]}
+                    checked={(formData.statementOptions as LegacyUnsafeValue)[opt.key]}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -437,7 +437,7 @@ export default function LoanInterestDueForm({
                   >
                     <input
                       type="checkbox"
-                      checked={(formData.intimationOptions as any)[opt.key]}
+                      checked={(formData.intimationOptions as LegacyUnsafeValue)[opt.key]}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,

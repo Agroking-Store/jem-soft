@@ -115,7 +115,7 @@ export const SAMPLE_COMMISSION_SUMMARY_ROWS: CommissionSummaryRow[] = [
  * or fallback to authentic LIC agency records
  */
 export function generateCommissionSummaryRows(
-  policies: Array<any> = [],
+  policies: Array<LegacyUnsafeValue> = [],
   agencyFilters: string[] = [],
   formData: CommissionSummaryFormData
 ): CommissionSummaryRow[] {

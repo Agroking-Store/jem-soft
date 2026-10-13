@@ -33,7 +33,7 @@ export const registerUser = createAsyncThunk(
       const data = await registerApi(payload);
       persistAuth(data.token, data.data.user);
       return data;
-    } catch (error: any) {
+    } catch (error: LegacyUnsafeValue) {
       return rejectWithValue(
         error.response?.data?.message ?? "Registration failed",
       );
@@ -48,7 +48,7 @@ export const loginUser = createAsyncThunk(
       const data = await loginApi(payload);
       persistAuth(data.token, data.data.user);
       return data;
-    } catch (error: any) {
+    } catch (error: LegacyUnsafeValue) {
       return rejectWithValue(error.response?.data?.message ?? "Login failed");
     }
   },

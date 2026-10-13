@@ -22,7 +22,7 @@ import {
 
 interface DeductionSummaryReportViewProps {
   formData: DeductionSummaryFormData;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 

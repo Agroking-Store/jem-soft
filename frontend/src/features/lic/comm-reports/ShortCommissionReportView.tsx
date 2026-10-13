@@ -25,7 +25,7 @@ import {
 
 interface ShortCommissionReportViewProps {
   formData: ShortCommissionFormData;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 

@@ -220,11 +220,11 @@ function NewLICPolicyContent() {
       const isOther =
         selectedPolicyType === "other" || values.providerType === "OTHER";
       if (isOther) {
-        return zodResolver(refinedSchema as any)(
-          values as any,
-          context as any,
-          options as any,
-        ) as any;
+        return zodResolver(refinedSchema as LegacyUnsafeValue)(
+          values as LegacyUnsafeValue,
+          context as LegacyUnsafeValue,
+          options as LegacyUnsafeValue,
+        ) as LegacyUnsafeValue;
       }
 
       refinedSchema = refinedSchema.refine(
@@ -385,11 +385,11 @@ function NewLICPolicyContent() {
         );
       }
 
-      return zodResolver(refinedSchema as any)(
-        values as any,
-        context as any,
-        options as any,
-      ) as any;
+      return zodResolver(refinedSchema as LegacyUnsafeValue)(
+        values as LegacyUnsafeValue,
+        context as LegacyUnsafeValue,
+        options as LegacyUnsafeValue,
+      ) as LegacyUnsafeValue;
     },
     defaultValues: {
       providerType: selectedPolicyType === "other" ? "OTHER" : "LIC",
@@ -589,7 +589,7 @@ function NewLICPolicyContent() {
     );
     setValue(
       "age",
-      member?.dob ? differenceInYears(new Date(), new Date(member.dob)) : (undefined as any),
+      member?.dob ? differenceInYears(new Date(), new Date(member.dob)) : (undefined as LegacyUnsafeValue),
     );
     setValue("gender", member?.gender || "");
     setValue("pan", member?.panNumber || "");
@@ -900,7 +900,7 @@ function NewLICPolicyContent() {
   }, [watchBasicYearlyPremium, watchTotalRiderPremium, setValue]);
 
   const ridersPreviewKey = Array.isArray(watchRiders)
-    ? watchRiders.map((r: any) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.premium}-${r.option}-${r.selected}`).join('|')
+    ? watchRiders.map((r: LegacyUnsafeValue) => `${r.description}-${r.sum}-${r.term}-${r.ppt}-${r.premium}-${r.option}-${r.selected}`).join('|')
     : "";
 
   // Auto-fill Term Rider and CIR fields, and Plan 774 defaults
@@ -938,11 +938,11 @@ function NewLICPolicyContent() {
           ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
         ) {
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
-          let expectedTerm = watchTerm ? Number(watchTerm) : null;
-          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
 
           if (isWholeLife && watchAge && expectedPpt) {
-            const riderRecord = riders.find((rv: any) => rv.riderName === r.description);
+            const riderRecord = riders.find((rv: LegacyUnsafeValue) => rv.riderName === r.description);
             if (riderRecord) {
               const fetchOptions = async () => {
                 try {
@@ -1003,7 +1003,7 @@ function NewLICPolicyContent() {
     if (isOtherPolicy) {
       let totalManualRiderPremium = 0;
       if (Array.isArray(watchRiders)) {
-        watchRiders.forEach((rider: any) => {
+        watchRiders.forEach((rider: LegacyUnsafeValue) => {
           if (rider?.selected) {
             totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
           }
@@ -1022,7 +1022,7 @@ function NewLICPolicyContent() {
 
       if (selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
         let totalManualRiderPremium = 0;
-        watchRiders.forEach((rider: any) => {
+        watchRiders.forEach((rider: LegacyUnsafeValue) => {
           if (rider?.selected) {
             totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
           }
@@ -1046,7 +1046,7 @@ function NewLICPolicyContent() {
               const term = parseFloat(String(rider.term)) || 0;
               const ppt = parseFloat(String(rider.ppt)) || 0;
               const mode = watchMode;
-              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
+              const riderRecord = riders.find((rv: LegacyUnsafeValue) => rv.riderName === rider.description);
               const riderId = riderRecord?.id;
               const currentPremium = parseFloat(String(rider.premium)) || 0;
 
@@ -1146,7 +1146,7 @@ function NewLICPolicyContent() {
         if (isValid(startDate) && isValid(endDate)) {
           const calculatedTerm = differenceInYears(endDate, startDate);
           if (calculatedTerm > 0) {
-            setValue("term", String(calculatedTerm) as any, { shouldValidate: true, shouldDirty: true });
+            setValue("term", String(calculatedTerm) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
           }
         }
       } catch (e) {
@@ -1165,16 +1165,16 @@ function NewLICPolicyContent() {
       if (matchingCombs.length === 1) {
         // Only one possible PPT for this term, auto select it
         if (Number(watchPpt) !== matchingCombs[0].ppt) {
-          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+          setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
         }
       } else if (matchingCombs.length > 0 && watchPpt) {
         // If current PPT is not in the valid list for this term, clear or reset it
         const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
         if (!isValid) {
-          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+          setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
         }
       } else if (matchingCombs.length > 0 && !watchPpt) {
-        setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+        setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
       }
     }
   }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isOtherPolicy, isManualPpt]);
@@ -1190,7 +1190,7 @@ function NewLICPolicyContent() {
       if (!currentTerm || !productOptionsData.terms.includes(currentTerm)) {
         effectiveTerm = Math.min(...productOptionsData.terms);
         if (Number(watchTerm) !== effectiveTerm) {
-          setValue("term", String(effectiveTerm) as any, { shouldValidate: true, shouldDirty: true });
+          setValue("term", String(effectiveTerm) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
         }
       }
 
@@ -1200,7 +1200,7 @@ function NewLICPolicyContent() {
           const currentPpt = watchPpt ? Number(watchPpt) : null;
           const isValidPpt = currentPpt && matchingCombs.some(c => c.ppt === currentPpt);
           if (!isValidPpt) {
-            setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+            setValue("ppt", String(matchingCombs[0].ppt) as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
           }
         }
       }
@@ -1307,7 +1307,7 @@ function NewLICPolicyContent() {
             ? parseFloat(totalInstallmentPremium.toFixed(2))
             : undefined,
         );
-      } catch (error: any) {
+      } catch (error: LegacyUnsafeValue) {
         if (!axios.isCancel(error)) {
           setIsPremiumManual(true);
           const msg = error?.response?.data?.message || error?.message || "";
@@ -1356,7 +1356,7 @@ function NewLICPolicyContent() {
           ? Math.min(82, 100 - Number(watchAge))
           : 100 - Number(watchAge);
       if (Number(watchTerm) !== defaultTerm) {
-        setValue("term", String(defaultTerm) as any, {
+        setValue("term", String(defaultTerm) as LegacyUnsafeValue, {
           shouldValidate: true,
           shouldDirty: true,
         });
@@ -1403,7 +1403,7 @@ function NewLICPolicyContent() {
       }
 
       if (Array.isArray(selectedProduct.riders) && selectedProduct.riders.length > 0) {
-        const newRiders = selectedProduct.riders.map((pr: any) => ({
+        const newRiders = selectedProduct.riders.map((pr: LegacyUnsafeValue) => ({
           description: pr.rider?.riderName || "",
           sum: null,
           term: null,
@@ -1415,7 +1415,7 @@ function NewLICPolicyContent() {
 
         if (selectedProduct.planNumber === "717" || selectedProduct.planNumber === "733" || selectedProduct.planNumber === "736" || selectedProduct.planNumber === "745" || selectedProduct.planNumber === "760" || selectedProduct.planNumber === "771" || selectedProduct.planNumber === "881" || selectedProduct.planNumber === "883" || selectedProduct.planNumber === "888" || selectedProduct.planNumber === "912") {
           const addbRider = riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"));
-          const hasAddb = newRiders.some((r: any) => r.description.toLowerCase().includes("accidental death") || r.description.toLowerCase().includes("addb"));
+          const hasAddb = newRiders.some((r: LegacyUnsafeValue) => r.description.toLowerCase().includes("accidental death") || r.description.toLowerCase().includes("addb"));
           if (addbRider && !hasAddb) {
             newRiders.push({
               description: addbRider.riderName,
@@ -1537,12 +1537,12 @@ function NewLICPolicyContent() {
 
     // For plan 771, the term is calculated, not pre-filled from attributes.
     if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
-      if (minTerm && !watchTerm) setValue("term", minTerm as any);
+      if (minTerm && !watchTerm) setValue("term", minTerm as LegacyUnsafeValue);
     }
 
-    if (minPpt && !watchPpt) setValue("ppt", minPpt as any);
+    if (minPpt && !watchPpt) setValue("ppt", minPpt as LegacyUnsafeValue);
 
-    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as any);
+    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as LegacyUnsafeValue);
 
     setAttributeHints({
       term:
@@ -1594,12 +1594,12 @@ function NewLICPolicyContent() {
 
     // For plan 771, the term is calculated, not pre-filled from attributes.
     if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
-      if (minTerm && !watchTerm) setValue("term", minTerm as any);
+      if (minTerm && !watchTerm) setValue("term", minTerm as LegacyUnsafeValue);
     }
 
-    if (minPpt && !watchPpt) setValue("ppt", minPpt as any);
+    if (minPpt && !watchPpt) setValue("ppt", minPpt as LegacyUnsafeValue);
 
-    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as any);
+    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as LegacyUnsafeValue);
 
     setAttributeHints({
       term:
@@ -1665,7 +1665,7 @@ function NewLICPolicyContent() {
             const product = products.find((p) => p.id === watchProductId);
             if (!["771", "745", "883", "887"].includes(product?.planNumber ?? "")) {
               const minTerm = Math.min(...data.terms);
-              setValue("term", minTerm as any, { shouldValidate: true, shouldDirty: true });
+              setValue("term", minTerm as LegacyUnsafeValue, { shouldValidate: true, shouldDirty: true });
             }
           }
         }
@@ -1764,7 +1764,7 @@ function NewLICPolicyContent() {
     }
 
     try {
-      const normalizeNumber = (value: any) =>
+      const normalizeNumber = (value: LegacyUnsafeValue) =>
         value === undefined || value === null || value === ""
           ? undefined
           : Number(value);
@@ -1811,7 +1811,7 @@ function NewLICPolicyContent() {
       toast.success("Policy created successfully!");
 
       router.push("/dashboard/lic/policies");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       const msg =
         typeof err === "string"
           ? err

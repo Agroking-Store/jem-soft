@@ -80,7 +80,7 @@ export const fetchFamilyHistoriesByMember = createAsyncThunk(
     try {
       const data = await getFamilyHistoriesByMemberApi(memberId);
       return (data.data.records ?? []) as FamilyHistoryItem[];
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch family history records");
     }
   }
@@ -92,7 +92,7 @@ export const fetchFamilyHistory = createAsyncThunk(
     try {
       const data = await getFamilyHistoryApi(id);
       return data.data.record;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to fetch family history details");
     }
   }
@@ -100,11 +100,11 @@ export const fetchFamilyHistory = createAsyncThunk(
 
 export const createFamilyHistory = createAsyncThunk(
   "familyHistory/create",
-  async (payload: any, { rejectWithValue }) => {
+  async (payload: LegacyUnsafeValue, { rejectWithValue }) => {
     try {
       const data = await createFamilyHistoryApi(payload);
       return data.data.record;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to create family history");
     }
   }
@@ -112,11 +112,11 @@ export const createFamilyHistory = createAsyncThunk(
 
 export const updateFamilyHistory = createAsyncThunk(
   "familyHistory/update",
-  async ({ id, payload }: { id: string; payload: any }, { rejectWithValue }) => {
+  async ({ id, payload }: { id: string; payload: LegacyUnsafeValue }, { rejectWithValue }) => {
     try {
       const data = await updateFamilyHistoryApi(id, payload);
       return data.data.record;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to update family history");
     }
   }
@@ -128,7 +128,7 @@ export const deleteFamilyHistory = createAsyncThunk(
     try {
       await deleteFamilyHistoryApi(id);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to delete family history");
     }
   }
@@ -140,7 +140,7 @@ export const fetchGroupByCode = createAsyncThunk(
     try {
       const data = await getCustomerByGroupCodeApi(groupCode);
       return data.data.customer;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to find group code");
     }
   }
@@ -152,7 +152,7 @@ export const fetchGroupById = createAsyncThunk(
     try {
       const data = await getCustomerApi(id);
       return data.data.customer;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(err.response?.data?.message ?? "Failed to find group");
     }
   }
@@ -252,7 +252,7 @@ const familyHistorySlice = createSlice({
         state.groupError = null;
         state.currentGroup = null;
       })
-      .addCase(fetchGroupByCode.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchGroupByCode.fulfilled, (state, action: PayloadAction<LegacyUnsafeValue>) => {
         state.isGroupLoading = false;
         state.currentGroup = action.payload;
       })
@@ -266,7 +266,7 @@ const familyHistorySlice = createSlice({
         state.groupError = null;
         state.currentGroup = null;
       })
-      .addCase(fetchGroupById.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchGroupById.fulfilled, (state, action: PayloadAction<LegacyUnsafeValue>) => {
         state.isGroupLoading = false;
         state.currentGroup = action.payload;
       })

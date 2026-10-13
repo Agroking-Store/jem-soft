@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface PremiumCalendarReportViewProps {
   formData: PremiumCalendarFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -28,7 +28,7 @@ function fmtDate(d: Date | string | null | undefined, withYear2 = false) {
   });
 }
 
-function getMemberName(policy: any): string {
+function getMemberName(policy: LegacyUnsafeValue): string {
   // lifeAssured is NOT a schema field — the member is always CustomerMaster.
   const cm = policy.CustomerMaster;
   if (cm) {
@@ -40,15 +40,15 @@ function getMemberName(policy: any): string {
   return "Policy Holder";
 }
 
-function getMemberDOB(policy: any) {
+function getMemberDOB(policy: LegacyUnsafeValue) {
   return policy.CustomerMaster?.dob || null;
 }
 
-function getMemberPAN(policy: any) {
+function getMemberPAN(policy: LegacyUnsafeValue) {
   return policy.CustomerMaster?.panNumber || "";
 }
 
-function getMemberMobile(policy: any) {
+function getMemberMobile(policy: LegacyUnsafeValue) {
   return (
     policy.CustomerMaster?.contactInfo?.mobile1 ||
     policy.customer?.phone ||
@@ -57,7 +57,7 @@ function getMemberMobile(policy: any) {
   );
 }
 
-function getMemberAddress(policy: any) {
+function getMemberAddress(policy: LegacyUnsafeValue) {
   // CustomerMaster.addresses (typed) first, then the group Customer's
   // residence address parts — Customer has no single `address` field.
   const addrs = policy.CustomerMaster?.addresses;
@@ -106,7 +106,7 @@ function addMonths(date: Date, months: number) {
 }
 
 /** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
-function isNachPolicy(p: any): boolean {
+function isNachPolicy(p: LegacyUnsafeValue): boolean {
   const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
   if (pay.includes("nach")) return true;
   return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
@@ -212,7 +212,7 @@ export default function PremiumCalendarReportView({
     // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: any, filters: string[]) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, filters: string[]) => {
       if (filters.length === 0) return true;
       const agCode = String(p.agentCode || p.advisor?.agency?.agencyCode || "")
         .toLowerCase()
@@ -251,8 +251,8 @@ export default function PremiumCalendarReportView({
       cursor = addMonths(cursor, 1);
     }
 
-    const customerMap: { [id: string]: any } = {};
-    rawCustomers.forEach((c: any) => {
+    const customerMap: { [id: string]: LegacyUnsafeValue } = {};
+    rawCustomers.forEach((c: LegacyUnsafeValue) => {
       if (c.id) customerMap[String(c.id)] = c;
     });
 
@@ -334,8 +334,8 @@ export default function PremiumCalendarReportView({
       return true;
     });
 
-    const groupMap: { [key: string]: any } = {};
-    const summaryMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
+    const summaryMap: { [key: string]: LegacyUnsafeValue } = {};
     const monthTotalsAcc: { [key: string]: number } = {};
     monthBuckets.forEach((mb) => (monthTotalsAcc[mb] = 0));
     let grand = 0;
@@ -386,7 +386,7 @@ export default function PremiumCalendarReportView({
 
       // Loan interest from the policy's actual loan records (PolicyLoan) —
       // each loan's own interestRate is used, with the placeholder as fallback.
-      const loans: any[] = Array.isArray(p.loans) ? p.loans : [];
+      const loans: LegacyUnsafeValue[] = Array.isArray(p.loans) ? p.loans : [];
       const freqPerYear = modeFreqPerYear(modeName);
       const loanInterestPerDue = formData.includeLoanInterest
         ? loans.reduce((s, l) => {
@@ -456,10 +456,10 @@ export default function PremiumCalendarReportView({
 
     // Sort rows within each month by due date, and merge consecutive same-holder
     // rows into a "Policy Holder Total" on the last row of that holder (Type 1 style).
-    Object.values(groupMap).forEach((grp: any) => {
+    Object.values(groupMap).forEach((grp: LegacyUnsafeValue) => {
       Object.keys(grp.months).forEach((monthLabel) => {
         const rows = grp.months[monthLabel].sort(
-          (a: any, b: any) => a.dueDate.getTime() - b.dueDate.getTime()
+          (a: LegacyUnsafeValue, b: LegacyUnsafeValue) => a.dueDate.getTime() - b.dueDate.getTime()
         );
         for (let i = 0; i < rows.length; i++) {
           const isLastOfHolder =
@@ -469,7 +469,7 @@ export default function PremiumCalendarReportView({
             while (start > 0 && rows[start - 1].memberName === rows[i].memberName) start--;
             const holderTotal = rows
               .slice(start, i + 1)
-              .reduce((s: number, r: any) => s + r.premium, 0);
+              .reduce((s: number, r: LegacyUnsafeValue) => s + r.premium, 0);
             rows[i].holderTotal = holderTotal;
           }
         }
@@ -477,15 +477,15 @@ export default function PremiumCalendarReportView({
       });
     });
 
-    const finalGroups = Object.values(groupMap).map((grp: any) => ({
+    const finalGroups = Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
       ...grp,
       monthList: monthBuckets
         .filter((mb) => grp.months[mb] && grp.months[mb].length > 0)
         .map((mb) => ({
           label: mb,
           rows: grp.months[mb],
-          total: grp.months[mb].reduce((s: number, r: any) => s + r.premium, 0),
-          loanTotal: grp.months[mb].reduce((s: number, r: any) => s + r.loanInterest, 0),
+          total: grp.months[mb].reduce((s: number, r: LegacyUnsafeValue) => s + r.premium, 0),
+          loanTotal: grp.months[mb].reduce((s: number, r: LegacyUnsafeValue) => s + r.loanInterest, 0),
         })),
     }));
 
@@ -534,7 +534,7 @@ export default function PremiumCalendarReportView({
 
       pdf.save(`Premium_Calendar_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -616,7 +616,7 @@ export default function PremiumCalendarReportView({
           </div>
         ) : (
           <div>
-            {groupData.map((group: any) => (
+            {groupData.map((group: LegacyUnsafeValue) => (
               <div key={group.groupCode} className="pt-3">
                 {/* Centered block heading — hidden for flat sorts (policyNoWise) */}
                 {group.showHeading !== false && (
@@ -632,7 +632,7 @@ export default function PremiumCalendarReportView({
                   </div>
                 )}
 
-                {group.monthList.map((month: any) => (
+                {group.monthList.map((month: LegacyUnsafeValue) => (
                   <table key={month.label} className="w-full border-collapse text-left mb-2">
                     <thead>
                       <tr>
@@ -661,7 +661,7 @@ export default function PremiumCalendarReportView({
                       </tr>
                     </thead>
                     <tbody>
-                      {month.rows.map((row: any, i: number) => (
+                      {month.rows.map((row: LegacyUnsafeValue, i: number) => (
                         <tr key={i}>
                           <td className="px-1 py-0.5 font-semibold">{row.memberName}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap">{fmtDate(row.dueDate, true)}</td>
@@ -758,7 +758,7 @@ export default function PremiumCalendarReportView({
                 </tr>
               </thead>
               <tbody>
-                {summaryRows.map((s: any, i: number) => (
+                {summaryRows.map((s: LegacyUnsafeValue, i: number) => (
                   <tr key={i}>
                     <td className="px-1 py-0.5 font-semibold">{s.name}</td>
                     <td className="px-1 py-0.5 font-mono">{s.pan || "-"}</td>
@@ -782,7 +782,7 @@ export default function PremiumCalendarReportView({
           <div className="pt-5 print:break-before-page">
             <div className="text-[11px] font-bold pb-1" style={{ borderBottom: `1px solid ${BLACK}` }}>Mailing Labels</div>
             <div className="grid grid-cols-2 gap-3 pt-2">
-              {groupData.map((group: any) => (
+              {groupData.map((group: LegacyUnsafeValue) => (
                 <div key={group.groupCode} className="p-2 text-[11px] space-y-0.5" style={{ border: `1px solid ${BLACK}` }}>
                   <p className="font-bold">{group.groupHeadName}</p>
                   <p>{group.address || "Address not on file"}</p>
@@ -808,7 +808,7 @@ export default function PremiumCalendarReportView({
                 </tr>
               </thead>
               <tbody>
-                {groupData.map((group: any, i: number) => (
+                {groupData.map((group: LegacyUnsafeValue, i: number) => (
                   <tr key={group.groupCode}>
                     <td className="px-1 py-0.5">{i + 1}</td>
                     <td className="px-1 py-0.5 font-semibold">{group.groupHeadName}</td>

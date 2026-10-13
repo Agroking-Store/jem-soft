@@ -401,7 +401,7 @@ export default function LICCommReportsPage() {
                                 await dispatch(fetchCommissionBillById(b.id));
                                 setSelectedBillData({
                                   reportDate: b.billDate,
-                                  billType: (b.billType as any) || "consolidated",
+                                  billType: (b.billType as LegacyUnsafeValue) || "consolidated",
                                   billCode: b.billNumber,
                                   dataFilters: b.agencyName
                                     ? [{ type: "Agencies", id: b.agencyId || "", name: b.agencyName }]

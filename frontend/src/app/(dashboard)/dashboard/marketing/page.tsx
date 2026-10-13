@@ -132,7 +132,7 @@ export default function MarketingPage() {
         setLogsPage(logsRes.data.page);
         setLogsTotalPages(logsRes.data.totalPages);
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error("Failed to load marketing data.");
     } finally {
       setIsLoading(false);
@@ -149,7 +149,7 @@ export default function MarketingPage() {
         );
         loadAllData();
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error("Scheduler scan failed.");
     } finally {
       setIsScanning(false);
@@ -165,7 +165,7 @@ export default function MarketingPage() {
         setSettings(res.data);
         toast.success("Automated rules saved successfully!");
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error("Failed to update settings.");
     } finally {
       setIsSavingSettings(false);
@@ -180,7 +180,7 @@ export default function MarketingPage() {
         toast.success("Template updated successfully!");
         setTemplates((prev) => prev.map((t) => (t.id === selectedTemplate.id ? res.data : t)));
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error("Failed to save template.");
     }
   };
@@ -194,7 +194,7 @@ export default function MarketingPage() {
     try {
       const res = await createCampaignApi({
         title: newCampaignTitle,
-        channel: newCampaignChannel as any,
+        channel: newCampaignChannel as LegacyUnsafeValue,
         templateId: newCampaignTemplateId || undefined,
         customMessage: newCampaignCustomMessage || undefined,
       });
@@ -207,7 +207,7 @@ export default function MarketingPage() {
         const campRes = await getCampaignsApi();
         if (campRes.data) setCampaigns(campRes.data);
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error("Failed to create campaign.");
     }
   };
@@ -229,7 +229,7 @@ export default function MarketingPage() {
         if (campRes.data) setCampaigns(campRes.data);
         loadAllData();
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.dismiss(toastId);
       toast.error("Failed to broadcast campaign.");
     } finally {
@@ -260,7 +260,7 @@ export default function MarketingPage() {
         );
         loadAllData();
       }
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(`Failed to send ${wishType} wish.`);
     } finally {
       setIsWishingCustomer(null);
@@ -449,7 +449,7 @@ export default function MarketingPage() {
               <div className="flex items-center gap-2">
                 <select
                   value={celebrationTypeFilter}
-                  onChange={(e: any) => setCelebrationTypeFilter(e.target.value)}
+                  onChange={(e: LegacyUnsafeValue) => setCelebrationTypeFilter(e.target.value)}
                   className="p-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white"
                 >
                   <option value="ALL">All Events</option>
@@ -715,7 +715,7 @@ export default function MarketingPage() {
                     <label className="block font-semibold text-slate-700 mb-1">Channel</label>
                     <select
                       value={newCampaignChannel}
-                      onChange={(e: any) => setNewCampaignChannel(e.target.value)}
+                      onChange={(e: LegacyUnsafeValue) => setNewCampaignChannel(e.target.value)}
                       className="w-full p-2.5 border rounded-xl text-xs"
                     >
                       <option value="ALL">Both WhatsApp & Email</option>

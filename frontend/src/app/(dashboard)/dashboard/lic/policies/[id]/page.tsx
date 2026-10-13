@@ -72,7 +72,7 @@ export default function ViewLICPolicyPage() {
   );
 
   const methods = useForm<PolicyFormValues>({
-    resolver: zodResolver(policySchema) as any,
+    resolver: zodResolver(policySchema) as LegacyUnsafeValue,
     defaultValues: {
       riders: [],
       nominees: [],
@@ -143,7 +143,7 @@ export default function ViewLICPolicyPage() {
     const insurerPolicyAttributes = selectedPolicy.policyAttributes || [];
     const getPolicyAttr = (code: string) =>
       insurerPolicyAttributes.find(
-        (a: any) =>
+        (a: LegacyUnsafeValue) =>
           a.attribute?.attributeCode?.toLowerCase() === code.toLowerCase(),
       )?.value ?? "";
 
@@ -172,7 +172,7 @@ export default function ViewLICPolicyPage() {
         : "") ||
       "";
 
-    const riderLookup = (selectedPolicy.policyRiders || []).map((r: any) => {
+    const riderLookup = (selectedPolicy.policyRiders || []).map((r: LegacyUnsafeValue) => {
       const riderTerms = {
         term: normalizeNumber(
           r.term ?? r.rider?.term ?? r?.riderTerm ?? r?.rider?.riderTerm,
@@ -194,7 +194,7 @@ export default function ViewLICPolicyPage() {
 
     const riderTotal =
       (selectedPolicy.policyRiders || []).reduce(
-        (sum: number, rider: any) => sum + (Number(rider.riderPremium) || 0),
+        (sum: number, rider: LegacyUnsafeValue) => sum + (Number(rider.riderPremium) || 0),
         0,
       ) || undefined;
 
@@ -207,17 +207,17 @@ export default function ViewLICPolicyPage() {
       : 0;
 
     const targetBankCustomer =
-      (selectedPolicy as any).proposerId
-        ? (selectedPolicy as any).proposer || masterCustomers.find((c: any) => c.id === (selectedPolicy as any).proposerId) || selectedPolicy.CustomerMaster
+      (selectedPolicy as LegacyUnsafeValue).proposerId
+        ? (selectedPolicy as LegacyUnsafeValue).proposer || masterCustomers.find((c: LegacyUnsafeValue) => c.id === (selectedPolicy as LegacyUnsafeValue).proposerId) || selectedPolicy.CustomerMaster
         : selectedPolicy.CustomerMaster;
 
     const targetBankDetails =
-      targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault) ||
+      targetBankCustomer?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) ||
       targetBankCustomer?.bankDetails?.[0] ||
-      selectedPolicy.CustomerMaster?.bankDetails?.find((b: any) => b.isDefault) ||
+      selectedPolicy.CustomerMaster?.bankDetails?.find((b: LegacyUnsafeValue) => b.isDefault) ||
       selectedPolicy.CustomerMaster?.bankDetails?.[0];
 
-    const paymentModeCode = (selectedPolicy as any).paymentMode?.modeCode?.toUpperCase();
+    const paymentModeCode = (selectedPolicy as LegacyUnsafeValue).paymentMode?.modeCode?.toUpperCase();
     const isPolicyNach = paymentModeCode === "NACH" || Boolean(targetBankDetails?.accountNumber && paymentModeCode !== "NEFT");
     const isPolicyNeft = paymentModeCode === "NEFT";
 
@@ -265,11 +265,11 @@ export default function ViewLICPolicyPage() {
             .substring(0, 10)
         : "",
       proposerDob: 
-        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+        (selectedPolicy as LegacyUnsafeValue).proposerId && targetBankCustomer?.dob
           ? new Date(targetBankCustomer.dob).toISOString().substring(0, 10)
           : "",
       proposerAge: 
-        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+        (selectedPolicy as LegacyUnsafeValue).proposerId && targetBankCustomer?.dob
           ? Math.floor(
               (Date.now() - new Date(targetBankCustomer.dob).getTime()) /
                 (365.25 * 24 * 60 * 60 * 1000)
@@ -279,10 +279,10 @@ export default function ViewLICPolicyPage() {
       gender: selectedPolicy.CustomerMaster?.gender ?? "",
       pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
 
-      proposerId: (selectedPolicy as any).proposerId ?? "",
-      spouseId: (selectedPolicy as any).spouseId ?? "",
+      proposerId: (selectedPolicy as LegacyUnsafeValue).proposerId ?? "",
+      spouseId: (selectedPolicy as LegacyUnsafeValue).spouseId ?? "",
       extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
-      ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
+      ratePercent: (selectedPolicy.premium as LegacyUnsafeValue)?.ratePercent ?? undefined,
 
       loanTaken: getPolicyAttr("loanTaken") || "",
       annuityDetails: getPolicyAttr("annuityDetails") || "",
@@ -306,7 +306,7 @@ export default function ViewLICPolicyPage() {
       smoker: isSmoker,
       riders: riderLookup,
       nominees:
-        selectedPolicy.nominees?.map((nominee: any) => ({
+        selectedPolicy.nominees?.map((nominee: LegacyUnsafeValue) => ({
           id: nominee.id,
           nomineeName: nominee.nomineeName ?? "",
           relationship: nominee.relationship ?? "",
@@ -325,7 +325,7 @@ export default function ViewLICPolicyPage() {
         ? (targetBankDetails?.accountHolderName || ((targetBankCustomer || selectedPolicy.CustomerMaster) ? getFullName((targetBankCustomer || selectedPolicy.CustomerMaster)!) : ""))
         : "",
       neftSubmissionDate: getPolicyAttr("neftSubmissionDate") || "",
-    } as any);
+    } as LegacyUnsafeValue);
   }, [selectedPolicy, reset, masterCustomers]);
 
   const sectionRefs = {
@@ -781,11 +781,11 @@ export default function ViewLICPolicyPage() {
                           type="text"
                           value={
                             masterCustomers.find(
-                              (c: any) => c.id === watch("proposerId")
+                              (c: LegacyUnsafeValue) => c.id === watch("proposerId")
                             )
                               ? getFullName(
                                   masterCustomers.find(
-                                    (c: any) => c.id === watch("proposerId")
+                                    (c: LegacyUnsafeValue) => c.id === watch("proposerId")
                                   )!
                                 )
                               : ""
@@ -841,11 +841,11 @@ export default function ViewLICPolicyPage() {
                         type="text"
                         value={
                           masterCustomers.find(
-                            (c: any) => c.id === watch("spouseId")
+                            (c: LegacyUnsafeValue) => c.id === watch("spouseId")
                           )
                             ? getFullName(
                                 masterCustomers.find(
-                                  (c: any) => c.id === watch("spouseId")
+                                  (c: LegacyUnsafeValue) => c.id === watch("spouseId")
                                 )!
                               )
                             : ""
@@ -1188,7 +1188,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                     <input
                       type="text"
-                      value={(selectedPolicy as any)?.premiumAdjusted || ""}
+                      value={(selectedPolicy as LegacyUnsafeValue)?.premiumAdjusted || ""}
                       placeholder="Premium Adjusted"
                       readOnly
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
@@ -1214,7 +1214,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                     <input
                       type="text"
-                      value={(selectedPolicy as any)?.loanTaken || ""}
+                      value={(selectedPolicy as LegacyUnsafeValue)?.loanTaken || ""}
                       placeholder="Loan Taken"
                       readOnly
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
@@ -1245,7 +1245,7 @@ export default function ViewLICPolicyPage() {
                     <input
                       id="useNachCheckbox"
                       type="checkbox"
-                      checked={Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NACH")}
+                      checked={Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as LegacyUnsafeValue)?.paymentMode?.modeCode === "NACH")}
                       disabled
                       className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
                     />
@@ -1257,7 +1257,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                   </div>
 
-                  {Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NACH") && (
+                  {Boolean(watch("bankName") || watch("accountNumber") || (selectedPolicy as LegacyUnsafeValue)?.paymentMode?.modeCode === "NACH") && (
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1375,7 +1375,7 @@ export default function ViewLICPolicyPage() {
                     <input
                       id="useNeftCheckbox"
                       type="checkbox"
-                      checked={Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NEFT")}
+                      checked={Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as LegacyUnsafeValue)?.paymentMode?.modeCode === "NEFT")}
                       disabled
                       className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
                     />
@@ -1387,7 +1387,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                   </div>
 
-                  {Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as any)?.paymentMode?.modeCode === "NEFT") && (
+                  {Boolean(watch("neftBankName") || watch("neftAccountNumber") || (selectedPolicy as LegacyUnsafeValue)?.paymentMode?.modeCode === "NEFT") && (
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1476,7 +1476,7 @@ export default function ViewLICPolicyPage() {
               >
                 {selectedPolicy.nominees && selectedPolicy.nominees.length > 0 ? (
                   <div className="space-y-4">
-                    {selectedPolicy.nominees.map((nominee: any, index: number) => (
+                    {selectedPolicy.nominees.map((nominee: LegacyUnsafeValue, index: number) => (
                       <div
                         key={nominee.id || index}
                         className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 relative space-y-3"
@@ -1596,7 +1596,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                     <input
                       type="text"
-                      value={selectedPolicy.branch ? `[${selectedPolicy.branch.branchCode}] ${selectedPolicy.branch.branchName}` : ((selectedPolicy as any)?.branchName || "")}
+                      value={selectedPolicy.branch ? `[${selectedPolicy.branch.branchCode}] ${selectedPolicy.branch.branchName}` : ((selectedPolicy as LegacyUnsafeValue)?.branchName || "")}
                       readOnly
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
                     />
@@ -1633,7 +1633,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                     <input
                       type="text"
-                      value={(selectedPolicy as any)?.medical || ""}
+                      value={(selectedPolicy as LegacyUnsafeValue)?.medical || ""}
                       placeholder="Medical Details"
                       readOnly
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
@@ -1645,7 +1645,7 @@ export default function ViewLICPolicyPage() {
                     </label>
                     <input
                       type="text"
-                      value={(selectedPolicy as any)?.taxBeneficiary || ""}
+                      value={(selectedPolicy as LegacyUnsafeValue)?.taxBeneficiary || ""}
                       placeholder="Tax Beneficiary"
                       readOnly
                       className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-700 cursor-not-allowed"
@@ -1655,7 +1655,7 @@ export default function ViewLICPolicyPage() {
                     <input
                       id="ageAdmitted"
                       type="checkbox"
-                      checked={Boolean((getValues as any)("ageAdmitted"))}
+                      checked={Boolean((getValues as LegacyUnsafeValue)("ageAdmitted"))}
                       disabled
                       className="h-4 w-4 rounded border-slate-300 text-[#1877F2] cursor-not-allowed"
                     />
@@ -1668,7 +1668,7 @@ export default function ViewLICPolicyPage() {
                       Notes
                     </label>
                     <textarea
-                      value={selectedPolicy?.remarks || (getValues as any)("notes") || ""}
+                      value={selectedPolicy?.remarks || (getValues as LegacyUnsafeValue)("notes") || ""}
                       rows={4}
                       placeholder="Enter Notes..."
                       readOnly

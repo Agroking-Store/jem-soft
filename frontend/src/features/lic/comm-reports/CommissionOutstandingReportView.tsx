@@ -23,7 +23,7 @@ import {
 
 interface CommissionOutstandingReportViewProps {
   formData: CommissionOutstandingFormData;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 

@@ -120,7 +120,7 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
       }
 
       return pdf;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error("PDF build failed:", err);
       elem.style.width = originalWidth;
       return null;
@@ -138,7 +138,7 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
       }
       const blobUrl = pdf.output("bloburl") as unknown as string;
       window.open(blobUrl, "_blank");
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error("PDF view failed:", err);
       toast.error("Failed to open PDF.");
     } finally {
@@ -158,7 +158,7 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
       }
       pdf.save(`LIC_Quotation_${quotation.quotationRefNo || "Report"}.pdf`);
       toast.success("Quotation PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error("PDF download failed:", err);
       toast.error("Failed to generate PDF.", { id: toastId });
     } finally {

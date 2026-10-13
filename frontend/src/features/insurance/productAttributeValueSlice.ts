@@ -32,7 +32,7 @@ export const fetchProductAttributeValues = createAsyncThunk(
     try {
       const response = await axios.get(`${API_URL}/product-attribute-values`);
       return response.data.data.values;
-    } catch (error: any) {
+    } catch (error: LegacyUnsafeValue) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch product attribute values");
     }
   }

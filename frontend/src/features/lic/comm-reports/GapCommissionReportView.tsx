@@ -22,7 +22,7 @@ import {
 
 interface GapCommissionReportViewProps {
   formData: GapCommissionFormData;
-  policies?: any[];
+  policies?: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 

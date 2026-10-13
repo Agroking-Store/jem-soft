@@ -212,7 +212,7 @@ export default function CustomerDataSheetReportView({
 
       pdf.save(`Customer_Data_Sheet_${formData.reportDate || "Report"}.pdf`);
       toast.success("Executive PDF exported successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
@@ -273,7 +273,7 @@ export default function CustomerDataSheetReportView({
             customers.find((c) => c.id === member.groupId) || member.group;
           const groupCode = group?.groupCode || "—";
           const groupHeadName =
-            (group as any)?.name || group?.groupName || "—";
+            (group as LegacyUnsafeValue)?.name || group?.groupName || "—";
 
           const memberFullName = [
             member.salutation,
@@ -304,11 +304,11 @@ export default function CustomerDataSheetReportView({
                 .filter(Boolean)
                 .join(", ")
             : [
-                (group as any)?.resAddressLine1,
-                (group as any)?.resAddressLine2,
-                (group as any)?.resCity,
-                (group as any)?.resState,
-                (group as any)?.resPin,
+                (group as LegacyUnsafeValue)?.resAddressLine1,
+                (group as LegacyUnsafeValue)?.resAddressLine2,
+                (group as LegacyUnsafeValue)?.resCity,
+                (group as LegacyUnsafeValue)?.resState,
+                (group as LegacyUnsafeValue)?.resPin,
               ]
                 .filter(Boolean)
                 .join(", ");
@@ -323,7 +323,7 @@ export default function CustomerDataSheetReportView({
               ]
                 .filter(Boolean)
                 .join(", ")
-            : [(group as any)?.offAddressLine1, (group as any)?.offCity, (group as any)?.offPin]
+            : [(group as LegacyUnsafeValue)?.offAddressLine1, (group as LegacyUnsafeValue)?.offCity, (group as LegacyUnsafeValue)?.offPin]
                 .filter(Boolean)
                 .join(", ");
 
@@ -335,8 +335,8 @@ export default function CustomerDataSheetReportView({
           const telOff = [contact?.landline2Std, contact?.landline2Number]
             .filter(Boolean)
             .join("-");
-          const mobile = contact?.mobile1 || (group as any)?.phone || "";
-          const email = contact?.emailPersonal || (group as any)?.email || "";
+          const mobile = contact?.mobile1 || (group as LegacyUnsafeValue)?.phone || "";
+          const email = contact?.emailPersonal || (group as LegacyUnsafeValue)?.email || "";
           const fax = [contact?.faxStd, contact?.faxNumber].filter(Boolean).join("-");
 
           // Misc Info
@@ -404,7 +404,7 @@ export default function CustomerDataSheetReportView({
                   <div className="space-y-0.5">
                     <div>Tel No. (O) : <span className="font-mono">{telOff || "-"}</span></div>
                     <div>E-mail : {email || "-"}</div>
-                    <div>Location : {resAddress?.city || (group as any)?.resCity || "Pune"}</div>
+                    <div>Location : {resAddress?.city || (group as LegacyUnsafeValue)?.resCity || "Pune"}</div>
                   </div>
                 </div>
               </div>
@@ -483,7 +483,7 @@ export default function CustomerDataSheetReportView({
                         ].map(([label, val]) => (
                           <tr key={label as string}>
                             <td className="py-0.5 pr-2 font-semibold">{label}</td>
-                            <td className="py-0.5 text-right font-mono">{(val as any) || "-"}</td>
+                            <td className="py-0.5 text-right font-mono">{(val as LegacyUnsafeValue) || "-"}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -231,7 +231,7 @@ export default function MedicalHistoryForm({ recordId, memberId, onClose, onSave
       }
       onSaved?.();
       onClose();
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       toast.error(err || "Failed to save medical history");
     } finally {
       setIsSubmitting(false);

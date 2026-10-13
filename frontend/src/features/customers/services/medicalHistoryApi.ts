@@ -12,12 +12,12 @@ export const getMedicalHistoryApi = async (id: string) => {
   return res.data;
 };
 
-export const createMedicalHistoryApi = async (payload: any) => {
+export const createMedicalHistoryApi = async (payload: LegacyUnsafeValue) => {
   const res = await axiosInstance.post(BASE, payload);
   return res.data;
 };
 
-export const updateMedicalHistoryApi = async (id: string, payload: any) => {
+export const updateMedicalHistoryApi = async (id: string, payload: LegacyUnsafeValue) => {
   const res = await axiosInstance.put(`${BASE}/${id}`, payload);
   return res.data;
 };

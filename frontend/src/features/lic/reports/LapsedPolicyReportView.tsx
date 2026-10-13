@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface LapsedPolicyReportViewProps {
   formData: LapsedPolicyFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -49,7 +49,7 @@ interface ColumnDef {
   key: string;
   label: string;
   align?: "left" | "right" | "center";
-  render: (p: any) => ReactNode;
+  render: (p: LegacyUnsafeValue) => ReactNode;
 }
 
 const BLACK = "#000";
@@ -248,7 +248,7 @@ export default function LapsedPolicyReportView({
       return [];
     }
 
-    const groupMap: { [key: string]: any } = {};
+    const groupMap: { [key: string]: LegacyUnsafeValue } = {};
 
     validDbPolicies.forEach((p) => {
       const custMaster = p.CustomerMaster;
@@ -343,7 +343,7 @@ export default function LapsedPolicyReportView({
       grp.totals.totalRevivalAmount += revival.totalRevivalAmount;
     });
 
-    return Object.values(groupMap).map((grp: any) => ({
+    return Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
       ...grp,
       members: Object.values(grp.membersMap),
     }));
@@ -417,7 +417,7 @@ export default function LapsedPolicyReportView({
 
       pdf.save(`Lapsed_Policies_${formData.reportDate || "Report"}.pdf`);
       toast.success("PDF downloaded successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
     } finally {
@@ -497,7 +497,7 @@ export default function LapsedPolicyReportView({
                     </td>
                   </tr>
 
-                  {group.members.map((member: any) => (
+                  {group.members.map((member: LegacyUnsafeValue) => (
                     <Fragment key={member.name}>
                       <tr>
                         <td colSpan={columns.length} className="pt-2 pb-0.5">
@@ -514,7 +514,7 @@ export default function LapsedPolicyReportView({
                         </td>
                       </tr>
 
-                      {member.policies.map((p: any) => (
+                      {member.policies.map((p: LegacyUnsafeValue) => (
                         <tr key={p.policyNo}>
                           {columns.map((col) => (
                             <td key={col.key} className={`px-1 py-0.5 whitespace-nowrap ${alignClass(col.align)}`}>

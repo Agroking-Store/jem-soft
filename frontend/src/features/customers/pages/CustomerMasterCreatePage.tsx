@@ -409,7 +409,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       const currentGroup = selectedGroupId || groupId;
       if (currentGroup) {
         const existingHead = members.find(
-          (m: any) => m.groupId === currentGroup && m.isGroupHead
+          (m: LegacyUnsafeValue) => m.groupId === currentGroup && m.isGroupHead
         );
         setExistingGroupHeadId(existingHead?.id || null);
       }
@@ -492,7 +492,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
       getCustomersMasterApi().then((res) => {
         const members = res.data?.customers || [];
         const existingHead = members.find(
-          (m: any) => m.groupId === selectedGroupId && m.isGroupHead
+          (m: LegacyUnsafeValue) => m.groupId === selectedGroupId && m.isGroupHead
         );
         setExistingGroupHeadId(existingHead?.id || null);
       }).catch(() => {

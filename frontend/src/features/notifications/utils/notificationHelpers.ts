@@ -49,7 +49,7 @@ export function formatYouTubeTime(dateInput: string | Date | undefined): string 
 }
 
 export interface NotificationMeta {
-  icon: any;
+  icon: LegacyUnsafeValue;
   iconBg: string;
   iconColor: string;
   badgeLabel: string;

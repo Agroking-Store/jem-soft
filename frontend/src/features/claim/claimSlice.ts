@@ -67,7 +67,7 @@ export interface Claim {
       installmentPremium: number;
       totalInstallmentPremium: number;
     } | null;
-    nominees?: any[];
+    nominees?: LegacyUnsafeValue[];
   };
   nominee?: {
     id: string;
@@ -166,7 +166,7 @@ export const fetchClaims = createAsyncThunk(
     try {
       const res = await api.get("/claims");
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch claims",
       );
@@ -198,7 +198,7 @@ export const createClaim = createAsyncThunk(
     try {
       const res = await api.post("/claims", claim);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to create claim",
       );
@@ -221,7 +221,7 @@ export const calculateClaimAmount = createAsyncThunk(
       if (claimDate) url += `&claimDate=${encodeURIComponent(claimDate)}`;
       const res = await api.get(url);
       return res.data.data as ClaimCalculation;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to calculate claim amount",
       );
@@ -238,7 +238,7 @@ export const updateClaim = createAsyncThunk(
     try {
       const res = await api.put(`/claims/${id}`, data);
       return res.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to update claim",
       );
@@ -252,7 +252,7 @@ export const deleteClaim = createAsyncThunk(
     try {
       await api.delete(`/claims/${id}`);
       return id;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to delete claim",
       );
@@ -271,7 +271,7 @@ export const uploadClaimDocuments = createAsyncThunk(
       files.forEach((file) => formData.append("documents", file));
       const response = await api.post(`/claims/${claimId}/documents`, formData);
       return response.data.data;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to upload documents",
       );
@@ -288,7 +288,7 @@ export const deleteClaimDocument = createAsyncThunk(
     try {
       await api.delete(`/claims/${claimId}/documents/${documentId}`);
       return documentId;
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to delete document",
       );

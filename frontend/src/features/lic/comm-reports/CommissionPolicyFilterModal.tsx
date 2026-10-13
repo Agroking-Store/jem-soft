@@ -21,7 +21,7 @@ export interface CommissionPolicyFilterSelection {
 interface CommissionPolicyFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  policies: Array<any>;
+  policies: Array<LegacyUnsafeValue>;
   selectedAgencyFilters?: string[];
   selectedFilters: CommissionPolicyFilterSelection | null;
   onApplyFilters: (selection: CommissionPolicyFilterSelection) => void;
@@ -62,7 +62,7 @@ export default function CommissionPolicyFilterModal({
   }, [isOpen, initialSelection]);
 
   // 1. Filter policies by selected agency/agent filter(s)
-  const isAgencyMatch = (p: any, filters: string[]) => {
+  const isAgencyMatch = (p: LegacyUnsafeValue, filters: string[]) => {
     if (!filters || filters.length === 0) return true;
 
     const pAgCode = (p.agentCode || "").toLowerCase().trim();

@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 
 interface PremiumOutstandingReportViewProps {
   formData: PremiumOutstandingFormData;
-  policies: any[];
-  customers: any[];
+  policies: LegacyUnsafeValue[];
+  customers: LegacyUnsafeValue[];
   onBackToForm: () => void;
 }
 
@@ -46,7 +46,7 @@ function fmtDayMonth(d: Date | string | null | undefined) {
 }
 
 /** LIC mode code (Y/M/Q/H/S) from the premium mode master. */
-function resolveModeCode(p: any): string {
+function resolveModeCode(p: LegacyUnsafeValue): string {
   const raw = String(p?.premiumMode?.modeName || "").toLowerCase().trim();
   if (raw.startsWith("month") || raw === "m") return "M";
   if (raw.startsWith("quarter") || raw === "q") return "Q";
@@ -56,7 +56,7 @@ function resolveModeCode(p: any): string {
 }
 
 /** NACH is a PAYMENT mode (PaymentModeMaster), not a premium frequency. */
-function isNachPolicy(p: any): boolean {
+function isNachPolicy(p: LegacyUnsafeValue): boolean {
   const pay = String(p?.paymentMode?.modeName || "").toLowerCase();
   if (pay.includes("nach")) return true;
   return String(p?.premiumMode?.modeName || "").toLowerCase().includes("nach");
@@ -127,7 +127,7 @@ export default function PremiumOutstandingReportView({
     // Agency match — A001-A003 → Jayant (AG002), A004-A006 → Manisha (AG003)
     const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
     const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
-    const isAgencyMatch = (p: any, filters: string[]) => {
+    const isAgencyMatch = (p: LegacyUnsafeValue, filters: string[]) => {
       if (filters.length === 0) return true;
       const agCode = String(p.agentCode || p.agency?.agencyCode || "").toLowerCase().trim();
       const agName = String(
@@ -180,7 +180,7 @@ export default function PremiumOutstandingReportView({
 
       const custRef =
         p.customer ||
-        rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) ||
+        rawCustomers.find((c: LegacyUnsafeValue) => c.id === p.customerId || c.id === p.clientId) ||
         {};
 
       if (
@@ -228,7 +228,7 @@ export default function PremiumOutstandingReportView({
     });
 
     if (validDbPolicies.length > 0) {
-      const groupMap: { [key: string]: any } = {};
+      const groupMap: { [key: string]: LegacyUnsafeValue } = {};
       const sortOpt = formData.sortingOption;
       const isFlat = sortOpt === "dueDate" || sortOpt === "policyNoWise";
 
@@ -263,7 +263,7 @@ export default function PremiumOutstandingReportView({
         : validDbPolicies;
 
       orderedPolicies.forEach((p, idx) => {
-        const cust = p.customer || rawCustomers.find((c: any) => c.id === p.customerId || c.id === p.clientId) || {};
+        const cust = p.customer || rawCustomers.find((c: LegacyUnsafeValue) => c.id === p.customerId || c.id === p.clientId) || {};
 
         // Group key/heading follows the selected sorting radio.
         let gCode: string;
@@ -303,7 +303,7 @@ export default function PremiumOutstandingReportView({
           cust.resArea || cust.offArea,
           cust.resCity || cust.offCity,
           cust.resPin || cust.offPin,
-        ].filter((part: any): part is string => Boolean(part && String(part).trim().length > 0));
+        ].filter((part: LegacyUnsafeValue): part is string => Boolean(part && String(part).trim().length > 0));
         const addressStr = formattedAddressParts.length > 0 ? formattedAddressParts.join(", ") : "Address Not Provided";
         const mobileStr = cust.phone || cust.mobilePersonal || cust.mobile || "N/A";
         const emailStr = cust.email || cust.emailPersonal || cust.emailBusiness || "N/A";
@@ -371,7 +371,7 @@ export default function PremiumOutstandingReportView({
         // the member's default bank account; NACH auto-debits on the FUP date.
         const isNach = isNachPolicy(p);
         if (!mem.nachInfo && isNach) {
-          const banks: any[] = p.CustomerMaster?.bankDetails || [];
+          const banks: LegacyUnsafeValue[] = p.CustomerMaster?.bankDetails || [];
           const bank = banks.find((b) => b?.isDefault) || banks[0];
           const parts = ["NACH", `Debit Date: ${fmtDate(fupRaw)}`];
           if (bank?.bankName) parts.push(String(bank.bankName));
@@ -404,7 +404,7 @@ export default function PremiumOutstandingReportView({
         grp.groupTotalTier2 += tier2Amount;
       });
 
-      const result = Object.values(groupMap).map((grp: any) => ({
+      const result = Object.values(groupMap).map((grp: LegacyUnsafeValue) => ({
         ...grp,
         members: Object.values(grp.membersMap),
       }));
@@ -522,7 +522,7 @@ export default function PremiumOutstandingReportView({
 
       pdf.save(`Premium_Outstanding_${formData.reportDate || "Report"}.pdf`);
       toast.success("Executive PDF exported successfully!", { id: toastId });
-    } catch (err: any) {
+    } catch (err: LegacyUnsafeValue) {
       console.error(err);
       elem.style.width = originalWidth;
       toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
@@ -705,7 +705,7 @@ export default function PremiumOutstandingReportView({
                 </tr>
                 )}
 
-                {group.members.map((member: any) => (
+                {group.members.map((member: LegacyUnsafeValue) => (
                   <Fragment key={member.name}>
                     {/* Member name (bold) */}
                     <tr>
@@ -720,7 +720,7 @@ export default function PremiumOutstandingReportView({
                       </td>
                     </tr>
 
-                    {member.policies.map((p: any) => (
+                    {member.policies.map((p: LegacyUnsafeValue) => (
                       <tr key={p.policyNo}>
                         <td className="px-1 py-0.5 text-left font-mono whitespace-nowrap">{p.policyNo}</td>
                         <td className="px-1 py-0.5 text-center">{p.agCd}</td>

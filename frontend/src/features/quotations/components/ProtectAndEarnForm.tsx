@@ -15,8 +15,8 @@ import { ExistingClientModal } from "./ExistingClientModal";
 
 interface ProtectAndEarnFormProps {
   onCancel: () => void;
-  onSaved: (quotation: any, shouldViewReport: boolean) => void;
-  editQuotation?: any;
+  onSaved: (quotation: LegacyUnsafeValue, shouldViewReport: boolean) => void;
+  editQuotation?: LegacyUnsafeValue;
 }
 
 export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
@@ -55,7 +55,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
   const [sec80CLimit, setSec80CLimit] = useState(150000);
   const [taxSlabPercentage, setTaxSlabPercentage] = useState(30.9);
 
-  const [combinationDetails, setCombinationDetails] = useState<any>(null);
+  const [combinationDetails, setCombinationDetails] = useState<LegacyUnsafeValue>(null);
 
   const termOptions = [10, 12, 15, 16, 18, 20, 21, 25, 30];
 
@@ -78,7 +78,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
       setSec80CLimit(editQuotation.sec80CLimit || 150000);
       setTaxSlabPercentage(editQuotation.taxSlabPercentage || 30.9);
     } else {
-      dispatch(fetchNextRefNo("PROTECT_AND_EARN")).then((res: any) => {
+      dispatch(fetchNextRefNo("PROTECT_AND_EARN")).then((res: LegacyUnsafeValue) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -88,7 +88,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
 
   const handleAutoFillRef = () => {
     const toastId = toast.loading("Generating next quote ref...");
-    dispatch(fetchNextRefNo()).then((res: any) => {
+    dispatch(fetchNextRefNo()).then((res: LegacyUnsafeValue) => {
       if (res.payload) {
         setQuotationRefNo(res.payload);
         toast.success(`Generated: ${res.payload}`, { id: toastId });
@@ -116,7 +116,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
     setAge(calculatedAge);
   };
 
-  const handleSelectClient = (client: any) => {
+  const handleSelectClient = (client: LegacyUnsafeValue) => {
     setSelectedCustomerId(client.customerId || null);
     setSelectedMemberId(client.memberId);
     setSelectedGroupCode(client.groupCode || null);
@@ -137,7 +137,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
     }
 
     const toastId = toast.loading("Calculating Protect & Earn solution combination...");
-    const res: any = await dispatch(
+    const res: LegacyUnsafeValue = await dispatch(
       calculateQuotation({
         productType: "PROTECT_AND_EARN",
         planNumber: "736",
@@ -182,7 +182,7 @@ export const ProtectAndEarnForm: React.FC<ProtectAndEarnFormProps> = ({
 
     let finalRef = quotationRefNo.trim();
     if (!finalRef) {
-      const res: any = await dispatch(fetchNextRefNo());
+      const res: LegacyUnsafeValue = await dispatch(fetchNextRefNo());
       finalRef = res.payload || "000000000001";
     }
 

@@ -15,8 +15,8 @@ import { ExistingClientModal } from "./ExistingClientModal";
 
 interface LifeGuardFormProps {
   onCancel: () => void;
-  onSaved: (quotation: any, shouldViewReport: boolean) => void;
-  editQuotation?: any;
+  onSaved: (quotation: LegacyUnsafeValue, shouldViewReport: boolean) => void;
+  editQuotation?: LegacyUnsafeValue;
 }
 
 export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
@@ -164,7 +164,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
       setIsSmoker(editQuotation.isSmoker || false);
       setSec80CLimit(editQuotation.sec80CLimit || 150000);
       setTaxSlabPercentage(editQuotation.taxSlabPercentage || 30.9);
-      setBonusScenario((editQuotation.bonusScenario as any) || "LAST_DECLARED");
+      setBonusScenario((editQuotation.bonusScenario as LegacyUnsafeValue) || "LAST_DECLARED");
       setBasis(editQuotation.basis || "Sum");
       setBudget(editQuotation.budget || 500000);
       setSelectedPlan(editQuotation.planNumber || "714");
@@ -172,7 +172,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
       setPolicyTerm(editQuotation.policyTerm || 15);
       setPpt(editQuotation.ppt || 15);
     } else {
-      dispatch(fetchNextRefNo("LIFE_GUARD")).then((res: any) => {
+      dispatch(fetchNextRefNo("LIFE_GUARD")).then((res: LegacyUnsafeValue) => {
         if (res.payload) {
           setQuotationRefNo(res.payload);
         }
@@ -182,7 +182,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
 
   const handleAutoFillRef = () => {
     const toastId = toast.loading("Fetching next reference number...");
-    dispatch(fetchNextRefNo()).then((res: any) => {
+    dispatch(fetchNextRefNo()).then((res: LegacyUnsafeValue) => {
       if (res.payload) {
         setQuotationRefNo(res.payload);
         toast.success(`Generated Ref No: ${res.payload}`, { id: toastId });
@@ -210,7 +210,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
     setAge(calculatedAge);
   };
 
-  const handleSelectClient = (client: any) => {
+  const handleSelectClient = (client: LegacyUnsafeValue) => {
     setSelectedCustomerId(client.customerId || null);
     setSelectedMemberId(client.memberId);
     setSelectedGroupCode(client.groupCode || null);
@@ -227,7 +227,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
   const runCalculation = useCallback(async () => {
     if (!budget || budget <= 0) return null;
 
-    const res: any = await dispatch(
+    const res: LegacyUnsafeValue = await dispatch(
       calculateQuotation({
         productType: "LIFE_GUARD",
         planNumber: selectedPlan,
@@ -296,7 +296,7 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
 
     let finalRef = quotationRefNo.trim();
     if (!finalRef) {
-      const res: any = await dispatch(fetchNextRefNo());
+      const res: LegacyUnsafeValue = await dispatch(fetchNextRefNo());
       finalRef = res.payload || "000000000001";
     }
 
