@@ -765,7 +765,7 @@ export default function QuickHlvCalculator() {
             Since a cash flow arrangement of <strong>₹ {fmt(cashFlow)}</strong> is already made, an insurance cover of <strong>₹ {fmt(addInsurance)}</strong> is now being proposed for the Bread Winner.
           </p>
           <p style={{ margin: 0 }}>
-            An inflation rate of <strong>{inflation.toFixed(2)}% p.a.</strong> has been considered for computing the family's annual expenses in each year. A tax-free interest rate of <strong>{savingRate.toFixed(2)}% p.a.</strong> is assumed for investing the reducing insurance balance.
+            An inflation rate of <strong>{inflation.toFixed(2)}% p.a.</strong> has been considered for computing the family&apos;s annual expenses in each year. A tax-free interest rate of <strong>{savingRate.toFixed(2)}% p.a.</strong> is assumed for investing the reducing insurance balance.
           </p>
         </div>
 

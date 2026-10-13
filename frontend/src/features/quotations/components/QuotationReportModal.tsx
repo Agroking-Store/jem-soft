@@ -199,8 +199,8 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
         {/* Body */}
         <div className="p-6 space-y-4">
           <p className="text-sm text-slate-600 leading-relaxed">
-            Click <strong>"View in Browser"</strong> to open the report in a new tab, or{" "}
-            <strong>"Download PDF"</strong> to save it to your device.
+            Click <strong>&quot;View in Browser&quot;</strong> to open the report in a new tab, or{" "}
+            <strong>&quot;Download PDF&quot;</strong> to save it to your device.
           </p>
 
           <div className="space-y-3">

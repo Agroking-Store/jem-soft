@@ -775,7 +775,7 @@ export default function ViewLICPolicyPage() {
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Proposer's Name
+                          Proposer&apos;s Name
                         </label>
                         <input
                           type="text"
@@ -835,7 +835,7 @@ export default function ViewLICPolicyPage() {
                   {(selectedProduct?.planNumber === "888" || selectedProduct?.planNumber === "889") && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Spouse's Name
+                        Spouse&apos;s Name
                       </label>
                       <input
                         type="text"

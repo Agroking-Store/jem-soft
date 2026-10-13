@@ -719,7 +719,7 @@ export default function PolicyRegisterReportView({
             </div>
             <h3 className="text-base font-bold text-slate-800">No Policies Match Your Selected Filters</h3>
             <p className="text-xs text-slate-600 max-w-md mx-auto">
-              No policies in the database matched the combined filter criteria. Please adjust your filters or click "Edit Filters" to view other policies.
+              No policies in the database matched the combined filter criteria. Please adjust your filters or click &quot;Edit Filters&quot; to view other policies.
             </p>
             <button
               onClick={onBackToForm}

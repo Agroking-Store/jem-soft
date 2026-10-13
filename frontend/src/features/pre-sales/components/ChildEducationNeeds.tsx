@@ -412,7 +412,7 @@ export default function ChildEducationNeedsCalculator() {
 
               <div data-pdf-block style={{ border: "1px solid #ccc", borderRadius: "6px", padding: "14px 18px", marginBottom: "18px", background: "#fafafa" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "13px" }}>
-                  <div><strong>Child's Name:</strong> {salutation} {childName}</div>
+                  <div><strong>Child&apos;s Name:</strong> {salutation} {childName}</div>
                   <div style={{ textAlign: "right" }}><strong>Date of Birth:</strong> {dob}</div>
                   <div><strong>Present Age:</strong> {age} yrs.</div>
                   <div style={{ textAlign: "right" }}><strong>Inflation Rate:</strong> {inflation === "" ? "—" : Number(inflation).toFixed(2)}% p.a.</div>
@@ -449,9 +449,9 @@ export default function ChildEducationNeedsCalculator() {
               </div>
 
               <p data-pdf-block style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.65", color: "#333" }}>
-                This projects the future cost of {childName || "the child"}'s schooling, graduation, post-graduation, career
-                launching and marriage, assuming today's costs grow at {inflation === "" ? "—" : Number(inflation).toFixed(2)}%
-                p.a. education inflation. Use this figure to plan a corpus sized to fund the child's upbringing without financial
+                This projects the future cost of {childName || "the child"}&apos;s schooling, graduation, post-graduation, career
+                launching and marriage, assuming today&apos;s costs grow at {inflation === "" ? "—" : Number(inflation).toFixed(2)}%
+                p.a. education inflation. Use this figure to plan a corpus sized to fund the child&apos;s upbringing without financial
                 strain.
               </p>
 

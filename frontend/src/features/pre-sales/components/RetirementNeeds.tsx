@@ -393,7 +393,7 @@ export default function RetirementNeedsCalculator() {
               </div>
 
               <p data-pdf-block style={{ margin: 0, fontSize: "12.5px", lineHeight: "1.65", color: "#333" }}>
-                This projects what {salutation} {name}'s current cost of living, growing at {inflation.toFixed(2)}% p.a. inflation, will
+                This projects what {salutation} {name}&apos;s current cost of living, growing at {inflation.toFixed(2)}% p.a. inflation, will
                 cost annually by age {retirement}. Use this figure to plan a retirement corpus sized to sustain the same standard of
                 living without a working income.
               </p>

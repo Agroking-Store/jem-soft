@@ -923,7 +923,7 @@ export default function MarketingPage() {
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
               <div>
                 <p className="font-bold text-slate-900">Automatic Birthday & Anniversary Greetings</p>
-                <p className="text-slate-500">Dispatches wishes automatically on the customer's birthday and wedding anniversary</p>
+                <p className="text-slate-500">Dispatches wishes automatically on the customer&apos;s birthday and wedding anniversary</p>
               </div>
               <input
                 type="checkbox"
