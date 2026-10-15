@@ -1,0 +1,843 @@
+"use client";
+
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  ReactNode,
+  Suspense,
+} from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useNotificationStore } from "@/store/notificationStore";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  BarChart,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { fetchPolicies, deletePolicy } from "@/features/policy/policySlice";
+import LicModuleNav from "@/features/lic/LicModuleNav";
+import toast from "react-hot-toast";
+import {
+  CustomerEmptyState,
+  FilterSelect,
+} from "@/features/customers/components/CustomerUi";
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function Seal({ name, size = 36 }: { name: string; size?: number }) {
+  return (
+    <div
+      style={{ width: size, height: size, minWidth: size }}
+      className="flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] font-bold text-white shadow-sm"
+    >
+      <span style={{ fontSize: size * 0.36, lineHeight: 1 }}>
+        {getInitials(name)}
+      </span>
+    </div>
+  );
+}
+
+function Chip({
+  dotColor,
+  children,
+}: {
+  dotColor: string;
+  children: ReactNode;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
+      <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
+      {children}
+    </span>
+  );
+}
+
+function TableHeadCell({
+  children,
+  align = "left",
+  className = "",
+}: {
+  children: ReactNode;
+  align?: "left" | "center" | "right";
+  className?: string;
+}) {
+  return (
+    <th
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/80 px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap ${
+        align === "center"
+          ? "text-center"
+          : align === "right"
+            ? "text-right"
+            : "text-left"
+      } ${className}`}
+    >
+      {children}
+    </th>
+  );
+}
+
+const getStatusBadge = (status: string) => {
+  const statusMap = {
+    Active: { color: "bg-green-100 text-green-700", icon: CheckCircle },
+    Pending: { color: "bg-red-700 text-yellow-700", icon: Clock },
+    Lapsed: { color: "bg-red-100 text-red-700", icon: XCircle },
+    Completed: { color: "bg-blue-100 text-blue-700", icon: CheckCircle },
+  };
+  const StatusIcon =
+    statusMap[status as keyof typeof statusMap]?.icon || AlertCircle;
+  return {
+    className:
+      statusMap[status as keyof typeof statusMap]?.color ||
+      "bg-gray-100 text-gray-700",
+    icon: StatusIcon,
+  };
+};
+
+/** Compact page-number list with ellipsis for many pages, e.g. 1 … 4 5 6 … 10 */
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const items: (number | "ellipsis")[] = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  if (start > 2) items.push("ellipsis");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+  return items;
+}
+
+function PolicyTypeModal({
+  isOpen,
+  onClose,
+  onSelect,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (type: "LIC" | "OTHER") => void;
+}) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Select Policy Type
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-slate-500 hover:text-slate-700"
+          >
+            Cancel
+          </button>
+        </div>
+        <p className="text-sm text-slate-500 mb-6">
+          Choose the policy category to continue with the right plan list.
+        </p>
+        <div className="grid gap-3">
+          <button
+            type="button"
+            onClick={() => onSelect("LIC")}
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+          >
+            LIC
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelect("OTHER")}
+            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Other
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmationModal({
+  target,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  target: any;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!target) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-red-50 rounded-xl">
+            <AlertCircle size={22} className="text-red-500" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Delete Policy
+            </h3>
+            <p className="text-xs text-slate-400">
+              This action cannot be undone
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+          Are you sure you want to delete policy{" "}
+          <strong>#{target.policyNumber}</strong>? This will permanently remove
+          all associated data.
+        </p>
+        <div className="flex items-center justify-end gap-3">
+          <button
+            disabled={isDeleting}
+            onClick={onCancel}
+            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={isDeleting}
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LICPoliciesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { fetchNotifications } = useNotificationStore();
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [policyAgeFilter, setPolicyAgeFilter] = useState<"All" | "New" | "Old">("All");
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPolicyTypeModalOpen, setIsPolicyTypeModalOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
+
+  const { policies, isLoading } = useSelector(
+    (state: RootState) => state.policies,
+  );
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    dispatch(fetchPolicies());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!highlightId || policies.length === 0) return;
+
+    setActiveHighlight(highlightId);
+
+    setTimeout(() => {
+      const row = rowRefs.current[highlightId];
+
+      if (row) {
+        row.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 300);
+
+    const timer = setTimeout(() => {
+      setActiveHighlight(null);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [highlightId, policies]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // If the user is typing in an input, textarea, or select, do nothing.
+      const target = event.target as HTMLElement;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+        return;
+      }
+
+      // If a character key is pressed, focus the search bar.
+      if (
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const { filteredPolicies } = useMemo(() => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+    const filtered = policies.filter((policy) => {
+      const lifeAssured = policy.CustomerMaster;
+      const matchesSearch =
+        policy.policyNumber.toLowerCase().includes(lowerCaseSearchTerm) ||
+        policy.product?.productName
+          .toLowerCase()
+          .includes(lowerCaseSearchTerm) ||
+        (lifeAssured &&
+          `${lifeAssured.firstName} ${lifeAssured.lastName}`
+            .toLowerCase()
+            .includes(lowerCaseSearchTerm)) ||
+        (policy.customer?.groupName &&
+          policy.customer.groupName
+            .toLowerCase()
+            .includes(lowerCaseSearchTerm));
+
+      const matchesStatus =
+        filterStatus === "All" || policy.status?.statusName === filterStatus;
+
+      let matchesAge = true;
+      if (policyAgeFilter !== "All") {
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const oneYearAgoTime = oneYearAgo.getTime();
+        const dateStr =
+          policy.commencementDate || policy.issueDate || policy.createdAt;
+        const policyTime = dateStr ? new Date(dateStr).getTime() : 0;
+        const isNew = policyTime >= oneYearAgoTime;
+        matchesAge = policyAgeFilter === "New" ? isNew : !isNew;
+      }
+
+      return matchesSearch && matchesStatus && matchesAge;
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.commencementDate || 0).getTime();
+      const timeB = new Date(b.createdAt || b.commencementDate || 0).getTime();
+      return timeB - timeA;
+    });
+
+    const calculatedStats = {
+      total: policies.length,
+      active: policies.filter((p) => p.status?.statusName === "Active").length,
+      pending: policies.filter((p) => p.status?.statusName === "Pending")
+        .length,
+      lapsed: policies.filter((p) => p.status?.statusName === "Lapsed").length,
+    };
+
+    return { stats: calculatedStats, filteredPolicies: sorted };
+  }, [policies, searchTerm, filterStatus, policyAgeFilter]);
+
+  // ── Pagination (applied AFTER search/filtering) ──
+  const totalItems = filteredPolicies.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+  const paginatedPolicies = useMemo(
+    () => filteredPolicies.slice(startIndex, endIndex),
+    [filteredPolicies, startIndex, endIndex],
+  );
+
+  // Reset to the first page whenever the search/filter criteria change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, policyAgeFilter]);
+
+  // Keep the current page within bounds if the filtered list shrinks
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const pageItems = getPageItems(currentPage, totalPages);
+
+  const handleRowsPerPageChange = (value: number) => {
+    setRowsPerPage(value);
+    setCurrentPage(1);
+  };
+
+  const statusOptions = ["All", "Active", "Pending", "Lapsed", "Completed"];
+
+  const filterStatusOptions = statusOptions.map((status) => ({
+    value: status,
+    label: status,
+  }));
+
+  const policyAgeOptions = [
+    { value: "All", label: "All Policies" },
+    { value: "New", label: "New Policy" },
+    { value: "Old", label: "Old Policy" },
+  ];
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const result = await dispatch(deletePolicy(deleteTarget.id)).unwrap();
+
+      await fetchNotifications();
+
+      toast.success(`Policy #${result.policyNumber} deleted successfully.`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete policy.");
+      console.error("Failed to delete policy:", err);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget, dispatch, fetchNotifications]);
+
+  const handleCreatePolicySelection = useCallback(
+    (type: "LIC" | "OTHER") => {
+      setIsPolicyTypeModalOpen(false);
+      router.push(
+        `/dashboard/lic/policies/new?policyType=${type.toLowerCase()}`,
+      );
+    },
+    [router],
+  );
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
+      <LicModuleNav />
+
+      {/* Top Banner Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+            <FileText size={26} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              Policies
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-slate-500">
+              Manage all policies and their details
+            </p>
+          </div>
+        </div>
+
+        {isClient && canEdit && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPolicyTypeModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+            >
+              <Plus size={16} />
+              New Policy
+            </button>
+          </div>
+        )}
+      </div>
+
+      <PolicyTypeModal
+        isOpen={isPolicyTypeModalOpen}
+        onClose={() => setIsPolicyTypeModalOpen(false)}
+        onSelect={handleCreatePolicySelection}
+      />
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+          <div className="relative min-w-0 flex-1 sm:max-w-md">
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search by policy #, group name, or life assured..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+            />
+          </div>
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Statuses"
+            options={filterStatusOptions}
+            value={filterStatus}
+            onChange={setFilterStatus}
+          />
+          <FilterSelect
+            icon={Filter}
+            placeholder="All Policies"
+            options={policyAgeOptions}
+            value={policyAgeFilter}
+            onChange={(val) => setPolicyAgeFilter(val as "All" | "New" | "Old")}
+          />
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+
+        {isLoading ? (
+          <div className="flex min-h-[18rem] items-center justify-center p-6">
+            <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#1877F2]" />
+          </div>
+        ) : filteredPolicies.length === 0 ? (
+          <div className="p-6">
+            <CustomerEmptyState
+              title={
+                searchTerm || filterStatus !== "All" || policyAgeFilter !== "All"
+                  ? "No Policies Found"
+                  : "No policies have been added yet"
+              }
+              description={
+                searchTerm || filterStatus !== "All" || policyAgeFilter !== "All"
+                  ? "Try adjusting your search or filter criteria to find what you're looking for."
+                  : "Get started by creating a new policy record."
+              }
+              action={
+                isClient && canEdit && !searchTerm && filterStatus === "All" && policyAgeFilter === "All" ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsPolicyTypeModalOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                  >
+                    <Plus size={16} />
+                    New Policy
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
+        ) : (
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] border-separate border-spacing-0 text-left text-sm">
+                <thead>
+                  <tr>
+                    <TableHeadCell>Policy No.</TableHeadCell>
+                    <TableHeadCell>Life Assured</TableHeadCell>
+                    <TableHeadCell>Plan</TableHeadCell>
+                    <TableHeadCell align="right">Sum Assured</TableHeadCell>
+                    <TableHeadCell align="right">Premium</TableHeadCell>
+                    <TableHeadCell>Mode</TableHeadCell>
+                    <TableHeadCell>Term / PPT</TableHeadCell>
+                    <TableHeadCell>FUP Date</TableHeadCell>
+                    <TableHeadCell align="center">Status</TableHeadCell>
+                    <TableHeadCell align="center">Actions</TableHeadCell>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedPolicies.map((policy, index) => {
+                    const statusName = policy.status?.statusName || "Unknown";
+                    const statusBadge = getStatusBadge(statusName);
+                    const StatusIcon = statusBadge.icon;
+                    const lifeAssured = policy.CustomerMaster;
+                    const holderName = lifeAssured
+                      ? `${lifeAssured.firstName} ${lifeAssured.lastName}`
+                      : "—";
+
+                    let groupLabel = "—";
+                    if (
+                      policy.customer?.groupName &&
+                      policy.customer?.groupCode
+                    ) {
+                      groupLabel = `${policy.customer.groupName} - ${policy.customer.groupCode}`;
+                    } else if (policy.customer?.groupName) {
+                      groupLabel = policy.customer.groupName;
+                    } else if (policy.customer?.groupCode) {
+                      groupLabel = policy.customer.groupCode;
+                    }
+
+                    let statusDot = "bg-slate-400";
+                    if (statusName === "Active" || statusName === "Completed")
+                      statusDot = "bg-emerald-500";
+                    if (statusName === "Pending") statusDot = "bg-amber-500";
+                    if (statusName === "Lapsed") statusDot = "bg-rose-500";
+
+                    return (
+                      <tr
+                        key={policy.id}
+                        ref={(el) => {
+                          rowRefs.current[policy.id] =
+                            el as HTMLTableRowElement | null;
+                        }}
+                        onClick={() =>
+                          router.push(`/dashboard/lic/policies/${policy.id}`)
+                        }
+                        className={`group cursor-pointer border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                          activeHighlight === policy.id
+                            ? "bg-yellow-50/50"
+                            : index % 2 === 0
+                              ? "bg-white"
+                              : "bg-slate-50/30"
+                        }`}
+                      >
+                        <td className="px-3 py-2.5 align-middle whitespace-nowrap">
+                          <span className="inline-block rounded-md bg-[#f1f5f9] px-2 py-1 font-mono text-xs font-semibold text-[#475569]">
+                            {policy.policyNumber}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 align-middle">
+                          <div className="flex items-center gap-2.5 text-left">
+                            <Seal name={holderName} size={32} />
+                            <div className="min-w-0">
+                              <div className="flex min-w-0 items-center gap-1">
+                                <span className="min-w-0 truncate font-semibold text-slate-900 transition-colors group-hover:text-[#1877F2] text-xs sm:text-sm">
+                                  {holderName}
+                                </span>
+                                <ChevronRight
+                                  size={12}
+                                  className="text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100 shrink-0"
+                                />
+                              </div>
+                              <div className="truncate text-[11px] text-slate-400">
+                                {groupLabel}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 align-middle">
+                          <div
+                            className="line-clamp-1 text-xs sm:text-sm font-medium text-slate-900"
+                            title={
+                              policy.product?.planNumber
+                                ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
+                                : policy.product?.productName || "—"
+                            }
+                          >
+                            {policy.product?.planNumber
+                              ? `${policy.product.planNumber} - ${policy.product.productName || "—"}`
+                              : policy.product?.productName || "—"}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-right align-middle font-semibold text-slate-900 text-xs sm:text-sm">
+                          <span>
+                            {policy.premium?.sumAssured
+                              ? `₹ ${policy.premium.sumAssured.toLocaleString("en-IN")}`
+                              : "N/A"}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-right align-middle text-slate-800 text-xs sm:text-sm font-medium">
+                          {policy.premium?.installmentPremium
+                            ? `₹ ${policy.premium.totalInstallmentPremium.toLocaleString("en-IN")}`
+                            : "N/A"}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 align-middle text-slate-700 text-xs sm:text-sm">
+                          {policy.premiumMode?.modeName || "N/A"}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 align-middle text-slate-700 text-xs">
+                          <div className="flex flex-col font-medium">
+                            <span>
+                              T:{" "}
+                              {policy.policyTerm
+                                ? `${policy.policyTerm}Y`
+                                : "N/A"}
+                            </span>
+                            <span className="text-slate-400">
+                              P:{" "}
+                              {policy.premiumPayingTerm
+                                ? `${policy.premiumPayingTerm}Y`
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 align-middle text-slate-700 text-xs sm:text-sm">
+                          {policy.nextPremiumDueDate
+                            ? new Date(
+                                policy.nextPremiumDueDate,
+                              ).toLocaleDateString("en-IN")
+                            : "N/A"}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-center align-middle">
+                          <Chip dotColor={statusDot}>{statusName}</Chip>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-center align-middle">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(
+                                  `/dashboard/lic/policies/${policy.id}`,
+                                );
+                              }}
+                              className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] cursor-pointer"
+                              title="View"
+                            >
+                              <Eye size={14} />
+                            </button>
+                            {isClient && canEdit && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(
+                                      `/dashboard/lic/policies/edit/${policy.id}`,
+                                    );
+                                  }}
+                                  className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-blue-100 bg-white text-[#1877F2] shadow-sm transition hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                                  title="Edit"
+                                >
+                                  <Edit size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteTarget(policy);
+                                  }}
+                                  className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-rose-100 bg-white text-rose-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 cursor-pointer"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Footer / Pagination */}
+            <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3">
+              <div className="flex flex-col items-center justify-between gap-3 text-xs text-slate-500 sm:flex-row">
+                {/* Left: rows per page */}
+                <div className="flex items-center gap-2">
+                  <span className="whitespace-nowrap">Rows per page:</span>
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) =>
+                      handleRowsPerPageChange(Number(e.target.value))
+                    }
+                    className="rounded-lg border border-slate-200 bg-white py-1.5 pl-2.5 pr-2 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 cursor-pointer"
+                  >
+                    {[10, 20, 50].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Right: range + page controls */}
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  <span className="mr-1 whitespace-nowrap font-medium text-slate-600">
+                    {totalItems === 0
+                      ? "0–0 of 0"
+                      : `${startIndex + 1}–${endIndex} of ${totalItems}`}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-semibold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600 cursor-pointer"
+                  >
+                    <ChevronLeft size={13} />
+                    Previous
+                  </button>
+
+                  {pageItems.map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="inline-flex h-8 min-w-8 items-center justify-center text-slate-400"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setCurrentPage(item)}
+                        className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg border px-2 text-xs font-semibold transition-all cursor-pointer ${
+                          currentPage === item
+                            ? "border-[#1877F2] bg-[#1877F2] text-white shadow-sm shadow-blue-200"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2]"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-semibold text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-[#1877F2] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600 cursor-pointer"
+                  >
+                    Next
+                    <ChevronRight size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <DeleteConfirmationModal
+        target={deleteTarget}
+        isDeleting={isDeleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+    </div>
+  );
+}
+
+export default function LICPoliciesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading policies...</div>}>
+      <LICPoliciesContent />
+    </Suspense>
+  );
+}

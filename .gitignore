@@ -1,0 +1,12 @@
+node_modules/
+.env
+.next/
+dist/
+build/
+.vscode/
+
+# WPPConnect & WhatsApp Gateway Temporary Files
+userDataDir/
+tokens/
+WhatsAppImages/
+log/

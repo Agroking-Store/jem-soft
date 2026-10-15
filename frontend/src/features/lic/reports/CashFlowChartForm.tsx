@@ -1,0 +1,350 @@
+"use client";
+
+import { useState } from "react";
+import { RotateCcw, FileText, Filter, ChevronLeft, ArrowRight } from "lucide-react";
+import FilterOptionsModal, { SelectedFilterItem } from "./FilterOptionsModal";
+import SortingFilterModal, { SortingFilterSelection } from "./SortingFilterModal";
+import SelectGroupModal, { GroupFilterItem } from "./SelectGroupModal";
+import DatePicker from "@/app/(dashboard)/dashboard/lic/policies/new/DatePicker";
+import { format } from "date-fns";
+
+export interface CashFlowChartFormData {
+  appliedFilters: SelectedFilterItem[];
+  cashFlowFromDate: string;
+  cashFlowToDate: string;
+  reportDate: string;
+  yearBasis: "calendarYear" | "financialYear";
+  annuityMode: "modeWise" | "yearly";
+  sortingOption: string;
+  selectedGroups: GroupFilterItem[];
+  sortingFilterSelection: SortingFilterSelection | null;
+  calculationOptions: {
+    includeLoyaltyAddition: boolean;
+    includeFab: boolean;
+    bonusToBeConsidered: "interim" | "reversionary";
+    scenarioForLA: "scenario1" | "scenario2";
+  };
+  printOptions: {
+    includeCashInOut: boolean;
+    showGraphs: boolean;
+    includeRecordOnlyPolicies: boolean;
+  };
+}
+
+interface CashFlowChartFormProps {
+  onBack: () => void;
+  onGenerateReport: (formData: CashFlowChartFormData) => void;
+  initialData?: CashFlowChartFormData | null;
+  agencies: Array<{ id: string; agencyName: string; agencyCode: string }>;
+  policyStatuses: Array<{ id: string; statusName: string; statusCode: string }>;
+  customers?: Array<{
+    id: string;
+    groupCode?: string | null;
+    name: string;
+    groupName?: string | null;
+    resArea?: string | null;
+  }>;
+  policies?: Array<any>;
+  branches?: Array<{ id: string; branchCode: string; branchName: string }>;
+}
+
+const getTodayDateStr = () => new Date().toISOString().split("T")[0];
+
+const getDefaultFormData = (): CashFlowChartFormData => ({
+  appliedFilters: [],
+  cashFlowFromDate: "",
+  cashFlowToDate: "",
+  reportDate: getTodayDateStr(),
+  yearBasis: "financialYear",
+  annuityMode: "yearly",
+  sortingOption: "groupsWise",
+  selectedGroups: [],
+  sortingFilterSelection: null,
+  calculationOptions: {
+    includeLoyaltyAddition: false,
+    includeFab: true,
+    bonusToBeConsidered: "reversionary",
+    scenarioForLA: "scenario2",
+  },
+  printOptions: {
+    includeCashInOut: false,
+    showGraphs: true,
+    includeRecordOnlyPolicies: false,
+  },
+});
+
+export default function CashFlowChartForm({
+  onBack,
+  onGenerateReport,
+  initialData,
+  agencies,
+  policyStatuses,
+  customers = [],
+  policies = [],
+  branches = [],
+}: CashFlowChartFormProps) {
+  const [formData, setFormData] = useState<CashFlowChartFormData>(initialData || getDefaultFormData());
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+
+  const handleReset = () => setFormData(getDefaultFormData());
+
+  const getSelectGroupsLabel = () => {
+    if (formData.sortingOption === "groupsWise") {
+      const count = formData.selectedGroups.length;
+      return count > 0 ? `${count} Groups selected` : "No Groups Selected";
+    }
+    const count = formData.sortingFilterSelection?.selectedItems?.length || 0;
+    return count > 0 ? `${count} item(s) selected` : "No Items Selected";
+  };
+
+  const openSelectGroupsModal = () => {
+    if (formData.sortingOption === "groupsWise") setIsGroupModalOpen(true);
+    else setIsSortingModalOpen(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase tracking-wider cursor-pointer">
+            <ChevronLeft size={18} />
+            <span>Reports</span>
+          </button>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Cash Flow Chart</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset"><RotateCcw size={17} /></button>
+          <button onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"><FileText size={15} /><span>Generate</span></button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Filter Options */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Filter Options</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Filter Options</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  readOnly
+                  value={formData.appliedFilters.length > 0 ? `${formData.appliedFilters.length} filter(s) selected` : "No filters selected"}
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
+                />
+                <button type="button" onClick={() => setIsFilterModalOpen(true)} className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer">
+                  <Filter size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cash Flow From</label>
+              <div className="flex items-center gap-2">
+                <DatePicker
+                  value={formData.cashFlowFromDate ? new Date(formData.cashFlowFromDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowFromDate: date ? format(date, "yyyy-MM-dd") : "" }))}
+                />
+                <span className="text-xs font-bold text-slate-500">To</span>
+                <DatePicker
+                  value={formData.cashFlowToDate ? new Date(formData.cashFlowToDate) : undefined}
+                  onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowToDate: date ? format(date, "yyyy-MM-dd") : "" }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
+              <DatePicker
+                value={formData.reportDate ? new Date(formData.reportDate) : undefined}
+                onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sorting Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sorting Options</h2>
+            <div className="flex items-center gap-8">
+              {([
+                { id: "calendarYear", label: "Calender Year" },
+                { id: "financialYear", label: "Financial Year" },
+              ] as const).map((opt) => (
+                <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                  <input
+                    type="radio"
+                    name="yearBasis"
+                    checked={formData.yearBasis === opt.id}
+                    onChange={() => setFormData((prev) => ({ ...prev, yearBasis: opt.id }))}
+                    className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Annuity Mode */}
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Annuity Mode</h2>
+            <div className="flex items-center gap-8">
+              {([
+                { id: "modeWise", label: "Mode Wise" },
+                { id: "yearly", label: "Yearly" },
+              ] as const).map((opt) => (
+                <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                  <input
+                    type="radio"
+                    name="annuityMode"
+                    checked={formData.annuityMode === opt.id}
+                    onChange={() => setFormData((prev) => ({ ...prev, annuityMode: opt.id }))}
+                    className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Calculation Options */}
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Calculation Options</h2>
+            <div className="flex items-center gap-8 pb-4">
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.calculationOptions.includeLoyaltyAddition}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, includeLoyaltyAddition: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
+                />
+                <span>Include Loyalty Addition</span>
+              </label>
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                <input
+                  type="checkbox"
+                  checked={formData.calculationOptions.includeFab}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, includeFab: e.target.checked } }))}
+                  className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
+                />
+                <span>Include F.A.B</span>
+              </label>
+            </div>
+
+            <div className="text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider border-t border-slate-200 pt-2 mb-2">Bonus To Be considered</div>
+            <div className="flex items-center justify-center gap-8 pb-4">
+              {([
+                { id: "interim", label: "Interim Bonus" },
+                { id: "reversionary", label: "Reversionary Bonus" },
+              ] as const).map((opt) => (
+                <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                  <input
+                    type="radio"
+                    name="bonusToBeConsidered"
+                    checked={formData.calculationOptions.bonusToBeConsidered === opt.id}
+                    onChange={() => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, bonusToBeConsidered: opt.id } }))}
+                    className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider border-t border-slate-200 pt-2 mb-2">Scenario for LA</div>
+            <div className="flex items-center justify-center gap-8">
+              {([
+                { id: "scenario1", label: "Scenario - I" },
+                { id: "scenario2", label: "Scenario - II" },
+              ] as const).map((opt) => (
+                <label key={opt.id} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                  <input
+                    type="radio"
+                    name="scenarioForLA"
+                    checked={formData.calculationOptions.scenarioForLA === opt.id}
+                    onChange={() => setFormData((prev) => ({ ...prev, calculationOptions: { ...prev.calculationOptions, scenarioForLA: opt.id } }))}
+                    className="w-4 h-4 text-[#1877F2] focus:ring-[#1877F2] border-slate-300"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Print Options */}
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Print Options</h2>
+            <div className="grid grid-cols-2 gap-y-3.5 gap-x-6">
+              {[
+                { key: "includeCashInOut", label: "Include CashIn/Out" },
+                { key: "showGraphs", label: "Show Graphs" },
+                { key: "includeRecordOnlyPolicies", label: "Include Record only policies" },
+              ].map((opt) => (
+                <label key={opt.key} className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition">
+                  <input
+                    type="checkbox"
+                    checked={(formData.printOptions as any)[opt.key]}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, printOptions: { ...prev.printOptions, [opt.key]: e.target.checked } }))}
+                    className="w-4 h-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+          <button type="button" onClick={onBack} className="px-6 py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-white transition uppercase tracking-wider cursor-pointer">Cancel</button>
+          <button
+            type="button"
+            onClick={() => onGenerateReport(formData)}
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
+          >
+            <span>Generate Report</span>
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <FilterOptionsModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        agencies={agencies}
+        policyStatuses={policyStatuses}
+        customers={customers}
+        selectedFilters={formData.appliedFilters}
+        onApplyFilters={(filters) => setFormData((prev) => ({ ...prev, appliedFilters: filters }))}
+        enableDefaultStatusSelection={false}
+        defaultCategory="Groups Wise"
+        visibleCategories={["Groups Wise", "Agencies", "Payment Modes", "Policy Status"]}
+      />
+      <SelectGroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        customers={customers}
+        selectedGroups={formData.selectedGroups}
+        onApplyGroups={(groups) => setFormData((prev) => ({ ...prev, selectedGroups: groups }))}
+      />
+      <SortingFilterModal
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
+        customers={customers}
+        policies={policies}
+        branches={branches}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection) => setFormData((prev) => ({ ...prev, sortingFilterSelection: selection }))}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,248 @@
+import prisma from "../config/database.js";
+import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
+import { sendWhatsapp } from "./whatsappService.js";
+import { sendEmail } from "./emailService.js";
+import { renderTemplateText } from "./templateService.js";
+
+export interface CreateCampaignDTO {
+  title: string;
+  description?: string;
+  channel: CommunicationChannel;
+  templateId?: string;
+  customSubject?: string;
+  customMessage?: string;
+  targetCriteria?: any; // e.g. { providerId, crmGroup, onlyWithActivePolicies }
+  scheduledAt?: string;
+}
+
+export const getAudienceCount = async (criteria?: any) => {
+  const where: any = {};
+
+  if (criteria?.crmGroup) {
+    where.miscInfo = { crmGroups: { contains: criteria.crmGroup, mode: "insensitive" } };
+  }
+
+  const allMembers = await prisma.customerMaster.findMany({
+    where,
+    include: {
+      preferences: true,
+      contactInfo: true,
+      policies: true,
+    },
+  });
+
+  let totalMembers = allMembers.length;
+  let whatsappEligible = 0;
+  let emailEligible = 0;
+
+  for (const m of allMembers) {
+    const hasWhatsappPref = m.preferences ? m.preferences.smsMarketing : true;
+    const hasPhone = Boolean(m.contactInfo?.mobile1 || m.contactInfo?.mobile2);
+    if (hasWhatsappPref && hasPhone) whatsappEligible++;
+
+    const hasEmailPref = m.preferences ? m.preferences.emailMarketing : true;
+    const hasEmail = Boolean(m.contactInfo?.emailPersonal || m.contactInfo?.emailBusiness);
+    if (hasEmailPref && hasEmail) emailEligible++;
+  }
+
+  return {
+    totalMembers,
+    whatsappEligible,
+    smsEligible: whatsappEligible,
+    emailEligible,
+  };
+};
+
+export const createCampaign = async (data: CreateCampaignDTO) => {
+  return prisma.marketingCampaign.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      channel: data.channel,
+      templateId: data.templateId,
+      customSubject: data.customSubject,
+      customMessage: data.customMessage,
+      targetCriteria: data.targetCriteria ? JSON.stringify(data.targetCriteria) : null,
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+      status: data.scheduledAt ? "SCHEDULED" : "DRAFT",
+    },
+    include: {
+      template: true,
+    },
+  });
+};
+
+export const executeCampaign = async (campaignId: string) => {
+  const campaign = await prisma.marketingCampaign.findUnique({
+    where: { id: campaignId },
+    include: { template: true },
+  });
+
+  if (!campaign) {
+    throw new Error(`Campaign not found: ${campaignId}`);
+  }
+
+  // Update status to RUNNING
+  await prisma.marketingCampaign.update({
+    where: { id: campaignId },
+    data: { status: "RUNNING" },
+  });
+
+  let criteria: any = {};
+  if (campaign.targetCriteria) {
+    try {
+      criteria = JSON.parse(campaign.targetCriteria);
+    } catch {}
+  }
+
+  const where: any = {};
+  if (criteria?.crmGroup) {
+    where.miscInfo = { crmGroups: { contains: criteria.crmGroup, mode: "insensitive" } };
+  }
+
+  const audience = await prisma.customerMaster.findMany({
+    where,
+    include: {
+      preferences: true,
+      contactInfo: true,
+    },
+  });
+
+  let successfulCount = 0;
+  let failedCount = 0;
+  const BATCH_SIZE = 25;
+  const DELAY_BETWEEN_BATCHES_MS = 1500;
+
+  const chunks: Array<typeof audience> = [];
+  for (let i = 0; i < audience.length; i += BATCH_SIZE) {
+    chunks.push(audience.slice(i, i + BATCH_SIZE));
+  }
+
+  for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+    const currentChunk = chunks[chunkIdx];
+    await Promise.allSettled(
+      currentChunk.map(async (customer) => {
+        try {
+          const customerName = `${customer.salutation ? customer.salutation + " " : ""}${customer.firstName} ${customer.lastName}`.trim();
+          const phone = customer.contactInfo?.mobile1 || customer.contactInfo?.mobile2;
+          const email = customer.contactInfo?.emailPersonal || customer.contactInfo?.emailBusiness;
+
+          const allowsWhatsapp = customer.preferences ? customer.preferences.smsMarketing : true;
+          const allowsEmail = customer.preferences ? customer.preferences.emailMarketing : true;
+
+          const templateVars = {
+            customer_name: customerName,
+            advisor_name: "Your Insurance Advisor",
+            advisor_phone: "+91-9876543210",
+            agency_name: "Jem Soft Insurance",
+          };
+
+          const messageText =
+            campaign.customMessage ||
+            (campaign.template?.smsBody
+              ? renderTemplateText(campaign.template.smsBody, templateVars)
+              : "Exclusive insurance plans available from your advisor.");
+
+          const emailSubject =
+            campaign.customSubject ||
+            (campaign.template?.subject
+              ? renderTemplateText(campaign.template.subject, templateVars)
+              : campaign.title);
+
+          const emailHtml = campaign.template?.emailBody
+            ? renderTemplateText(campaign.template.emailBody, templateVars)
+            : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`;
+
+          // 1. Send WhatsApp if allowed
+          const sendWhatsappChannel =
+            campaign.channel === CommunicationChannel.WHATSAPP ||
+            campaign.channel === CommunicationChannel.ALL ||
+            (campaign.channel as any) === "SMS";
+
+          if (sendWhatsappChannel && allowsWhatsapp && phone) {
+            const waRes = await sendWhatsapp({ recipientPhone: phone, message: messageText });
+            if (waRes.status === DeliveryStatus.SENT) successfulCount++;
+            else failedCount++;
+
+            await prisma.communicationLog.create({
+              data: {
+                customerId: customer.id,
+                customerName,
+                channel: CommunicationChannel.WHATSAPP,
+                recipient: phone,
+                content: messageText,
+                status: waRes.status,
+                errorMessage: waRes.errorMessage,
+                triggerType: "MARKETING_CAMPAIGN",
+                metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title, batch: chunkIdx + 1 }),
+              },
+            });
+          }
+
+          // 2. Send Email if allowed
+          if (
+            (campaign.channel === CommunicationChannel.EMAIL || campaign.channel === CommunicationChannel.ALL) &&
+            allowsEmail &&
+            email
+          ) {
+            const emailRes = await sendEmail({ to: email, subject: emailSubject, html: emailHtml, text: messageText });
+            if (emailRes.status === DeliveryStatus.SENT) successfulCount++;
+            else failedCount++;
+
+            await prisma.communicationLog.create({
+              data: {
+                customerId: customer.id,
+                customerName,
+                channel: CommunicationChannel.EMAIL,
+                recipient: email,
+                subject: emailSubject,
+                content: emailHtml,
+                status: emailRes.status,
+                errorMessage: emailRes.errorMessage,
+                triggerType: "MARKETING_CAMPAIGN",
+                metadata: JSON.stringify({ campaignId: campaign.id, title: campaign.title, batch: chunkIdx + 1 }),
+              },
+            });
+          }
+        } catch (itemErr: any) {
+          failedCount++;
+          console.error(`Error in broadcast to customer ${customer.id}:`, itemErr.message);
+        }
+      })
+    );
+
+    // Update partial counts
+    await prisma.marketingCampaign.update({
+      where: { id: campaignId },
+      data: {
+        totalRecipients: audience.length,
+        successfulCount,
+        failedCount,
+      },
+    });
+
+    // Delay between batches if more remain
+    if (chunkIdx < chunks.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
+    }
+  }
+
+  // Update campaign completion
+  return prisma.marketingCampaign.update({
+    where: { id: campaignId },
+    data: {
+      status: "COMPLETED",
+      sentAt: new Date(),
+      totalRecipients: audience.length,
+      successfulCount,
+      failedCount,
+    },
+  });
+};
+
+export const getCampaigns = async () => {
+  return prisma.marketingCampaign.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { template: true },
+  });
+};

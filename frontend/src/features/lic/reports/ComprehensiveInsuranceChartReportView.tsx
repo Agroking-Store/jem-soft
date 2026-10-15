@@ -1,0 +1,913 @@
+"use client";
+
+import { useRef, useState, useMemo, Fragment } from "react";
+import { ArrowLeft, Download } from "lucide-react";
+import { ComprehensiveInsuranceChartFormData } from "./ComprehensiveInsuranceChartForm";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
+import toast from "react-hot-toast";
+
+interface ComprehensiveInsuranceChartReportViewProps {
+  formData: ComprehensiveInsuranceChartFormData;
+  policies: any[];
+  customers: any[];
+  onBackToForm: () => void;
+}
+
+// Bonus-rate placeholders — same caveat as every other report in this module:
+// LIC's real declared rates are plan-wise/year-wise, not flat. Replace these
+// with your actual rate table when you wire in production data.
+const VESTED_BONUS_RATE_PER_1000_PA = 45;
+const FAB_RATE_PER_1000 = 15;
+const LOYALTY_ADDITION_RATE_PER_1000 = 20;
+
+function fmtDate(d: Date | string | null | undefined, short = false) {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(date.getTime())) return "";
+  return short
+    ? date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })
+    : date.toLocaleDateString("en-GB");
+}
+
+function ageOn(dob: string, asOf: Date) {
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return 0;
+  let age = asOf.getFullYear() - d.getFullYear();
+  const m = asOf.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && asOf.getDate() < d.getDate())) age--;
+  return age;
+}
+
+
+const BLACK = "#000";
+const thStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `1px solid ${BLACK}`,
+  verticalAlign: "bottom",
+} as const;
+const totalValueStyle = {
+  display: "inline-block",
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+  padding: "1px 2px",
+} as const;
+
+const totalRowStyle = { borderTop: `1px solid ${BLACK}` } as const;
+const grandRowStyle = {
+  borderTop: `1px solid ${BLACK}`,
+  borderBottom: `3px double ${BLACK}`,
+} as const;
+
+export default function ComprehensiveInsuranceChartReportView({
+  formData,
+  policies: rawPolicies = [],
+  customers: rawCustomers = [],
+  onBackToForm,
+}: ComprehensiveInsuranceChartReportViewProps) {
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const asOfDate = formData.reportDate ? new Date(formData.reportDate) : new Date();
+
+  const family = useMemo(() => {
+    // ── Agency / Status filters from FilterOptionsModal ──────────────────
+    const JAYANT_ADVISOR_CODES = ["a001", "a002", "a003"];
+    const MANISHA_ADVISOR_CODES = ["a004", "a005", "a006"];
+
+    const selectedAgencyFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Agencies")
+      .map((f) => f.name.toLowerCase().trim());
+
+    const selectedStatusFilters = (formData.appliedFilters || [])
+      .filter((f) => f.type === "Policy Status")
+      .map((f) => f.name.toLowerCase().replace(/[- ]/g, ""));
+
+    const isAgencyMatch = (p: any) => {
+      if (selectedAgencyFilters.length === 0) return true;
+      const pAgCode = (p.agentCode || "").toLowerCase().trim();
+      return selectedAgencyFilters.some((f) => {
+        if (f.includes("jayant") || f.includes("ag002")) return JAYANT_ADVISOR_CODES.includes(pAgCode);
+        if (f.includes("manisha") || f.includes("ag003")) return MANISHA_ADVISOR_CODES.includes(pAgCode);
+        if (f.includes("other") || f.includes("ag001"))
+          return !JAYANT_ADVISOR_CODES.includes(pAgCode) && !MANISHA_ADVISOR_CODES.includes(pAgCode);
+        const advisorName = (p.advisor?.advisorName || p.advisor?.name || "").toLowerCase();
+        const advisorCode = (p.advisor?.advisorCode || "").toLowerCase();
+        return (
+          advisorName.includes(f) || f.includes(advisorName) ||
+          advisorCode.includes(f) || f.includes(advisorCode) ||
+          pAgCode.includes(f) || f.includes(pAgCode)
+        );
+      });
+    };
+
+    const isStatusMatch = (p: any) => {
+      if (selectedStatusFilters.length === 0) return true;
+      const rawStatus = (p.status?.statusName || "Inforce").toLowerCase().replace(/[- ]/g, "");
+      return selectedStatusFilters.some((st) => rawStatus.includes(st) || st.includes(rawStatus));
+    };
+
+    // ── Helper to build a policy row ─────────────────────────────────────
+    const buildPolicyRow = (p: any, srNo: number) => {
+      const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 500000);
+      const premium = Number(p.premium?.installmentPremium || p.premiumAmount || 5000);
+      const comDate = p.commencementDate || "2020-01-01";
+      const rawMode = (p.premiumMode?.modeName || "Yearly").toLowerCase();
+      const md = rawMode.startsWith("month") ? "Mly."
+        : rawMode.startsWith("quart") ? "Qly."
+        : rawMode.startsWith("half") ? "Hly."
+        : rawMode.startsWith("single") ? "Sgl."
+        : "Yly.";
+      const vestedBonus = Math.round((sumAssured / 1000) * VESTED_BONUS_RATE_PER_1000_PA * 3);
+      const surrenderValue = Math.round(vestedBonus * 1.1);
+      return {
+        sr: srNo,
+        agCd: p.agentCode || p.advisor?.advisorCode || "J",
+        policyNo: p.policyNumber || `9${100000000 + srNo}`,
+        comDate,
+        planTermPpt: `${p.product?.planNumber || "836"}/${p.policyTerm || 25}/${p.premiumPayingTerm || 16}`,
+        planName: p.product?.productName || "Plan",
+        sumAssured,
+        premium,
+        md,
+        brn: p.branch?.branchCode || "955",
+        nominee: p.nominees?.[0]?.nomineeName || p.nominee?.name || "-",
+        accidentalRiskcover: sumAssured,
+        abRiderSA: 0,
+        dabRiderSA: 0,
+        riskCover: sumAssured + vestedBonus,
+        loanTaken: Number(p.loanTaken || 0),
+        surrenderValue,
+        vestedBonus,
+        premiumPaid: 0,
+        loanAvailable: Number(p.loanAvailable || 0),
+        status: p.status?.statusName || "Inforce",
+        nextDue: p.nextPremiumDueDate || comDate,
+        maturityDate: p.maturityDate || null,
+      };
+    };
+
+    const getMemberName = (p: any) => {
+      const cm = p.CustomerMaster;
+      if (cm) {
+        const n = `${cm.salutation || ""} ${cm.firstName || ""} ${cm.lastName || ""}`.replace(/\s+/g, " ").trim();
+        if (n) return n;
+      }
+      return p.customer?.name || "Policy Holder";
+    };
+
+    // ── Group Memberwise ──────────────────────────────────────────────────
+    if (formData.sortingOption === "groupMemberwise") {
+      const selectedItems = formData.sortingFilterSelection?.selectedItems || [];
+      if (selectedItems.length === 0 || rawPolicies.length === 0) return null;
+
+      // Match by CustomerMaster.id — each selected item in the SortingFilterModal
+      // carries the CustomerMaster.id as its `id` field.
+      const selectedMemberIds = new Set(selectedItems.map((item: any) => item.id));
+
+      const memberPolicies = rawPolicies.filter((p) => {
+        const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+        return memberId && selectedMemberIds.has(memberId) && isAgencyMatch(p) && isStatusMatch(p);
+      });
+
+      if (memberPolicies.length === 0) return null;
+
+      // Build members map keyed by CustomerMaster.id (one block per selected member)
+      const membersMap: { [id: string]: any } = {};
+      memberPolicies.forEach((p) => {
+        const memberId = p.CustomerMaster?.id || p.CustomerMasterId;
+        if (!membersMap[memberId]) {
+          membersMap[memberId] = {
+            name: getMemberName(p),
+            dob: p.CustomerMaster?.dob || p.customer?.dob || "1980-01-01",
+            pan: p.CustomerMaster?.panNumber || p.customer?.pan || "",
+            policies: [],
+          };
+        }
+        membersMap[memberId].policies.push(buildPolicyRow(p, membersMap[memberId].policies.length + 1));
+      });
+
+      const firstPolicy = memberPolicies[0];
+      const groupCode = firstPolicy.customer?.groupCode || selectedItems[0]?.code || "MEMBER";
+      const groupCustomer = rawCustomers.find((c) => c.groupCode === groupCode);
+
+      return {
+        groupCode,
+        groupHeadName: selectedItems.map((item: any) => item.name).join(", ") || "Member",
+        address: groupCustomer?.address || "",
+        mobile: groupCustomer?.mobile || "",
+        email: groupCustomer?.email || "",
+        members: Object.values(membersMap),
+        dependents: [],
+      };
+    }
+
+    // ── Groups Wise ──────────────────────────────────────────────────────
+    const selectedGroupCode =
+      formData.selectedGroups.length > 0
+        ? formData.selectedGroups[0].groupCode
+        : formData.sortingFilterSelection?.selectedItems?.[0]?.code;
+
+    if (!selectedGroupCode || rawPolicies.length === 0) return null;
+
+    const groupPolicies = rawPolicies.filter(
+      (p) => p.customer?.groupCode === selectedGroupCode && isAgencyMatch(p) && isStatusMatch(p)
+    );
+    if (groupPolicies.length === 0) return null;
+
+    // Key by CustomerMaster.id so distinct members with same customer name don't collapse
+    const membersMap: { [id: string]: any } = {};
+    groupPolicies.forEach((p, idx) => {
+      const memberId = p.CustomerMaster?.id || p.CustomerMasterId || `C${idx}`;
+      if (!membersMap[memberId]) {
+        membersMap[memberId] = {
+          name: getMemberName(p),
+          dob: p.CustomerMaster?.dob || p.customer?.dob || "1980-01-01",
+          pan: p.CustomerMaster?.panNumber || p.customer?.pan || "",
+          policies: [],
+        };
+      }
+      membersMap[memberId].policies.push(buildPolicyRow(p, membersMap[memberId].policies.length + 1));
+    });
+
+    const groupCustomer = rawCustomers.find((c) => c.groupCode === selectedGroupCode);
+    return {
+      groupCode: selectedGroupCode,
+      groupHeadName: groupCustomer?.groupName || groupCustomer?.name || "Group",
+      address: groupCustomer?.address || "",
+      mobile: groupCustomer?.mobile || "",
+      email: groupCustomer?.email || "",
+      members: Object.values(membersMap),
+      dependents: [],
+    };
+  }, [rawPolicies, rawCustomers, formData]);
+
+  // ---------- Policy Details totals ----------
+  const memberTotals = (member: any) => ({
+    sumAssured: member.policies.reduce((a: number, p: any) => a + p.sumAssured, 0),
+    premium: member.policies.reduce((a: number, p: any) => a + p.premium, 0),
+    accidentalRiskcover: member.policies.reduce((a: number, p: any) => a + p.accidentalRiskcover, 0),
+  });
+
+  const grandPolicyTotal = family
+    ? family.members.reduce(
+        (acc: any, m: any) => {
+          const t = memberTotals(m);
+          return { sumAssured: acc.sumAssured + t.sumAssured, premium: acc.premium + t.premium };
+        },
+        { sumAssured: 0, premium: 0 }
+      )
+    : { sumAssured: 0, premium: 0 };
+
+  // ---------- Premium Calendar (12 months from Cash Flow Start Date) ----------
+  const calendarMonths = useMemo(() => {
+    const start = formData.cashFlowStartDate ? new Date(formData.cashFlowStartDate) : new Date();
+    const months: { label: string; year: number; month: number }[] = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      months.push({ label: d.toLocaleDateString("en-GB", { month: "short" }), year: d.getFullYear(), month: d.getMonth() });
+    }
+    return months;
+  }, [formData.cashFlowStartDate]);
+
+  const modeInterval: Record<string, number> = { "Qly.": 3, "Hly.": 6, "Mly.": 1, "Yly.": 12, "Sgl.": 0 };
+
+  function premiumCalendarRow(policy: any) {
+    const interval = modeInterval[policy.md] ?? 12;
+    const comDate = new Date(policy.comDate);
+    return calendarMonths.map((m) => {
+      if (interval === 0) return 0;
+      // Due in this calendar month if (target month - commencement month) % interval === 0
+      const monthsSinceCom = (m.year - comDate.getFullYear()) * 12 + (m.month - comDate.getMonth());
+      return monthsSinceCom % interval === 0 ? policy.premium : 0;
+    });
+  }
+
+  // ---------- Current Status totals ----------
+  const statusTotals = (member: any) =>
+    member.policies.reduce(
+      (acc: any, p: any) => ({
+        riskCover: acc.riskCover + p.riskCover,
+        loanTaken: acc.loanTaken + p.loanTaken,
+        surrenderValue: acc.surrenderValue + p.surrenderValue,
+        vestedBonus: acc.vestedBonus + p.vestedBonus,
+        premiumPaid: acc.premiumPaid + p.premiumPaid,
+        loanAvailable: acc.loanAvailable + p.loanAvailable,
+      }),
+      { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 }
+    );
+
+  const groupStatusTotal = family
+    ? family.members.reduce(
+        (acc: any, m: any) => {
+          const t = statusTotals(m);
+          return {
+            riskCover: acc.riskCover + t.riskCover,
+            loanTaken: acc.loanTaken + t.loanTaken,
+            surrenderValue: acc.surrenderValue + t.surrenderValue,
+            vestedBonus: acc.vestedBonus + t.vestedBonus,
+            premiumPaid: acc.premiumPaid + t.premiumPaid,
+            loanAvailable: acc.loanAvailable + t.loanAvailable,
+          };
+        },
+        { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 }
+      )
+    : { riskCover: 0, loanTaken: 0, surrenderValue: 0, vestedBonus: 0, premiumPaid: 0, loanAvailable: 0 };
+
+  // ---------- Projected Cash Flow (maturing policies only) ----------
+  const cashFlowRows = useMemo(() => {
+    if (!family) return [];
+    const rows: any[] = [];
+    family.members.forEach((m: any) => {
+      m.policies.forEach((p: any) => {
+        if (!p.maturityDate) return; // whole-life plans with no term maturity are excluded, matching the sample
+        const maturityDate = new Date(p.maturityDate);
+        const netOfLoans = p.sumAssured;
+        const bonusOrLA = Math.round((p.sumAssured / 1000) * (VESTED_BONUS_RATE_PER_1000_PA + FAB_RATE_PER_1000) * 20);
+        rows.push({
+          sr: p.sr,
+          policyNo: p.policyNo,
+          name: m.name,
+          age: ageOn(m.dob, maturityDate),
+          completedDueDate: fmtDate(maturityDate),
+          netOfLoans,
+          bonusOrLA,
+          loanTaken: 0,
+          total: netOfLoans + bonusOrLA,
+          amountType: "Maturity",
+          sortDate: maturityDate.getTime(),
+        });
+      });
+    });
+    return rows.sort((a, b) => a.sortDate - b.sortDate);
+  }, [family]);
+
+  const cashFlowGrandTotal = cashFlowRows.reduce((a, r) => a + r.total, 0);
+
+  // ---------- Cash In / Cash Out Summary (year by year until last maturity) ----------
+  const cashInOutRows = useMemo(() => {
+    if (!family || cashFlowRows.length === 0) return [];
+    const startYear = asOfDate.getFullYear();
+    const endYear = Math.max(...cashFlowRows.map((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear()));
+    const annualOutflow = grandPolicyTotal.premium;
+    const rows: any[] = [];
+    for (let y = startYear; y <= endYear; y++) {
+      const maturingThisYear = cashFlowRows.filter((r) => new Date(r.completedDueDate.split("/").reverse().join("-")).getFullYear() === y);
+      const cashIn = maturingThisYear.reduce((a, r) => a + r.total, 0);
+      const stillPayingPolicies = family!.members.flatMap((m: any) => m.policies).filter((p: any) => !p.maturityDate || new Date(p.maturityDate).getFullYear() >= y);
+      const cashOut = stillPayingPolicies.reduce((a: number, p: any) => {
+        const interval = modeInterval[p.md] ?? 12;
+        const occurrencesPerYear = interval > 0 ? 12 / interval : 1;
+        return a + p.premium * occurrencesPerYear;
+      }, 0);
+      rows.push({ year: y, cashIn, cashOut: Math.round(cashOut), nett: cashIn - Math.round(cashOut) });
+    }
+    return rows;
+  }, [cashFlowRows, family, asOfDate, grandPolicyTotal.premium]);
+
+  const getReportHeaderTitle = () => (formData.sortingOption === "groupMemberwise" ? "Memberwise" : "Groupwise");
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Generating PDF report...");
+    try {
+      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const pxPerMm = canvas.width / pageWidthMm;
+      const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
+
+      // Each PDF page gets ONLY its own slice, compressed as JPEG (keeps file small)
+      let renderedPx = 0;
+      let pageIndex = 0;
+      while (renderedPx < canvas.height - 5) {
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        const ctx = pageCanvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context not available");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const imgData = pageCanvas.toDataURL("image/jpeg", 0.85);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, 0, pageWidthMm, sliceHeightPx / pxPerMm, undefined, "FAST");
+        renderedPx += sliceHeightPx;
+        pageIndex += 1;
+      }
+
+      pdf.save(`Comprehensive_Insurance_Chart_${formData.reportDate || "Report"}.pdf`);
+      toast.success("PDF downloaded successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Failed to generate PDF.", { id: toastId });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const sectionBadge = (label: string) => (
+    <div
+      className="pt-4 pb-0.5 text-center text-[12px] font-bold"
+      style={{ borderBottom: `1px solid ${BLACK}` }}
+    >
+      {label}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
+        <div className="flex items-center gap-3">
+          <button onClick={onBackToForm} className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition uppercase tracking-wider">
+            <ArrowLeft size={16} />
+            <span>Edit Filters</span>
+          </button>
+          <span className="text-xs bg-blue-50 text-[#1877F2] font-bold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">{getReportHeaderTitle()}</span>
+        </div>
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isExporting}
+          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-50 uppercase tracking-wider"
+        >
+          <Download size={16} />
+          <span>{isExporting ? "Exporting..." : "Download PDF"}</span>
+        </button>
+      </div>
+
+      <div
+        ref={reportRef}
+        style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
+        className="bg-white px-6 py-6 border border-slate-300 shadow-xl max-w-6xl mx-auto space-y-2 text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
+      >
+        {/* Title line */}
+        <div className="flex justify-between items-end pb-1 text-[11px] font-semibold">
+          <span>Comprehensive Insurance Chart as on {fmtDate(formData.reportDate) || fmtDate(new Date())}</span>
+          <span>{getReportHeaderTitle()}</span>
+        </div>
+
+        {/* Group Banner / Empty State */}
+        {!family ? (
+          <div className="py-16 text-center rounded-xl border border-slate-200 space-y-2 p-8">
+            <h3 className="font-bold text-sm">No Group Data Found</h3>
+            <p className="text-xs">
+              Please select a group from the form filters and ensure policies exist for that group.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="text-center pt-2">
+              <h3 className="text-[13px] font-bold">
+                {family.groupHeadName} and Family [ {family.groupCode} ]
+              </h3>
+              {family.address && <p className="text-[11px]">{family.address}</p>}
+              {(family.mobile || family.email) && (
+                <p className="text-[11px]">
+                  {family.mobile && <>Mobile : {family.mobile} </>}
+                  {family.email && <>Email : {family.email}</>}
+                </p>
+              )}
+            </div>
+
+        {/* ---------------- Policy Details ---------------- */}
+        {sectionBadge("Policy Details")}
+        <table className="w-full text-left text-[10px] border-collapse">
+          <thead>
+            <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+              <th className="py-1.5 px-1">Sr No</th>
+              <th className="py-1.5 px-1">Ag Cd</th>
+              <th className="py-1.5 px-1">Policy No.</th>
+              <th className="py-1.5 px-1">Com. Date</th>
+              <th className="py-1.5 px-1">Pl/Tm/PT</th>
+              <th className="py-1.5 px-1">Plan Name</th>
+              <th className="py-1.5 px-1 text-right">Sum Assured</th>
+              <th className="py-1.5 px-1 text-right">Premium</th>
+              <th className="py-1.5 px-1 text-center">Md</th>
+              <th className="py-1.5 px-1 text-center">Brn</th>
+              <th className="py-1.5 px-1">Nominee</th>
+              <th className="py-1.5 px-1 text-right">Accidental Riskcover</th>
+            </tr>
+          </thead>
+          <tbody>
+            {family.members.map((member: any) => {
+              const t = memberTotals(member);
+              return (
+                <Fragment key={member.name}>
+                  <tr>
+                    <td colSpan={12} className="text-center font-bold text-[11px] py-1.5">{member.name}</td>
+                  </tr>
+                  {member.policies.map((p: any) => (
+                    <tr key={p.policyNo} className="">
+                      <td className="py-1 px-1">{p.sr}</td>
+                      <td className="py-1 px-1">{p.agCd}</td>
+                      <td className="py-1 px-1 font-mono">{p.policyNo}</td>
+                      <td className="py-1 px-1">{fmtDate(p.comDate)}</td>
+                      <td className="py-1 px-1">{p.planTermPpt}</td>
+                      <td className="py-1 px-1">{p.planName}</td>
+                      <td className="py-1 px-1 text-right font-mono">{p.sumAssured.toLocaleString("en-IN")}</td>
+                      <td className="py-1 px-1 text-right font-mono">{p.premium.toFixed(2)}</td>
+                      <td className="py-1 px-1 text-center">{p.md}</td>
+                      <td className="py-1 px-1 text-center">{p.brn}</td>
+                      <td className="py-1 px-1">{p.nominee}</td>
+                      <td className="py-1 px-1 text-right font-mono">{p.accidentalRiskcover.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
+                  <tr className="font-bold" style={totalRowStyle}>
+                    <td colSpan={6} className="text-right pr-2 py-1">Total :</td>
+                    <td className="text-right py-1 font-mono">{t.sumAssured.toLocaleString("en-IN")}</td>
+                    <td className="text-right py-1 font-mono">{t.premium.toFixed(2)}p.a</td>
+                    <td colSpan={2}></td>
+                    <td></td>
+                    <td className="text-right py-1 font-mono">{t.accidentalRiskcover.toLocaleString("en-IN")}</td>
+                  </tr>
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* ---------------- Special Information ---------------- */}
+        {formData.printOptions.specialInformation && (
+          <>
+            {sectionBadge("Special Information")}
+            <table className="w-full text-left text-[9px] border-collapse">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">Sr No.</th>
+                  <th className="py-1 px-1">Name</th>
+                  <th className="py-1 px-1">Policy No.</th>
+                  <th className="py-1 px-1">Com. Date</th>
+                  <th className="py-1 px-1">Pl/Tm/PT</th>
+                  <th className="py-1 px-1 text-right">AB Rider SA</th>
+                  <th className="py-1 px-1 text-right">DAB Rider SA</th>
+                  <th className="py-1 px-1">Term Rider SA</th>
+                  <th className="py-1 px-1">Crit.Illness Rider SA</th>
+                  <th className="py-1 px-1">Premium Waiver</th>
+                  <th className="py-1 px-1">FCI Rider SA</th>
+                  <th className="py-1 px-1">CDB Rider SA</th>
+                  <th className="py-1 px-1">Extra Class</th>
+                  <th className="py-1 px-1 text-center">NACH</th>
+                </tr>
+              </thead>
+              <tbody>
+                {family.members.flatMap((m: any) => m.policies.map((p: any) => (
+                  <tr key={p.policyNo} className="">
+                    <td className="py-1 px-1">{p.sr}</td>
+                    <td className="py-1 px-1">{m.name}</td>
+                    <td className="py-1 px-1 font-mono">{p.policyNo}</td>
+                    <td className="py-1 px-1">{fmtDate(p.comDate)}</td>
+                    <td className="py-1 px-1">{p.planTermPpt}</td>
+                    <td className="py-1 px-1 text-right font-mono">{p.abRiderSA ? p.abRiderSA.toLocaleString("en-IN") : "-"}</td>
+                    <td className="py-1 px-1 text-right font-mono">{p.dabRiderSA ? p.dabRiderSA.toLocaleString("en-IN") : "-"}</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">-</td>
+                    <td className="py-1 px-1 text-center">No</td>
+                  </tr>
+                )))}
+              </tbody>
+            </table>
+
+            <table className="w-full text-left text-[10px] border-collapse mt-3">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">P.Cd.</th>
+                  <th className="py-1 px-1">Name of the Policy Holder</th>
+                  {formData.printOptions.statementWithPan && <th className="py-1 px-1">PAN</th>}
+                  <th className="py-1 px-1">Birth Date</th>
+                  <th className="py-1 px-1 text-right">Sum</th>
+                  <th className="py-1 px-1 text-right">Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                {family.members.map((m: any, idx: number) => {
+                  const t = memberTotals(m);
+                  return (
+                    <tr key={m.name} className="">
+                      <td className="py-1 px-1">{idx + 1}</td>
+                      <td className="py-1 px-1">{m.name}</td>
+                      {formData.printOptions.statementWithPan && <td className="py-1 px-1">{m.pan || ""}</td>}
+                      <td className="py-1 px-1">{fmtDate(m.dob)}</td>
+                      <td className="py-1 px-1 text-right font-mono">{t.sumAssured.toLocaleString("en-IN")}</td>
+                      <td className="py-1 px-1 text-right font-mono">{t.premium.toFixed(2)}</td>
+                    </tr>
+                  );
+                })}
+                {(family.dependents || []).map((dep: any, idx: number) => (
+                  <tr key={dep.name} className="">
+                    <td className="py-1 px-1">{family.members.length + idx + 1}</td>
+                    <td className="py-1 px-1">{dep.name}</td>
+                    {formData.printOptions.statementWithPan && <td className="py-1 px-1"></td>}
+                    <td className="py-1 px-1">{fmtDate(dep.dob)}</td>
+                    <td className="py-1 px-1 text-right font-mono">0</td>
+                    <td className="py-1 px-1 text-right font-mono">0.00</td>
+                  </tr>
+                ))}
+                <tr className="font-bold" style={totalRowStyle}>
+                  <td colSpan={formData.printOptions.statementWithPan ? 3 : 2} className="text-right pr-2 py-1">Total :</td>
+                  <td></td>
+                  <td className="text-right py-1 font-mono">{grandPolicyTotal.sumAssured.toLocaleString("en-IN")}</td>
+                  <td className="text-right py-1 font-mono">{grandPolicyTotal.premium.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* ---------------- Premium Calendar ---------------- */}
+        {formData.printOptions.premiumCalendar && (
+          <>
+            {sectionBadge(`Premium Calendar ${calendarMonths[0]?.label}-${calendarMonths[0]?.year.toString().slice(-2)} to ${calendarMonths[11]?.label}-${calendarMonths[11]?.year.toString().slice(-2)}`)}
+            <table className="w-full text-left text-[9px] border-collapse">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">Policy No</th>
+                  {calendarMonths.map((m) => (
+                    <th key={`${m.month}-${m.year}`} className="py-1 px-1 text-right">{m.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {family.members.map((member: any) => {
+                  const monthTotals = new Array(12).fill(0);
+                  return (
+                    <Fragment key={member.name}>
+                      <tr>
+                        <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
+                      </tr>
+                      {member.policies.map((p: any) => {
+                        const row = premiumCalendarRow(p);
+                        row.forEach((v, i) => (monthTotals[i] += v));
+                        return (
+                          <tr key={p.policyNo}>
+                            <td className="py-1 px-1 font-mono">{p.policyNo}</td>
+                            {row.map((v, i) => (
+                              <td key={i} className="py-1 px-1 text-right font-mono">{v > 0 ? v.toFixed(2) : "-"}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                      <tr className="font-bold" style={totalRowStyle}>
+                        <td className="py-1 px-1"></td>
+                        {monthTotals.map((v, i) => (
+                          <td key={i} className="py-1 px-1 text-right font-mono">{v.toFixed(2)}</td>
+                        ))}
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+                <tr className="font-bold" style={grandRowStyle}>
+                  <td className="py-1.5 px-1">Total Premium per Annum : {grandPolicyTotal.premium.toFixed(2)}</td>
+                  {calendarMonths.map((m, i) => {
+                    const monthTotal = family.members.reduce((acc: number, member: any) => {
+                      return acc + member.policies.reduce((a: number, p: any) => a + premiumCalendarRow(p)[i], 0);
+                    }, 0);
+                    return (
+                      <td key={i} className="py-1.5 px-1 text-right font-mono">{monthTotal.toFixed(2)}</td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* ---------------- Current Status of Policies ---------------- */}
+        {formData.printOptions.currentStatus && (
+          <>
+            {sectionBadge("Current Status of Policies (Estimated)")}
+            <table className="w-full text-left text-[9px] border-collapse">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">Sr No</th>
+                  <th className="py-1 px-1">Policy No</th>
+                  <th className="py-1 px-1">Com Date</th>
+                  <th className="py-1 px-1 text-right">Sum</th>
+                  <th className="py-1 px-1">Plan</th>
+                  <th className="py-1 px-1 text-center">Md.</th>
+                  <th className="py-1 px-1">Next Due Date</th>
+                  <th className="py-1 px-1">Status</th>
+                  <th className="py-1 px-1 text-right">Risk Cover</th>
+                  <th className="py-1 px-1 text-right">Loan Taken</th>
+                  {formData.optionalColumns.surrenderValue && <th className="py-1 px-1 text-right">Surrender Value</th>}
+                  <th className="py-1 px-1 text-right">Vested Bonus</th>
+                  <th className="py-1 px-1 text-right">Prem. Paid</th>
+                  {formData.optionalColumns.loanAvailable && <th className="py-1 px-1 text-right">Loan Available</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {family.members.map((member: any) => {
+                  const t = statusTotals(member);
+                  return (
+                    <Fragment key={member.name}>
+                      <tr>
+                        <td colSpan={13} className="font-bold text-[10px] py-1">{member.name}</td>
+                      </tr>
+                      {member.policies.map((p: any) => (
+                        <tr key={p.policyNo} className="">
+                          <td className="py-1 px-1">{p.sr}</td>
+                          <td className="py-1 px-1 font-mono">{p.policyNo}</td>
+                          <td className="py-1 px-1">{fmtDate(p.comDate, true)}</td>
+                          <td className="py-1 px-1 text-right font-mono">{p.sumAssured.toLocaleString("en-IN")}</td>
+                          <td className="py-1 px-1">{p.planTermPpt}</td>
+                          <td className="py-1 px-1 text-center">{p.md?.[0]}</td>
+                          <td className="py-1 px-1">{fmtDate(p.nextDue, true)}</td>
+                          <td className="py-1 px-1">{p.status}</td>
+                          <td className="py-1 px-1 text-right font-mono">{p.riskCover.toLocaleString("en-IN")}</td>
+                          <td className="py-1 px-1 text-right font-mono">{p.loanTaken.toLocaleString("en-IN")}</td>
+                          {formData.optionalColumns.surrenderValue && <td className="py-1 px-1 text-right font-mono">{p.surrenderValue.toLocaleString("en-IN")}</td>}
+                          <td className="py-1 px-1 text-right font-mono">{p.vestedBonus.toLocaleString("en-IN")}</td>
+                          <td className="py-1 px-1 text-right font-mono">{p.premiumPaid.toLocaleString("en-IN")}</td>
+                          {formData.optionalColumns.loanAvailable && <td className="py-1 px-1 text-right font-mono">{p.loanAvailable.toLocaleString("en-IN")}</td>}
+                        </tr>
+                      ))}
+                      <tr className="font-bold" style={totalRowStyle}>
+                        <td colSpan={3} className="text-right pr-2 py-1">Total :</td>
+                        <td className="text-right py-1 font-mono">{member.policies.reduce((a: number, p: any) => a + p.sumAssured, 0).toLocaleString("en-IN")}</td>
+                        <td colSpan={3}></td>
+                        <td className="text-right py-1 font-mono">{t.riskCover.toLocaleString("en-IN")}</td>
+                        <td className="text-right py-1 font-mono">{t.loanTaken.toLocaleString("en-IN")}</td>
+                        {formData.optionalColumns.surrenderValue && <td className="text-right py-1 font-mono">{t.surrenderValue.toLocaleString("en-IN")}</td>}
+                        <td className="text-right py-1 font-mono">{t.vestedBonus.toLocaleString("en-IN")}</td>
+                        <td className="text-right py-1 font-mono">{t.premiumPaid.toLocaleString("en-IN")}</td>
+                        {formData.optionalColumns.loanAvailable && <td className="text-right py-1 font-mono">{t.loanAvailable.toLocaleString("en-IN")}</td>}
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+                <tr className="font-bold" style={grandRowStyle}>
+                  <td colSpan={4} className="py-1.5 px-1">Group Total :</td>
+                  <td colSpan={3}></td>
+                  <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.riskCover.toLocaleString("en-IN")}</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.loanTaken.toLocaleString("en-IN")}</td>
+                  {formData.optionalColumns.surrenderValue && <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.surrenderValue.toLocaleString("en-IN")}</td>}
+                  <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.vestedBonus.toLocaleString("en-IN")}</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.premiumPaid.toLocaleString("en-IN")}</td>
+                  {formData.optionalColumns.loanAvailable && <td className="text-right py-1.5 px-1 font-mono">{groupStatusTotal.loanAvailable.toLocaleString("en-IN")}</td>}
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* ---------------- Projected Cash Flow ---------------- */}
+        {formData.printOptions.cashFlowChart && cashFlowRows.length > 0 && (
+          <>
+            {sectionBadge("Projected Cash Flow")}
+            <table className="w-full text-left text-[10px] border-collapse">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">Sr No</th>
+                  <th className="py-1 px-1">Policy No</th>
+                  <th className="py-1 px-1">Name</th>
+                  <th className="py-1 px-1 text-center">Age</th>
+                  <th className="py-1 px-1">Completed Due Date</th>
+                  <th className="py-1 px-1">Amount Type</th>
+                  <th className="py-1 px-1 text-right">Sum (Net of Loans)</th>
+                  <th className="py-1 px-1 text-right">Bonus/LA</th>
+                  <th className="py-1 px-1 text-right">Loan Taken</th>
+                  <th className="py-1 px-1 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cashFlowRows.map((r) => (
+                  <tr key={r.policyNo} className="">
+                    <td className="py-1 px-1">{r.sr}</td>
+                    <td className="py-1 px-1 font-mono">{r.policyNo}</td>
+                    <td className="py-1 px-1">{r.name}</td>
+                    <td className="py-1 px-1 text-center">{r.age}</td>
+                    <td className="py-1 px-1">{r.completedDueDate}</td>
+                    <td className="py-1 px-1">{r.amountType}</td>
+                    <td className="py-1 px-1 text-right font-mono">{r.netOfLoans.toLocaleString("en-IN")}</td>
+                    <td className="py-1 px-1 text-right font-mono">{r.bonusOrLA.toLocaleString("en-IN")}</td>
+                    <td className="py-1 px-1 text-right font-mono">{r.loanTaken.toLocaleString("en-IN")}</td>
+                    <td className="py-1 px-1 text-right font-mono font-bold">{r.total.toLocaleString("en-IN")}</td>
+                  </tr>
+                ))}
+                <tr className="font-bold" style={grandRowStyle}>
+                  <td colSpan={9} className="text-right pr-2 py-1.5">Cash Flow Grand Total :</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{cashFlowGrandTotal.toLocaleString("en-IN")}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[9px] italic">
+              Note: The figures shown above are subject to the policies being in force during their terms and also being free of any loan liabilities. Loan interest is not considered in this calculation.
+            </p>
+          </>
+        )}
+
+        {/* ---------------- Cash In / Cash Out Summary ---------------- */}
+        {formData.printOptions.cashinCashoutSummary && cashInOutRows.length > 0 && (
+          <>
+            {sectionBadge("Projected Cash In / Cash Out Summary")}
+            <table className="w-full text-left text-[10px] border-collapse">
+              <thead>
+                <tr className="font-bold" style={{ borderTop: `1px solid ${BLACK}`, borderBottom: `1px solid ${BLACK}` }}>
+                  <th className="py-1 px-1">Year</th>
+                  <th className="py-1 px-1 text-right">Cash In</th>
+                  <th className="py-1 px-1 text-right">Cash Out</th>
+                  <th className="py-1 px-1 text-right">Nett Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cashInOutRows.map((r) => (
+                  <tr key={r.year} className="">
+                    <td className="py-1 px-1">{r.year}</td>
+                    <td className="py-1 px-1 text-right font-mono">{r.cashIn.toLocaleString("en-IN")}</td>
+                    <td className="py-1 px-1 text-right font-mono">{r.cashOut.toLocaleString("en-IN")}</td>
+                    <td className={`py-1 px-1 text-right font-mono font-bold `}>
+                      {r.nett.toLocaleString("en-IN")}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="font-bold" style={grandRowStyle}>
+                  <td className="py-1.5 px-1">Total</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{cashInOutRows.reduce((a, r) => a + r.cashIn, 0).toLocaleString("en-IN")}</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{cashInOutRows.reduce((a, r) => a + r.cashOut, 0).toLocaleString("en-IN")}</td>
+                  <td className="text-right py-1.5 px-1 font-mono">{cashInOutRows.reduce((a, r) => a + r.nett, 0).toLocaleString("en-IN")}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* ---------------- Bar Graphs ---------------- */}
+        {formData.printOptions.barGraphs && cashInOutRows.length > 0 && (
+          <>
+            {sectionBadge("Yearwise Cash Flow")}
+            <svg viewBox={`0 0 ${cashInOutRows.length * 36 + 20} 200`} className="w-full h-auto">
+              {(() => {
+                const max = Math.max(1, ...cashInOutRows.map((r) => r.cashIn));
+                return cashInOutRows.map((r, i) => {
+                  const h = (r.cashIn / max) * 150;
+                  const x = 15 + i * 36;
+                  return (
+                    <g key={r.year}>
+                      <rect x={x} y={170 - h} width={22} height={h} fill="#4b5563" />
+                      <text x={x + 11} y={182} textAnchor="middle" fontSize="7" fill="#000">{r.year}</text>
+                    </g>
+                  );
+                });
+              })()}
+            </svg>
+          </>
+        )}
+
+        {/* ---------------- Assumptions ---------------- */}
+        {formData.printOptions.printCashFlowAssumptions && (
+          <div className="pt-2 text-[9px] space-y-1">
+            <p className="font-bold">Assumptions made in generating the report (as and if applicable to the policies in the portfolio):</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              <li>The figures shown above are subject to the policies being in force during their terms and also being free of any loan liabilities.</li>
+              <li>
+                {formData.calculationOptions.bonusToBeConsidered === "reversionary"
+                  ? "Last declared reversionary bonus has been considered to plot the projected non-guaranteed benefits."
+                  : "Interim bonus rate has been considered to plot the projected non-guaranteed benefits."}
+              </li>
+              {formData.calculationOptions.loyaltyAddition && (
+                <li>
+                  Loyalty Addition is considered as per Scenario {formData.calculationOptions.scenarioForLAULIP === "6%" ? "I (6%)" : "II (10%)"} (where LIC has not declared rates).
+                </li>
+              )}
+              {formData.calculationOptions.fab && <li>Present rates of Final Additional Bonus have also been considered to plot the projected non-guaranteed benefits.</li>}
+              <li>Growth of fund in ULIP plans is based on a consistent return assumption on the investible portion of premiums.</li>
+              <li>
+                Vested Bonus &amp; F.A.B are estimated at placeholder rates (₹{VESTED_BONUS_RATE_PER_1000_PA}/1000 SA p.a., ₹{FAB_RATE_PER_1000}/1000 SA, ₹{LOYALTY_ADDITION_RATE_PER_1000}/1000 SA LA) — replace with your declared rate table for production accuracy.
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {/* ---------------- Legend ---------------- */}
+        <div className="pt-3 mt-3 space-y-1 text-[9px]" style={{ borderTop: `1px solid ${BLACK}` }}>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span><strong className="font-bold">A :</strong> Policies with APPS mode</span>
+            <span><strong className="font-bold">ρ :</strong> Pan Card is register for the Policy</span>
+            <span><strong className="font-bold">ec :</strong> Extra Class</span>
+            <span><strong className="font-bold"># :</strong> Policy with Multiple/Successive Nominee</span>
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span><strong className="font-bold">Y :</strong> Policies with NACH mode</span>
+            <span><strong className="font-bold">D :</strong> Policies with NEFT details submitted</span>
+            <span><strong className="font-bold">* :</strong> Joint Life</span>
+            <span><strong className="font-bold">S :</strong> Cheque dishonoured/ Debit fail</span>
+          </div>
+          <p className="pt-1">
+            Disclaimer: This cashflow illustrated in this report contains guaranteed and non-guaranteed benefits, given solely as an indication of estimated projected benefits and is not a promise or guarantee. Actual benefits depend on LIC of India&apos;s future performance for the products in this portfolio.
+          </p>
+          <div className="flex justify-between items-center pt-2 font-mono text-[9px] ">
+            <span>DSS000019899</span>
+            <span>Generated via Comprehensive Insurance Chart Engine</span>
+          </div>
+        </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
