@@ -14,7 +14,7 @@ import {
 } from "@/features/loans/loanSlice";
 import { type Policy } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
-import { Save, Loader2, FileText, AlertTriangle } from "lucide-react";
+import { Save, Loader2, FileText, AlertTriangle, ArrowLeft } from "lucide-react";
 import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
@@ -239,15 +239,25 @@ export default function LoanForm({ mode, initialLoan, initialPolicyId }: LoanFor
         ]}
       />
 
-      <div>
-        <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
-          {mode === "create" ? "New Loan" : "Edit Loan"}
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          {mode === "create"
-            ? "Create a new loan against a policy."
-            : "Update the loan details below."}
-        </p>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/loans")}
+          className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+          title="Back to Loans"
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <div>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-[28px] text-slate-900">
+            {mode === "create" ? "New Loan" : "Edit Loan"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {mode === "create"
+              ? "Create a new loan against a policy."
+              : "Update the loan details below."}
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="w-full">

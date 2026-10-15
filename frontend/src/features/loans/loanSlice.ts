@@ -23,6 +23,8 @@ export interface LoanSummary {
   totalInterestPaid: number;
   outstandingPrincipal: number;
   accruedInterest: number;
+  halfYearlyInterestDue?: number;
+  nextInterestDueDate?: string | null;
   totalDue: number;
   daysSinceLastPayment?: number;
   lastPaymentDate?: string;
