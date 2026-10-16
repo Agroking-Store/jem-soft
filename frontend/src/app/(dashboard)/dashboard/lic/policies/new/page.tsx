@@ -28,6 +28,11 @@ import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchAgencies } from "@/features/agency/agencySlice";
 import { fetchProductAttributeValues } from "@/features/insurance/productAttributeValueSlice";
+import {
+  useLegacyPlanMetadata,
+  isAgeEligibleForPlan,
+  isDateWithinPlanValidity,
+} from "@/shared/constants/planMetadata";
 import { useNotificationStore } from "@/store/notificationStore";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -245,13 +250,32 @@ function NewLICPolicyContent() {
 
       const minTerm = getAttributeValue("MIN_POLICY_TERM");
       const maxTerm = getAttributeValue("MAX_POLICY_TERM");
-      if (minTerm || maxTerm) {
+      // Legacy plans store the allowed terms as a comma list ("15,16,...,35").
+      // Number("15,16") is NaN, so the min/max comparison below is a no-op for
+      // them and the term would slip through unvalidated.
+      const allowedTermsRaw = getAttributeValue("TERMS");
+      const allowedTerms = allowedTermsRaw
+        ? allowedTermsRaw
+            .replace(/\band\b/gi, ",")
+            .split(/[,\s]+/)
+            .map((s) => Number(s))
+            .filter((n) => Number.isFinite(n) && n > 0)
+        : [];
+      if (allowedTerms.length) {
+        refinedSchema = refinedSchema.refine(
+          (data) => !data.term || allowedTerms.includes(Number(data.term)),
+          {
+            message: `Term must be one of: ${allowedTerms.join(", ")}.`,
+            path: ["term"],
+          },
+        );
+      } else if (minTerm || maxTerm) {
         refinedSchema = refinedSchema.refine(
           (data) => {
             if (!data.term) return true;
             const term = Number(data.term);
-            if (minTerm && term < Number(minTerm)) return false;
-            if (maxTerm && term > Number(maxTerm)) return false;
+            if (minTerm && Number.isFinite(Number(minTerm)) && term < Number(minTerm)) return false;
+            if (maxTerm && Number.isFinite(Number(maxTerm)) && term > Number(maxTerm)) return false;
             return true;
           },
           {
@@ -261,7 +285,7 @@ function NewLICPolicyContent() {
         );
       }
 
-      if (maxTerm) {
+      if (maxTerm && Number.isFinite(Number(maxTerm))) {
         refinedSchema = refinedSchema.refine(
           (data) => {
             if (!data.commencementDate || !data.completionDate) return true;
@@ -505,11 +529,61 @@ function NewLICPolicyContent() {
     return Boolean(productOptionsData.terms && productOptionsData.terms.length > 0);
   }, [productOptionsData.terms]);
 
+  // Plan metadata for the currently selected product.
+  // Legacy plans (LEGACY-* product codes) read TERMS / PPTS / TERM_FORMULA /
+  // PPT_FORMULA / INTRO_DATE / WITHDRAWAL_DATE from the DB-backed hook so that
+  // comma lists become dropdown options and age formulas resolve live.
+  // Declared here (not next to the autofill effect) because the term/PPT
+  // dropdown memos below depend on it.
+  const legacyMeta = useLegacyPlanMetadata();
+  const selectedLegacyPlan = legacyMeta.getLegacyPlanByNumber(
+    selectedProduct?.planNumber,
+  );
+  const ageForPlan = watchAge ? Number(watchAge) : null;
+  const legacyTerms = useMemo(
+    () => legacyMeta.getTerms(selectedProduct?.planNumber, ageForPlan),
+    [legacyMeta, selectedProduct?.planNumber, ageForPlan],
+  );
+  const legacyPpts = useMemo(
+    () => legacyMeta.getPpts(selectedProduct?.planNumber, watchTerm ? Number(watchTerm) : null),
+    [legacyMeta, selectedProduct?.planNumber, watchTerm],
+  );
+
+  // ---- calendar range + validation for the plan's validity window ----
+  const commencementValidity = useMemo(
+    () => isDateWithinPlanValidity(watchCommencementDate, selectedLegacyPlan),
+    [selectedLegacyPlan, watchCommencementDate],
+  );
+  const commencementMinDate = selectedLegacyPlan?.introDate || undefined;
+  // 2099-03-31 / 2199-03-31 are "never withdrawn" placeholders, not real cut-offs
+  const rawWd = selectedLegacyPlan?.withdrawalDate;
+  const commencementMaxDate =
+    rawWd && rawWd < "2100-01-01" ? rawWd : undefined;
+  const commencementRange =
+    selectedLegacyPlan && (commencementMinDate || rawWd)
+      ? `Plan available: ${commencementMinDate || "any"} to ${rawWd && rawWd < "2100-01-01" ? rawWd : "ongoing"}`
+      : "";
+  const commencementDateError = commencementValidity.ok ? "" : commencementValidity.message || "";
+
+  // ---- entry-age validation ----
+  const ageValidation = useMemo(
+    () => isAgeEligibleForPlan(ageForPlan, selectedLegacyPlan),
+    [ageForPlan, selectedLegacyPlan],
+  );
+
   const isFormulaTermPlan = useMemo(() => {
     return ["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "");
   }, [selectedProduct?.planNumber]);
 
   const pptOptionsToRender = useMemo(() => {
+    // Legacy plans carry their own comma-separated PPTS list (or an age/term
+    // formula) because they have no ProductPremiumRate rows to derive options from.
+    if (selectedLegacyPlan) {
+      const fromLegacy = legacyPpts.filter((p) => p > 0);
+      if (fromLegacy.length) return fromLegacy;
+      return [1];
+    }
+
     let list: (number | string)[] = productOptionsData.ppts || [];
     if (selectedProduct?.planNumber === "887") {
       if (watchMode === "Single") {
@@ -531,7 +605,10 @@ function NewLICPolicyContent() {
       }
     }
     return list;
-  }, [productOptionsData.ppts, productOptionsData.combinations, selectedProduct?.planNumber, watchMode, watchTerm]);
+  }, [
+    selectedLegacyPlan, legacyPpts, productOptionsData.ppts, productOptionsData.combinations,
+    selectedProduct?.planNumber, watchMode, watchTerm,
+  ]);
 
   const hasDbPpts = useMemo(() => {
     return Boolean(pptOptionsToRender && pptOptionsToRender.length > 0);
@@ -1520,7 +1597,6 @@ function NewLICPolicyContent() {
       selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
         ?.value;
 
-    const selectedProduct = products.find((p) => p.id === watchProductId);
     const isPlan889 = selectedProduct?.planNumber === "889";
     const minTerm = getAttributeValue("MIN_POLICY_TERM") || (isPlan889 ? "10" : undefined);
     const maxTerm = getAttributeValue("MAX_POLICY_TERM") || (isPlan889 ? "25" : undefined);
@@ -1535,63 +1611,52 @@ function NewLICPolicyContent() {
     const minAge = getAttributeValue("MIN_ENTRY_AGE") || (isPlan889 ? "18" : undefined);
     const maxAge = getAttributeValue("MAX_ENTRY_AGE") || (isPlan889 ? "50" : undefined);
 
-    // For plan 771, the term is calculated, not pre-filled from attributes.
-    if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
-      if (minTerm && !watchTerm) setValue("term", minTerm as any);
-    }
-
-    if (minPpt && !watchPpt) setValue("ppt", minPpt as any);
-
-    if (minSum && !watchSumAssured) setValue("sumAssured", minSum as any);
-
-    setAttributeHints({
-      term:
-        minTerm || effectiveMaxTerm
-          ? `Range: ${minTerm || "N/A"} - ${effectiveMaxTerm || "N/A"}`
+    // --- LEGACY PLANS ---------------------------------------------------
+    // MIN_POLICY_TERM can hold a comma list ("16,21,25") or a formula
+    // ("100- age at entry"). Never push the raw string into the field.
+    if (selectedLegacyPlan) {
+      const usableTerms = legacyTerms.filter((t) => t > 0);
+      const usablePpts = legacyPpts.filter((p) => p > 0);
+      // A formula-driven plan has no stored list, so its options change with the
+      // customer's age / selected term. Re-sync those, otherwise the form keeps a
+      // stale value that no longer exists in the dropdown. List-driven plans keep
+      // the "only fill when empty" behaviour so a manual choice is never stomped.
+      const termIsFormula =
+        selectedLegacyPlan.terms.length === 0 && usableTerms.length > 0;
+      if (usableTerms.length && (termIsFormula || !watchTerm)) {
+        setValue("term", String(usableTerms[0]) as any);
+      }
+      const pptIsFormula =
+        selectedLegacyPlan.ppts.length === 0 && usablePpts.length > 0;
+      if (usablePpts.length && (pptIsFormula || !watchPpt)) {
+        setValue("ppt", String(usablePpts[0]) as any);
+      }
+      if (selectedLegacyPlan.defaultSumAssured > 0 && !watchSumAssured) {
+        setValue("sumAssured", String(selectedLegacyPlan.defaultSumAssured) as any);
+      }
+      const listOrRange = (list: number[], fallback?: string) =>
+        list.length
+          ? `Options: ${list.length > 12 ? `${list.slice(0, 12).join(", ")}...` : list.join(", ")}`
+          : fallback || "";
+      setAttributeHints({
+        term:
+          listOrRange(usableTerms) ||
+          (selectedLegacyPlan.termFormula ? `Calculated: ${selectedLegacyPlan.termFormula}` : ""),
+        ppt:
+          listOrRange(usablePpts) ||
+          (selectedLegacyPlan.pptFormula ? `Calculated: ${selectedLegacyPlan.pptFormula}` : ""),
+        sumAssured: selectedLegacyPlan.defaultSumAssured
+          ? `Min: ${selectedLegacyPlan.defaultSumAssured}${selectedLegacyPlan.maxSumAssured > selectedLegacyPlan.defaultSumAssured ? ` - Max: ${selectedLegacyPlan.maxSumAssured}` : ""}`
           : "",
-      ppt:
-        minPpt || maxPpt
-          ? `Range: ${minPpt || "N/A"} - ${maxPpt || "N/A"}`
-          : "",
-      sumAssured:
-        minSum || maxSum
-          ? `Range: ${minSum || "N/A"} - ${maxSum || "N/A"}`
-          : "",
-      age:
-        minAge || maxAge
-          ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
-          : "",
-    });
-  }, [watchProductId, productAttributeValues, products, setValue, watchAge, isOtherPolicy]);
-
-  useEffect(() => {
-    if (isOtherPolicy || !watchProductId) {
+        age:
+          selectedLegacyPlan.minEntryAge || selectedLegacyPlan.maxEntryAge
+            ? `Required Age: ${selectedLegacyPlan.minEntryAge || "N/A"} - ${selectedLegacyPlan.maxEntryAge || "N/A"}`
+            : "",
+      });
       return;
     }
 
-    const selectedProductAttributes = productAttributeValues.filter(
-      (attr) => attr.productId === watchProductId,
-    );
-
-    const getAttributeValue = (code: string) =>
-      selectedProductAttributes.find((a) => a.attribute.attributeCode === code)
-        ?.value;
-
-    const selectedProduct = products.find((p) => p.id === watchProductId);
-    const isPlan889 = selectedProduct?.planNumber === "889";
-    const minTerm = getAttributeValue("MIN_POLICY_TERM") || (isPlan889 ? "10" : undefined);
-    const maxTerm = getAttributeValue("MAX_POLICY_TERM") || (isPlan889 ? "25" : undefined);
-    const effectiveMaxTerm =
-      selectedProduct?.planNumber === "887" && watchAge
-        ? String(Math.min(82, 100 - Number(watchAge)))
-        : maxTerm;
-    const minPpt = getAttributeValue("MIN_PPT") || (isPlan889 ? "5" : undefined);
-    const maxPpt = getAttributeValue("MAX_PPT") || (isPlan889 ? "15" : undefined);
-    const minSum = getAttributeValue("MIN_SUM_ASSURED") || (isPlan889 ? "300000" : undefined);
-    const maxSum = getAttributeValue("MAX_SUM_ASSURED");
-    const minAge = getAttributeValue("MIN_ENTRY_AGE") || (isPlan889 ? "18" : undefined);
-    const maxAge = getAttributeValue("MAX_ENTRY_AGE") || (isPlan889 ? "50" : undefined);
-
+    // --- MODERN PLANS (unchanged behaviour) ------------------------------
     // For plan 771, the term is calculated, not pre-filled from attributes.
     if (!["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "")) {
       if (minTerm && !watchTerm) setValue("term", minTerm as any);
@@ -1619,7 +1684,11 @@ function NewLICPolicyContent() {
           ? `Required Age: ${minAge || "N/A"} - ${maxAge || "N/A"}`
           : "",
     });
-  }, [watchProductId, productAttributeValues, products, setValue, watchAge, isOtherPolicy]);
+  }, [
+    watchProductId, productAttributeValues, products, setValue, watchAge,
+    isOtherPolicy, selectedLegacyPlan, legacyTerms, legacyPpts, watchTerm, watchPpt,
+    watchSumAssured, selectedProduct?.planNumber,
+  ]);
 
   useEffect(() => {
     if (!watchProductId || isOtherPolicy) {
@@ -1658,7 +1727,14 @@ function NewLICPolicyContent() {
           });
           setLoadedOptionsProductId(watchProductId);
 
-          if (!hasDbData && !isFormulaTermPlan) {
+          // hasData is derived from ProductPremiumRate. Legacy plans have no rate
+          // rows at all, so hasData is false for every one of them - but they DO
+          // carry their options in the TERMS / PPTS attributes. Without this guard
+          // every legacy plan would be forced into manual entry boxes.
+          // Whether a legacy plan actually gets a dropdown is decided by the JSX,
+          // which falls back to a text input only when its option list is empty.
+          const optionsFromAttributes = Boolean(selectedLegacyPlan);
+          if (!hasDbData && !isFormulaTermPlan && !optionsFromAttributes) {
             setIsManualTerm(true);
             setIsManualPpt(true);
           } else if (data.terms && data.terms.length > 0) {
@@ -1684,7 +1760,7 @@ function NewLICPolicyContent() {
     return () => {
       isMounted = false;
     };
-  }, [watchProductId, isOtherPolicy, isFormulaTermPlan, products, setValue]);
+  }, [watchProductId, isOtherPolicy, isFormulaTermPlan, products, setValue, selectedLegacyPlan]);
 
   const onSubmit: SubmitHandler<PolicyFormValues> = async (data) => {
     console.log("Submit clicked. Form data:", data);
@@ -1955,6 +2031,7 @@ function NewLICPolicyContent() {
               groupMembers={groupMembers}
               selectedGroup={selectedGroup}
               attributeHintsAge={attributeHints.age}
+              ageError={ageValidation.ok ? undefined : ageValidation.message}
             />
           </div>
 
@@ -2050,12 +2127,25 @@ function NewLICPolicyContent() {
                         render={({ field }) => (
                           <DatePicker
                             value={field.value}
+                            // Restrict the calendar to the plan's validity window
+                            minDate={commencementMinDate}
+                            maxDate={commencementMaxDate}
                             onChange={(date) =>
                               field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                             }
                           />
                         )}
                       />
+                      {/* Range printed right under the calendar box */}
+                      {commencementRange && (
+                        <p
+                          className={`text-xs mt-1 ${
+                            commencementDateError ? "text-red-500" : "text-slate-500"
+                          }`}
+                        >
+                          {commencementDateError || commencementRange}
+                        </p>
+                      )}
                       {errors.commencementDate && (
                         <p className="text-xs text-red-500 mt-1">
                           {errors.commencementDate.message}
@@ -2126,7 +2216,7 @@ function NewLICPolicyContent() {
                           </span>
                         )}
                       </div>
-                      {isOtherPolicy || isManualTerm || isPlanDataMissing || (!hasDbTerms && !isFormulaTermPlan) ? (
+                      {isOtherPolicy || isManualTerm || (isPlanDataMissing && !selectedLegacyPlan) || (!hasDbTerms && !isFormulaTermPlan && !selectedLegacyPlan) || (selectedLegacyPlan && legacyTerms.filter(t => t > 0).length === 0) ? (
                         <input
                           type="number"
                           {...register("term")}
@@ -2157,6 +2247,11 @@ function NewLICPolicyContent() {
                                 <option key={t} value={t}>{t}</option>
                               ));
                             })()
+                          ) : selectedLegacyPlan ? (
+                            // TERMS attribute: "15,16,...,35" or a live age formula
+                            legacyTerms.filter((t) => t > 0).map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))
                           ) : (
                             productOptionsData.terms.map(t => (
                               <option key={t} value={t}>{t}</option>
@@ -2192,7 +2287,7 @@ function NewLICPolicyContent() {
                           </span>
                         )}
                       </div>
-                      {isOtherPolicy || isManualPpt || isPlanDataMissing || !hasDbPpts ? (
+                      {isOtherPolicy || isManualPpt || (isPlanDataMissing && !selectedLegacyPlan) || !hasDbPpts ? (
                         <input
                           type="number"
                           {...register("ppt")}
