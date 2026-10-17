@@ -1,0 +1,917 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
+import { fetchPolicies } from "@/features/policy/policySlice";
+import { fetchCustomers } from "@/features/customers/customerSlice";
+import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { fetchAgencies } from "@/features/agency/agencySlice";
+import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchLoans } from "@/features/loans/loanSlice";
+import LicModuleNav, { LIC_REPORTS_RESET_EVENT } from "@/features/lic/LicModuleNav";
+import { LIC_REPORT_CARDS, LicReportCard } from "@/features/lic/reports/licReportsData";
+import PolicyRegisterForm, { PolicyRegisterFormData } from "@/features/lic/reports/PolicyRegisterForm";
+import PolicyRegisterReportView from "@/features/lic/reports/PolicyRegisterReportView";
+import PremiumDueForm, { PremiumDueFormData } from "@/features/lic/reports/PremiumDueForm";
+import PremiumDueReportView from "@/features/lic/reports/PremiumDueReportView";
+import PremiumOutstandingForm, { PremiumOutstandingFormData } from "@/features/lic/reports/PremiumOutstandingForm";
+import PremiumOutstandingReportView from "@/features/lic/reports/PremiumOutstandingReportView";
+import LapsedPolicyForm, { LapsedPolicyFormData } from "@/features/lic/reports/LapsedPolicyForm";
+import LapsedPolicyReportView from "@/features/lic/reports/LapsedPolicyReportView";
+import PolicyMaturityForm, { PolicyMaturityFormData } from "@/features/lic/reports/PolicyMaturityForm";
+import PolicyMaturityReportView from "@/features/lic/reports/PolicyMaturityReportView";
+import SurvivalBenefitForm, { SurvivalBenefitFormData } from "@/features/lic/reports/SurvivalBenefitForm";
+import SurvivalBenefitReportView from "@/features/lic/reports/SurvivalBenefitReportView";
+import CashFlowChartForm, { CashFlowChartFormData } from "@/features/lic/reports/CashFlowChartForm";
+import CashFlowChartReportView from "@/features/lic/reports/CashFlowChartReportView";
+import ComprehensiveInsuranceChartForm, { ComprehensiveInsuranceChartFormData } from "@/features/lic/reports/ComprehensiveInsuranceChartForm";
+import ComprehensiveInsuranceChartReportView from "@/features/lic/reports/ComprehensiveInsuranceChartReportView";
+import PremiumCertificateForm, { PremiumCertificateFormData } from "@/features/lic/reports/PremiumCertificateForm";
+import PremiumCertificateReportView from "@/features/lic/reports/PremiumCertificateReportView";
+import AnnuityStatementForm, { AnnuityStatementFormData } from "@/features/lic/reports/AnnuityStatementForm";
+import AnnuityStatementReportView from "@/features/lic/reports/AnnuityStatementReportView";
+import LoanInterestDueForm, { LoanInterestDueFormData } from "@/features/lic/reports/LoanInterestDueForm";
+import LoanInterestDueReportView from "@/features/lic/reports/LoanInterestDueReportView";
+import LoanInterestOutstandingForm, { LoanInterestOutstandingFormData } from "@/features/lic/reports/LoanInterestOutstandingForm";
+import LoanInterestOutstandingReportView from "@/features/lic/reports/LoanInterestOutstandingReportView";
+import PremiumCalendarForm, { PremiumCalendarFormData } from "@/features/lic/reports/PremiumCalenderForm";
+import PremiumCalendarReportView from "@/features/lic/reports/PremiumCalenderReportView";
+import LastPremiumStatementForm, { LastPremiumStatementFormData } from "@/features/lic/reports/LastPremiumStatementForm";
+import LastPremiumStatementReportView from "@/features/lic/reports/LastPremiumStatementReportView";
+import CustomerDataSheetForm, { CustomerDataSheetFormData } from "@/features/lic/reports/CustomerDataSheetForm";
+import CustomerDataSheetReportView from "@/features/lic/reports/CustomerDataSheetReportView";
+import PolicyStatusReportForm, { PolicyStatusFormData } from "@/features/lic/reports/PolicyStatusReportForm";
+import PolicyStatusReportView from "@/features/lic/reports/PolicyStatusReportView";
+import LoanSurrenderQuotationForm, { LoanSurrenderQuotationFormData } from "@/features/lic/reports/LoanSurrenderQuotationForm";
+import LoanSurrenderQuotationReportView from "@/features/lic/reports/LoanSurrenderQuotationReportView";
+import RevivalPremiumCalculator from "@/features/lic/reports/RevivalPremiumCalculator";
+import {
+  BarChart3,
+  Search,
+  ArrowRight,
+  CheckCircle2,
+  X,
+  FileSpreadsheet,
+} from "lucide-react";
+
+type ViewState =
+  | "cards"
+  | "policy-register-form"
+  | "policy-register-report"
+  | "premium-due-form"
+  | "premium-due-report"
+  | "premium-outstanding-form"
+  | "premium-outstanding-report"
+  | "lapsed-policy-form"
+  | "lapsed-policy-report"
+  | "policy-maturity-form"
+  | "policy-maturity-report"
+  | "survival-benefit-form"
+  | "survival-benefit-report"
+  | "cash-flow-chart-form"
+  | "cash-flow-chart-report"
+  | "comprehensive-insurance-chart-form"
+  | "comprehensive-insurance-chart-report"
+  | "premium-paid-details-form"
+  | "premium-paid-details-report"
+  | "annuity-statement-form"
+  | "annuity-statement-report"
+  | "loan-interest-due-form"
+  | "loan-interest-due-report"
+  | "loan-interest-outstanding-form"
+  | "loan-interest-outstanding-report"
+  | "premium-calendar-form"
+  | "premium-calendar-report"
+  | "last-premium-statement-form"
+  | "last-premium-statement-report"
+  | "customer-data-sheet-form"
+  | "customer-data-sheet-report"
+  | "policy-status-report-form"
+  | "policy-status-report-view"
+  | "loan-surrender-quotation-form"
+  | "loan-surrender-quotation-report"
+  | "revival-premium-calculator";
+
+export default function LICReportsPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const [currentView, setCurrentView] = useState<ViewState>("cards");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [selectedPolicyRegisterData, setSelectedPolicyRegisterData] =
+    useState<PolicyRegisterFormData | null>(null);
+  const [selectedPremiumDueData, setSelectedPremiumDueData] =
+    useState<PremiumDueFormData | null>(null);
+  const [selectedPremiumOutstandingData, setSelectedPremiumOutstandingData] =
+    useState<PremiumOutstandingFormData | null>(null);
+  const [selectedLapsedPolicyData, setSelectedLapsedPolicyData] =
+    useState<LapsedPolicyFormData | null>(null);
+  const [selectedPolicyMaturityData, setSelectedPolicyMaturityData] =
+    useState<PolicyMaturityFormData | null>(null);
+  const [selectedSurvivalBenefitData, setSelectedSurvivalBenefitData] =
+    useState<SurvivalBenefitFormData | null>(null);
+  const [selectedCashFlowChartData, setSelectedCashFlowChartData] =
+    useState<CashFlowChartFormData | null>(null);
+  const [selectedComprehensiveInsuranceChartData, setSelectedComprehensiveInsuranceChartData] =
+    useState<ComprehensiveInsuranceChartFormData | null>(null);
+  const [selectedPremiumCertificateData, setSelectedPremiumCertificateData] =
+    useState<PremiumCertificateFormData | null>(null);
+  const [selectedAnnuityStatementData, setSelectedAnnuityStatementData] =
+    useState<AnnuityStatementFormData | null>(null);
+  const [selectedLoanInterestDueData, setSelectedLoanInterestDueData] =
+    useState<LoanInterestDueFormData | null>(null);
+  const [selectedLoanInterestOutstandingData, setSelectedLoanInterestOutstandingData] =
+    useState<LoanInterestOutstandingFormData | null>(null);
+  const [selectedPremiumCalendarData, setSelectedPremiumCalendarData] =
+    useState<PremiumCalendarFormData | null>(null);
+  const [selectedLastPremiumStatementData, setSelectedLastPremiumStatementData] =
+    useState<LastPremiumStatementFormData | null>(null);
+  const [selectedCustomerDataSheetData, setSelectedCustomerDataSheetData] =
+    useState<CustomerDataSheetFormData | null>(null);
+  const [selectedPolicyStatusData, setSelectedPolicyStatusData] =
+    useState<PolicyStatusFormData | null>(null);
+  const [selectedLoanSurrenderQuotationData, setSelectedLoanSurrenderQuotationData] =
+    useState<LoanSurrenderQuotationFormData | null>(null);
+  const [previewModalCard, setPreviewModalCard] = useState<LicReportCard | null>(null);
+
+  // Redux Store Data
+  const { policies } = useSelector((state: RootState) => state.policies);
+  const { customers } = useSelector((state: RootState) => state.customers);
+  const { customers: customersMaster } = useSelector((state: RootState) => state.customerMaster);
+  const { agencies } = useSelector((state: RootState) => state.agency);
+  const { statuses: policyStatuses } = useSelector((state: RootState) => state.policyStatuses);
+  const { branches: licBranches } = useSelector((state: RootState) => state.licBranch);
+  const { loans } = useSelector((state: RootState) => state.loans);
+
+  useEffect(() => {
+    dispatch(fetchPolicies());
+    dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
+    dispatch(fetchAgencies());
+    dispatch(fetchPolicyStatuses());
+    dispatch(fetchLicBranches());
+    dispatch(fetchLoans());
+  }, [dispatch]);
+
+  // Navbar ke "LIC Reports" tab click par cards grid par wapas aao
+  useEffect(() => {
+    const backToCards = () => {
+      setCurrentView("cards");
+      setPreviewModalCard(null);
+    };
+    window.addEventListener(LIC_REPORTS_RESET_EVENT, backToCards);
+    return () => window.removeEventListener(LIC_REPORTS_RESET_EVENT, backToCards);
+  }, []);
+
+  const categories = ["All", "Register", "Financial", "Due & Statements", "Calculators & Misc"];
+
+  const filteredCards = useMemo(() => {
+    return LIC_REPORT_CARDS.filter((card) => {
+      const matchesSearch =
+        card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = activeCategory === "All" || card.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, activeCategory]);
+
+  const handleCardClick = (card: LicReportCard) => {
+    if (card.id === "policy-register") {
+      setCurrentView("policy-register-form");
+    } else if (card.id === "premium-due") {
+      setCurrentView("premium-due-form");
+    } else if (card.id === "premium-outstanding") {
+      setCurrentView("premium-outstanding-form");
+    } else if (card.id === "lapsed-policy") {
+      setCurrentView("lapsed-policy-form");
+    } else if (card.id === "policy-maturity") {
+      setCurrentView("policy-maturity-form");
+    } else if (card.id === "survival-benefit") {
+      setCurrentView("survival-benefit-form");
+    } else if (card.id === "cash-flow-chart") {
+      setCurrentView("cash-flow-chart-form");
+    } else if (card.id === "comprehensive-insurance-chart") {
+      setCurrentView("comprehensive-insurance-chart-form");
+    } else if (card.id === "premium-paid-details") {
+      setCurrentView("premium-paid-details-form");
+    } else if (card.id === "annuity-statement") {
+      setCurrentView("annuity-statement-form");
+    } else if (card.id === "loan-interest-due") {
+      setCurrentView("loan-interest-due-form");
+    } else if (card.id === "loan-interest-outstanding") {
+      setCurrentView("loan-interest-outstanding-form");
+    } else if (card.id === "premium-calender") {
+      setCurrentView("premium-calendar-form");
+    } else if (card.id === "last-premium-statement") {
+      setCurrentView("last-premium-statement-form");
+    } else if (card.id === "customer-data-sheet") {
+      setCurrentView("customer-data-sheet-form");
+    } else if (card.id === "policy-status-report") {
+      setCurrentView("policy-status-report-form");
+    } else if (card.id === "loan-surrender-value-quotation") {
+      setCurrentView("loan-surrender-quotation-form");
+    } else if (card.id === "revival-premium-calculator") {
+      setCurrentView("revival-premium-calculator");
+    } else {
+      setPreviewModalCard(card);
+    }
+  };
+
+  const handleGeneratePolicyRegisterReport = (formData: PolicyRegisterFormData) => {
+    setSelectedPolicyRegisterData(formData);
+    setCurrentView("policy-register-report");
+  };
+
+  const handleGenerateCustomerDataSheetReport = (formData: CustomerDataSheetFormData) => {
+    setSelectedCustomerDataSheetData(formData);
+    setCurrentView("customer-data-sheet-report");
+  };
+
+  const handleGeneratePolicyStatusReport = (formData: PolicyStatusFormData) => {
+    setSelectedPolicyStatusData(formData);
+    setCurrentView("policy-status-report-view");
+  };
+
+  const handleGenerateLoanSurrenderQuotationReport = (formData: LoanSurrenderQuotationFormData) => {
+    setSelectedLoanSurrenderQuotationData(formData);
+    setCurrentView("loan-surrender-quotation-report");
+  };
+
+  const handleGeneratePremiumDueReport = (formData: PremiumDueFormData) => {
+    setSelectedPremiumDueData(formData);
+    setCurrentView("premium-due-report");
+  };
+
+  const handleGeneratePremiumOutstandingReport = (formData: PremiumOutstandingFormData) => {
+    setSelectedPremiumOutstandingData(formData);
+    setCurrentView("premium-outstanding-report");
+  };
+
+  const handleGenerateLapsedPolicyReport = (formData: LapsedPolicyFormData) => {
+    setSelectedLapsedPolicyData(formData);
+    setCurrentView("lapsed-policy-report");
+  };
+
+  const handleGeneratePolicyMaturityReport = (formData: PolicyMaturityFormData) => {
+    setSelectedPolicyMaturityData(formData);
+    setCurrentView("policy-maturity-report");
+  };
+
+  const handleGenerateSurvivalBenefitReport = (formData: SurvivalBenefitFormData) => {
+    setSelectedSurvivalBenefitData(formData);
+    setCurrentView("survival-benefit-report");
+  };
+
+  const handleGenerateCashFlowChartReport = (formData: CashFlowChartFormData) => {
+    setSelectedCashFlowChartData(formData);
+    setCurrentView("cash-flow-chart-report");
+  };
+
+  const handleGenerateComprehensiveInsuranceChartReport = (formData: ComprehensiveInsuranceChartFormData) => {
+    setSelectedComprehensiveInsuranceChartData(formData);
+    setCurrentView("comprehensive-insurance-chart-report");
+  };
+
+  const handleGeneratePremiumCertificateReport = (formData: PremiumCertificateFormData) => {
+    setSelectedPremiumCertificateData(formData);
+    setCurrentView("premium-paid-details-report");
+  };
+
+  const handleGenerateAnnuityStatementReport = (formData: AnnuityStatementFormData) => {
+    setSelectedAnnuityStatementData(formData);
+    setCurrentView("annuity-statement-report");
+  };
+
+  const handleGenerateLoanInterestDueReport = (formData: LoanInterestDueFormData) => {
+    setSelectedLoanInterestDueData(formData);
+    setCurrentView("loan-interest-due-report");
+  };
+
+  const handleGenerateLoanInterestOutstandingReport = (formData: LoanInterestOutstandingFormData) => {
+    setSelectedLoanInterestOutstandingData(formData);
+    setCurrentView("loan-interest-outstanding-report");
+  };
+
+  const handleGeneratePremiumCalendarReport = (formData: PremiumCalendarFormData) => {
+    setSelectedPremiumCalendarData(formData);
+    setCurrentView("premium-calendar-report");
+  };
+
+  const handleGenerateLastPremiumStatementReport = (formData: LastPremiumStatementFormData) => {
+    setSelectedLastPremiumStatementData(formData);
+    setCurrentView("last-premium-statement-report");
+  };
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Top Shared Nav */}
+      <LicModuleNav />
+
+      {/* VIEW 1: All Cards Grid */}
+      {currentView === "cards" && (
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* Top Banner Card */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+                <BarChart3 size={26} />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">LIC Reports</h1>
+            </div>
+          </div>
+
+          {/* Search + Category Filter */}
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1 lg:min-w-0">
+              <div className="relative min-w-0 flex-1 sm:max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search report title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+                />
+              </div>
+            </div>
+            <div className="inline-flex max-w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-1">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`cursor-pointer px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-all duration-200 select-none ${
+                      activeCategory === cat
+                        ? "bg-[#1877F2] text-white shadow-md shadow-blue-200"
+                        : "text-slate-500 hover:text-[#1877F2] hover:bg-[#1877F2]/10"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Cards Grid matching CustomerSectionCard structure */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => handleCardClick(card)}
+                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${card.isFeatured
+                    ? "border-[#1877F2]/60 ring-1 ring-[#1877F2]/30"
+                    : "border-slate-200 hover:border-[#1877F2]"
+                    }`}
+                >
+                  {/* Top Accent Bar */}
+                  <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white transition">
+                        <Icon size={20} />
+                      </div>
+
+                      {card.isFeatured && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1877F2] font-bold text-[10px] uppercase tracking-wider border border-blue-200">
+                          Featured Report
+                        </span>
+                      )}
+
+                      {!card.isFeatured && card.statusBadge && (
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-wider">
+                          {card.statusBadge}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-[#1877F2] uppercase tracking-widest block">
+                        {card.category}
+                      </span>
+                      <h3 className="font-bold text-base text-slate-900 group-hover:text-[#1877F2] transition">
+                        {card.title}
+                      </h3>
+                    </div>
+
+                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                      {card.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-[#1877F2] uppercase tracking-wider">
+                    <span>
+                      {card.id === "policy-register" ||
+                        card.id === "premium-due" ||
+                        card.id === "premium-outstanding" ||
+                        card.id === "lapsed-policy" ||
+                        card.id === "policy-maturity" ||
+                        card.id === "survival-benefit" ||
+                        card.id === "cash-flow-chart" ||
+                        card.id === "comprehensive-insurance-chart" ||
+                        card.id === "premium-paid-details" ||
+                        card.id === "annuity-statement" ||
+                        card.id === "loan-interest-due" ||
+                        card.id === "loan-interest-outstanding" ||
+                        card.id === "revival-premium-calculator" ||
+                        card.id === "premium-calender" ||
+                        card.id === "last-premium-statement" ||
+                        card.id === "customer-data-sheet" ||
+                        card.id === "policy-status-report" ||
+                        card.id === "loan-surrender-value-quotation"
+                        ? "Open Form & Report"
+                        : "View Details"}
+                    </span>
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredCards.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 space-y-3">
+              <FileSpreadsheet size={40} className="mx-auto text-slate-300" />
+              <h3 className="font-semibold text-slate-700">No report cards found</h3>
+              <p className="text-xs text-slate-500">Try adjusting your search query or category filter.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VIEW 2: Policy Register Form */}
+      {currentView === "policy-register-form" && (
+        <PolicyRegisterForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyRegisterReport}
+          initialData={selectedPolicyRegisterData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+        />
+      )}
+
+      {/* VIEW 3: Policy Register Report View */}
+      {currentView === "policy-register-report" && selectedPolicyRegisterData && (
+        <PolicyRegisterReportView
+          formData={selectedPolicyRegisterData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("policy-register-form")}
+        />
+      )}
+
+      {/* VIEW 4: Premium Due Form */}
+      {currentView === "premium-due-form" && (
+        <PremiumDueForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumDueReport}
+          initialData={selectedPremiumDueData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 5: Premium Due Report View */}
+      {currentView === "premium-due-report" && selectedPremiumDueData && (
+        <PremiumDueReportView
+          formData={selectedPremiumDueData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-due-form")}
+        />
+      )}
+
+      {/* VIEW 6: Premium Outstanding Form */}
+      {currentView === "premium-outstanding-form" && (
+        <PremiumOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumOutstandingReport}
+          initialData={selectedPremiumOutstandingData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 7: Premium Outstanding Report View */}
+      {currentView === "premium-outstanding-report" && selectedPremiumOutstandingData && (
+        <PremiumOutstandingReportView
+          formData={selectedPremiumOutstandingData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 8: Lapsed Policy Form */}
+      {currentView === "lapsed-policy-form" && (
+        <LapsedPolicyForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLapsedPolicyReport}
+          initialData={selectedLapsedPolicyData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 9: Lapsed Policy Report View */}
+      {currentView === "lapsed-policy-report" && selectedLapsedPolicyData && (
+        <LapsedPolicyReportView
+          formData={selectedLapsedPolicyData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("lapsed-policy-form")}
+        />
+      )}
+
+      {/* VIEW 10: Policy Maturity Form */}
+      {currentView === "policy-maturity-form" && (
+        <PolicyMaturityForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyMaturityReport}
+          initialData={selectedPolicyMaturityData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 11: Policy Maturity Report View */}
+      {currentView === "policy-maturity-report" && selectedPolicyMaturityData && (
+        <PolicyMaturityReportView
+          formData={selectedPolicyMaturityData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("policy-maturity-form")}
+        />
+      )}
+
+      {/* VIEW 12: Survival Benefit Form */}
+      {currentView === "survival-benefit-form" && (
+        <SurvivalBenefitForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateSurvivalBenefitReport}
+          initialData={selectedSurvivalBenefitData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 13: Survival Benefit Report View */}
+      {currentView === "survival-benefit-report" && selectedSurvivalBenefitData && (
+        <SurvivalBenefitReportView
+          formData={selectedSurvivalBenefitData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("survival-benefit-form")}
+        />
+      )}
+
+      {/* VIEW 14: Cash Flow Chart Form */}
+      {currentView === "cash-flow-chart-form" && (
+        <CashFlowChartForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateCashFlowChartReport}
+          initialData={selectedCashFlowChartData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 15: Cash Flow Chart Report View */}
+      {currentView === "cash-flow-chart-report" && selectedCashFlowChartData && (
+        <CashFlowChartReportView
+          formData={selectedCashFlowChartData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("cash-flow-chart-form")}
+        />
+      )}
+
+      {/* VIEW 16: Comprehensive Insurance Chart Form */}
+      {currentView === "comprehensive-insurance-chart-form" && (
+        <ComprehensiveInsuranceChartForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateComprehensiveInsuranceChartReport}
+          initialData={selectedComprehensiveInsuranceChartData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 17: Comprehensive Insurance Chart Report View */}
+      {currentView === "comprehensive-insurance-chart-report" && selectedComprehensiveInsuranceChartData && (
+        <ComprehensiveInsuranceChartReportView
+          formData={selectedComprehensiveInsuranceChartData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("comprehensive-insurance-chart-form")}
+        />
+      )}
+
+      {/* VIEW 18: Premium Paid Details / Certificate Form */}
+      {currentView === "premium-paid-details-form" && (
+        <PremiumCertificateForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumCertificateReport}
+          initialData={selectedPremiumCertificateData}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 19: Premium Paid Details / Certificate Report View */}
+      {currentView === "premium-paid-details-report" && selectedPremiumCertificateData && (
+        <PremiumCertificateReportView
+          formData={selectedPremiumCertificateData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-paid-details-form")}
+        />
+      )}
+
+      {/* VIEW 20: Annuity Statement Form */}
+      {currentView === "annuity-statement-form" && (
+        <AnnuityStatementForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateAnnuityStatementReport}
+          initialData={selectedAnnuityStatementData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 21: Annuity Statement Report View */}
+      {currentView === "annuity-statement-report" && selectedAnnuityStatementData && (
+        <AnnuityStatementReportView
+          formData={selectedAnnuityStatementData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("annuity-statement-form")}
+        />
+      )}
+
+      {/* VIEW 22: Loan Interest Due Form */}
+      {currentView === "loan-interest-due-form" && (
+        <LoanInterestDueForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestDueReport}
+          initialData={selectedLoanInterestDueData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+          loans={loans || []}
+        />
+      )}
+
+      {/* VIEW 23: Loan Interest Due Report View */}
+      {currentView === "loan-interest-due-report" && selectedLoanInterestDueData && (
+        <LoanInterestDueReportView
+          formData={selectedLoanInterestDueData}
+          policies={policies || []}
+          customers={customers || []}
+          loans={loans || []}
+          onBackToForm={() => setCurrentView("loan-interest-due-form")}
+        />
+      )}
+
+      {/* VIEW 24: Loan Interest Outstanding Form */}
+      {currentView === "loan-interest-outstanding-form" && (
+        <LoanInterestOutstandingForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanInterestOutstandingReport}
+          initialData={selectedLoanInterestOutstandingData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+          loans={loans || []}
+        />
+      )}
+
+      {/* VIEW 25: Loan Interest Outstanding Report View */}
+      {currentView === "loan-interest-outstanding-report" && selectedLoanInterestOutstandingData && (
+        <LoanInterestOutstandingReportView
+          formData={selectedLoanInterestOutstandingData}
+          policies={policies || []}
+          customers={customers || []}
+          loans={loans || []}
+          onBackToForm={() => setCurrentView("loan-interest-outstanding-form")}
+        />
+      )}
+
+      {/* VIEW 26: Premium Calendar Form */}
+      {currentView === "premium-calendar-form" && (
+        <PremiumCalendarForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePremiumCalendarReport}
+          initialData={selectedPremiumCalendarData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 27: Premium Calendar Report View */}
+      {currentView === "premium-calendar-report" && selectedPremiumCalendarData && (
+        <PremiumCalendarReportView
+          formData={selectedPremiumCalendarData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("premium-calendar-form")}
+        />
+      )}
+
+      {/* VIEW 28: Last Premium Statement Form */}
+      {currentView === "last-premium-statement-form" && (
+        <LastPremiumStatementForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLastPremiumStatementReport}
+          initialData={selectedLastPremiumStatementData}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+          customers={customers || []}
+          policies={policies || []}
+          branches={licBranches || []}
+        />
+      )}
+
+      {/* VIEW 29: Last Premium Statement Report View */}
+      {currentView === "last-premium-statement-report" && selectedLastPremiumStatementData && (
+        <LastPremiumStatementReportView
+          formData={selectedLastPremiumStatementData}
+          policies={policies || []}
+          customers={customers || []}
+          onBackToForm={() => setCurrentView("last-premium-statement-form")}
+        />
+      )}
+
+      {/* VIEW 28: Revival Premium Calculator */}
+      {currentView === "revival-premium-calculator" && (
+        <RevivalPremiumCalculator
+          onBack={() => setCurrentView("cards")}
+          policies={policies || []}
+          customers={customers || []}
+        />
+      )}
+
+      {/* VIEW 30: Customer Data Sheet Form */}
+      {currentView === "customer-data-sheet-form" && (
+        <CustomerDataSheetForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateCustomerDataSheetReport}
+          initialData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          agencies={agencies || []}
+          policyStatuses={policyStatuses || []}
+        />
+      )}
+
+      {/* VIEW 31: Customer Data Sheet Report View */}
+      {currentView === "customer-data-sheet-report" && selectedCustomerDataSheetData && (
+        <CustomerDataSheetReportView
+          formData={selectedCustomerDataSheetData}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+          policies={policies || []}
+          onBackToForm={() => setCurrentView("customer-data-sheet-form")}
+        />
+      )}
+
+      {/* VIEW 32: Policy Status Report Form */}
+      {currentView === "policy-status-report-form" && (
+        <PolicyStatusReportForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGeneratePolicyStatusReport}
+          initialData={selectedPolicyStatusData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 33: Policy Status Report View */}
+      {currentView === "policy-status-report-view" && selectedPolicyStatusData && (
+        <PolicyStatusReportView
+          formData={selectedPolicyStatusData}
+          onBackToForm={() => setCurrentView("policy-status-report-form")}
+        />
+      )}
+
+      {/* VIEW 34: Loan / Surrender Value Quotation Form */}
+      {currentView === "loan-surrender-quotation-form" && (
+        <LoanSurrenderQuotationForm
+          onBack={() => setCurrentView("cards")}
+          onGenerateReport={handleGenerateLoanSurrenderQuotationReport}
+          initialData={selectedLoanSurrenderQuotationData}
+          policies={policies || []}
+          customers={customers || []}
+          customersMaster={customersMaster || []}
+        />
+      )}
+
+      {/* VIEW 35: Loan / Surrender Value Quotation Report View */}
+      {currentView === "loan-surrender-quotation-report" && selectedLoanSurrenderQuotationData && (
+        <LoanSurrenderQuotationReportView
+          formData={selectedLoanSurrenderQuotationData}
+          onBackToForm={() => setCurrentView("loan-surrender-quotation-form")}
+        />
+      )}
+
+      {/* Modal for previewing secondary report cards */}
+      {previewModalCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+          <div className="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+                  <previewModalCard.icon size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{previewModalCard.title}</h3>
+                  <span className="text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    {previewModalCard.category}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewModalCard(null)}
+                className="cursor-pointer text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              {previewModalCard.description}
+            </p>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <CheckCircle2 size={16} className="text-emerald-600" />
+                <span>Ready for Report Generation</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                This report module uses the same central filter engine as Policy Register and Premium Due. You can test either of those two for complete interactive report rendering and PDF export.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setPreviewModalCard(null)}
+                className="cursor-pointer px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 uppercase tracking-wider"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setPreviewModalCard(null);
+                  setCurrentView("policy-register-form");
+                }}
+                className="cursor-pointer px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
+              >
+                Open Policy Register Form
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

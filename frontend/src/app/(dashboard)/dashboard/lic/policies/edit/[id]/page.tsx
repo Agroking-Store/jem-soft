@@ -1,0 +1,3203 @@
+"use client";
+
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import {
+  useForm,
+  useFieldArray,
+  Controller,
+  FormProvider,
+  type SubmitHandler,
+  type Resolver,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
+import { fetchCustomers } from "@/features/customers/customerSlice";
+import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
+import { fetchInsuranceProviders } from "@/features/insurance/insuranceProviderSlice";
+import { fetchRiders } from "@/features/riders/riderMasterSlice";
+import { fetchProducts } from "@/features/insurance/productMasterSlice";
+import { fetchAdvisors } from "@/features/advisor/advisorSlice";
+import { fetchPolicyById, updatePolicy } from "@/features/policy/policySlice";
+import { fetchPolicyStatuses } from "@/features/policy/policyStatusMasterSlice";
+import { fetchPremiumModes } from "@/features/policy/premiumModeMasterSlice";
+import { fetchLicBranches } from "@/features/lic/licBranchSlice";
+import { fetchAgencies } from "@/features/agency/agencySlice";
+import { fetchProductAttributeValues } from "@/features/insurance/productAttributeValueSlice";
+import { useNotificationStore } from "@/store/notificationStore";
+
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import {
+  ChevronLeft,
+  Save,
+  X,
+  User,
+  IndianRupee,
+  FileText,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Settings,
+  Search,
+  Hash,
+  CreditCard,
+  Banknote,
+  Building,
+  Home,
+  Activity,
+  Building2,
+  Calendar,
+  Users,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import DatePicker from "../../new/DatePicker";
+import { format, addYears, differenceInYears } from "date-fns";
+
+import { getFullName, GroupAutoComplete, AdvisorAutoComplete, LifeAssuredAutoComplete, BranchAutoComplete } from "../../new/components/AutoCompleteSelects";
+import { PolicyHolderSection } from "../../new/components/PolicyHolderSection";
+import { CustomerSectionCard, SearchableSelect } from "@/features/customers/components/CustomerUi";
+
+import { policySchema, type PolicyFormValues } from "../../new/schema";
+
+export default function EditLICPolicyPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isLoading: authLoading } = useAuth();
+
+  const { customers: groups, isLoading: groupsLoading } = useSelector(
+    (s: RootState) => s.customers,
+  );
+  const { customers: masterCustomers, isLoading: masterLoading } = useSelector(
+    (s: RootState) => s.customerMaster,
+  );
+  const { providers, isLoading: providersLoading } = useSelector(
+    (s: RootState) => s.insuranceProviders,
+  );
+  const { products, isLoading: productsLoading } = useSelector(
+    (s: RootState) => s.products,
+  );
+  const { riders, isLoading: ridersLoading } = useSelector(
+    (s: RootState) => s.riderMaster,
+  );
+  const { advisors, isLoading: advisorsLoading } = useSelector(
+    (s: RootState) => s.advisors,
+  );
+  const { statuses, isLoading: statusesLoading } = useSelector(
+    (s: RootState) => s.policyStatuses,
+  );
+  const { modes, isLoading: modesLoading } = useSelector(
+    (s: RootState) => s.premiumModes,
+  );
+  const { branches, isLoading: branchesLoading } = useSelector(
+    (s: RootState) => s.licBranch,
+  );
+  const { agencies, isLoading: agenciesLoading } = useSelector(
+    (s: RootState) => s.agency,
+  );
+  const { values: productAttributeValues, isLoading: attributesLoading } =
+    useSelector((s: RootState) => s.productAttributeValues);
+  const { selectedPolicy, isLoading: policyLoading } = useSelector(
+    (s: RootState) => s.policies,
+  );
+
+  const [activeSection, setActiveSection] = useState("policy-holder");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [glowingSection, setGlowingSection] = useState<string | null>(null);
+  const [useNach, setUseNach] = useState(false);
+  const [useNeft, setUseNeft] = useState(false);
+  const { fetchNotifications } = useNotificationStore();
+  const [attributeHints, setAttributeHints] = useState({
+    term: "",
+    ppt: "",
+    sumAssured: "",
+    age: "",
+  });
+  const [productOptionsData, setProductOptionsData] = useState<{
+    terms: number[];
+    ppts: number[];
+    combinations: { term: number; ppt: number }[];
+    hasData?: boolean;
+  }>({ terms: [], ppts: [], combinations: [] });
+  const [isOptionsLoading, setIsOptionsLoading] = useState(false);
+  const [loadedOptionsProductId, setLoadedOptionsProductId] = useState<string | null>(null);
+  const [isManualTerm, setIsManualTerm] = useState(false);
+  const [isManualPpt, setIsManualPpt] = useState(false);
+  const [isPremiumManual, setIsPremiumManual] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchCustomers());
+    dispatch(fetchCustomersMaster());
+    dispatch(fetchInsuranceProviders());
+    dispatch(fetchProducts());
+    dispatch(fetchRiders());
+    dispatch(fetchAdvisors());
+    dispatch(fetchPolicyStatuses());
+    dispatch(fetchPremiumModes());
+    dispatch(fetchLicBranches());
+    dispatch(fetchAgencies());
+    dispatch(fetchProductAttributeValues());
+    setIsMounted(true);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchPolicyById(id as string));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (isMounted && !authLoading && user) {
+      if (user.role !== "ADMIN" && user.role !== "ADVISOR") {
+        toast.error("You do not have permission to edit a policy.");
+        router.replace("/dashboard/lic/policies");
+      }
+    }
+  }, [isMounted, authLoading, user, router]);
+
+  const canEdit = user?.role === "ADMIN" || user?.role === "ADVISOR";
+
+  const methods = useForm<PolicyFormValues>({
+    resolver: async (values, context, options) => {
+      let refinedSchema = policySchema;
+
+      if (useNach) {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.bankName && data.bankName.trim().length > 0), {
+            message: "Bank Name is required for NACH.",
+            path: ["bankName"],
+          })
+          .refine((data) => Boolean(data.accountNumber && data.accountNumber.trim().length > 0), {
+            message: "Account Number is required for NACH.",
+            path: ["accountNumber"],
+          })
+          .refine((data) => Boolean(data.ifscCode && data.ifscCode.trim().length > 0), {
+            message: "IFSC Code is required for NACH.",
+            path: ["ifscCode"],
+          })
+          .refine((data) => Boolean(data.accountHolderName && data.accountHolderName.trim().length > 0), {
+            message: "Account Holder Name is required for NACH.",
+            path: ["accountHolderName"],
+          })
+          .refine((data) => Boolean(data.bankBranch && data.bankBranch.trim().length > 0), {
+            message: "Bank Branch is required for NACH.",
+            path: ["bankBranch"],
+          });
+      }
+
+      if (useNeft) {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.neftBankName && data.neftBankName.trim().length > 0), {
+            message: "Bank Name is required for NEFT.",
+            path: ["neftBankName"],
+          })
+          .refine((data) => Boolean(data.neftAccountNumber && data.neftAccountNumber.trim().length > 0), {
+            message: "Account Number is required for NEFT.",
+            path: ["neftAccountNumber"],
+          })
+          .refine((data) => Boolean(data.neftIfscCode && data.neftIfscCode.trim().length > 0), {
+            message: "IFSC Code is required for NEFT.",
+            path: ["neftIfscCode"],
+          })
+          .refine((data) => Boolean(data.neftAccountHolderName && data.neftAccountHolderName.trim().length > 0), {
+            message: "Account Holder Name is required for NEFT.",
+            path: ["neftAccountHolderName"],
+          })
+          .refine((data) => Boolean(data.neftBankBranch && data.neftBankBranch.trim().length > 0), {
+            message: "Bank Branch is required for NEFT.",
+            path: ["neftBankBranch"],
+          });
+      }
+
+      const isOther =
+        values.providerType === "OTHER" ||
+        selectedPolicy?.provider?.type === "OTHER" ||
+        ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
+        (values.productId && (providers.find((p) => p.id === products.find(pr => pr.id === values.productId)?.providerId) as any)?.code?.toUpperCase() !== "LIC");
+
+      if (isOther) {
+        return zodResolver(refinedSchema as any)(
+          values as any,
+          context as any,
+          options as any,
+        ) as any;
+      }
+
+      const selectedProductAttributes = productAttributeValues.filter(
+        (attr) => attr.productId === values.productId,
+      );
+      const getAttributeValue = (code: string) =>
+        selectedProductAttributes.find(
+          (a) => a.attribute.attributeCode === code,
+        )?.value;
+
+      const minTerm = getAttributeValue("MIN_POLICY_TERM");
+      const maxTerm = getAttributeValue("MAX_POLICY_TERM");
+      if (minTerm || maxTerm) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.term) return true;
+            const term = Number(data.term);
+            if (minTerm && term < Number(minTerm)) return false;
+            if (maxTerm && term > Number(maxTerm)) return false;
+            return true;
+          },
+          {
+            message: `Term must be between ${minTerm || "N/A"} and ${maxTerm || "N/A"}.`,
+            path: ["term"],
+          },
+        );
+      }
+
+      if (maxTerm) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.commencementDate || !data.completionDate) return true;
+            try {
+              const startDate = new Date(data.commencementDate);
+              const endDate = new Date(data.completionDate);
+              const diffYears =
+                (endDate.getTime() - startDate.getTime()) /
+                (1000 * 60 * 60 * 24 * 365.25);
+              return diffYears <= Number(maxTerm);
+            } catch (e) {
+              return true;
+            }
+          },
+          {
+            message: `The duration between commencement and completion cannot exceed the maximum term of ${maxTerm} years.`,
+            path: ["completionDate"],
+          },
+        );
+      }
+
+      const selectedProductPlan = products.find(
+        (product) => product.id === values.productId,
+      )?.planNumber;
+      if (selectedProductPlan === "881") {
+        refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
+          message: "Please select an option for LIC Plan 881.",
+          path: ["option"],
+        });
+      }
+      if (selectedProductPlan === "887") {
+        refinedSchema = refinedSchema
+          .refine((data) => Boolean(data.option), {
+            message: "Option is required for this plan.",
+            path: ["option"],
+          })
+          .refine(
+            (data) => {
+              if (!data.term || !data.age) return true;
+              const term = Number(data.term);
+              const age = Number(data.age);
+              const maxAllowed = Math.min(82, 100 - age);
+              return term >= 10 && term <= maxAllowed;
+            },
+            {
+              message: "Term must be between 10 and 100 minus age (maximum 82).",
+              path: ["term"],
+            },
+          );
+      }
+
+      const minSum = getAttributeValue("MIN_SUM_ASSURED");
+      const maxSum = getAttributeValue("MAX_SUM_ASSURED");
+      if (minSum || maxSum) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.sumAssured) return true;
+            const sum = Number(data.sumAssured);
+            if (minSum && sum < Number(minSum)) return false;
+            if (maxSum && sum > Number(maxSum)) return false;
+            return true;
+          },
+          {
+            message: `Sum Assured must be between ${minSum || "N/A"} and ${maxSum || "N/A"}.`,
+            path: ["sumAssured"],
+          },
+        );
+      }
+
+      const minPpt = getAttributeValue("MIN_PPT");
+      const maxPpt = getAttributeValue("MAX_PPT");
+      if (minPpt || maxPpt) {
+        refinedSchema = refinedSchema.refine(
+          (data) => {
+            if (!data.ppt) return true;
+            const ppt = Number(data.ppt);
+            if (minPpt && ppt < Number(minPpt)) return false;
+            if (maxPpt && ppt > Number(maxPpt)) return false;
+            return true;
+          },
+          {
+            message: `PPT must be between ${minPpt || "N/A"} and ${maxPpt || "N/A"}.`,
+            path: ["ppt"],
+          },
+        );
+      }
+
+      return zodResolver(refinedSchema as any)(
+        values as any,
+        context as any,
+        options as any,
+      ) as any;
+    },
+    defaultValues: {
+      riders: [],
+      nominees: [],
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    clearErrors,
+    setError,
+    reset,
+    getValues,
+    formState: { errors },
+  } = methods;
+
+  const sectionRefs = {
+    "policy-holder": useRef<HTMLDivElement>(null),
+    "policy-details": useRef<HTMLDivElement>(null),
+    "premium-calculation": useRef<HTMLDivElement>(null),
+    riders: useRef<HTMLDivElement>(null),
+    advanced: useRef<HTMLDivElement>(null),
+  };
+
+  const {
+    fields: riderFields,
+    append: appendRider,
+    remove: removeRider,
+  } = useFieldArray({
+    control,
+    name: "riders",
+  });
+
+  const {
+    fields: nomineeFields,
+    append: appendNominee,
+    remove: removeNominee,
+  } = useFieldArray({
+    control,
+    name: "nominees",
+  });
+
+  const watchGroupId = watch("groupId");
+  const watchLifeAssuredId = watch("lifeAssuredId");
+  const watchProposerId = watch("proposerId");
+  const watchAdvisorId = watch("advisorId");
+  const watchBasicYearlyPremium = watch("basicYearlyPremium");
+  const watchBranchId = watch("branchId");
+  const watchSumAssured = watch("sumAssured");
+  const watchTerm = watch("term");
+  const watchCommencementDate = watch("commencementDate");
+  const watchCompletionDate = watch("completionDate");
+  const watchPpt = watch("ppt");
+  const watchAge = watch("age");
+  const watchMode = watch("mode");
+  const watchAgencyId = watch("agencyId");
+  const watchTotalRiderPremium = watch("totalRiderPremium");
+  const watchRiders = watch("riders");
+  const watchFupDate = watch("fupDate");
+  const watchPolicyNumber = watch("policyNumber");
+  const watchProviderType = watch("providerType");
+
+  const watchProductId = watch("productId");
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === watchProductId),
+    [watchProductId, products],
+  );
+  const isOtherPolicy =
+    watchProviderType === "OTHER" ||
+    selectedPolicy?.provider?.type === "OTHER" ||
+    ((selectedPolicy?.provider as any)?.code && (selectedPolicy?.provider as any)?.code.toUpperCase() !== "LIC") ||
+    (selectedProduct?.providerId && (providers.find((p) => p.id === selectedProduct.providerId) as any)?.code?.toUpperCase() !== "LIC");
+
+  const hasDbTerms = useMemo(() => {
+    return Boolean(productOptionsData.terms && productOptionsData.terms.length > 0);
+  }, [productOptionsData.terms]);
+
+  const isFormulaTermPlan = useMemo(() => {
+    return ["771", "745", "883", "887"].includes(selectedProduct?.planNumber ?? "");
+  }, [selectedProduct?.planNumber]);
+
+  const pptOptionsToRender = useMemo(() => {
+    let list: (number | string)[] = productOptionsData.ppts || [];
+    if (selectedProduct?.planNumber === "887") {
+      if (watchMode === "Single") {
+        list = ["1"];
+      } else {
+        const currentTerm = Number(watchTerm);
+        const allowed = [5, 10, 15];
+        if (currentTerm && !allowed.includes(currentTerm)) {
+          allowed.push(currentTerm);
+        }
+        const filtered = (productOptionsData.ppts || []).filter(p => allowed.includes(Number(p)));
+        list = filtered.length > 0 ? filtered : allowed;
+      }
+    } else if (watchTerm && productOptionsData.combinations.length > 0) {
+      const termValue = Number(watchTerm);
+      const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
+      if (matchingCombs.length > 0) {
+        list = matchingCombs.map(c => c.ppt);
+      }
+    }
+    return list;
+  }, [productOptionsData.ppts, productOptionsData.combinations, selectedProduct?.planNumber, watchMode, watchTerm]);
+
+  const hasDbPpts = useMemo(() => {
+    return Boolean(pptOptionsToRender && pptOptionsToRender.length > 0);
+  }, [pptOptionsToRender]);
+
+  const isPlanDataMissing = useMemo(() => {
+    if (isOtherPolicy || !selectedProduct || !watchProductId) return false;
+    if (isFormulaTermPlan) return false;
+    if (isOptionsLoading || loadedOptionsProductId !== watchProductId) return false;
+
+    if (typeof productOptionsData.hasData === "boolean") {
+      return !productOptionsData.hasData;
+    }
+    return productOptionsData.terms.length === 0 && productOptionsData.combinations.length === 0;
+  }, [isOtherPolicy, selectedProduct, watchProductId, isFormulaTermPlan, isOptionsLoading, loadedOptionsProductId, productOptionsData]);
+
+  useEffect(() => {
+    setIsManualTerm(false);
+    setIsManualPpt(false);
+    setIsPremiumManual(false);
+  }, [watchProductId]);
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.id === watchGroupId),
+    [watchGroupId, groups],
+  );
+
+  const groupMembers = useMemo(() => {
+    if (!watchGroupId) return [];
+    return masterCustomers.filter((m) => m.groupId === watchGroupId);
+  }, [watchGroupId, masterCustomers]);
+
+  // Reset form with selected policy data
+  useEffect(() => {
+    if (!selectedPolicy) return;
+
+    const policyBranch = branches.find((b) => b.id === selectedPolicy.branchId);
+
+    const ageStr = selectedPolicy.CustomerMaster?.dob
+      ? Math.floor(
+          (Date.now() -
+            new Date(selectedPolicy.CustomerMaster.dob).getTime()) /
+            (365.25 * 24 * 60 * 60 * 1000),
+        ).toString()
+      : "";
+
+    let targetBankCustomer = selectedPolicy.CustomerMaster;
+    if ((selectedPolicy as any).proposerId) {
+      const proposer = (selectedPolicy as any).proposer || masterCustomers.find((m: any) => m.id === (selectedPolicy as any).proposerId);
+      if (proposer) targetBankCustomer = proposer;
+    }
+
+    const targetBankDetails =
+      targetBankCustomer?.bankDetails?.find((b: any) => b.isDefault) ||
+      targetBankCustomer?.bankDetails?.[0] ||
+      selectedPolicy.CustomerMaster?.bankDetails?.find((b: any) => b.isDefault) ||
+      selectedPolicy.CustomerMaster?.bankDetails?.[0];
+
+    const paymentModeCode = (selectedPolicy as any).paymentMode?.modeCode?.toUpperCase();
+    const isPolicyNach = paymentModeCode === "NACH";
+    const isPolicyNeft = paymentModeCode === "NEFT";
+
+    reset({
+      groupId: selectedPolicy.clientId,
+      groupCode: selectedGroup?.groupCode || "",
+      lifeAssuredId: selectedPolicy.CustomerMasterId,
+
+      providerType: selectedPolicy.provider?.type ?? "",
+      providerId: selectedPolicy.providerId,
+      productId: selectedPolicy.productId,
+
+      policyNumber: selectedPolicy.policyNumber,
+
+      statusId: selectedPolicy.statusId ?? "",
+
+      fupDate: selectedPolicy.nextPremiumDueDate
+        ? selectedPolicy.nextPremiumDueDate.substring(0, 10)
+        : "",
+
+      fuliDate:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "fuliDate",
+        )?.value ?? "",
+
+      commencementDate: selectedPolicy.commencementDate?.substring(0, 10),
+
+      completionDate: selectedPolicy.maturityDate
+        ? selectedPolicy.maturityDate.substring(0, 10)
+        : "",
+
+      productType: (selectedPolicy.product as any)?.productType ?? "",
+
+      advisorId: selectedPolicy.advisorId ?? selectedPolicy.advisor?.id ?? "",
+      agencyId: selectedPolicy.advisor?.agencyId ?? "",
+
+      agentCode: selectedPolicy.agentCode ?? "",
+
+      branchId: selectedPolicy.branchId ?? "",
+
+      term: selectedPolicy.policyTerm ?? undefined,
+
+      ppt:
+        selectedPolicy.premiumPayingTerm != null
+          ? (String(selectedPolicy.premiumPayingTerm) as any)
+          : undefined,
+
+      option:
+        selectedPolicy.premium?.option != null
+          ? String(selectedPolicy.premium.option)
+          : "",
+
+      mode: selectedPolicy.premiumMode?.modeName ?? "",
+
+      sumAssured: selectedPolicy.premium?.sumAssured ?? undefined,
+
+      basicYearlyPremium:
+        selectedPolicy.premium?.basicYearlyPremium ?? undefined,
+
+      totalYearlyPremium:
+        selectedPolicy.premium?.totalYearlyPremium ?? undefined,
+
+      totalRiderPremium:
+        (selectedPolicy.premium as any)?.totalRiderPremium ?? undefined,
+
+      installmentPremium:
+        selectedPolicy.premium?.installmentPremium ?? undefined,
+
+      totalInstallmentPremium:
+        selectedPolicy.premium?.totalInstallmentPremium ?? undefined,
+
+      gst: selectedPolicy.premium?.gst ?? undefined,
+
+      dob: selectedPolicy.CustomerMaster?.dob
+        ? new Date(selectedPolicy.CustomerMaster.dob)
+            .toISOString()
+            .substring(0, 10)
+        : "",
+      age: ageStr ? Number(ageStr) : undefined,
+      gender: selectedPolicy.CustomerMaster?.gender ?? "",
+      pan: selectedPolicy.CustomerMaster?.panNumber ?? "",
+
+      proposerId: (selectedPolicy as any).proposerId ?? "",
+      proposerDob: 
+        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+          ? new Date(targetBankCustomer.dob).toISOString().substring(0, 10)
+          : "",
+      proposerAge: 
+        (selectedPolicy as any).proposerId && targetBankCustomer?.dob
+          ? Math.floor(
+              (Date.now() - new Date(targetBankCustomer.dob).getTime()) /
+                (365.25 * 24 * 60 * 60 * 1000)
+            )
+          : undefined,
+      spouseId: (selectedPolicy as any).spouseId ?? "",
+      smoker: (selectedPolicy as any).smoker ?? false,
+      extraClass: selectedPolicy.premium?.extraClass?.toString() ?? "",
+      ratePercent: (selectedPolicy.premium as any)?.ratePercent ?? undefined,
+
+      bankName: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.bankName ?? ""
+        : "",
+      bankBranch: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.bankBranch ?? ""
+        : "",
+      city: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.city ?? ""
+        : "",
+      accountType: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.accountType ?? ""
+        : "",
+      accountNumber: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.accountNumber ?? ""
+        : "",
+      ifscCode: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.ifscCode ?? ""
+        : "",
+      micrNumber: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankDetails?.micrNumber ?? ""
+        : "",
+      accountHolderName: isPolicyNach || (!isPolicyNeft && targetBankDetails?.accountNumber)
+        ? targetBankCustomer
+          ? getFullName(targetBankCustomer)
+          : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : "")
+        : "",
+
+      neftBankName: isPolicyNeft
+        ? targetBankDetails?.bankName ?? ""
+        : "",
+      neftBankBranch: isPolicyNeft
+        ? targetBankDetails?.bankBranch ?? ""
+        : "",
+      neftAccountNumber: isPolicyNeft
+        ? targetBankDetails?.accountNumber ?? ""
+        : "",
+      neftIfscCode: isPolicyNeft
+        ? targetBankDetails?.ifscCode ?? ""
+        : "",
+      neftAccountHolderName: isPolicyNeft
+        ? (targetBankCustomer
+            ? getFullName(targetBankCustomer)
+            : (selectedPolicy.CustomerMaster ? getFullName(selectedPolicy.CustomerMaster) : ""))
+        : "",
+      neftSubmissionDate:
+        selectedPolicy.policyAttributes?.find(
+          (a: any) => a.attribute?.attributeCode === "neftSubmissionDate",
+        )?.value ?? "",
+
+      riders:
+        selectedPolicy.policyRiders && selectedPolicy.policyRiders.length > 0
+          ? selectedPolicy.policyRiders.map((r: any) => ({
+              description: r.rider?.riderName || "",
+              sum: r.riderAmount,
+              premium: r.riderPremium,
+              term: undefined,
+              mode: r.rider?.mode,
+              ppt: undefined,
+              selected: true,
+            }))
+          : selectedPolicy.product?.planNumber === "774"
+            ? [
+                {
+                  description:
+                    riders.find(
+                      (r) =>
+                        r.riderCode === "WOP" ||
+                        r.riderCode === "PWB" ||
+                        r.riderName.toLowerCase().includes("waiver")
+                    )?.riderName || "Waiver of Premium Rider",
+                  sum: null,
+                  premium: null,
+                  term: null,
+                  mode: "",
+                  ppt: null,
+                  selected: false,
+                },
+              ]
+            : (selectedPolicy.product?.planNumber === "717" || selectedPolicy.product?.planNumber === "733" || selectedPolicy.product?.planNumber === "736" || selectedPolicy.product?.planNumber === "745" || selectedPolicy.product?.planNumber === "760" || selectedPolicy.product?.planNumber === "771" || selectedPolicy.product?.planNumber === "881" || selectedPolicy.product?.planNumber === "883" || selectedPolicy.product?.planNumber === "888" || selectedPolicy.product?.planNumber === "912")
+              ? [
+                  ...(riders.find((r) => r.riderName.toLowerCase().includes("term"))
+                    ? [{
+                        description: riders.find((r) => r.riderName.toLowerCase().includes("term"))!.riderName,
+                        sum: null,
+                        premium: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        selected: false,
+                      }]
+                    : []),
+                  ...(riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"))
+                    ? [{
+                        description: riders.find((r) => r.riderCode === "ADDB" || r.riderName.toLowerCase().includes("accidental death") || r.riderName.toLowerCase().includes("addb"))!.riderName,
+                        sum: null,
+                        premium: null,
+                        term: null,
+                        mode: "",
+                        ppt: null,
+                        selected: false,
+                      }]
+                    : []),
+                ]
+            : [],
+
+      nominees:
+        selectedPolicy.nominees?.map((n: any) => ({
+          nomineeName: n.nomineeName,
+          relationship: n.relationship,
+          dateOfBirth: n.dateOfBirth ? n.dateOfBirth.substring(0, 10) : "",
+          percentage: n.percentage,
+          phone: n.phone,
+          email: n.email,
+        })) ?? [],
+    });
+
+    // Enable NACH/NEFT based on saved policy details
+    if (isPolicyNeft) {
+      setUseNeft(true);
+      setUseNach(false);
+    } else if (isPolicyNach || (targetBankDetails?.accountNumber || targetBankDetails?.bankName)) {
+      setUseNach(true);
+      setUseNeft(false);
+    } else {
+      setUseNach(false);
+      setUseNeft(false);
+    }
+  }, [selectedPolicy, reset, branches, selectedGroup, masterCustomers]);
+
+  // Fetch available Term/PPT options for the selected product (same as Create Policy)
+  useEffect(() => {
+    if (!watchProductId || isOtherPolicy) {
+      setProductOptionsData({ terms: [], ppts: [], combinations: [] });
+      setLoadedOptionsProductId(null);
+      setIsOptionsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsOptionsLoading(true);
+
+    const fetchOptions = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/products/${watchProductId}/options`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+          }
+        );
+        if (!isMounted) return;
+        if (response.data?.data) {
+          const data = response.data.data;
+          const hasDbData =
+            typeof data.hasData === "boolean"
+              ? data.hasData
+              : Boolean((data.terms && data.terms.length > 0) || (data.combinations && data.combinations.length > 0));
+
+          setProductOptionsData({
+            terms: data.terms || [],
+            ppts: data.ppts || [],
+            combinations: data.combinations || [],
+            hasData: hasDbData,
+          });
+          setLoadedOptionsProductId(watchProductId);
+
+          if (!hasDbData && !isFormulaTermPlan) {
+            setIsManualTerm(true);
+            setIsManualPpt(true);
+          }
+
+          // Re-apply the saved PPT now that the dropdown options exist.
+          const currentPpt = getValues("ppt") as unknown as string | number | undefined;
+          if (currentPpt !== undefined && currentPpt !== null && currentPpt !== "") {
+            const ppts: number[] = (data.ppts || []).map(Number);
+            const combinations: { term: number, ppt: number }[] = data.combinations || [];
+            const isValidPpt =
+              ppts.length === 0 ||
+              ppts.includes(Number(currentPpt)) ||
+              combinations.some((c) => c.ppt === Number(currentPpt));
+            if (isValidPpt) {
+              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+            } else {
+              setIsManualPpt(true);
+              setValue("ppt", String(currentPpt) as any, { shouldValidate: true, shouldDirty: true });
+            }
+          }
+
+          const currentTerm = getValues("term") as unknown as string | number | undefined;
+          if (currentTerm !== undefined && currentTerm !== null && currentTerm !== "") {
+            const terms: number[] = (data.terms || []).map(Number);
+            if (terms.length > 0 && !terms.includes(Number(currentTerm))) {
+              setIsManualTerm(true);
+            }
+          }
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        console.error("Failed to fetch product options", error);
+        setLoadedOptionsProductId(watchProductId);
+      } finally {
+        if (isMounted) {
+          setIsOptionsLoading(false);
+        }
+      }
+    };
+    fetchOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [watchProductId, isOtherPolicy, isFormulaTermPlan, setValue, getValues]);
+
+  // Auto-select PPT when Term is selected (same as Create Policy)
+  useEffect(() => {
+    if (isManualPpt) return;
+    if (watchTerm && productOptionsData.combinations.length > 0) {
+      const termValue = Number(watchTerm);
+      // Find combinations for this term
+      const matchingCombs = productOptionsData.combinations.filter(c => c.term === termValue && c.ppt !== null);
+      if (matchingCombs.length === 1) {
+        // Only one possible PPT for this term, auto select it
+        setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+      } else if (matchingCombs.length > 0 && watchPpt) {
+        // If current PPT is not in the valid list for this term, clear or reset it
+        const isValid = matchingCombs.some(c => c.ppt === Number(watchPpt));
+        if (!isValid && !isManualPpt) {
+          setValue("ppt", String(matchingCombs[0].ppt) as any, { shouldValidate: true, shouldDirty: true });
+        }
+      }
+    }
+  }, [watchTerm, productOptionsData.combinations, setValue, watchPpt, isManualPpt]);
+
+  useEffect(() => {
+    setValue("groupCode", selectedGroup?.groupCode || "");
+  }, [watchGroupId, selectedGroup, setValue]);
+
+  useEffect(() => {
+    if (!watchLifeAssuredId) return;
+    let member: any = masterCustomers.find((m) => m.id === watchLifeAssuredId);
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
+    }
+    if (!member) return;
+
+    setValue(
+      "dob",
+      member?.dob ? new Date(member.dob).toISOString().split("T")[0] : "",
+    );
+    setValue(
+      "age",
+      member?.dob
+        ? Number(new Date().getFullYear() - new Date(member.dob).getFullYear())
+        : (undefined as any),
+    );
+    setValue("gender", member?.gender || "");
+    setValue("pan", member?.panNumber || "");
+
+    // Auto-fill bank details from the selected customer's default bank account
+    if (member && member.bankDetails && member.bankDetails.length > 0) {
+      const defaultBank =
+        member.bankDetails.find((b: any) => b.isDefault) || member.bankDetails[0];
+      if (defaultBank) {
+        // NACH fields
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(member as any));
+
+        // NEFT fields
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(member as any));
+      }
+    }
+  }, [watchLifeAssuredId, masterCustomers, selectedPolicy, setValue]);
+
+  useEffect(() => {
+    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
+    }
+    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
+    if (proposerId) {
+      const proposer =
+        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        masterCustomers.find((m) => m.id === proposerId);
+      if (proposer) member = proposer;
+    }
+
+    if (useNach && (member || selectedPolicy?.CustomerMaster)) {
+      const target: any = member || selectedPolicy?.CustomerMaster;
+      const defaultBank =
+        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("bankName", defaultBank.bankName || "");
+        setValue("bankBranch", defaultBank.bankBranch || "");
+        setValue("city", defaultBank.city || "");
+        setValue("accountType", defaultBank.accountType || "");
+        setValue("accountNumber", defaultBank.accountNumber || "");
+        setValue("ifscCode", defaultBank.ifscCode || "");
+        setValue("micrNumber", defaultBank.micrNumber || "");
+        setValue("accountHolderName", getFullName(target));
+      }
+    }
+  }, [useNach, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
+
+  useEffect(() => {
+    let member: any = watchLifeAssuredId ? masterCustomers.find((m) => m.id === watchLifeAssuredId) : undefined;
+    if (!member && watchLifeAssuredId && selectedPolicy?.CustomerMaster?.id === watchLifeAssuredId) {
+      member = selectedPolicy?.CustomerMaster;
+    }
+    const proposerId = watchProposerId || (selectedPolicy as any)?.proposerId;
+    if (proposerId) {
+      const proposer =
+        ((selectedPolicy as any)?.proposer?.id === proposerId ? (selectedPolicy as any)?.proposer : null) ||
+        masterCustomers.find((m) => m.id === proposerId);
+      if (proposer) member = proposer;
+    }
+
+    if (useNeft && (member || selectedPolicy?.CustomerMaster)) {
+      const target: any = member || selectedPolicy?.CustomerMaster;
+      const defaultBank =
+        target?.bankDetails?.find((b: any) => b.isDefault) || target?.bankDetails?.[0];
+      if (defaultBank) {
+        setValue("neftBankName", defaultBank.bankName || "");
+        setValue("neftBankBranch", defaultBank.bankBranch || "");
+        setValue("neftAccountNumber", defaultBank.accountNumber || "");
+        setValue("neftIfscCode", defaultBank.ifscCode || "");
+        setValue("neftAccountHolderName", getFullName(target));
+      }
+    }
+  }, [useNeft, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
+
+  const availableProducts = useMemo(() => {
+    return [...products].sort((a, b) =>
+      (a.planNumber ?? "").localeCompare(b.planNumber ?? ""),
+    );
+  }, [products]);
+
+  const agencyOptions = useMemo(() => {
+    return agencies
+      .slice()
+      .sort((a, b) => (a.agencyCode || a.agencyName || "").localeCompare(b.agencyCode || b.agencyName || ""))
+      .map((agency) => ({
+        value: agency.id,
+        label: agency.agencyCode ? `${agency.agencyCode} - ${agency.agencyName}` : agency.agencyName,
+        sublabel: agency.agencyCode ? `Code: ${agency.agencyCode}` : undefined,
+      }));
+  }, [agencies]);
+
+  const branchOptions = useMemo(() => {
+    return branches
+      .slice()
+      .sort((a, b) => (a.branchCode || a.branchName || "").localeCompare(b.branchCode || b.branchName || ""))
+      .map((branch) => ({
+        value: branch.id,
+        label: branch.branchCode ? `${branch.branchCode} - ${branch.branchName}` : branch.branchName,
+        sublabel: branch.branchCode ? `Branch Code: ${branch.branchCode}` : undefined,
+      }));
+  }, [branches]);
+
+  const isSinglePremiumPlan = useMemo(() => {
+    if (isOtherPolicy) return false;
+    const plan = selectedProduct?.planNumber;
+    return Boolean(plan && ["717", "888", "883"].includes(plan));
+  }, [isOtherPolicy, selectedProduct?.planNumber]);
+
+  const modeOptions = useMemo(() => {
+    if (isSinglePremiumPlan) {
+      const singleMode = modes.find(
+        (m) =>
+          m.modeName?.toLowerCase() === "single" ||
+          m.modeCode?.toUpperCase() === "SIN",
+      );
+      return [
+        {
+          value: singleMode?.modeName || "Single",
+          label: singleMode?.modeName || "Single",
+          sublabel: singleMode?.modeCode ? `Code: ${singleMode.modeCode}` : "Code: SIN",
+        },
+      ];
+    }
+
+    const list = modes.map((mode) => ({
+      value: mode.modeName,
+      label: mode.modeName,
+      sublabel: mode.modeCode ? `Code: ${mode.modeCode}` : undefined,
+    }));
+    if (selectedProduct?.planNumber === "774" && !modes.find((m) => m.modeName === "SSS")) {
+      list.push({
+        value: "SSS",
+        label: "SSS",
+        sublabel: "Salary Savings Scheme",
+      });
+    }
+    return list;
+  }, [modes, selectedProduct?.planNumber, isSinglePremiumPlan]);
+
+  // Track previous isSinglePremiumPlan to know when switching from single to non-single
+  const prevIsSingleRef = useRef<boolean>(false);
+
+  // Fix mode to Single for single premium plans (717, 888, 883)
+  // Default to Yearly for other LIC policies (user can modify in dropdown)
+  useEffect(() => {
+    if (isSinglePremiumPlan) {
+      const singleMode = modes.find(
+        (m) =>
+          m.modeName?.toLowerCase() === "single" ||
+          m.modeCode?.toUpperCase() === "SIN",
+      );
+      const targetMode = singleMode?.modeName || "Single";
+      if (watchMode !== targetMode) {
+        setValue("mode", targetMode, { shouldValidate: true, shouldDirty: true });
+      }
+      prevIsSingleRef.current = true;
+    } else if (!isOtherPolicy) {
+      const isCurrentlySingle = watchMode?.toLowerCase() === "single";
+      if (!watchMode || (prevIsSingleRef.current && isCurrentlySingle)) {
+        const yearlyMode = modes.find(
+          (m) =>
+            m.modeName?.toLowerCase() === "yearly" ||
+            m.modeCode?.toUpperCase() === "YLY",
+        );
+        setValue("mode", yearlyMode?.modeName || "Yearly", { shouldValidate: true, shouldDirty: true });
+      }
+      prevIsSingleRef.current = false;
+    }
+  }, [isSinglePremiumPlan, isOtherPolicy, modes, watchMode, setValue]);
+
+  const filteredAdvisors = useMemo(() => {
+    if (!watchAgencyId) return [];
+    return advisors.filter((a) => a.agencyId === watchAgencyId);
+  }, [watchAgencyId, advisors]);
+
+  useEffect(() => {
+    const agency = agencies.find((a) => a.id === watchAgencyId);
+    if (agency) {
+      if (agency.agencyCode === "AG002" || agency.agencyCode === "AG003") {
+        const directBranch = branches.find((b) => b.branchCode === "955");
+        setValue("branchId", directBranch?.id || "");
+      } else {
+        setValue("branchId", agency.branchId || "");
+      }
+    }
+  }, [watchAgencyId, agencies, branches, setValue]);
+
+  useEffect(() => {
+    const advisor = advisors.find((a) => a.id === watchAdvisorId);
+    setValue("agentCode", advisor?.advisorCode || "");
+  }, [watchAdvisorId, advisors, setValue]);
+
+  // Auto-fill Term Rider and CIR fields
+  useEffect(() => {
+    if (Array.isArray(watchRiders)) {
+      const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+      const isWholeLife = ["771", "745", "883", "887"].includes(selectedPlan || "");
+
+      watchRiders.forEach((r, index) => {
+        const desc = r.description?.toLowerCase() || "";
+
+        if (selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          const expectedTerm = watchTerm ? Number(watchTerm) : null;
+          const expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (r.selected && (r.term == null || r.ppt == null || r.sum == null)) {
+            const updatedRiders = [...watchRiders];
+            updatedRiders[index] = {
+              ...r,
+              sum: r.sum != null ? r.sum : expectedSum,
+              term: r.term != null ? r.term : expectedTerm,
+              ppt: r.ppt != null ? r.ppt : expectedPpt,
+            };
+            setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+          }
+          return;
+        }
+
+        const isAddb = desc.includes("accidental death") || desc.includes("addb");
+
+        if (
+          desc.includes("term") ||
+          desc.includes("critical illness") ||
+          desc.includes("cir") ||
+          ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
+        ) {
+          const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+          let expectedTerm = watchTerm ? Number(watchTerm) : null;
+          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+
+          if (isWholeLife && watchAge && expectedPpt) {
+            const riderRecord = riders.find((rv: any) => rv.riderName === r.description);
+            if (riderRecord) {
+              const fetchOptions = async () => {
+                try {
+                  const response = await axios.get(
+                    `${process.env.NEXT_PUBLIC_API_URL}/riders/${riderRecord.id}/options?age=${watchAge}&ppt=${expectedPpt}&productId=${watchProductId}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                      },
+                    }
+                  );
+                  if (response.data?.data?.combinations?.length > 0) {
+                    const validComb = response.data.data.combinations[0];
+                    if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(validComb.term || "") || String(r.ppt || "") !== String(validComb.ppt || "")) {
+                      const updatedRiders = [...watchRiders];
+                      updatedRiders[index] = {
+                        ...r,
+                        sum: expectedSum,
+                        term: validComb.term,
+                        ppt: validComb.ppt
+                      };
+                      setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+                    }
+                  }
+                } catch (error) {
+                  console.error("Failed to fetch rider options", error);
+                }
+              };
+              if (String(r.sum || "") !== String(expectedSum || "")) {
+                if (r.term && r.ppt) {
+                  const updatedRiders = [...watchRiders];
+                  updatedRiders[index] = {
+                    ...r,
+                    sum: expectedSum,
+                  };
+                  setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+                } else {
+                  fetchOptions();
+                }
+              } else if (!r.term || !r.ppt) {
+                fetchOptions();
+              }
+              return;
+            }
+          }
+
+          if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(expectedTerm || "") || String(r.ppt || "") !== String(expectedPpt || "")) {
+            const updatedRiders = [...watchRiders];
+            updatedRiders[index] = {
+              ...r,
+              sum: expectedSum,
+              term: expectedTerm,
+              ppt: expectedPpt
+            };
+            setValue("riders", updatedRiders, { shouldValidate: true, shouldDirty: true });
+          }
+        }
+      });
+    }
+  }, [JSON.stringify(watchRiders), watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, setValue]);
+
+  // Use setValue to update the form value; using a string to avoid potential issues with number formatting
+  const watchInstallmentPremium = watch("installmentPremium");
+  const watchGender = watch("gender");
+  const watchOption = watch("option");
+
+  useEffect(() => {
+    if (isOtherPolicy) return;
+    const sum = parseFloat(String(watchSumAssured)) || 0;
+    const term = parseFloat(String(watchTerm)) || 0;
+    const ppt = parseFloat(String(watchPpt)) || 0;
+    const mode = watchMode;
+    const age = parseFloat(String(watchAge)) || 0;
+    const option = watchOption || null;
+    const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
+
+    if (!watchProductId || !sum || !term || !ppt || !mode || !age) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/policies/premium-preview`,
+          {
+            productId: watchProductId,
+            age,
+            option,
+            policyTerm: term,
+            premiumPayingTerm: ppt,
+            sumAssured: sum,
+            premiumMode: mode,
+            gender: watchGender,
+          },
+          {
+            signal: controller.signal,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+          },
+        );
+
+        const premium = response.data?.data?.premium;
+        if (!premium || response.data?.data?.isManual) {
+          setIsPremiumManual(true);
+          return;
+        }
+
+        setIsPremiumManual(false);
+        setValue(
+          "basicYearlyPremium",
+          premium.basicYearlyPremium > 0
+            ? parseFloat(premium.basicYearlyPremium.toFixed(2))
+            : undefined,
+        );
+        setValue(
+          "installmentPremium",
+          premium.installmentPremium > 0
+            ? parseFloat(premium.installmentPremium.toFixed(2))
+            : undefined,
+        );
+
+        const totalInstallmentPremium = premium.installmentPremium + totalRider;
+        setValue(
+          "totalInstallmentPremium",
+          totalInstallmentPremium > 0
+            ? parseFloat(totalInstallmentPremium.toFixed(2))
+            : undefined,
+        );
+        
+        let multiplier = 1;
+        if (mode === "Half Yearly") multiplier = 2;
+        if (mode === "Quarterly") multiplier = 4;
+        if (mode === "Monthly (NACH)" || mode === "Monthly") multiplier = 12;
+        if (mode === "SSS") multiplier = 12;
+
+        const totalYearlyPremium = premium.basicYearlyPremium + (totalRider * multiplier);
+        setValue(
+          "totalYearlyPremium",
+          totalYearlyPremium > 0
+            ? parseFloat(totalYearlyPremium.toFixed(2))
+            : undefined,
+        );
+
+      } catch (error: any) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch premium preview", error);
+          setIsPremiumManual(true);
+        }
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [watchProductId, watchAge, watchOption, watchMode, watchPpt, watchSumAssured, watchTerm, watchTotalRiderPremium, watchGender, setValue, isOtherPolicy]);
+
+  // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
+  useEffect(() => {
+    if (Array.isArray(watchRiders)) {
+      const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+
+      if (isOtherPolicy || selectedPlan === "774" || selectedPlan === "751" || selectedPlan === "880") {
+        let totalManualRiderPremium = 0;
+        watchRiders.forEach((rider: any) => {
+          if (rider?.selected) {
+            totalManualRiderPremium += parseFloat(String(rider.premium)) || 0;
+          }
+        });
+        setValue(
+          "totalRiderPremium",
+          totalManualRiderPremium > 0 ? totalManualRiderPremium : undefined,
+          { shouldValidate: true, shouldDirty: true }
+        );
+        return;
+      }
+
+      if (watchProductId && watchAge) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(async () => {
+          let totalInstallmentRiderPremium = 0;
+          
+          const updatedRiders = await Promise.all(
+            watchRiders.map(async (rider, index) => {
+              const sum = parseFloat(String(rider.sum)) || 0;
+              const term = parseFloat(String(rider.term)) || 0;
+              const ppt = parseFloat(String(rider.ppt)) || 0;
+              const mode = rider.mode || watchMode;
+              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
+              const riderId = riderRecord?.id;
+              const currentPremium = parseFloat(String(rider.premium)) || 0;
+
+              if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
+                try {
+                  const response = await axios.post(
+                    `${process.env.NEXT_PUBLIC_API_URL}/policies/rider-premium-preview`,
+                    {
+                      riderId,
+                      age: watchAge,
+                      riderTerm: term,
+                      premiumPayingTerm: ppt,
+                      sumAssured: sum,
+                      premiumMode: mode,
+                      productId: watchProductId,
+                      option: rider.option,
+                      gender: watchGender
+                    },
+                    {
+                      signal: controller.signal,
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                      },
+                    }
+                  );
+                  const isManualRider = response.data?.data?.isManual;
+                  const finalRiderPremium = response.data?.data?.premium || 0;
+                  return {
+                    index,
+                    newPremium: finalRiderPremium,
+                    currentPremium,
+                    isValid: !isManualRider && finalRiderPremium > 0,
+                  };
+                } catch (error) {
+                  if (!axios.isCancel(error)) {
+                    console.error("Failed to fetch rider premium preview", error);
+                  }
+                  return { index, newPremium: 0, currentPremium, isValid: false };
+                }
+              }
+              return { index, newPremium: 0, currentPremium, isValid: false };
+            })
+          );
+
+          updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
+            const effective = isValid ? newPremium : currentPremium;
+            if (watchRiders[index]?.selected) {
+              totalInstallmentRiderPremium += effective;
+            }
+            if (isValid && newPremium !== currentPremium) {
+              setValue(`riders.${index}.premium`, newPremium, { shouldValidate: true, shouldDirty: true });
+            }
+          });
+
+          setValue(
+            "totalRiderPremium",
+            totalInstallmentRiderPremium > 0
+              ? totalInstallmentRiderPremium
+              : undefined,
+          );
+
+        }, 300);
+
+        return () => {
+          controller.abort();
+          clearTimeout(timeoutId);
+        };
+      }
+    }
+  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, watchGender, setValue, products, isOtherPolicy]);
+
+  // Auto-calculate Total Yearly Premium when in Other policy mode or manual mode
+  useEffect(() => {
+    if (isOtherPolicy || isPremiumManual) {
+      const basic = parseFloat(String(watchBasicYearlyPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      const mode = watchMode || "Yearly";
+      let multiplier = 1;
+      if (mode === "Half Yearly") multiplier = 2;
+      if (mode === "Quarterly") multiplier = 4;
+      if (mode === "Monthly (NACH)" || mode === "Monthly") multiplier = 12;
+      if (mode === "SSS") multiplier = 12;
+      const total = basic + (rider * multiplier);
+      if (total > 0) {
+        setValue("totalYearlyPremium", parseFloat(total.toFixed(2)), { shouldDirty: true });
+      }
+    }
+  }, [isOtherPolicy, isPremiumManual, watchBasicYearlyPremium, watchTotalRiderPremium, watchMode, setValue]);
+
+  // Auto-calculate Total Installment Premium when in Other policy mode or manual mode
+  useEffect(() => {
+    if (isOtherPolicy || isPremiumManual) {
+      const installment = parseFloat(String(watchInstallmentPremium)) || 0;
+      const rider = parseFloat(String(watchTotalRiderPremium)) || 0;
+      const total = installment + rider;
+      if (total > 0) {
+        setValue("totalInstallmentPremium", parseFloat(total.toFixed(2)), { shouldDirty: true });
+      }
+    }
+  }, [isOtherPolicy, isPremiumManual, watchInstallmentPremium, watchTotalRiderPremium, setValue]);
+
+  const isOverdueLapsed = useMemo(() => {
+    const targetDateStr = watchFupDate || watchCommencementDate;
+    if (!targetDateStr) return false;
+    const targetDate = new Date(targetDateStr);
+    if (isNaN(targetDate.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 60;
+  }, [watchFupDate, watchCommencementDate]);
+
+  // Auto-switch Policy Status to Lapsed if FUP or commencement date is 60+ days overdue
+  useEffect(() => {
+    if (isOverdueLapsed && statuses.length > 0) {
+      const lapsedStatus = statuses.find(
+        (s) => s.statusCode?.toUpperCase() === "LAPSED" || s.statusName?.toLowerCase() === "lapsed"
+      );
+      if (lapsedStatus) {
+        setValue("statusId", lapsedStatus.id, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  }, [isOverdueLapsed, statuses, setValue]);
+
+  const onSubmit = async (data: PolicyFormValues) => {
+    console.log("Submit clicked");
+    setIsSubmitting(true);
+
+    if (useNach) {
+      let hasError = false;
+      if (!data.bankName?.trim()) {
+        setError("bankName", { message: "Bank Name is required for NACH." });
+        hasError = true;
+      }
+      if (!data.accountNumber?.trim()) {
+        setError("accountNumber", { message: "Account Number is required for NACH." });
+        hasError = true;
+      }
+      if (!data.ifscCode?.trim()) {
+        setError("ifscCode", { message: "IFSC Code is required for NACH." });
+        hasError = true;
+      }
+      if (!data.accountHolderName?.trim()) {
+        setError("accountHolderName", { message: "Account Holder Name is required for NACH." });
+        hasError = true;
+      }
+      if (!data.bankBranch?.trim()) {
+        setError("bankBranch", { message: "Bank Branch is required for NACH." });
+        hasError = true;
+      }
+      if (hasError) {
+        toast.error("Please fill all required NACH details.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    if (useNeft) {
+      let hasError = false;
+      if (!data.neftBankName?.trim()) {
+        setError("neftBankName", { message: "Bank Name is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftAccountNumber?.trim()) {
+        setError("neftAccountNumber", { message: "Account Number is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftIfscCode?.trim()) {
+        setError("neftIfscCode", { message: "IFSC Code is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftAccountHolderName?.trim()) {
+        setError("neftAccountHolderName", { message: "Account Holder Name is required for NEFT." });
+        hasError = true;
+      }
+      if (!data.neftBankBranch?.trim()) {
+        setError("neftBankBranch", { message: "Bank Branch is required for NEFT." });
+        hasError = true;
+      }
+      if (hasError) {
+        toast.error("Please fill all required NEFT details.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    try {
+      const normalizeNumber = (value: any) =>
+        value === undefined || value === null || value === ""
+          ? undefined
+          : Number(value);
+
+      const payload = {
+        ...data,
+        paymentMethod: useNach ? "NACH" : useNeft ? "NEFT" : "CHQ",
+        age: normalizeNumber(data.age),
+        policyTerm: normalizeNumber(data.term),
+        premiumPayingTerm: normalizeNumber(data.ppt),
+        term: normalizeNumber(data.term),
+        ppt: normalizeNumber(data.ppt),
+        sumAssured: normalizeNumber(data.sumAssured),
+        basicYearlyPremium: normalizeNumber(data.basicYearlyPremium),
+        totalYearlyPremium: normalizeNumber(data.totalYearlyPremium),
+        totalRiderPremium: normalizeNumber(data.totalRiderPremium),
+        installmentPremium: normalizeNumber(data.installmentPremium),
+        totalInstallmentPremium: normalizeNumber(data.totalInstallmentPremium),
+        option: normalizeNumber(data.option),
+
+        advisorId: data.advisorId || null,
+        branchId: data.branchId || null,
+        providerType: isOtherPolicy ? "OTHER" : "LIC",
+        attributes: isOtherPolicy
+          ? {}
+          : {
+              SUM_ASSURED: data.sumAssured,
+              POLICY_TERM: data.term,
+              PREMIUM_PAYING_TERM: data.ppt,
+              // Add other dynamic attributes here if they are on the form
+            },
+      };
+
+      console.log("Advisor ID:", payload.advisorId);
+      console.log("Payload:", payload);
+
+      const result = await dispatch(
+        updatePolicy({
+          id,
+          data: payload,
+        }),
+      ).unwrap();
+      console.log("Dispatch result:", result);
+
+      await fetchNotifications();
+
+      toast.success("Policy updated successfully!");
+      router.push("/dashboard/lic/policies");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update policy.");
+      console.error("Failed to update policy:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onInvalid = (formErrors: any) => {
+    const selectedProduct = products.find(
+      (product) => product.id === watchProductId,
+    );
+    if (selectedProduct?.planNumber === "881" && formErrors.option) {
+      toast.error("Please select an option for LIC Plan 881.");
+    }
+    if (useNach && (formErrors.bankName || formErrors.accountNumber || formErrors.ifscCode || formErrors.accountHolderName || formErrors.bankBranch)) {
+      toast.error("Please fill all required NACH details.");
+    }
+    if (useNeft && (formErrors.neftBankName || formErrors.neftAccountNumber || formErrors.neftIfscCode || formErrors.neftAccountHolderName || formErrors.neftBankBranch)) {
+      toast.error("Please fill all required NEFT details.");
+    }
+  };
+
+  const states = [
+    "Maharashtra",
+    "Gujarat",
+    "Rajasthan",
+    "Uttar Pradesh",
+    "Delhi",
+    "Karnataka",
+  ];
+
+  const sections = [
+    { id: "policy-holder", label: "Policy Holder's Details" },
+    { id: "policy-details", label: "Policy Details" },
+    { id: "premium-calculation", label: "Policy Premium Calculation" },
+    { id: "riders", label: "Riders Details" },
+    { id: "advanced", label: "Advanced Options" },
+  ];
+
+  const handleSectionClick = useCallback(
+    (sectionId: keyof typeof sectionRefs) => {
+      const ref = sectionRefs[sectionId];
+      if (ref.current) {
+        const yOffset = -80;
+        const y =
+          ref.current.getBoundingClientRect().top +
+          window.pageYOffset +
+          yOffset;
+
+        window.scrollTo({ top: y, behavior: "smooth" });
+
+        setActiveSection(sectionId);
+
+        setGlowingSection(sectionId);
+        setTimeout(() => setGlowingSection(null), 1500);
+      }
+    },
+    [sectionRefs],
+  );
+
+  if (!isMounted || authLoading || !canEdit || policyLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  console.log("Form errors:", errors);
+
+  return (
+    <FormProvider {...methods}>
+    <div className="max-w-7xl mx-auto pb-20">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/dashboard/lic/policies")}
+            className="p-2 hover:bg-slate-100 rounded-lg transition"
+          >
+            <ChevronLeft size={20} className="text-slate-600" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Link
+                href="/dashboard/lic/policies"
+                className="hover:text-blue-600"
+              >
+                Policies
+              </Link>
+              <ChevronRight size={16} />
+              <span className="font-medium text-slate-700">Edit Policy</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mt-1">
+              Edit LIC Policy
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/dashboard/lic/policies")}
+            className="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="policy-form"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2"
+          >
+            <Save size={16} />
+            Update Policy
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border border-slate-200 rounded-xl p-1 mb-6 overflow-x-auto flex">
+        {sections.map((section) => (
+          <button
+            type="button"
+            key={section.id}
+            onClick={() =>
+              handleSectionClick(section.id as keyof typeof sectionRefs)
+            }
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition
+              ${
+                activeSection === section.id
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-600 hover:bg-slate-50"
+              }
+            `}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Form Content - Grid Layout */}
+      <form
+        id="policy-form"
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
+        noValidate
+        className="space-y-6"
+      >
+        {/* Section 1: Policy Holder's Details */}
+        <div ref={sectionRefs["policy-holder"]}>
+          <PolicyHolderSection
+            groups={groups}
+            groupMembers={groupMembers}
+            selectedGroup={selectedGroup}
+            attributeHintsAge={attributeHints.age}
+          />
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Section 2: Policy Details */}
+            <div ref={sectionRefs["policy-details"]}>
+              <CustomerSectionCard title="Policy Details" icon={FileText}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <input type="hidden" {...register("providerType")} />
+                  <input type="hidden" {...register("productType")} />
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Policy Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      {...register("policyNumber")}
+                      placeholder="Enter policy number"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.policyNumber && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.policyNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Plan <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="productId"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search plan..."
+                          searchPlaceholder="Search by name or number"
+                          options={availableProducts.map((p) => ({
+                            value: p.id,
+                            label: p.productName,
+                            sublabel: p.planNumber
+                              ? `Plan No: ${p.planNumber}`
+                              : undefined,
+                          }))}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            const selectedProduct = products.find(
+                              (p) => p.id === val,
+                            );
+                            if (selectedProduct) {
+                              setValue(
+                                "providerId",
+                                selectedProduct.providerId || "",
+                              );
+                              setValue(
+                                "productType",
+                                (selectedProduct as any).productType || "",
+                              );
+                            }
+                          }}
+                          error={errors.productId?.message}
+                          disabled={productsLoading}
+                        />
+                      )}
+                    />
+                    {errors.productId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.productId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Commencement Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="commencementDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.commencementDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.commencementDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mode <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="mode"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Select Mode"
+                          searchPlaceholder="Search mode..."
+                          options={modeOptions}
+                          value={field.value || (isSinglePremiumPlan ? "Single" : "Yearly")}
+                          onChange={(val) => {
+                            if (isSinglePremiumPlan) {
+                              const singleMode = modes.find(
+                                (m) =>
+                                  m.modeName?.toLowerCase() === "single" ||
+                                  m.modeCode?.toUpperCase() === "SIN",
+                              );
+                              field.onChange(singleMode?.modeName || "Single");
+                            } else {
+                              field.onChange(val);
+                            }
+                          }}
+                          error={errors.mode?.message}
+                          disabled={modesLoading}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="completionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.completionDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.completionDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        Term
+                      </label>
+                      {isPlanDataMissing && (
+                        <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                          Manual entry
+                        </span>
+                      )}
+                    </div>
+                    {isOtherPolicy || isManualTerm || isPlanDataMissing || (!hasDbTerms && !isFormulaTermPlan) ? (
+                      <input
+                        type="number"
+                        {...register("term")}
+                        placeholder="Enter term in years"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                    ) : (
+                      <select
+                        {...register("term")}
+                        value={watchTerm != null && String(watchTerm) !== "" ? String(watchTerm) : ""}
+                        onChange={(e) => {
+                          register("term").onChange(e);
+                        }}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Term</option>
+                        {isFormulaTermPlan ? (
+                          (() => {
+                            const maxAge = selectedProduct?.planNumber === "912" ? 75 : 69;
+                            const maxTerm = Math.min(40, maxAge - (Number(watchAge) || 18));
+                            const optionsList: number[] = [];
+                            for (let t = 10; t <= maxTerm; t++) {
+                              optionsList.push(t);
+                            }
+                            return optionsList.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ));
+                          })()
+                        ) : (
+                          productOptionsData.terms.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))
+                        )}
+                      </select>
+                    )}
+                    {errors.term && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.term.message}
+                      </p>
+                    )}
+                    {!isOtherPolicy && attributeHints.term && !errors.term && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.term}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        {selectedProduct?.planNumber === "883"
+                          ? "Gua.Addn.Period"
+                          : "PPT"}
+                        {(isOtherPolicy ||
+                          selectedProduct?.planNumber === "889" ||
+                          selectedProduct?.planNumber === "881" ||
+                          selectedProduct?.planNumber === "912") && (
+                          <span className="text-red-500"> *</span>
+                        )}
+                      </label>
+                      {isPlanDataMissing && (
+                        <span className="text-[11px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-normal">
+                          Manual entry
+                        </span>
+                      )}
+                    </div>
+                    {isOtherPolicy || isManualPpt || isPlanDataMissing || !hasDbPpts ? (
+                      <input
+                        type="number"
+                        {...register("ppt")}
+                        placeholder="Enter PPT in years"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      />
+                    ) : (
+                      <select
+                        {...register("ppt")}
+                        value={watchPpt != null && String(watchPpt) !== "" ? String(watchPpt) : ""}
+                        onChange={(e) => {
+                          register("ppt").onChange(e);
+                        }}
+                        disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {selectedProduct?.planNumber === "883" ? "Select Gua.Addn.Period" : "Select PPT"}
+                        </option>
+                        {pptOptionsToRender.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    )}
+                    {errors.ppt && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.ppt.message}
+                      </p>
+                    )}
+                    {!isOtherPolicy && attributeHints.ppt && !errors.ppt && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.ppt}
+                      </p>
+                    )}
+                  </div>
+                  {selectedProduct?.planNumber === "881" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {selectedProduct?.planNumber === "912" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {errors.option.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {selectedProduct?.planNumber === "887" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Option <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("option")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        >
+                          <option value="">Select Option</option>
+                          <option value="1">Option 1</option>
+                          <option value="2">Option 2</option>
+                        </select>
+                        {errors.option && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.option.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Smoker Status
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm ${!watch("smoker") ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Non-Smoker</span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              {...register("smoker")}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B8873A]"></div>
+                          </label>
+                          <span className={`text-sm ${watch("smoker") ? 'font-bold text-slate-900' : 'text-slate-500'}`}>Smoker</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {(selectedProduct?.planNumber === "888" ||
+                    selectedProduct?.planNumber === "889") && (
+                      <>
+                        <div>
+                          <Controller
+                            name="spouseId"
+                            control={control}
+                            render={({ field }) => (
+                              <LifeAssuredAutoComplete
+                                label="Spouse"
+                                required
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                members={groupMembers}
+                                disabled={!watchGroupId || groupMembers.length === 0}
+                                placeholder={
+                                  watchGroupId
+                                    ? groupMembers.length > 0
+                                      ? "Search spouse..."
+                                      : "No members in group"
+                                    : "Select a group first"
+                                }
+                                error={errors.spouseId?.message}
+                              />
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
+                  {(selectedProduct?.planNumber === "774" || (watch("age") && parseFloat(String(watch("age"))) < 18) || !!watch("proposerId")) && (
+                    <>
+                      <div>
+                        <Controller
+                          name="proposerId"
+                          control={control}
+                          render={({ field }) => (
+                            <LifeAssuredAutoComplete
+                              label="Proposer's Name"
+                              required
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              members={groupMembers}
+                              disabled={!watchGroupId || groupMembers.length === 0}
+                              placeholder={
+                                watchGroupId
+                                  ? groupMembers.length > 0
+                                    ? "Search proposer..."
+                                    : "No members in group"
+                                  : "Select a group first"
+                              }
+                              error={errors.proposerId?.message}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer DOB
+                        </label>
+                        <input
+                          {...register("proposerDob")}
+                          type="date"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Proposer Age
+                        </label>
+                        <input
+                          {...register("proposerAge")}
+                          type="number"
+                          placeholder="Autofilled"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                          readOnly
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CustomerSectionCard>
+            </div>
+            {/* Section 4: Riders Details */}
+            <div ref={sectionRefs["riders"]}>
+              <CustomerSectionCard
+                title="Riders Details"
+                icon={Shield}
+                actions={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      appendRider({
+                        description: "",
+                        sum: null,
+                        term: null,
+                        ppt: null,
+                        premium: null,
+                        selected: true,
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={14} />
+                    Add Rider
+                  </button>
+                }
+              >
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase w-12">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              riderFields.forEach((_, idx) => {
+                                setValue(`riders.${idx}.selected`, checked, { shouldValidate: true, shouldDirty: true });
+                              });
+                            }}
+                            checked={riderFields.length > 0 && riderFields.every((_, idx) => watchRiders?.[idx]?.selected)}
+                          />
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Rider Description
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Sum
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Term
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          PPT
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
+                          Premium
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {riderFields.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-4 py-6 text-center text-slate-500 text-sm"
+                          >
+                            No Rider to Show
+                          </td>
+                        </tr>
+                      ) : (
+                        riderFields.map((field, index) => (
+                          <tr key={field.id} className={watchRiders?.[index]?.selected ? "bg-white" : "bg-slate-50"}>
+                            <td className="px-4 py-1.5 text-center">
+                              <input
+                                type="checkbox"
+                                {...register(`riders.${index}.selected`)}
+                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5 w-1/3">
+                              {isOtherPolicy ? (
+                                <input
+                                  type="text"
+                                  {...register(`riders.${index}.description`)}
+                                  placeholder="Enter Rider Name"
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                />
+                              ) : (
+                                <select
+                                  {...register(`riders.${index}.description`)}
+                                  disabled={!watchRiders?.[index]?.selected}
+                                  className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                                >
+                                  <option value="">Select Rider</option>
+                                  {riders.map((rider) => (
+                                    <option
+                                      key={rider.id}
+                                      value={rider.riderName}
+                                    >
+                                      {rider.riderCode
+                                        ? `[${rider.riderCode}] `
+                                        : ""}
+                                      {rider.riderName}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                              {errors.riders?.[index]?.description && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.description?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.sum`)}
+                                placeholder="Sum"
+                                disabled={!watchRiders?.[index]?.selected}
+                                className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                              />
+                              {errors.riders?.[index]?.sum && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.sum?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.term`)}
+                                placeholder="Term"
+                                disabled={!watchRiders?.[index]?.selected}
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                              />
+                              {errors.riders?.[index]?.term && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.term?.message}
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.ppt`)}
+                                placeholder="PPT"
+                                disabled={!watchRiders?.[index]?.selected}
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                              />
+                              {errors.riders?.[index]?.ppt && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  {errors.riders[index]?.ppt?.message}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input
+                                type="text"
+                                {...register(`riders.${index}.premium`)}
+                                placeholder="Premium"
+                                disabled={!watchRiders?.[index]?.selected}
+                                className="w-20 text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] bg-white text-slate-800 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <button
+                                type="button"
+                                onClick={() => removeRider(index)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove Rider"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="lg:col-span-1">
+            {/* Section 3: Policy Premium Calculation */}
+            <div
+              ref={sectionRefs["premium-calculation"]}
+              className="sticky top-6"
+            >
+              <CustomerSectionCard
+                title="Policy Premium Calculation"
+                icon={Banknote}
+              >
+                <div className="space-y-4">
+                  {isPlanDataMissing && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                      Terms, PPT, or rates are not present in database for this plan. You can enter all premium values manually.
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Sum Assured
+                    </label>
+                    <input
+                      type="text"
+                      {...register("sumAssured")}
+                      placeholder="Enter sum assured"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.sumAssured && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.sumAssured.message}
+                      </p>
+                    )}
+                    {attributeHints.sumAssured && !errors.sumAssured && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {attributeHints.sumAssured}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Basic Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("basicYearlyPremium")}
+                      placeholder="Enter basic yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.basicYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.basicYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Yearly Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalYearlyPremium")}
+                      placeholder="Enter total yearly premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.totalYearlyPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalYearlyPremium.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Rider Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalRiderPremium")}
+                      placeholder="Total rider premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.totalRiderPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalRiderPremium.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("installmentPremium")}
+                      placeholder="Installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.installmentPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.installmentPremium.message}
+                      </p>
+                    )}
+                  </div>
+
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Total Installment Premium
+                    </label>
+                    <input
+                      type="text"
+                      {...register("totalInstallmentPremium")}
+                      placeholder="Total installment premium"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                    {errors.totalInstallmentPremium && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.totalInstallmentPremium.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
+        </div>
+
+        <div
+          ref={sectionRefs["advanced"]}
+          className={`mt-6 space-y-4 transition-all duration-500 ${glowingSection === "advanced" ? "ring-2 ring-blue-500/30 rounded-2xl p-2" : ""}`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+              <Settings size={16} />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
+                Advanced Options
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Policy status, banking, nomination, annuity and agency details
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* ================= LEFT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Current Status ================= */}
+              <CustomerSectionCard
+                title="Current Status"
+                icon={Activity}
+                subtitle="Check Current Status of Policy"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <label className="block text-sm font-medium text-slate-700">
+                        Policy Status
+                      </label>
+                      {isOverdueLapsed && (
+                        <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          Auto-Lapsed (60+ days overdue)
+                        </span>
+                      )}
+                    </div>
+                    <select
+                      {...register("statusId")}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    >
+                      {statuses.map((status) => (
+                        <option key={status.id} value={status.id}>
+                          {status.statusName}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.statusId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.statusId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Premium (F.U.P.) Date
+                    </label>
+                    <Controller
+                      control={control}
+                      name="fupDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.fupDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.fupDate.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Premium Adjusted
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Premium Adjusted"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="premiumDeposit"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="premiumDeposit"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      Create Premium Deposit Entries
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Loan Taken
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Loan Taken"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      First Unpaid Loan Int. (FULI) Date
+                    </label>
+                    <Controller
+                      control={control}
+                      name="fuliDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          value={field.value}
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, "yyyy-MM-dd") : "",
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {errors.fuliDate && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.fuliDate.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CustomerSectionCard>
+
+              {/* ================= NACH & NEFT ================= */}
+              <CustomerSectionCard
+                title="NACH & NEFT Details"
+                icon={Building2}
+                subtitle="Provide NACH / NEFT Details for Bank Transactions"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNachCheckbox"
+                      type="checkbox"
+                      checked={useNach}
+                      onChange={(e) => {
+                        setUseNach(e.target.checked);
+                        if (e.target.checked) {
+                          setUseNeft(false);
+                          clearErrors(["neftBankName", "neftAccountNumber", "neftIfscCode", "neftAccountHolderName", "neftBankBranch"]);
+                        } else {
+                          clearErrors(["bankName", "accountNumber", "ifscCode", "accountHolderName", "bankBranch"]);
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="useNachCheckbox"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      NACH Details
+                    </label>
+                  </div>
+                  {useNach && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Bank Name"
+                          {...register("bankName")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.bankName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.bankName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.bankName.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Number"
+                          {...register("accountNumber")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.accountNumber
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.accountNumber && (
+                          <p className="text-xs text-red-500 mt-1">{errors.accountNumber.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="IFSC Code"
+                          {...register("ifscCode")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.ifscCode
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.ifscCode && (
+                          <p className="text-xs text-red-500 mt-1">{errors.ifscCode.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Holder Name"
+                          {...register("accountHolderName")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.accountHolderName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.accountHolderName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.accountHolderName.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register("bankBranch")}
+                          type="text"
+                          placeholder="Bank Branch"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.bankBranch
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.bankBranch && (
+                          <p className="text-xs text-red-500 mt-1">{errors.bankBranch.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          City
+                        </label>
+                        <input
+                          {...register("city")}
+                          type="text"
+                          placeholder="City"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Type
+                        </label>
+                        <input
+                          {...register("accountType")}
+                          placeholder="Account Type"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Debt Date
+                        </label>
+                        <input
+                          value={watchFupDate || ""}
+                          readOnly
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          MICR Number
+                        </label>
+                        <input
+                          {...register("micrNumber")}
+                          type="text"
+                          placeholder="MICR Number"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* NEFT Section */}
+                  <div className="md:col-span-2 my-2 border-t border-slate-200"></div>
+
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <input
+                      id="useNeftCheckbox"
+                      type="checkbox"
+                      checked={useNeft}
+                      onChange={(e) => {
+                        setUseNeft(e.target.checked);
+                        if (e.target.checked) {
+                          setUseNach(false);
+                          clearErrors(["bankName", "accountNumber", "ifscCode", "accountHolderName", "bankBranch"]);
+                        } else {
+                          clearErrors(["neftBankName", "neftAccountNumber", "neftIfscCode", "neftAccountHolderName", "neftBankBranch"]);
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="useNeftCheckbox"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      NEFT Details
+                    </label>
+                  </div>
+
+                  {useNeft && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Bank Name"
+                          {...register("neftBankName")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftBankName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.neftBankName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftBankName.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Number <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Number"
+                          {...register("neftAccountNumber")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftAccountNumber
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.neftAccountNumber && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftAccountNumber.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          IFSC Code <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="IFSC Code"
+                          {...register("neftIfscCode")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftIfscCode
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.neftIfscCode && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftIfscCode.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Account Holder Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Account Holder Name"
+                          {...register("neftAccountHolderName")}
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftAccountHolderName
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.neftAccountHolderName && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftAccountHolderName.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Bank Branch <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register("neftBankBranch")}
+                          type="text"
+                          placeholder="Bank Branch"
+                          className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 text-sm ${
+                            errors.neftBankBranch
+                              ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                              : "border-slate-200 focus:ring-[#B8873A]/20 focus:border-[#B8873A]"
+                          }`}
+                        />
+                        {errors.neftBankBranch && (
+                          <p className="text-xs text-red-500 mt-1">{errors.neftBankBranch.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Submission Date
+                        </label>
+                        <Controller
+                          control={control}
+                          name="neftSubmissionDate"
+                          render={({ field }) => (
+                            <DatePicker
+                              value={field.value}
+                              onChange={(date) =>
+                                field.onChange(
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                )
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CustomerSectionCard>
+            </div>
+
+            {/* ================= RIGHT COLUMN ================= */}
+            <div className="space-y-6">
+              {/* ================= Nomination Details ================= */}
+              <CustomerSectionCard
+                title="Nomination Details"
+                icon={Users}
+                subtitle="Assign Policy Beneficiaries"
+                actions={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (watchAge && Number(watchAge) < 18) {
+                        toast.error("Insurer age is under 18. Nominee cannot be added.");
+                        return;
+                      }
+                      appendNominee({
+                        nomineeName: "",
+                        relationship: "",
+                        dateOfBirth: "",
+                        percentage: null,
+                        phone: "",
+                        email: "",
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={14} />
+                    Add Nominee
+                  </button>
+                }
+              >
+                {nomineeFields.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-6">
+                    No nominees added. Click Add Nominee to start.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {nomineeFields.map((field, index) => (
+                      <fieldset
+                        key={field.id}
+                        disabled={Boolean(watchAge && Number(watchAge) < 18)}
+                        className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 relative disabled:opacity-60 space-y-3"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Nominee Name
+                            </label>
+                            <input
+                              {...register(`nominees.${index}.nomineeName`)}
+                              placeholder="Full Name"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.nomineeName && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.nomineeName?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Relationship
+                            </label>
+                            <input
+                              {...register(`nominees.${index}.relationship`)}
+                              placeholder="e.g., Spouse, Son"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.relationship && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.relationship?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Date of Birth
+                            </label>
+                            <Controller
+                              control={control}
+                              name={`nominees.${index}.dateOfBirth`}
+                              render={({ field }) => (
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    field.onChange(
+                                      date ? format(date, "yyyy-MM-dd") : "",
+                                    )
+                                  }
+                                />
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Share %
+                            </label>
+                            <input
+                              type="number"
+                              {...register(`nominees.${index}.percentage`)}
+                              placeholder="e.g., 100"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            {errors.nominees?.[index]?.percentage && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.percentage?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              {...register(`nominees.${index}.phone`)}
+                              placeholder="Mobile Number"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              {...register(`nominees.${index}.email`)}
+                              placeholder="Email Address"
+                              className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm bg-white"
+                            />
+                            {errors.nominees?.[index]?.email && (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.nominees[index]?.email?.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeNominee(index)}
+                          className="absolute top-2.5 right-2.5 inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-colors shadow-sm"
+                          title="Remove Nominee"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </fieldset>
+                    ))}
+                  </div>
+                )}
+              </CustomerSectionCard>
+
+              {/* ================= Annuity Details ================= */}
+              <CustomerSectionCard
+                title="Annuity Details"
+                icon={Calendar}
+                subtitle="Annuity Policy Configuration"
+              >
+                <div className="py-2">
+                  <p className="text-sm text-slate-500">
+                    This will be enabled for Annuity Policies.
+                  </p>
+                </div>
+              </CustomerSectionCard>
+
+              {/* ================= Other Information ================= */}
+              <CustomerSectionCard
+                title="Other Information"
+                icon={FileText}
+                subtitle="Agency, Branch, Notes & Other Policy Information"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agency <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      control={control}
+                      name="agencyId"
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search agency..."
+                          searchPlaceholder="Search by name or agency code"
+                          options={agencyOptions}
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            setValue("advisorId", "");
+                          }}
+                          error={errors.agencyId?.message}
+                          disabled={agenciesLoading}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Branch
+                    </label>
+                    <Controller
+                      name="branchId"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          placeholder="Search branch..."
+                          searchPlaceholder="Search by name or branch code"
+                          options={branchOptions}
+                          value={field.value || ""}
+                          onChange={(val) => {
+                            field.onChange(val);
+                          }}
+                          error={errors.branchId?.message}
+                          disabled={branchesLoading}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Controller
+                      name="advisorId"
+                      control={control}
+                      render={({ field }) => (
+                        <AdvisorAutoComplete
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          advisors={filteredAdvisors}
+                          disabled={!watchAgencyId}
+                          placeholder={
+                            watchAgencyId
+                              ? "Search Advisor..."
+                              : "Select Agency First"
+                          }
+                        />
+                      )}
+                    />
+                    {errors.advisorId && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.advisorId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Agent Code (Autofilled)
+                    </label>
+                    <input
+                      {...register("agentCode")}
+                      readOnly
+                      placeholder="Auto Filled"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Medical
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Medical Details"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Tax Beneficiary
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Tax Beneficiary"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 pt-6">
+                    <input
+                      id="ageAdmitted"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]/20 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="ageAdmitted"
+                      className="text-sm font-medium text-slate-700 cursor-pointer"
+                    >
+                      Age Admitted
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Notes
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder="Enter Notes..."
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm resize-none"
+                    />
+                  </div>
+                </div>
+              </CustomerSectionCard>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    </FormProvider>
+  );
+}

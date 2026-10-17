@@ -1,0 +1,612 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import type { LucideIcon } from "lucide-react";
+import { Check, ChevronDown, Search as SearchIcon } from "lucide-react";
+
+/* ─── Hero Banner ─────────────────────────────────────────────────── */
+
+export function QuotationPageHero({
+  title,
+  subtitle,
+  actions,
+  icon: Icon,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+  icon?: LucideIcon;
+}) {
+  return (
+    <div className="mb-6 overflow-hidden rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          {Icon ? (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
+              <Icon size={24} />
+            </div>
+          ) : null}
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Section Card ────────────────────────────────────────────────── */
+
+export function QuotationSectionCard({
+  title,
+  icon: Icon,
+  children,
+  actions,
+  subtitle,
+  className = "",
+}: {
+  title: string;
+  icon?: LucideIcon;
+  children: ReactNode;
+  actions?: ReactNode;
+  subtitle?: string;
+  className?: string;
+}) {
+  return (
+    <section className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>
+      <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
+      <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+        <div className="flex items-start gap-3">
+          {Icon ? (
+            <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1877F2]">
+              <Icon size={16} />
+            </div>
+          ) : null}
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
+              {title}
+            </h2>
+            {subtitle && <p className="mt-1 text-sm font-medium text-slate-500">{subtitle}</p>}
+          </div>
+        </div>
+        {actions && <div className="shrink-0">{actions}</div>}
+      </div>
+      <div className="p-5">{children}</div>
+    </section>
+  );
+}
+
+/* ─── Stat Card ───────────────────────────────────────────────────── */
+
+export function QuotationStatCard({
+  label,
+  value,
+  icon: Icon,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string | number;
+  icon?: LucideIcon;
+  tone?: "neutral" | "accent" | "success" | "warning";
+}) {
+  const tones = {
+    neutral: { chip: "bg-slate-50 text-slate-700", bar: "from-slate-300 to-slate-200" },
+    accent: { chip: "bg-blue-50 text-[#1877F2]", bar: "from-[#5c67ff] to-[#3a47ff]" },
+    success: { chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-200" },
+    warning: { chip: "bg-amber-50 text-amber-700", bar: "from-amber-400 to-amber-200" },
+  };
+  const t = tones[tone];
+
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${t.bar}`} />
+      <div className="flex items-center gap-3">
+        {Icon ? (
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.chip}`}>
+            <Icon size={16} />
+          </div>
+        ) : null}
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-[#8E99AF]">
+            {label}
+          </p>
+          <p className="mt-1 text-xl font-bold tracking-tight text-[#0f172a]">
+            {value}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Empty State ─────────────────────────────────────────────────── */
+
+export function QuotationEmptyState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{description}</p>
+      {action && <div className="mt-5 flex justify-center">{action}</div>}
+    </div>
+  );
+}
+
+/* ─── Breadcrumbs ─────────────────────────────────────────────────── */
+
+export function QuotationBreadcrumbs({
+  items,
+}: {
+  items: Array<{ label: string; href?: string }>;
+}) {
+  return (
+    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs">
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+        const content = (
+          <span
+            className={`font-medium ${
+              isLast ? "text-slate-600" : "text-slate-400 transition-colors hover:text-slate-600"
+            }`}
+          >
+            {item.label}
+          </span>
+        );
+
+        return (
+          <div key={`${item.label}-${index}`} className="flex items-center gap-2">
+            {index > 0 && <span className="text-slate-300">/</span>}
+            {item.href && !isLast ? <Link href={item.href}>{content}</Link> : content}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────── */
+
+export function QuotationToolbar({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] lg:flex-row lg:items-center lg:justify-between">
+      {children}
+    </div>
+  );
+}
+
+/* ─── Table Frame ─────────────────────────────────────────────────── */
+
+export function QuotationTableFrame({
+  children,
+  footer,
+}: {
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+      <div className="overflow-x-auto">{children}</div>
+      {footer && <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3">{footer}</div>}
+    </div>
+  );
+}
+
+/* ─── Table Head Cell ─────────────────────────────────────────────── */
+
+export function QuotationTableHeadCell({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "center" | "right";
+}) {
+  return (
+    <th
+      className={`sticky top-0 z-10 border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 ${
+        align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+/* ─── Searchable Select ───────────────────────────────────────────── */
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  sublabel?: string;
+}
+
+export interface SelectOptionGroup {
+  label: string;
+  options: SelectOption[];
+  isCollapsible?: boolean;
+}
+
+function useOutsideClose(onClose: () => void, refs: Array<React.RefObject<HTMLElement | null>>) {
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      const target = e.target as Node;
+      const isInside = refs.some((r) => r.current && r.current.contains(target));
+      if (!isInside) onClose();
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [onClose, refs]);
+}
+
+function DropdownPanel({
+  query,
+  onQueryChange,
+  searchPlaceholder,
+  options: optionsOrGroups,
+  value,
+  onSelect,
+  style,
+  panelRef,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  searchPlaceholder: string;
+  options: (SelectOption | SelectOptionGroup)[];
+  value?: string;
+  onSelect: (value: string) => void;
+  style: React.CSSProperties;
+  panelRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const toggleGroup = (label: string) => {
+    setCollapsedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  const hasQuery = query.trim().length > 0;
+
+  const filterOption = (o: SelectOption) =>
+    `${o.label} ${o.sublabel || ""}`.toLowerCase().includes(query.toLowerCase());
+
+  const allOptions = optionsOrGroups.flatMap((item) => ("options" in item ? item.options : [item]));
+  const hasAnyResults = allOptions.some(filterOption);
+
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      ref={panelRef}
+      style={style}
+      className="absolute z-[1000] mt-1.5 w-full min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
+    >
+      <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
+        <SearchIcon size={14} className="shrink-0 text-slate-400" />
+        <input
+          ref={searchInputRef}
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="w-full text-sm text-slate-900 outline-none placeholder:text-slate-400"
+        />
+      </div>
+      <div className="max-h-60 overflow-y-auto py-1">
+        {!hasAnyResults ? (
+          <p className="px-3 py-4 text-center text-sm text-slate-400">No results found</p>
+        ) : (
+          optionsOrGroups.map((item, index) => {
+            if ("options" in item) {
+              const filteredGroupOptions = item.options.filter(filterOption);
+              if (filteredGroupOptions.length === 0) return null;
+
+              const isCollapsed = !hasQuery && item.isCollapsible && collapsedGroups.has(item.label);
+
+              return (
+                <div key={item.label}>
+                  {item.isCollapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(item.label)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:bg-slate-50 cursor-pointer"
+                    >
+                      <span>{item.label}</span>
+                      <ChevronDown size={14} className={`transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                    </button>
+                  ) : (
+                    <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{item.label}</div>
+                  )}
+                  {!isCollapsed &&
+                    filteredGroupOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => onSelect(opt.value)}
+                        className={`flex w-full items-center justify-between gap-2 py-2.5 pl-6 pr-3 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
+                          opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"
+                        }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate">{opt.label}</span>
+                          {opt.sublabel && <span className="block truncate text-xs text-slate-400">{opt.sublabel}</span>}
+                        </span>
+                        {opt.value === value && <Check size={14} className="shrink-0 text-[#1877F2]" />}
+                      </button>
+                    ))}
+                </div>
+              );
+            } else {
+              if (!filterOption(item)) return null;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => onSelect(item.value)}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
+                    item.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate">{item.label}</span>
+                    {item.sublabel && <span className="block truncate text-xs text-slate-400">{item.sublabel}</span>}
+                  </span>
+                  {item.value === value && <Check size={14} className="shrink-0 text-[#1877F2]" />}
+                </button>
+              );
+            }
+          })
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+export function QuotationSearchableSelect({
+  label,
+  required,
+  error,
+  options: optionsOrGroups,
+  value,
+  onChange,
+  placeholder = "Select...",
+  searchPlaceholder = "Search...",
+  icon,
+  disabled,
+}: {
+  label?: string;
+  required?: boolean;
+  error?: string;
+  options: (SelectOption | SelectOptionGroup)[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  icon?: ReactNode;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [pos, setPos] = useState<React.CSSProperties>({});
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOutsideClose(
+    () => {
+      setOpen(false);
+      setQuery("");
+    },
+    [triggerRef, panelRef]
+  );
+
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({
+        position: "fixed",
+        top: r.bottom + 6,
+        left: r.left,
+        width: r.width,
+      });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = (e: Event) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setOpen(false);
+      setQuery("");
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [open]);
+
+  const allOptions = optionsOrGroups.flatMap((item) => ("options" in item ? item.options : [item]));
+  const selected = allOptions.find((o) => o.value === value);
+
+  return (
+    <div className="relative">
+      {label && (
+        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {label}
+          {required && <span className="ml-0.5 text-rose-500">*</span>}
+        </label>
+      )}
+      <button
+        ref={triggerRef}
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`relative flex w-full items-center justify-between gap-2 rounded-xl border bg-white py-2.75 text-sm outline-none transition-all ${
+          icon ? "pl-9 pr-3" : "px-3"
+        } ${error ? "border-rose-300 bg-rose-50/30" : "border-slate-200 hover:border-slate-300"} ${
+          open ? "border-[#1877F2] ring-2 ring-blue-500/20" : ""
+        } ${disabled ? "cursor-not-allowed bg-slate-50 text-slate-400" : "cursor-pointer text-slate-900"}`}
+      >
+        {icon && (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
+        )}
+        <span className={`truncate text-left ${!selected ? "text-slate-400" : ""}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown size={15} className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180 text-[#1877F2]" : ""}`} />
+      </button>
+      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+
+      {open && (
+        <DropdownPanel
+          query={query}
+          onQueryChange={setQuery}
+          searchPlaceholder={searchPlaceholder}
+          options={optionsOrGroups}
+          value={value}
+          onSelect={(v) => {
+            onChange(v);
+            setOpen(false);
+            setQuery("");
+          }}
+          style={pos}
+          panelRef={panelRef}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── Filter Select ───────────────────────────────────────────────── */
+
+export function QuotationFilterSelect({
+  icon: Icon,
+  options,
+  value,
+  onChange,
+  placeholder = "All",
+  searchPlaceholder = "Search...",
+}: {
+  icon?: LucideIcon;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [pos, setPos] = useState<React.CSSProperties>({});
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOutsideClose(
+    () => {
+      setOpen(false);
+      setQuery("");
+    },
+    [triggerRef, panelRef]
+  );
+
+  useLayoutEffect(() => {
+    if (open && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setPos({
+        position: "fixed",
+        top: r.bottom + 6,
+        left: r.left,
+        width: r.width,
+      });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = (e: Event) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setOpen(false);
+      setQuery("");
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+  const active = Boolean(selected);
+
+  return (
+    <div className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-all cursor-pointer ${
+          active || open
+            ? "border-blue-200 bg-blue-50/70 text-[#1877F2]"
+            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+        }`}
+      >
+        {Icon && <Icon size={14} />}
+        {selected ? selected.label : placeholder}
+        <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180 text-[#1877F2]" : ""}`} />
+      </button>
+
+      {open && (
+        <DropdownPanel
+          query={query}
+          onQueryChange={setQuery}
+          searchPlaceholder={searchPlaceholder}
+          options={options}
+          value={value}
+          onSelect={(v) => {
+            onChange(v);
+            setOpen(false);
+            setQuery("");
+          }}
+          style={pos}
+          panelRef={panelRef}
+        />
+      )}
+    </div>
+  );
+}
