@@ -52,6 +52,11 @@ import { seedADDB881 } from "./seedADDBB881";
 import { seedADDB883 } from "./seedADDB883";
 import { seedADDB888 } from "./seedADDB888";
 import { seedADDB912 } from "./seedADDB912";
+import {
+  seedPremiumRates833,
+  seedRiderPremium833,
+  seedModeFactors833,
+} from "./seedPremiumRates833";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -109,6 +114,13 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedADDB883(prisma);
   await seedADDB888(prisma);
   await seedADDB912(prisma);
+
+  // Plan 833 (Jeevan Lakshya) - LIC legacy plan. Rated on a half-year age band
+  // rather than completed years, so it carries its own seeder rather than
+  // fitting the standard shape.
+  await seedPremiumRates833(prisma);
+  await seedRiderPremium833(prisma);
+  await seedModeFactors833(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

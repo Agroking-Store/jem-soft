@@ -1,5 +1,6 @@
 import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
+import { licAgeBand } from "../utils/licAgeBand.js";
 import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
@@ -26,6 +27,13 @@ interface PremiumInput {
   premiumPayingTerm?: number | null;
   sumAssured: number;
   premiumMode: string;
+  /**
+   * Customer's date of birth and the policy's commencement date. Together they
+   * determine LIC's half-year age band. Both optional - without them the lookups
+   * fall back to integer entry age.
+   */
+  dateOfBirth?: string | null;
+  commencementDate?: string | null;
 }
 
 export interface CalculatorInput {
@@ -222,6 +230,12 @@ export async function calculatePremium(data: PremiumInput) {
   const validatedPPT = premiumPayingTerm!;
 
   const lookupTerm: number = usesPptLookup ? validatedPPT : policyTerm;
+
+  // LIC legacy plans are rated on a half-year age band derived from the date of
+  // birth and the commencement date. Null for every other plan, and null when
+  // the caller did not supply a date of birth - the lookups below then use
+  // integer entry age exactly as before.
+  const ageBand = licAgeBand(data.dateOfBirth, data.commencementDate);
   // ==========================================
   // STEP 3 : Premium Rate
   // ==========================================
@@ -400,14 +414,31 @@ export async function calculatePremium(data: PremiumInput) {
     const premiumPayingTermFilter =
       premiumPayingTerm == null ? undefined : premiumPayingTerm;
 
-    premiumRate = await prisma.productPremiumRate.findFirst({
-      where: {
-        productId: data.productId,
-        entryAge: age,
-        policyTerm: lookupTerm,
-        premiumPayingTerm: premiumPayingTermFilter,
-      },
-    });
+    // LIC legacy plans store one rate per half-year age band. When the caller
+    // knows the customer's date of birth and the policy's commencement date we
+    // can reproduce LIC's band exactly, so prefer that row; otherwise fall back
+    // to the integer entry age row.
+    if (ageBand != null) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: {
+          productId: data.productId,
+          ageBand,
+          policyTerm: lookupTerm,
+          premiumPayingTerm: premiumPayingTermFilter,
+        },
+      });
+
+      if (!premiumRate) {
+        premiumRate = await prisma.productPremiumRate.findFirst({
+          where: {
+            productId: data.productId,
+            ageBand,
+            policyTerm: lookupTerm,
+            premiumPayingTerm: undefined,
+          },
+        });
+      }
+    }
 
     if (!premiumRate) {
       premiumRate = await prisma.productPremiumRate.findFirst({
@@ -415,9 +446,20 @@ export async function calculatePremium(data: PremiumInput) {
           productId: data.productId,
           entryAge: age,
           policyTerm: lookupTerm,
-          premiumPayingTerm: undefined,
+          premiumPayingTerm: premiumPayingTermFilter,
         },
       });
+
+      if (!premiumRate) {
+        premiumRate = await prisma.productPremiumRate.findFirst({
+          where: {
+            productId: data.productId,
+            entryAge: age,
+            policyTerm: lookupTerm,
+            premiumPayingTerm: undefined,
+          },
+        });
+      }
     }
   }
 
@@ -608,10 +650,16 @@ export async function calculatePremium(data: PremiumInput) {
       break;
 
     default: {
-      const saRebate = await rebateService.calculateSumAssuredRebate(
+      // Legacy plans have no dedicated calculator. LIC's rebate for those
+      // varies with entry age and policy term, so prefer the age/term aware
+      // table and let it fall back to the classic sum-assured one.
+      const saRebate = await rebateService.calculateAgeTermRebate(
         data.productId,
+        age,
+        lookupTerm,
         data.sumAssured,
         tabularPremium,
+        ageBand,
       );
 
       premiumResult = {

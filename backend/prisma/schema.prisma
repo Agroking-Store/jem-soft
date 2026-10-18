@@ -231,6 +231,7 @@ model ProductMaster {
   policies   Policy[]
   premiumRates       ProductPremiumRate[]
   sumAssuredRebates  ProductSumAssuredRebate[]
+  ageTermRebates     ProductAgeTermRebate[]
   premiumModeFactors ProductPremiumModeFactor[]
   riders ProductRider[]
   modeRebates ProductModeRebate[]
@@ -262,6 +263,13 @@ model ProductPremiumRate {
 
   policyTerm Int
   premiumPayingTerm Int?
+
+  /// LIC keys its rate table on half-year age bands, not completed years, so a
+  /// customer aged 40 years 3 months and one aged 40 years 9 months can get
+  /// different rates. When set, this holds
+  ///   floor(complete months from date of birth to the commencement date / 6)
+  /// and takes precedence over entryAge. NULL for every non-LIC-legacy plan.
+  ageBand Int?
 
   option Int?
   tabularRate Decimal @db.Decimal(10,2)
@@ -297,6 +305,39 @@ model ProductSumAssuredRebate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([productId, minSumAssured])
+}
+
+/// Age-and-term aware rebate on sum assured.
+///
+/// LIC's rebate is a function of entry age AND policy term AND sum assured, not
+/// of sum assured alone. ProductSumAssuredRebate (above) cannot express that,
+/// and changing its unique key would break the existing 714/715/717/748/751
+/// rebate seeds, so legacy plans use this table instead. rebateService tries
+/// this table first and falls back to the old one, which keeps the 7-series
+/// calculators untouched.
+model ProductAgeTermRebate {
+  id String @id @default(uuid())
+
+  productId String
+
+  entryAge Int
+  policyTerm Int?
+
+  /// Half-year age band, same meaning as ProductPremiumRate.ageBand.
+  ageBand Int?
+
+  minSumAssured Decimal @db.Decimal(18,2)
+  maxSumAssured Decimal? @db.Decimal(18,2)
+
+  rebatePerThousand Decimal @db.Decimal(10,3)
+
+  product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, entryAge, policyTerm, ageBand, minSumAssured])
+  @@index([productId])
 }
 
 // for plan 717 and 771
@@ -372,11 +413,17 @@ model RiderPremiumRate {
   entryAge Int
   riderTerm Int
   premiumPayingTerm Int?
+
+  /// Half-year age band, same meaning as ProductPremiumRate.ageBand. Rider
+  /// rates move on the same boundary - plan 833's Term Rider Benefit costs 4116
+  /// per 10 lakh in the first half of an age year and 4508 in the second.
+  ageBand Int?
+
   option Int?
 
   gender Gender?
 
-  ratePerThousand Decimal @db.Decimal(10,2)
+  ratePerThousand Decimal @db.Decimal(10,3)
 
   rider   RiderMaster   @relation(fields: [riderId], references: [id], onDelete: Cascade)
   product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)

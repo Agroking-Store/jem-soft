@@ -478,6 +478,7 @@ function NewLICPolicyContent() {
   const watchTotalRiderPremium = watch("totalRiderPremium");
   const watchRiders = watch("riders");
   const watchAge = watch("age");
+  const watchDob = watch("dob");
   const watchSpouseAge = watch("spouseAge");
   const watchProposerId = watch("proposerId");
   const watchProposerAge = watch("proposerAge");
@@ -504,6 +505,10 @@ function NewLICPolicyContent() {
   const premiumPreviewKey = [
     watchProductId ?? "",
     watchAge ?? "",
+    // the half-year age band LIC uses is derived from these two, so a change in
+    // either has to re-trigger the premium preview
+    watchDob ?? "",
+    watchCommencementDate ?? "",
     watchSpouseAge ?? "",
     watchProposerAge ?? "",
     watchOption ?? "",
@@ -1009,6 +1014,10 @@ function NewLICPolicyContent() {
         const isAddb = desc.includes("accidental death") || desc.includes("addb");
 
         if (
+          // A rider the database has actually linked to this product always
+          // fills, whatever it is called. The name tests below only cover rows
+          // that arrive without an id, i.e. the hand-picked fallback lists.
+          r.riderId ||
           desc.includes("term") ||
           desc.includes("critical illness") ||
           desc.includes("cir") ||
@@ -1073,7 +1082,7 @@ function NewLICPolicyContent() {
         }
       });
     }
-  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, watchAge, watchProductId, products, riders, updateRider, isOtherPolicy]);
+  }, [watchRiders, watchSumAssured, watchTerm, watchPpt, watchAge, watchDob, watchCommencementDate, watchProductId, products, riders, updateRider, isOtherPolicy]);
 
   // Auto-calculate individual rider premiums based on mode and sum up for total rider premium
   useEffect(() => {
@@ -1123,8 +1132,11 @@ function NewLICPolicyContent() {
               const term = parseFloat(String(rider.term)) || 0;
               const ppt = parseFloat(String(rider.ppt)) || 0;
               const mode = watchMode;
-              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
-              const riderId = riderRecord?.id;
+              // Prefer the id the form row already carries; fall back to a name lookup only
+              // for rows that never had one.
+              const riderId =
+                rider.riderId ??
+                riders.find((rv: any) => rv.riderName === rider.description)?.id;
               const currentPremium = parseFloat(String(rider.premium)) || 0;
 
               if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
@@ -1140,7 +1152,10 @@ function NewLICPolicyContent() {
                       premiumMode: mode,
                       productId: watchProductId,
                       option: rider.option,
-                      gender: watchGender
+                      gender: watchGender,
+                      // rider rates move on the same half-year band
+                      dateOfBirth: watchDob || null,
+                      commencementDate: watchCommencementDate || null
                     },
                     {
                       signal: controller.signal,
@@ -1342,6 +1357,12 @@ function NewLICPolicyContent() {
             premiumMode: mode,
             smoker: watchSmoker,
             gender: watchGender,
+            // LIC legacy plans are rated on a half-year age band derived from
+            // these two dates - 92.5% of plan 833's age/term combinations quote
+            // differently in the two halves of an age year. Without them the
+            // backend falls back to plain integer age.
+            dateOfBirth: watchDob || null,
+            commencementDate: watchCommencementDate || null,
           },
           {
             signal: controller.signal,
@@ -1400,7 +1421,7 @@ function NewLICPolicyContent() {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [premiumPreviewKey, products, setValue, watchAge, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium, watchSmoker, watchGender, isOtherPolicy]);
+  }, [premiumPreviewKey, products, setValue, watchAge, watchDob, watchCommencementDate, watchMode, watchOption, watchPpt, watchProductId, watchProposerAge, watchSpouseAge, watchSumAssured, watchTerm, watchTotalRiderPremium, watchSmoker, watchGender, isOtherPolicy]);
 
   // Auto-calculate Total Yearly Premium when in Other policy mode
   useEffect(() => {
@@ -1482,6 +1503,12 @@ function NewLICPolicyContent() {
       if (Array.isArray(selectedProduct.riders) && selectedProduct.riders.length > 0) {
         const newRiders = selectedProduct.riders.map((pr: any) => ({
           description: pr.rider?.riderName || "",
+          // Carry the rider's own id through the form row. The page used to
+          // find the rider again by matching rider names, which silently failed
+          // for any rider whose name did not happen to contain "term" or
+          // "critical illness" - Double Accident Benefit on plan 833 among them.
+          riderId: pr.riderId ?? pr.rider?.id ?? null,
+          riderCode: pr.rider?.riderCode ?? null,
           sum: null,
           term: null,
           ppt: null,
@@ -1496,6 +1523,8 @@ function NewLICPolicyContent() {
           if (addbRider && !hasAddb) {
             newRiders.push({
               description: addbRider.riderName,
+              riderId: addbRider.id,
+              riderCode: addbRider.riderCode,
               sum: null,
               term: null,
               ppt: null,

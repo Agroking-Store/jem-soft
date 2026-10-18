@@ -4,6 +4,7 @@ import { catchAsync } from "../utils/catchAsync.js";
 import * as policyService from "../services/policyService.js";
 import { calculatePremium } from "../services/premiumCalculationService.js";
 import { AppError } from "../utils/AppError.js";
+import { licAgeBand } from "../utils/licAgeBand.js";
 
 export const createPolicy = catchAsync(
   async (req: Request, res: Response) => {
@@ -31,6 +32,11 @@ export const previewPremium = catchAsync(
       premiumMode,
       gender,
       smoker,
+      // LIC legacy plans are rated on a half-year age band. When the caller
+      // sends the customer's date of birth and the policy's commencement date we
+      // can reproduce LIC's band exactly instead of guessing from integer age.
+      dateOfBirth,
+      commencementDate,
     } = req.body;
 
     if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
@@ -89,6 +95,8 @@ export const previewPremium = catchAsync(
         sumAssured: Number(sumAssured),
         premiumMode,
         gender,
+        dateOfBirth: dateOfBirth || null,
+        commencementDate: commencementDate || null,
         smoker,
       });
 
@@ -127,6 +135,9 @@ export const previewRiderPremium = catchAsync(
       productId,
       option,
       gender,
+      // Rider rates move on the same half-year age band as the base rate.
+      dateOfBirth,
+      commencementDate,
     } = req.body;
 
     if (
@@ -256,7 +267,9 @@ export const previewRiderPremium = catchAsync(
       "881",
       "889",
       "912"
-    ].includes(product.planNumber || "") || (product.planNumber === "736" && rider?.riderCode === "ADDB");
+    ].includes(product.planNumber || "") ||
+      (product.productCode?.startsWith("LEGACY-") ?? false) ||
+      (product.planNumber === "736" && rider?.riderCode === "ADDB");
 
     let riderRate = null;
 
@@ -302,11 +315,36 @@ export const previewRiderPremium = catchAsync(
     // EXECUTE QUERIES
     // =========================================================
 
-    for (const query of queriesToTry) {
-      riderRate = await prisma.riderPremiumRate.findFirst({
-        where: query,
-      });
-      if (riderRate) break;
+    // LIC legacy rider rates are quoted on a half-year age band. When we know
+    // the customer's date of birth and the commencement date, try the band
+    // rows first - plan 833's Term Rider Benefit differs by 9.5% between the
+    // two halves of an age year - then fall back to the whole-age rows.
+    const riderAgeBand = licAgeBand(dateOfBirth, commencementDate);
+
+    if (riderAgeBand != null) {
+      for (const query of queriesToTry) {
+        riderRate = await prisma.riderPremiumRate.findFirst({
+          where: { ...query, entryAge: undefined, ageBand: riderAgeBand },
+        });
+        if (riderRate) break;
+      }
+      if (!riderRate) {
+        for (const query of queriesToTry) {
+          riderRate = await prisma.riderPremiumRate.findFirst({
+            where: { ...query, entryAge: undefined, ageBand: riderAgeBand },
+          });
+          if (riderRate) break;
+        }
+      }
+    }
+
+    if (!riderRate) {
+      for (const query of queriesToTry) {
+        riderRate = await prisma.riderPremiumRate.findFirst({
+          where: query,
+        });
+        if (riderRate) break;
+      }
     }
 
     // =========================================================

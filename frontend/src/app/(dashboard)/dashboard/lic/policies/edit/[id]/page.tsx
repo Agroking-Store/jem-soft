@@ -432,6 +432,7 @@ export default function EditLICPolicyPage() {
   const watchCompletionDate = watch("completionDate");
   const watchPpt = watch("ppt");
   const watchAge = watch("age");
+  const watchDob = watch("dob");
   const watchMode = watch("mode");
   const watchAgencyId = watch("agencyId");
   const watchTotalRiderPremium = watch("totalRiderPremium");
@@ -739,6 +740,10 @@ export default function EditLICPolicyPage() {
         selectedPolicy.policyRiders && selectedPolicy.policyRiders.length > 0
           ? selectedPolicy.policyRiders.map((r: any) => ({
               description: r.rider?.riderName || "",
+              // Carried so the page can price the rider without looking its id
+              // up by name again.
+              riderId: r.riderId ?? r.rider?.id ?? null,
+              riderCode: r.rider?.riderCode ?? null,
               sum: r.riderAmount,
               premium: r.riderPremium,
               term: undefined,
@@ -1184,6 +1189,10 @@ export default function EditLICPolicyPage() {
         const isAddb = desc.includes("accidental death") || desc.includes("addb");
 
         if (
+          // A rider the database has actually linked to this product always
+          // fills, whatever it is called. The name tests below only cover rows
+          // that arrive without an id, i.e. the hand-picked fallback lists.
+          r.riderId ||
           desc.includes("term") ||
           desc.includes("critical illness") ||
           desc.includes("cir") ||
@@ -1289,6 +1298,10 @@ export default function EditLICPolicyPage() {
             sumAssured: sum,
             premiumMode: mode,
             gender: watchGender,
+            // LIC legacy plans are rated on a half-year age band derived from
+            // these two dates; without them the backend falls back to integer age.
+            dateOfBirth: watchDob || null,
+            commencementDate: watchCommencementDate || null,
           },
           {
             signal: controller.signal,
@@ -1385,8 +1398,11 @@ export default function EditLICPolicyPage() {
               const term = parseFloat(String(rider.term)) || 0;
               const ppt = parseFloat(String(rider.ppt)) || 0;
               const mode = rider.mode || watchMode;
-              const riderRecord = riders.find((rv: any) => rv.riderName === rider.description);
-              const riderId = riderRecord?.id;
+              // Prefer the id the form row already carries; fall back to a name lookup only
+              // for rows that never had one.
+              const riderId =
+                rider.riderId ??
+                riders.find((rv: any) => rv.riderName === rider.description)?.id;
               const currentPremium = parseFloat(String(rider.premium)) || 0;
 
               if (sum > 0 && term > 0 && ppt > 0 && mode && riderId) {
@@ -1402,7 +1418,10 @@ export default function EditLICPolicyPage() {
                       premiumMode: mode,
                       productId: watchProductId,
                       option: rider.option,
-                      gender: watchGender
+                      gender: watchGender,
+                      // rider rates move on the same half-year band
+                      dateOfBirth: watchDob || null,
+                      commencementDate: watchCommencementDate || null
                     },
                     {
                       signal: controller.signal,
@@ -1455,7 +1474,7 @@ export default function EditLICPolicyPage() {
         };
       }
     }
-  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchMode, riders, watchGender, setValue, products, isOtherPolicy]);
+  }, [JSON.stringify(watchRiders), watchProductId, watchAge, watchDob, watchCommencementDate, watchMode, riders, watchGender, setValue, products, isOtherPolicy]);
 
   // Auto-calculate Total Yearly Premium when in Other policy mode or manual mode
   useEffect(() => {
