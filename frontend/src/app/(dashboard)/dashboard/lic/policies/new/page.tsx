@@ -1802,12 +1802,17 @@ function NewLICPolicyContent() {
     }
 
     const selectedProduct = products.find((p) => p.id === data.productId);
+    // 234 of the 238 LIC legacy plans carry productType "Withdrawn", so blocking
+    // here made almost none of them sellable. Withdrawn plans are restricted to
+    // their own active window instead: the commencement date picker is already
+    // clamped to INTRO_DATE..WITHDRAWAL_DATE, so a policy can only be written
+    // inside the period the plan was actually on sale. That is a warning, not a
+    // refusal - carry on and create it.
     if (selectedProduct && selectedProduct.productType === "Withdrawn") {
-      toast.error(
-        "This plan is withdrawn and cannot be used to create a new policy.",
+      toast(
+        `${selectedProduct.productName} is a withdrawn plan. The policy will be recorded against its original availability window.`,
+        { icon: "⚠", duration: 6000 },
       );
-      setIsSubmitting(false);
-      return;
     }
 
     if (useNach) {
