@@ -109,9 +109,15 @@ export default function PolicyRegisterReportView({
         const rawStatus = (p.status?.statusName || p.statusName || "Inforce")
           .toLowerCase()
           .replace(/[- ]/g, "");
-        const matchesStatus = selectedStatusFilters.some(
-          (st) => rawStatus.includes(st) || st.includes(rawStatus)
-        );
+        const matchesStatus = selectedStatusFilters.some((st) => {
+          if (
+            (st === "inforce" || st === "active") &&
+            (rawStatus === "active" || rawStatus === "inforce")
+          ) {
+            return true;
+          }
+          return rawStatus.includes(st) || st.includes(rawStatus);
+        });
         if (!matchesStatus) return false;
       }
 
@@ -620,7 +626,7 @@ export default function PolicyRegisterReportView({
 
   // Columns before "Premium": Policy No, Ag, Com.Date, Pl/Tm/Pt, Md, Brn, FUP, Status, Mat.Date
   const LEADING_COLS = 9;
-  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + (showNachDetails ? 1 : 0) + (showNachDebitDatewise ? 1 : 0) + (showExistingPolicies ? 1 : 0) + 1;
+  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + (showNachDetails ? 1 : 0) + (showNachDebitDatewise ? 1 : 0) + (showExistingPolicies ? 1 : 0) + 2;
 
   const BLACK = "#000";
   const thStyle: React.CSSProperties = {
@@ -661,6 +667,7 @@ export default function PolicyRegisterReportView({
       </td>
       {showRiderDetails && <td colSpan={3}></td>}
       <td></td>
+      <td></td>
     </tr>
   );
 
@@ -699,6 +706,18 @@ export default function PolicyRegisterReportView({
         style={{ fontFamily: "Arial, Helvetica, sans-serif", color: BLACK }}
         className="w-full bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
       >
+        {/* Advisor Letterhead */}
+        <div className="mb-3 pb-2" style={{ borderBottom: `1px solid ${BLACK}` }}>
+          <div className="text-[15px] font-bold">Jayant Mahabole</div>
+          <div className="text-[11px] font-medium">MBA in Insurance &amp; Finance</div>
+          <div className="text-[10px] pt-0.5">
+            <div>84/2, Darpan Bldg,. 201 Sarang Society,</div>
+            <div>Sahakarnagar No. 2 Parvati Pune 411009,</div>
+            <div>9822452896</div>
+            <div>office@jayantmahbole.com</div>
+          </div>
+        </div>
+
         {/* Report title line (like "LIC Premiums Due between ... ") */}
         <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
@@ -760,6 +779,7 @@ export default function PolicyRegisterReportView({
                 {showExistingPolicies && (
                   <th className="px-1 py-1 text-center" style={thStyle}>Existing<br />Policy</th>
                 )}
+                <th className="px-1 py-1 text-center" style={thStyle}>Tax<br />Ben.</th>
                 <th className="px-1 py-1" style={thStyle}>Nominee</th>
               </tr>
             </thead>
@@ -841,6 +861,7 @@ export default function PolicyRegisterReportView({
                         {showExistingPolicies && (
                           <td className="px-1 py-0.5 text-center">{p.isExisting ? "Yes" : "No"}</td>
                         )}
+                        <td className="px-1 py-0.5 text-center">{p.taxBen}</td>
                         <td className="px-1 py-0.5">{p.nominee}</td>
                       </tr>
                     ))}

@@ -1,5 +1,4 @@
-import "dotenv/config";
-import nodemailer from "nodemailer";
+﻿import nodemailer from "nodemailer";
 import { DeliveryStatus } from "@prisma/client";
 
 export interface EmailSendOptions {
@@ -26,15 +25,12 @@ const getTransporter = () => {
   const pass = process.env.SMTP_PASS;
 
   if (host && user && pass) {
-    console.log(`[emailService] Creating SMTP transporter for ${user} via ${host}:${port}`);
     transporter = nodemailer.createTransport({
       host,
       port,
       secure: port === 465,
       auth: { user, pass },
     });
-  } else {
-    console.warn(`[emailService] Real SMTP not configured: host=${host || 'undefined'}, user=${user || 'undefined'}`);
   }
   return transporter;
 };
