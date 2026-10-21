@@ -69,7 +69,7 @@ interface ColumnDef {
 }
 
 // Index of the "Last Premium Amt" column — totals are printed under it
-const LAST_PREMIUM_AMT_IDX = 7;
+const LAST_PREMIUM_AMT_IDX = 6;
 const BLACK = "#000";
 const thStyle = {
   borderTop: `1px solid ${BLACK}`,
@@ -93,23 +93,21 @@ export default function LastPremiumStatementReportView({
   const [isExporting, setIsExporting] = useState(false);
 
   const columns: ColumnDef[] = useMemo(() => {
-    const cols: ColumnDef[] = [
-      { key: "policyNo", label: "Policy No", align: "right", render: (p) => p.policyNo },
-      { key: "agCd", label: "Ag Cd", align: "center", render: (p) => p.agCd },
-      { key: "comDate", label: "Comm. Date", render: (p) => p.comDate },
-      { key: "planTermPpt", label: "Pl/Tm/Pt", render: (p) => p.planTermPpt },
-      { key: "md", label: "Md", align: "center", render: (p) => p.md },
-      { key: "brn", label: "Brn", render: (p) => p.brn },
-      { key: "lastPremiumDate", label: "Last Premium Date", render: (p) => p.lastPremiumDate },
-      { key: "lastPremiumAmount", label: "Last Premium Amt", align: "right", render: (p) => p.lastPremiumAmount.toLocaleString("en-IN") },
-      { key: "nextDueDate", label: "Next Due Date", render: (p) => p.nextDueDate },
-    ];
-    if (formData.calculationOptions.loyaltyAddition) {
-      cols.push({ key: "loyaltyAddition", label: "Loyalty Addn.", align: "right", render: (p) => p.loyaltyAddition.toLocaleString("en-IN") });
-    }
-    if (formData.calculationOptions.fab) {
-      cols.push({ key: "fab", label: "F.A.B", align: "right", render: (p) => p.fab.toLocaleString("en-IN") });
-    }
+    
+const cols: ColumnDef[] = [
+  { key: "policyHolder", label: "Policy Holder", render: (p) => p.policyHolder },
+  { key: "policyNo", label: "Policy No.", align: "right", render: (p) => p.policyNo },
+  { key: "agCd", label: "Ag Cd", align: "center", render: (p) => p.agCd },
+  { key: "comDate", label: "Comm. Date", render: (p) => p.comDate },
+  { key: "planTermPpt", label: "Pl/Tm/Pt", render: (p) => p.planTermPpt },
+  { key: "sumAssured", label: "Sum", align: "right", render: (p) => p.sumAssured.toLocaleString("en-IN") },
+  { key: "lastPremiumAmount", label: "Premium", align: "right", render: (p) => p.lastPremiumAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+  { key: "md", label: "Md", align: "center", render: (p) => p.md },
+  { key: "brn", label: "Brn", render: (p) => p.brn },
+  { key: "lastPremiumDate", label: "Last Prem. Date", render: (p) => p.lastPremiumDate },
+  { key: "remarks", label: "Remarks", render: (p) => p.remarks },
+];
+
     return cols;
   }, [formData.calculationOptions.loyaltyAddition, formData.calculationOptions.fab]);
 
@@ -298,6 +296,17 @@ export default function LastPremiumStatementReportView({
     const buildRow = (p: any, lastPremiumDate: Date) => {
       const custMaster = p.CustomerMaster;
       const custObj = p.customer || customerMap[String(p.clientId || p.customerId)] || {};
+      
+  const policyHolder = custMaster
+    ? [
+        custMaster.salutation,
+        custMaster.firstName,
+        custMaster.middleName,
+        custMaster.lastName,
+      ].filter(Boolean).join(" ")
+    : custObj.name || "—";
+      const remarks = p.remarks || "—";
+
       const modeCode = getModeCode(p);
       const modeLabel = modeCode === "M" ? "M" : modeCode;
       const sumAssured = Number(p.premium?.sumAssured || p.sumAssured || 0);
@@ -313,13 +322,16 @@ export default function LastPremiumStatementReportView({
       );
 
       return {
+        policyHolder,
         policyNo: p.policyNumber || "—",
         agCd: p.agentCode || "—",
         comDate: fmtDate(comDate) || "—",
         planTermPpt: `${p.product?.planNumber || "—"}/${p.policyTerm || "—"}/${p.premiumPayingTerm || "—"}`,
+        sumAssured,
         md: modeLabel,
         brn: p.branch?.branchCode || p.branchNo || "—",
         lastPremiumDate: fmtDate(lastPremiumDate),
+        remarks,
         lastPremiumAmount,
         nextDueDate: fmtDate(p.nextPremiumDueDate) || "—",
         loyaltyAddition,
@@ -554,7 +566,6 @@ export default function LastPremiumStatementReportView({
                     <Fragment key={member.name}>
                       <tr>
                         <td colSpan={columns.length} className="pt-2 pb-0.5">
-                          <div className="text-[11px] font-bold">{member.name}</div>
                           {(formData.reportOptions.printAddress || formData.reportOptions.printTelNo) && (
                             <div className="text-[10px]">
                               {[
