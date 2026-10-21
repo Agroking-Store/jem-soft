@@ -180,7 +180,7 @@ async function main() {
   // ---------------------------------------------------------------- 4
   console.log("\n\n=== 4. legacy plans other than 833 must be untouched by its seeding ===\n");
   const otherLegacy = await prisma.productMaster.findMany({
-    where: { productCode: { startsWith: "LEGACY-" }, NOT: { planNumber: "833" } },
+    where: { productCode: { startsWith: "LEGACY-" }, NOT: { planNumber: { in: ["833", "123"] } } },
     select: { id: true, planNumber: true, _count: { select: { premiumRates: true, riderPremiumRates: true, ageTermRebates: true } } },
   });
   const withAnything = otherLegacy.filter(

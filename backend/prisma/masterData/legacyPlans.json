@@ -2342,9 +2342,7 @@
     "termFormula": null,
     "pptFormula": null,
     "pptNotes": "fixed term and ppt",
-    "allowedRiders": [
-      "DAB"
-    ],
+    "allowedRiders": [],
     "minSumAssured": 50000,
     "maxSumAssured": 50000,
     "notes": "Min sum assured 50000"
