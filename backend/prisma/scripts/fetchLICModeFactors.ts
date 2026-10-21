@@ -141,7 +141,8 @@ async function main() {
   }
   out.push([plan, "Y", "1.00000", 1, results.Y.length || 1].join(","));
 
-  const file = path.join(OUT_DIR, "lic_mode_factors.csv");
+  // One file per plan, so measuring plan N never destroys plan N-1's export.
+  const file = path.join(OUT_DIR, `lic_mode_factors_${plan}.csv`);
   fs.writeFileSync(file, out.join("\n") + "\n");
   console.log(`\nwritten: ${file}`);
   await prisma.$disconnect();

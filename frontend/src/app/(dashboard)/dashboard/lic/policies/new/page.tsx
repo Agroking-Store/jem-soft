@@ -1536,8 +1536,13 @@ function NewLICPolicyContent() {
         }
 
         replaceRiders(newRiders);
-      } else {
-        // Fallback: If DB hasn't mapped riders to this product yet, show appropriate default riders
+      } else if (!String(selectedProduct.productCode ?? "").startsWith("LEGACY-")) {
+        // Fallback: If DB hasn't mapped riders to this product yet, show appropriate default riders.
+        // This is only for the non-legacy LIC products - thirteen of the 7-series
+        // still have no rider links (714, 715, 720, 721, 732, 734, 735, 748, 749,
+        // 752, 758, 768). For a legacy plan an empty list is real data, not a gap:
+        // plan 123 has no riders and i-magic shows "No Rider to Show" for it, so
+        // inventing a TERM row there was wrong.
         const termRider = riders.find((r) => r.riderName.toLowerCase().includes("term"));
         const cirRider = riders.find((r) => r.riderName.toLowerCase().includes("critical illness") || r.riderName.toLowerCase().includes("cir"));
         const wopRider = riders.find((r) => r.riderCode === "WOP" || r.riderCode === "PWB" || r.riderName.toLowerCase().includes("waiver") || r.riderName.toLowerCase().includes("pwb"));
@@ -1596,6 +1601,8 @@ function NewLICPolicyContent() {
         }
 
         replaceRiders(defaultRiders);
+      } else {
+        replaceRiders([]);
       }
     } else {
       replaceRiders([]);

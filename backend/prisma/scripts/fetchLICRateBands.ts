@@ -160,7 +160,9 @@ async function main() {
     }
   }
 
-  const file = path.join(OUT_DIR, "lic_rate_bands.csv");
+  // One file per plan: a single shared file used to be overwritten on every
+  // run, which silently wiped the previous plan's rows.
+  const file = path.join(OUT_DIR, `lic_rate_bands_${plan}.csv`);
   fs.writeFileSync(file, out.join("\n") + "\n");
 
   // how often do the halves actually differ

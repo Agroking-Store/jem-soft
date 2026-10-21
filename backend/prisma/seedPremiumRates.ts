@@ -57,6 +57,11 @@ import {
   seedRiderPremium833,
   seedModeFactors833,
 } from "./seedPremiumRates833";
+import {
+  seedPremiumRates123,
+  seedRiderPremium123,
+  seedModeFactors123,
+} from "./seedPremiumRates123";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -121,6 +126,12 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates833(prisma);
   await seedRiderPremium833(prisma);
   await seedModeFactors833(prisma);
+
+  // Plan 123 (Jeevan Sanchay 12 Yrs) - LIC legacy plan. Half-year age band, a
+  // formula rebate (3% of the rate plus 2 flat) and no riders at all.
+  await seedPremiumRates123(prisma);
+  await seedRiderPremium123(prisma);
+  await seedModeFactors123(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

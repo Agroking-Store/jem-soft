@@ -329,7 +329,11 @@ model ProductAgeTermRebate {
   minSumAssured Decimal @db.Decimal(18,2)
   maxSumAssured Decimal? @db.Decimal(18,2)
 
-  rebatePerThousand Decimal @db.Decimal(10,3)
+  /// Four decimals: plan 123's rebate is 3% of the tabular rate plus a flat 2
+  /// per 1000, and rates carry two decimals, so the total lands on a fourth
+  /// decimal (115.15 x 3% = 3.4545). At three decimals that rounded away half a
+  /// rupee per 10 lakh of cover.
+  rebatePerThousand Decimal @db.Decimal(10,4)
 
   product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -380,7 +384,10 @@ model ProductPremiumModeFactor {
   productId String
   premiumModeId String
 
-  factor Decimal @db.Decimal(8,4)
+  // Six decimals: LIC's mode factor creeps down as the rate rises (it absorbs a
+  // flat 2 per 1000), so the spread across the age range is about 0.00002. At
+  // four decimals that rounding cost up to 7 rupees on a ten lakh policy.
+  factor Decimal @db.Decimal(10,6)
 
   product ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
 

@@ -90,10 +90,10 @@ async function main() {
     const b = Number(without.d?.premium?.basicYearlyPremium);
     const identical = withDob.status === without.status && (Number.isNaN(a) ? Number.isNaN(b) : Math.abs(a - b) < 0.01);
 
-    // Plan 833 is the positive control: it is the one plan that stores half-year
-    // age bands, so its price SHOULD move when a date of birth is supplied.
-    // Every other plan must be unaffected.
-    const isControl = p.planNumber === "833";
+    // Plans 833 and 123 are the positive controls: they are the only plans that
+    // store half-year age bands, so their price SHOULD move when a date of birth
+    // is supplied. Every other plan must be unaffected.
+    const isControl = p.planNumber === "833" || p.planNumber === "123";
     const ok = isControl ? !identical : identical;
     ok ? pass++ : fail++;
     if (!ok) {
@@ -158,12 +158,17 @@ async function main() {
     where: { NOT: { id: { in: [...legacyIds] } }, riders: { some: {} }, riderPremiumRates: { some: {} } },
     select: {
       id: true, planNumber: true, productCode: true,
-      riderPremiumRates: { select: { entryAge: true, riderTerm: true, premiumPayingTerm: true, riderId: true }, take: 1 },
+      // Pull a few rows: some plans store wildcard rider rates with entryAge 0
+      // (the rate does not depend on age), and the endpoint rejects age 0 as a
+      // missing value. Taking just the first row made this check depend on
+      // physical row order, so it passed or failed at random after a re-seed.
+      riderPremiumRates: { select: { entryAge: true, riderTerm: true, premiumPayingTerm: true, riderId: true }, take: 10 },
     },
     take: 15,
   });
   for (const p of withRiders) {
-    const r = p.riderPremiumRates[0]!;
+    const r = p.riderPremiumRates.find((x) => x.entryAge > 0) ?? p.riderPremiumRates[0];
+    if (!r) continue;
     const res = await riderPremium({
       productId: p.id, riderId: r.riderId, age: r.entryAge, riderTerm: r.riderTerm,
       premiumPayingTerm: r.premiumPayingTerm, sumAssured: 1000000,
