@@ -87,7 +87,7 @@ export const resolveTermFormula = (
   formula: string | null | undefined,
   age: number | null | undefined
 ): number[] => {
-  if (!formula || age === null || age === undefined || !Number.isFinite(age) || age <= 0) return [];
+  if (!formula || age === null || age === undefined || !Number.isFinite(age) || age < 0) return [];
   const f = normaliseFormula(formula);
 
   // "13 (age 17: 30 - 17)"  ->  maturity age 30 minus entry age
@@ -155,6 +155,11 @@ export const resolvePptFormula = (
     const a = Number(orTerm[1]);
     const b = term - Number(orTerm[2]);
     return Array.from(new Set([a, b].filter(x => x > 0))).sort((x, y) => x - y);
+  }
+
+  // "equal to term"
+  if (f.includes("equal to term")) {
+    return term ? [term] : [];
   }
 
   // "term-3", "term-4", "term-5"
@@ -250,9 +255,10 @@ export const useLegacyPlanMetadata = () => {
         minSumAssured: toNum(g("MIN_SUM_ASSURED")),
         defaultSumAssured: toNum(g("DEFAULT_SUM_ASSURED")) || toNum(g("MIN_SUM_ASSURED")),
         maxSumAssured: toNum(g("MAX_SUM_ASSURED")),
-        allowedRiders: parseNumberList(g("ALLOWED_RIDERS")).length
-          ? g("ALLOWED_RIDERS").split(",").map((s) => s.trim()).filter(Boolean)
-          : (g("RIDERS_ALLOWED") || "").split(",").map((s) => s.trim()).filter(Boolean),
+        allowedRiders: (g("ALLOWED_RIDERS") || g("RIDERS_ALLOWED") || "")
+          .split(",")
+          .map((s) => s.trim().toUpperCase())
+          .filter(Boolean),
         pptNotes: g("PPT_NOTES"),
         notes: g("PLAN_NOTES"),
       });
@@ -275,8 +281,16 @@ export const useLegacyPlanMetadata = () => {
         const m = n ? map.get(String(n).trim().toUpperCase()) : undefined;
         if (!m) return [] as number[];
         if (m.ppts.length) return m.ppts;
+        if (m.pptNotes && m.pptNotes.toLowerCase().includes("equal to term")) {
+          if (term) return [term];
+          if (m.terms.length) return m.terms;
+        }
         const live = resolvePptFormula(m.pptFormula, term);
         if (live.length) return live;
+        if (m.pptFormula && m.pptFormula.toLowerCase().includes("equal to term")) {
+          if (term) return [term];
+          if (m.terms.length) return m.terms;
+        }
         // No PPT data at all -> single premium (user decision).
         return [1];
       },

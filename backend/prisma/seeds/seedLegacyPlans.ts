@@ -7,12 +7,11 @@ import legacyPlans from '../masterData/legacyPlans.json';
  * Source of truth: prisma/masterData/legacyPlans.json
  *   (generated from legacy_plans_template.csv.xlsx; see scripts/buildLegacyPlansJson)
  *
- * Scope: plans 101+ only. Plans 1-100 are maintained separately, so this seeder
- * deliberately never touches them. Override with LEGACY_PLAN_MIN=0 if you ever
- * want a full re-seed.
+ * Scope: all legacy LIC plans (plans 1-100 and 101+). Override with
+ * LEGACY_PLAN_MIN if you want to restrict the plan band.
  */
 
-const MIN_PLAN = Number(process.env.LEGACY_PLAN_MIN ?? '101');
+const MIN_PLAN = Number(process.env.LEGACY_PLAN_MIN ?? '0');
 
 interface LegacyPlan {
   planNumber: string;
