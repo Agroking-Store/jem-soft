@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
@@ -11,6 +11,10 @@ interface HeaderProps {
   isNavigationOpen: boolean;
   onMenuToggle: () => void;
 }
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationState = () => true;
+const getServerHydrationState = () => false;
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
   { match: "/dashboard/customers", title: "Customers" },
@@ -33,6 +37,16 @@ const getPageTitle = (pathname: string) =>
 export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationState,
+    getServerHydrationState
+  );
+
+  const displayName = isHydrated ? (user?.name || "User") : "User";
+  const displayRole = isHydrated ? (user?.role?.toLowerCase() || "Guest") : "Guest";
+  const displayEmail = isHydrated ? user?.email : "";
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(pathname);
@@ -88,11 +102,11 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
               <User size={16} className="text-blue-600" aria-hidden="true" />
             </span>
             <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
-              <span className="max-w-32 truncate text-sm font-medium text-slate-900">
-                {user?.name || "User"}
+              <span className="max-w-32 truncate text-sm font-medium text-slate-900" suppressHydrationWarning>
+                {displayName}
               </span>
-              <span className="text-xs capitalize text-slate-500">
-                {user?.role?.toLowerCase() || "Guest"}
+              <span className="text-xs capitalize text-slate-500" suppressHydrationWarning>
+                {displayRole}
               </span>
             </span>
             <ChevronDown
@@ -122,9 +136,9 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
                     <User size={21} className="text-blue-600" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate font-semibold text-slate-900">{user?.name || "User"}</span>
-                    <span className="block truncate text-sm text-slate-500">{user?.email}</span>
-                    <span className="block text-xs font-medium capitalize text-blue-600">{user?.role?.toLowerCase()}</span>
+                    <span className="block truncate font-semibold text-slate-900" suppressHydrationWarning>{displayName}</span>
+                    <span className="block truncate text-sm text-slate-500" suppressHydrationWarning>{displayEmail}</span>
+                    <span className="block text-xs font-medium capitalize text-blue-600" suppressHydrationWarning>{displayRole}</span>
                   </span>
                 </span>
               </Link>
