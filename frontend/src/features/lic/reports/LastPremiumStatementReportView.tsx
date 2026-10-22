@@ -334,8 +334,9 @@ const cols: ColumnDef[] = [
         remarks,
         lastPremiumAmount,
         nextDueDate: fmtDate(p.nextPremiumDueDate) || "—",
-        loyaltyAddition,
-        fab,
+        loyaltyAddition: loyaltyAddition ? loyaltyAddition.toLocaleString("en-IN") : "-",
+        fab: fab ? fab.toLocaleString("en-IN") : "-",
+        
         _modeCode: modeCode,
       };
     };
