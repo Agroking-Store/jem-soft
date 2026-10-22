@@ -62,6 +62,11 @@ import {
   seedRiderPremium123,
   seedModeFactors123,
 } from "./seedPremiumRates123";
+import {
+  seedPremiumRates917,
+  seedRiderPremium917,
+  seedModeFactors917,
+} from "./seedPremiumRates917";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -132,6 +137,13 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates123(prisma);
   await seedRiderPremium123(prisma);
   await seedModeFactors123(prisma);
+
+  // Plan 917 (Single Premium Endowment) - 16 terms, single premium, GST 4.5%
+  // and two riders (DAB + Term Rider Benefit). The high sum assured rebate
+  // depends on sum assured only, so it lives in the plain SA table.
+  await seedPremiumRates917(prisma);
+  await seedRiderPremium917(prisma);
+  await seedModeFactors917(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

@@ -207,9 +207,25 @@ export async function calculatePremium(data: PremiumInput) {
     throw new AppError("Product not found", 404);
   }
 
-  if (product.planNumber && ["717", "888", "883"].includes(product.planNumber)) {
+  if (
+    product.planNumber &&
+    ["717", "888", "883", "917"].includes(product.planNumber)
+  ) {
     data.premiumMode = "Single";
   }
+
+  // GST is a product-level fact (plan 917 charges 4.5% on a single premium;
+  // the older legacy plans predate GST and carry no GST_RATE attribute).
+  // Keeping it in the attribute table rather than in code means adding a
+  // GST-bearing plan never touches another plan's premium.
+  const gstAttribute = await prisma.productAttributeValue.findFirst({
+    where: {
+      productId: data.productId,
+      attribute: { attributeCode: "GST_RATE" },
+    },
+    select: { value: true },
+  });
+  const gstRate = gstAttribute ? Number(gstAttribute.value) : 0;
 
   // ==========================================
   // STEP 2 : Premium Lookup Term
@@ -684,6 +700,13 @@ export async function calculatePremium(data: PremiumInput) {
     (premiumResult.basicYearlyPremium * modeFactor).toFixed(2),
   );
 
+  // LIC rounds the tax to whole rupees on the premium it actually collects, so
+  // a 4.5% GST on 7,50,740 is 33,783 and not 33,783.30.
+  const gst =
+    gstRate > 0
+      ? Math.round((installmentPremium * gstRate) / 100)
+      : 0;
+
   // ==========================================
   // STEP 7 : Return
   // ==========================================
@@ -705,6 +728,10 @@ export async function calculatePremium(data: PremiumInput) {
 
     installmentPremium,
 
-    gst: 0,
+    gstRate,
+
+    gst,
+
+    totalInstallmentPremium: Number((installmentPremium + gst).toFixed(2)),
   };
 }

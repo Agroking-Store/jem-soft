@@ -28,10 +28,15 @@ class RebateService {
 
     // Most specific first: exact half-year band, then the age row that covers a
     // whole year, then the classic sum-assured-only table.
+    //
+    // Every attempt is scoped to the product. Without that filter a plan whose
+    // (entry age, term, band) happens to coincide with another legacy plan's
+    // row picks up the other plan's rebate: plan 917 shares terms 13-25 with
+    // plan 833, and was silently charged 1.656 per 1000 instead of 18.
     const attempts: Record<string, unknown>[] = [];
-    if (ageBand != null) attempts.push({ entryAge, policyTerm: policyTerm ?? undefined, ageBand, ...saFilter });
-    attempts.push({ entryAge, policyTerm: policyTerm ?? undefined, ageBand: null, ...saFilter });
-    attempts.push({ entryAge, policyTerm: null, ageBand: null, ...saFilter });
+    if (ageBand != null) attempts.push({ productId, entryAge, policyTerm: policyTerm ?? undefined, ageBand, ...saFilter });
+    attempts.push({ productId, entryAge, policyTerm: policyTerm ?? undefined, ageBand: null, ...saFilter });
+    attempts.push({ productId, entryAge, policyTerm: null, ageBand: null, ...saFilter });
 
     for (const where of attempts) {
       const rule = await prisma.productAgeTermRebate.findFirst({ where: where as any });
