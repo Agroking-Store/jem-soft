@@ -170,13 +170,10 @@ export const getCustomerMasterById = async (id: string) => {
 };
 
 export const createCustomerMaster = async (data: ICustomerMasterInput) => {
-  if (!data.groupId) {
-    throw new AppError("groupId is required to create a Customer Master entry", 400);
-  }
   // Build nested prisma creation structure
   const customer = await prisma.customerMaster.create({
     data: {
-      groupId: data.groupId,
+      groupId: data.groupId || null,
       salutation: data.salutation || null,
       firstName: data.firstName,
       middleName: data.middleName || null,
@@ -303,7 +300,7 @@ export const updateCustomerMaster = async (id: string, data: ICustomerMasterInpu
   const customer = await prisma.customerMaster.update({
     where: { id },
     data: {
-      groupId: data.groupId !== undefined ? data.groupId : undefined,
+      groupId: data.groupId !== undefined ? (data.groupId || null) : undefined,
       salutation: data.salutation !== undefined ? (data.salutation || null) : undefined,
       firstName: data.firstName,
       middleName: data.middleName !== undefined ? (data.middleName || null) : undefined,
