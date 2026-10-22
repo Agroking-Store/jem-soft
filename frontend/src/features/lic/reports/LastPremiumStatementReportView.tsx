@@ -94,6 +94,7 @@ export default function LastPremiumStatementReportView({
 
   const columns: ColumnDef[] = useMemo(() => {
     
+
 const cols: ColumnDef[] = [
   { key: "policyHolder", label: "Policy Holder", render: (p) => p.policyHolder },
   { key: "policyNo", label: "Policy No.", align: "right", render: (p) => p.policyNo },
@@ -101,12 +102,46 @@ const cols: ColumnDef[] = [
   { key: "comDate", label: "Comm. Date", render: (p) => p.comDate },
   { key: "planTermPpt", label: "Pl/Tm/Pt", render: (p) => p.planTermPpt },
   { key: "sumAssured", label: "Sum", align: "right", render: (p) => p.sumAssured.toLocaleString("en-IN") },
-  { key: "lastPremiumAmount", label: "Premium", align: "right", render: (p) => p.lastPremiumAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+  {
+    key: "lastPremiumAmount",
+    label: "Premium",
+    align: "right",
+    render: (p) =>
+      p.lastPremiumAmount.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+  },
+
+  ...(formData.calculationOptions.loyaltyAddition
+    ? [{
+        key: "loyaltyAddition",
+        label: "Loyalty Addition",
+        align: "right" as const,
+        render: (p: any) => p.loyaltyAddition.toLocaleString("en-IN"),
+      }]
+    : []),
+
+  ...(formData.calculationOptions.fab
+    ? [{
+        key: "fab",
+        label: "F.A.B.",
+        align: "right" as const,
+        render: (p: any) => p.fab.toLocaleString("en-IN"),
+      }]
+    : []),
+
   { key: "md", label: "Md", align: "center", render: (p) => p.md },
   { key: "brn", label: "Brn", render: (p) => p.brn },
   { key: "lastPremiumDate", label: "Last Prem. Date", render: (p) => p.lastPremiumDate },
+  {
+  key: "nextDueDate",
+  label: "Next Due Date",
+  render: (p) => p.nextDueDate,
+},
   { key: "remarks", label: "Remarks", render: (p) => p.remarks },
 ];
+
 
     return cols;
   }, [formData.calculationOptions.loyaltyAddition, formData.calculationOptions.fab]);
@@ -564,18 +599,25 @@ const cols: ColumnDef[] = [
                   )}
                   {group.members.map((member: any) => (
                     <Fragment key={member.name}>
-                      <tr>
-                        <td colSpan={columns.length} className="pt-2 pb-0.5">
-                          {(formData.reportOptions.printAddress || formData.reportOptions.printTelNo) && (
-                            <div className="text-[10px]">
-                              {[
-                                formData.reportOptions.printAddress && member.address && `Address : ${member.address}`,
-                                formData.reportOptions.printTelNo && member.mobile && `Tel/Mob : ${member.mobile}`,
-                              ].filter(Boolean).join("   ")}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
+                      
+{(formData.reportOptions.printAddress && member.address) ||
+ (formData.reportOptions.printTelNo && member.mobile) ? (
+  <tr>
+    <td colSpan={columns.length} className="pt-2 pb-0.5">
+      <div className="text-[10px]">
+        {[
+          formData.reportOptions.printAddress &&
+            member.address &&
+            `Address : ${member.address}`,
+          formData.reportOptions.printTelNo &&
+            member.mobile &&
+            `Tel/Mob : ${member.mobile}`,
+        ].filter(Boolean).join("   ")}
+      </div>
+    </td>
+  </tr>
+) : null}
+
                       {member.policies.map((p: any) => (
                         <tr key={p.policyNo}>
                           {columns.map((col) => (
@@ -591,7 +633,10 @@ const cols: ColumnDef[] = [
                             Member Total :
                           </td>
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                            <span style={totalValueStyle}>{member.totalLastPremium.toLocaleString("en-IN")}</span>
+                            <span style={totalValueStyle}>{member.totalLastPremium.toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                               })}</span>
                           </td>
                           <td colSpan={columns.length - LAST_PREMIUM_AMT_IDX - 1}></td>
                         </tr>
@@ -606,7 +651,10 @@ const cols: ColumnDef[] = [
                       </div>
                     </td>
                     <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                      <span style={totalValueStyle}>{group.totalLastPremium.toLocaleString("en-IN")}</span>
+                      <span style={totalValueStyle}>{group.totalLastPremium.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                         })}</span>
                     </td>
                     <td colSpan={columns.length - LAST_PREMIUM_AMT_IDX - 1}></td>
                   </tr>
@@ -626,7 +674,10 @@ const cols: ColumnDef[] = [
                 <tr className="font-bold">
                   <td className="px-1 pt-1.5 pb-1">Grand Total (Last Premium)</td>
                   <td className="px-1 pt-1.5 pb-1 text-right font-mono">
-                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN")}</span>
+                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                       })}</span>
                   </td>
                 </tr>
                 <tr className="font-bold">
