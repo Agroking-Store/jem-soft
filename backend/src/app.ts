@@ -34,9 +34,18 @@ import { config } from "./config/env.js";
 
 const app: Application = express();
 
+const allowedOrigins = config.clientUrl
+  ? config.clientUrl.split(",").map((o) => o.trim())
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: config.clientUrl || "*",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
   })
 );

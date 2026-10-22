@@ -23,6 +23,7 @@ import {
   CustomerSectionCard,
   CustomerBreadcrumbs,
 } from "@/features/customers/components/CustomerUi";
+import { getBackendFileUrl } from "@/shared/utils/fileUrl";
 
 const STATUS_MAP: Record<string, { color: string; icon: any }> = {
   Approved: { color: "bg-green-100 text-green-700", icon: CheckCircle },
@@ -321,7 +322,7 @@ export default function ViewClaimPage() {
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <a
-                          href={doc.fileUrl}
+                          href={getBackendFileUrl(doc.fileUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg"
@@ -329,7 +330,7 @@ export default function ViewClaimPage() {
                           View
                         </a>
                         <a
-                          href={doc.fileUrl}
+                          href={getBackendFileUrl(doc.fileUrl)}
                           download
                           className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg"
                         >

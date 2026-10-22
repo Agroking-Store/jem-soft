@@ -64,14 +64,16 @@ const toDateString = (date: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
-const buildLifeAssuredName = (customer: {
-  firstName: string;
+const buildLifeAssuredName = (customer?: {
+  firstName?: string | null;
   middleName?: string | null;
-  lastName: string;
-}): string =>
-  [customer.firstName, customer.middleName, customer.lastName]
-    .filter((part) => part && part.trim())
+  lastName?: string | null;
+} | null): string => {
+  if (!customer) return "";
+  return [customer.firstName, customer.middleName, customer.lastName]
+    .filter((part): part is string => Boolean(part && part.trim()))
     .join(" ");
+};
 
 const isSuccessfulPayment = (payment: PaymentLike): boolean =>
   !!payment.paidDate ||

@@ -28,6 +28,7 @@ import ShortCommissionReportView from "@/features/lic/comm-reports/ShortCommissi
 import { ShortCommissionFormData } from "@/features/lic/comm-reports/shortCommissionData";
 import GapCommissionForm from "@/features/lic/comm-reports/GapCommissionForm";
 import GapCommissionReportView from "@/features/lic/comm-reports/GapCommissionReportView";
+import { getBackendFileUrl } from "@/shared/utils/fileUrl";
 import { GapCommissionFormData } from "@/features/lic/comm-reports/gapCommissionData";
 import { fetchLicBranches } from "@/features/lic/licBranchSlice";
 import { fetchCommissionBills, fetchCommissionBillById, deleteCommissionBill } from "@/features/lic/commissionSlice";
@@ -387,7 +388,7 @@ export default function LICCommReportsPage() {
                         <td className="py-2.5 px-3 text-center">
                           {b.fileUrl ? (
                             <a
-                              href={b.fileUrl.startsWith("http") ? b.fileUrl : `http://localhost:5000${b.fileUrl}`}
+                              href={getBackendFileUrl(b.fileUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-[#1877F2] font-semibold text-[11px] hover:bg-blue-100 transition mr-2"

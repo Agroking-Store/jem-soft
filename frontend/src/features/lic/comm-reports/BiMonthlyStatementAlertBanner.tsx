@@ -21,6 +21,7 @@ import {
   createFortnightCycle,
   MONTH_NAMES,
 } from "./fortnightTracker";
+import { getBackendFileUrl } from "@/shared/utils/fileUrl";
 
 interface BiMonthlyStatementAlertBannerProps {
   bills: any[];
@@ -248,11 +249,7 @@ export default function BiMonthlyStatementAlertBanner({
 
                     {c.isUploaded && c.uploadedBill?.fileUrl && (
                       <a
-                        href={
-                          c.uploadedBill.fileUrl.startsWith("http")
-                            ? c.uploadedBill.fileUrl
-                            : `http://localhost:5000${c.uploadedBill.fileUrl}`
-                        }
+                        href={getBackendFileUrl(c.uploadedBill.fileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#1877F2] hover:underline text-[10px] font-bold inline-flex items-center gap-0.5"
