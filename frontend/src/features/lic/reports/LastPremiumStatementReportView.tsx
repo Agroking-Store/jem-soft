@@ -592,7 +592,10 @@ const cols: ColumnDef[] = [
                             Member Total :
                           </td>
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                            <span style={totalValueStyle}>{member.totalLastPremium.toLocaleString("en-IN")}</span>
+                            <span style={totalValueStyle}>{member.totalLastPremium.toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                               })}</span>
                           </td>
                           <td colSpan={columns.length - LAST_PREMIUM_AMT_IDX - 1}></td>
                         </tr>
@@ -607,7 +610,10 @@ const cols: ColumnDef[] = [
                       </div>
                     </td>
                     <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
-                      <span style={totalValueStyle}>{group.totalLastPremium.toLocaleString("en-IN")}</span>
+                      <span style={totalValueStyle}>{group.totalLastPremium.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                         })}</span>
                     </td>
                     <td colSpan={columns.length - LAST_PREMIUM_AMT_IDX - 1}></td>
                   </tr>
@@ -627,7 +633,10 @@ const cols: ColumnDef[] = [
                 <tr className="font-bold">
                   <td className="px-1 pt-1.5 pb-1">Grand Total (Last Premium)</td>
                   <td className="px-1 pt-1.5 pb-1 text-right font-mono">
-                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN")}</span>
+                    <span style={totalValueStyle}>{grandTotal.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                       })}</span>
                   </td>
                 </tr>
                 <tr className="font-bold">

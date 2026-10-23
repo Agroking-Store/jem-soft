@@ -394,8 +394,10 @@ export default function PremiumDueReportView({
       const dobRaw = memberMaster?.dob || c.dob;
       const occurrences = dueOccurrences(p, fromDate, toDate, formData.reportBasedOn);
 
-      occurrences.forEach((dueDate) => {
-        dueRows.push({
+      const uniqueOccurrences = occurrences.slice(0, 1);
+
+uniqueOccurrences.forEach((dueDate) => {
+  dueRows.push({
           sNo: 0, // renumbered in true display order once blocks are built
           groupCode: String(c.groupCode || c.id || p.clientId || "—"),
           groupName: String(c.groupName || c.name || "Individual"),
@@ -549,6 +551,7 @@ export default function PremiumDueReportView({
     let sNo = 0;
     return ordered.map((b) => ({
       ...b,
+
       rows: b.rows.map((r) => ({ ...r, sNo: (sNo += 1) })),
     }));
   }, [rows, formData.sortingOption]);
@@ -832,13 +835,13 @@ export default function PremiumDueReportView({
             </button>
           </div>
         ) : (
-        <table className="w-full text-left text-[10px] border-collapse">
+        <table className="w-full table-fixed text-left text-[10px] border-collapse">
           <thead>
             <tr className="font-bold">
               {headerCells.map((h) => (
                 <th
                   key={h}
-                  className="px-1 py-1 text-left font-bold whitespace-nowrap border-t border-b border-black"
+                  className="px-2 py-1 text-left font-bold whitespace-normal border-t border-b border-black"
                 >
                   {h}
                 </th>
