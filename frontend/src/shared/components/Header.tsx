@@ -153,7 +153,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
@@ -161,6 +161,10 @@ interface HeaderProps {
   isNavigationOpen: boolean;
   onMenuToggle: () => void;
 }
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationState = () => true;
+const getServerHydrationState = () => false;
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
   { match: "/dashboard/customers", title: "Customers" },
