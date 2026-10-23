@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useRef, useState, useMemo, Fragment } from "react";
 import {
@@ -71,6 +71,17 @@ interface DueRow {
   gst?: string;
   dob?: string;
   nachDetails?: string;
+  agencyCode?: string;
+  commencementDate?: string;
+  planTermType?: string;
+  branch?: string;
+  fupDate?: string;
+  payBeforeDate?: string;
+  latePaymentAmount?: number | null;
+  latePaymentUpto?: string;
+  taxBenefitUpto?: string;
+  telOffice?: string;
+  telResidence?: string;
 }
 
 /** Every row matches when nothing is selected for that filter type. */
@@ -383,8 +394,10 @@ export default function PremiumDueReportView({
       const dobRaw = memberMaster?.dob || c.dob;
       const occurrences = dueOccurrences(p, fromDate, toDate, formData.reportBasedOn);
 
-      occurrences.forEach((dueDate) => {
-        dueRows.push({
+      const uniqueOccurrences = occurrences.slice(0, 1);
+
+uniqueOccurrences.forEach((dueDate) => {
+  dueRows.push({
           sNo: 0, // renumbered in true display order once blocks are built
           groupCode: String(c.groupCode || c.id || p.clientId || "—"),
           groupName: String(c.groupName || c.name || "Individual"),
@@ -404,6 +417,61 @@ export default function PremiumDueReportView({
               0
           ),
           paymentType: isNach ? "NACH" : String(p.paymentMode?.modeName || "Other"),
+                    // Additional fields for Premium Due Statement
+          agencyCode: String(
+            p.agentCode || p.agency?.agencyCode || p.advisor?.advisorCode || "—"
+          ),
+
+          commencementDate: fmtDate(asDate(p.commencementDate)),
+
+          planTermType: String(
+            p.planTermType ||
+            p.product?.planTermType ||
+            p.product?.productName ||
+            p.planName ||
+            "—"
+          ),
+
+          branch: String(
+            p.branch?.branchCode
+              ? `${p.branch.branchCode}${
+                  p.branch.branchName ? ` - ${p.branch.branchName}` : ""
+                }`
+              : p.branchNo || p.branchName || "—"
+          ),
+
+          fupDate: fmtDate(asDate(p.fupDate)),
+
+          payBeforeDate: fmtDate(
+            asDate(p.payBeforeDate || p.paymentBeforeDate)
+          ),
+
+          latePaymentAmount:
+            p.latePaymentAmount == null
+              ? null
+              : Number(p.latePaymentAmount),
+
+          latePaymentUpto: fmtDate(
+            asDate(p.latePaymentUpto || p.latePaymentUptoDate)
+          ),
+
+          taxBenefitUpto: fmtDate(
+            asDate(p.taxBenefitUpto || p.taxBenefitUptoDate)
+          ),
+
+          telOffice: String(
+            memberMaster?.contactInfo?.officePhone ||
+            c.officePhone ||
+            c.telOffice ||
+            "—"
+          ),
+
+          telResidence: String(
+            memberMaster?.contactInfo?.residencePhone ||
+            c.residencePhone ||
+            c.telResidence ||
+            "—"
+          ),
           memberId,
           area: String(c.resArea || c.offArea || ""),
           subArea: String(c.resCity || c.offCity || ""),
@@ -483,6 +551,7 @@ export default function PremiumDueReportView({
     let sNo = 0;
     return ordered.map((b) => ({
       ...b,
+
       rows: b.rows.map((r) => ({ ...r, sNo: (sNo += 1) })),
     }));
   }, [rows, formData.sortingOption]);
@@ -506,18 +575,21 @@ export default function PremiumDueReportView({
   ].filter(Boolean) as Array<{ label: string; render: (r: DueRow) => string }>;
 
   const baseHeaders = [
-    "S.No",
-    "Group Code",
-    "Group Name",
-    "Policy No.",
-    "Insured Name",
-    "Plan",
-    "Sum Assured",
-    "Mode",
-    "Due Date",
-    "Premium",
-    "Payment Type",
-  ];
+  "Policy No.",
+  "Ag Cd",
+  "Com. Date",
+  "Pl/Tm/Pt",
+  "Md",
+  "Brn",
+  "FUP Date",
+  "Due Date",
+  "Sum",
+  "Premium Amount",
+  "Pay Before",
+  "Late Payment Amount",
+  "Late Payment Upto",
+  "Tax Benefit",
+];
   const headerCells = [...baseHeaders, ...optCols.map((c) => c.label)];
   const totalCols = headerCells.length;
   // Columns BEFORE "Premium" (S.No..Due Date) — subtotal rows must land the
@@ -698,6 +770,7 @@ export default function PremiumDueReportView({
         className="bg-white px-6 py-6 border border-slate-300 shadow-xl text-[10px] leading-snug print:p-0 print:border-none print:shadow-none"
         style={{ fontFamily: "Arial, Helvetica, sans-serif", color: "#000" }}
       >
+
         {/* Report title line */}
         <div className="flex justify-between items-end pb-0.5 text-[11px] font-semibold">
           <span>
@@ -736,13 +809,13 @@ export default function PremiumDueReportView({
             </button>
           </div>
         ) : (
-        <table className="w-full text-left text-[10px] border-collapse">
+        <table className="w-full table-fixed text-left text-[10px] border-collapse">
           <thead>
             <tr className="font-bold">
               {headerCells.map((h) => (
                 <th
                   key={h}
-                  className="px-1 py-1 text-left font-bold whitespace-nowrap border-t border-b border-black"
+                  className="px-2 py-1 text-left font-bold whitespace-normal border-t border-b border-black"
                 >
                   {h}
                 </th>
@@ -759,26 +832,62 @@ export default function PremiumDueReportView({
                     </td>
                   </tr>
                 )}
-                {block.rows.map((row) => (
-                  <tr key={`${block.key}-${row.policyNo}-${row.sNo}`}>
-                    <td className="px-1 py-0.5 text-slate-500">{row.sNo}</td>
-                    <td className="px-1 py-0.5 font-semibold">{row.groupCode}</td>
-                    <td className="px-1 py-0.5">{row.groupName}</td>
-                    <td className="px-1 py-0.5 font-mono font-bold">{row.policyNo}</td>
-                    <td className="px-1 py-0.5 font-semibold">{row.insuredName}</td>
-                    <td className="px-1 py-0.5">{row.plan}</td>
-                    <td className="px-1 py-0.5 text-right font-mono">{fmtCurrency(row.sumAssured)}</td>
-                    <td className="px-1 py-0.5 text-center">{row.premiumMode}</td>
-                    <td className="px-1 py-0.5 text-center font-semibold">{row.dueDate}</td>
-                    <td className="px-1 py-0.5 text-right font-mono font-bold">{fmtCurrency(row.premium)}</td>
-                    <td className="px-1 py-0.5 text-center">{row.paymentType}</td>
-                    {optCols.map((col) => (
-                      <td key={col.label} className="px-1 py-0.5 whitespace-nowrap">
-                        {col.render(row)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                
+{block.rows.map((row) => (
+  <tr key={`${block.key}-${row.policyNo}-${row.sNo}`}>
+    <td className="px-1 py-0.5 font-mono font-bold">
+      {row.policyNo}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.agencyCode || "—"}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.commencementDate || "—"}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.planTermType || row.plan}
+    </td>
+    <td className="px-1 py-0.5 text-center">
+      {row.premiumMode}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.branch || "—"}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.fupDate || "—"}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.dueDate}
+    </td>
+    <td className="px-1 py-0.5 text-right font-mono">
+      {fmtCurrency(row.sumAssured)}
+    </td>
+    <td className="px-1 py-0.5 text-right font-mono font-bold">
+      {fmtCurrency(row.premium)}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.payBeforeDate || "—"}
+    </td>
+    <td className="px-1 py-0.5 text-right">
+      {row.latePaymentAmount == null
+        ? "—"
+        : fmtCurrency(row.latePaymentAmount)}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.latePaymentUpto || "—"}
+    </td>
+    <td className="px-1 py-0.5">
+      {row.taxBenefitUpto || "—"}
+    </td>
+
+    {optCols.map((col) => (
+      <td key={col.label} className="px-1 py-0.5 whitespace-nowrap">
+        {col.render(row)}
+      </td>
+    ))}
+  </tr>
+))}
+
                 {/* Block subtotal — only when it adds information (matches
                     Policy Register: single-row blocks skip the redundant row) */}
                 {block.showHeading && block.rows.length > 1 && (
@@ -860,3 +969,4 @@ export default function PremiumDueReportView({
     </div>
   );
 }
+
