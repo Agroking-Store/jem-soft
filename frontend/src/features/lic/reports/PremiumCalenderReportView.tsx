@@ -441,7 +441,7 @@ export default function PremiumCalendarReportView({
           policyNo: p.policyNumber || "-",
           commDate,
           modeLabel: modeAbbrev(modeName),
-          planTermPptMode: `${planNo}/${term}/${ppt}${modeAbbrev(modeName)}`,
+          planTermPptMode: `${planNo}/${term}/${ppt} ${modeAbbrev(modeName)}`,
           sum: sumAssured,
           premium: installmentPremium,
           loanInterest: loanInterestPerDue,
@@ -506,7 +506,7 @@ export default function PremiumCalendarReportView({
       const canvas = await html2canvas(reportRef.current, {
         scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false,
       });
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pdf = new jsPDF({ orientation: "l", unit: "mm", format: "a4", compress: true });
       const pageWidthMm = 210;
       const pageHeightMm = 297;
       const pxPerMm = canvas.width / pageWidthMm;
@@ -545,8 +545,7 @@ export default function PremiumCalendarReportView({
   const maxMonthAmount = Math.max(1, ...Object.values(monthlyTotals) as number[]);
 
   // Total column count — month headings/totals must span exactly this many cols
-  const totalCols =
-    (isType2 ? 11 : 9) + (isType2 ? 0 : 1) + (formData.includeLoanInterest ? 1 : 0);
+  const totalCols = 11 + (formData.includeLoanInterest ? 1 : 0);
 
   const getReportHeaderTitle = () => {
     switch (formData.sortingOption) {
@@ -641,69 +640,52 @@ export default function PremiumCalendarReportView({
                         </td>
                       </tr>
                       <tr className="font-bold">
-                        <th className="px-1 py-1 text-left" style={thStyle}>Name of<br />Policy Holder</th>
                         <th className="px-1 py-1 text-left" style={thStyle}>Due<br />Date</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Name of the Policy<br />Holder</th>
                         <th className="px-1 py-1 text-left" style={thStyle}>Policy No</th>
                         <th className="px-1 py-1 text-left" style={thStyle}>Com<br />Date</th>
-                        <th className="px-1 py-1 text-left" style={thStyle}>{isType2 ? "Pl/Tm/Pt Md" : "Md"}</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Pl/Tm/Pt Md</th>
                         <th className="px-1 py-1 text-right" style={thStyle}>Sum</th>
                         <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
-                        {!isType2 && <th className="px-1 py-1 text-right" style={thStyle}>Policy Holder<br />Total</th>}
                         {formData.includeLoanInterest && <th className="px-1 py-1 text-right" style={thStyle}>Loan<br />Interest</th>}
                         <th className="px-1 py-1 text-center" style={thStyle}>Brn</th>
-                        {isType2 && (
-                          <>
-                            <th className="px-1 py-1 text-center" style={thStyle}>Tax<br />Ben</th>
-                            <th className="px-1 py-1 text-center" style={thStyle}>Date of<br />Pay</th>
-                            <th className="px-1 py-1 text-left" style={thStyle}>Details</th>
-                          </>
-                        )}
+                        <th className="px-1 py-1 text-center" style={thStyle}>Tax<br />Ben</th>
+                        <th className="px-1 py-1 text-center" style={thStyle}>Date of<br />Pay</th>
+                        <th className="px-1 py-1 text-left" style={thStyle}>Details</th>
                       </tr>
                     </thead>
                     <tbody>
                       {month.rows.map((row: any, i: number) => (
                         <tr key={i}>
-                          <td className="px-1 py-0.5 font-semibold">{row.memberName}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap">{fmtDate(row.dueDate, true)}</td>
+                          <td className="px-1 py-0.5 font-semibold">{row.memberName}</td>
                           <td className="px-1 py-0.5 font-mono whitespace-nowrap">{row.policyNo}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap">{fmtDate(row.commDate, true)}</td>
-                          <td className="px-1 py-0.5 whitespace-nowrap">{isType2 ? row.planTermPptMode : row.modeLabel}</td>
+                          <td className="px-1 py-0.5 whitespace-nowrap">{row.planTermPptMode}</td>
                           <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.sum.toLocaleString("en-IN")}</td>
                           <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.premium.toLocaleString("en-IN")}</td>
-                          {!isType2 && (
-                            <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">
-                              {row.holderTotal !== undefined ? row.holderTotal.toLocaleString("en-IN") : ""}
-                            </td>
-                          )}
                           {formData.includeLoanInterest && (
                             <td className="px-1 py-0.5 text-right whitespace-nowrap">{row.loanInterest}</td>
                           )}
                           <td className="px-1 py-0.5 text-center">{row.brn}</td>
-                          {isType2 && (
-                            <>
-                              <td className="px-1 py-0.5"></td>
-                              <td className="px-1 py-0.5"></td>
-                              <td className="px-1 py-0.5"></td>
-                            </>
-                          )}
+                          <td className="px-1 py-0.5"></td>
+                          <td className="px-1 py-0.5"></td>
+                          <td className="px-1 py-0.5"></td>
                         </tr>
                       ))}
                       <tr className="font-bold">
-                        <td colSpan={isType2 ? 6 : 7} className="px-1 pt-1.5 pb-1 text-right pr-3">
+                        <td colSpan={6} className="px-1 pt-1.5 pb-1 text-right pr-3">
                           Month Total :
                         </td>
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                           <span style={totalValueStyle}>{month.total.toLocaleString("en-IN")}</span>
                         </td>
-                        {/* Type 1 has a Policy Holder Total column between Premium
-                            and Loan Interest — keep the loan figure in its own column */}
-                        {!isType2 && formData.includeLoanInterest && <td />}
                         {formData.includeLoanInterest && (
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                             <span style={totalValueStyle}>{month.loanTotal.toLocaleString("en-IN")}</span>
                           </td>
                         )}
-                        <td colSpan={Math.max(1, totalCols - (isType2 ? 6 : 7) - 1 - (formData.includeLoanInterest ? 1 : 0) - (!isType2 && formData.includeLoanInterest ? 1 : 0))}></td>
+                        <td colSpan={4}></td>
                       </tr>
                     </tbody>
                   </table>
