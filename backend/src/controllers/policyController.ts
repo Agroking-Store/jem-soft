@@ -385,10 +385,24 @@ export const previewRiderPremium = catchAsync(
       (Number(riderRate.ratePerThousand) * Number(sumAssured)) /
       1000;
 
-    const modeFactor = await getModeFactor(
-      productId,
-      premiumMode,
-    );
+    // DAB/ADDB/ABR are flat per-1000 benefits. LIC divides them by exactly
+    // 2/4/12 for half-yearly/quarterly/monthly; only the mortality riders
+    // (TRB/CIR) carry the ~1% loading in the product mode factor. Using the
+    // product factor here would overcharge a 10 lakh DAB by 5 rupees.
+    const FLAT_MODE_RIDERS = new Set(["DAB", "ADDB", "ABR"]);
+    const modeName = String(premiumMode ?? "").trim().toLowerCase();
+    const flatModeFactor = modeName.startsWith("half")
+      ? 0.5
+      : modeName.startsWith("quarter")
+        ? 0.25
+        : modeName.startsWith("month")
+          ? 1 / 12
+          : 1;
+
+    const modeFactor =
+      rider && FLAT_MODE_RIDERS.has(rider.riderCode)
+        ? flatModeFactor
+        : await getModeFactor(productId, premiumMode);
 
     const installmentPremium = Number(
       (tabularPremium * modeFactor).toFixed(2),

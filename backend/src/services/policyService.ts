@@ -373,13 +373,13 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         // riders. calculatePremium only knows the base premium, so the rider
         // part is added here.
         const gstRate = Number(premium.gstRate ?? 0);
+        const gstBase =
+          premium.installmentPremium + (totalRiderPremium ?? 0);
         const gst =
           gstRate > 0
-            ? Math.round(
-                ((premium.installmentPremium + (totalRiderPremium ?? 0)) *
-                  gstRate) /
-                  100,
-              )
+            ? premium.gstRounding === "PAISE"
+              ? Number(((gstBase * gstRate) / 100).toFixed(2))
+              : Math.round((gstBase * gstRate) / 100)
             : Number(premium.gst ?? 0);
         await tx.policyPremiumCalculation.create({
           data: {

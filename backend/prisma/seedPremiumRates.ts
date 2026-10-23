@@ -67,6 +67,11 @@ import {
   seedRiderPremium917,
   seedModeFactors917,
 } from "./seedPremiumRates917";
+import {
+  seedPremiumRates915,
+  seedRiderPremium915,
+  seedModeFactors915,
+} from "./seedPremiumRates915";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -144,6 +149,13 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates917(prisma);
   await seedRiderPremium917(prisma);
   await seedModeFactors917(prisma);
+
+  // Plan 915 (LIC's New Jeevan Anand V02) - the predecessor of 715. Rated on
+  // the nearer birthday (no half-year band), 2%/1% rate-based mode rebate and
+  // three riders (DAB, TRB, CIR).
+  await seedPremiumRates915(prisma);
+  await seedRiderPremium915(prisma);
+  await seedModeFactors915(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

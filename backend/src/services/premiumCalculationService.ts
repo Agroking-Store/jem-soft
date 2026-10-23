@@ -4,6 +4,7 @@ import { licAgeBand } from "../utils/licAgeBand.js";
 import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
+import { calculateLIC915 } from "./premiumcalculators/lic915Calculator.js";
 import { calculateLIC717 } from "./premiumcalculators/lic717Calculator.js";
 import { calculateLIC748 } from "./premiumcalculators/lic748Calculator.js";
 import { calculateLIC771 } from "./premiumcalculators/lic771Calculator.js";
@@ -45,6 +46,18 @@ export interface CalculatorInput {
   sumAssured: number;
   tabularPremium: number;
   rate: number;
+}
+
+interface PremiumResult {
+  saRebateRate: number;
+  saRebateAmount: number;
+  modeRebateRate: number;
+  modeRebateAmount: number;
+  basicYearlyPremium: number;
+  /** Exact installment for calculators that divide by the mode divisor. */
+  installmentOverride?: number;
+  /** 915 keeps paise on the yearly premium; every other plan rounds GST. */
+  gstRounding?: "PAISE" | "WHOLE";
 }
 
 function parseRequiredInt(value: unknown, fieldName: string): number {
@@ -500,9 +513,21 @@ export async function calculatePremium(data: PremiumInput) {
   // STEP 5 : Plan Calculator
   // ==========================================
 
-  let premiumResult;
+  let premiumResult: PremiumResult;
 
   switch (product.planNumber) {
+    case "915":
+      premiumResult = await calculateLIC915({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
     case "714":
     case "715":
     case "733":
@@ -696,15 +721,23 @@ export async function calculatePremium(data: PremiumInput) {
 
   const modeFactor = await getModeFactor(data.productId, data.premiumMode);
 
+  // A calculator that has already divided by the mode divisor hands back the
+  // exact installment; the generic factor path stays for every other plan.
   const installmentPremium = Number(
-    (premiumResult.basicYearlyPremium * modeFactor).toFixed(2),
+    (
+      premiumResult.installmentOverride ??
+      premiumResult.basicYearlyPremium * modeFactor
+    ).toFixed(2),
   );
 
   // LIC rounds the tax to whole rupees on the premium it actually collects, so
-  // a 4.5% GST on 7,50,740 is 33,783 and not 33,783.30.
+  // a 4.5% GST on 7,50,740 is 33,783 and not 33,783.30. Plan 915's yearly
+  // premium is the exception - LIC keeps the paise there.
   const gst =
     gstRate > 0
-      ? Math.round((installmentPremium * gstRate) / 100)
+      ? premiumResult.gstRounding === "PAISE"
+        ? Number(((installmentPremium * gstRate) / 100).toFixed(2))
+        : Math.round((installmentPremium * gstRate) / 100)
       : 0;
 
   // ==========================================
@@ -729,6 +762,8 @@ export async function calculatePremium(data: PremiumInput) {
     installmentPremium,
 
     gstRate,
+
+    gstRounding: premiumResult.gstRounding,
 
     gst,
 

@@ -30,9 +30,11 @@ const args = Object.fromEntries(
 
 const PLAN = args.plan ?? "833";
 const SAMPLE = args.sample && args.sample !== "all" ? Number(args.sample) : Infinity;
-const CALC_DATE = "2018-07-12";
+// Plans launched after 2018 (915 went on sale in Feb-2020) return no rate on
+// the 2018 default, so the date is overridable.
+const CALC_DATE = args.date ?? "2018-07-12";
 const REF_SA = 1000000;
-const API = "http://localhost:5000/api";
+const API = process.env.VERIFY_API ?? "http://localhost:5000/api";
 
 const prisma = new PrismaClient();
 
@@ -153,7 +155,8 @@ async function ourPost(path: string, body: Record<string, any>) {
 
 // ---------------------------------------------------------------- helpers
 
-const dobFor = (age: number) => new Date(Date.UTC(2018 - age, 6, 12)).toISOString().slice(0, 10);
+const CALC_YEAR = Number(CALC_DATE.slice(0, 4));
+const dobFor = (age: number) => new Date(Date.UTC(CALC_YEAR - age, 6, 12)).toISOString().slice(0, 10);
 
 const monthsBetween = (dob: string, ref: string) => {
   const b = new Date(dob + "T00:00:00Z");
@@ -166,7 +169,7 @@ const monthsBetween = (dob: string, ref: string) => {
 /** A date of birth that lands in a specific half-year age band. */
 function dobForBand(age: number, band: number): string | null {
   const months = band * 6;
-  const iso = new Date(Date.UTC(2018 - Math.floor(months / 12), 6 - (months % 12), 12))
+  const iso = new Date(Date.UTC(CALC_YEAR - Math.floor(months / 12), 6 - (months % 12), 12))
     .toISOString()
     .slice(0, 10);
   return monthsBetween(iso, CALC_DATE) === months ? iso : null;
@@ -271,8 +274,11 @@ async function main() {
     where: { productId: P },
     select: { rider: { select: { id: true, riderCode: true, riderName: true } } },
   });
-  const ages = [...new Set(bandRows.map((r) => r.entryAge))].sort((a, b) => a - b);
-  const terms = [...new Set(bandRows.map((r) => r.policyTerm))].sort((a, b) => a - b);
+  // Plans rated on the nearer birthday (915) have no band rows, so fall back
+  // to the integer-age grid for the rider probes.
+  const probeRows = bandRows.length ? bandRows : baseRows;
+  const ages = [...new Set(probeRows.map((r) => r.entryAge))].sort((a, b) => a - b);
+  const terms = [...new Set(probeRows.map((r) => r.policyTerm))].sort((a, b) => a - b);
   const probeAges = ages.filter((_, i) => i % Math.max(1, Math.ceil(ages.length / 6)) === 0).slice(0, 8);
   const probeTerms = terms.filter((_, i) => i % Math.max(1, Math.ceil(terms.length / 4)) === 0).slice(0, 4);
   const SA_PROBES = [100000, 500000, 1000000];
@@ -280,14 +286,21 @@ async function main() {
   let sPass = 0, sFail = 0;
   for (const age of probeAges) {
     for (const term of probeTerms) {
+      const probeRow = probeRows.find(
+        (r) => r.entryAge === age && r.policyTerm === term,
+      );
+      // Skip combinations the plan does not offer (e.g. 915 at age 48 T33
+      // would mature at 81, past the 75 cap).
+      if (!probeRow) continue;
+      const ppt = probeRow.premiumPayingTerm ?? term;
       for (const sa of SA_PROBES) {
-        const licRows = await licRiders({ DOB: dobFor(age), Term: term, PremTerm: term - 3, RiderSum: String(sa) });
+        const licRows = await licRiders({ DOB: dobFor(age), Term: term, PremTerm: ppt, RiderSum: String(sa) });
         for (const link of riderLinks) {
           const licRow = licRows.find((x: any) => sameRider(String(x.rideDesc), link.rider.riderName));
           if (!licRow?.ridePrem) continue;
           const d: any = await ourPost("/policies/rider-premium-preview", {
             productId: P, riderId: link.rider.id, age, riderTerm: term,
-            premiumPayingTerm: term - 3, sumAssured: sa,
+            premiumPayingTerm: ppt, sumAssured: sa,
             premiumMode: "Yearly", gender: "Male",
           });
           const got = Number(d?.premium);
@@ -307,23 +320,32 @@ async function main() {
   // ---- 5: every linked rider in every premium mode ----------------------
   console.log("\n--- 5. every linked rider, in every premium mode ---");
   const MODE_CODE: Record<string, string> = { Yearly: "Y", "Half-Yearly": "H", Quarterly: "Q", Monthly: "M" };
-  const bandMid = bandRows[Math.floor(bandRows.length / 2)];
+  const bandMid: any = bandRows.length
+    ? bandRows[Math.floor(bandRows.length / 2)]
+    : baseRows[Math.floor(baseRows.length / 2)];
+  const midAge = bandMid?.entryAge ?? 30;
+  const midTerm = bandMid?.policyTerm ?? 13;
+  const midPpt = bandMid?.premiumPayingTerm ?? midTerm;
+  const midDob =
+    bandMid?.ageBand != null
+      ? dobForBand(midAge, bandMid.ageBand)
+      : dobFor(midAge);
   let mPass = 0, mFail = 0;
   console.log("  mode        | rider | LIC prem | our prem | diff");
   for (const mode of Object.keys(MODE_CODE)) {
     const licRows = await licRiders({
-      DOB: dobForBand(bandMid?.entryAge ?? 30, bandMid?.ageBand ?? 60),
-      Term: bandMid?.policyTerm ?? 13, PremTerm: (bandMid?.policyTerm ?? 13) - 3,
+      DOB: midDob,
+      Term: midTerm, PremTerm: midPpt,
       RiderSum: "100000", Mode: MODE_CODE[mode],
     });
     for (const link of riderLinks) {
       const licRow = licRows.find((x: any) => sameRider(String(x.rideDesc), link.rider.riderName));
       const licPrem = licRow?.ridePrem ?? null;
       const d: any = await ourPost("/policies/rider-premium-preview", {
-        productId: P, riderId: link.rider.id, age: bandMid?.entryAge ?? 30,
-        riderTerm: bandMid?.policyTerm ?? 13, premiumPayingTerm: (bandMid?.policyTerm ?? 13) - 3,
+        productId: P, riderId: link.rider.id, age: midAge,
+        riderTerm: midTerm, premiumPayingTerm: midPpt,
         sumAssured: 100000, premiumMode: mode, gender: "Male",
-        dateOfBirth: dobForBand(bandMid?.entryAge ?? 30, bandMid?.ageBand ?? 60),
+        dateOfBirth: midDob,
         commencementDate: CALC_DATE,
       });
       const got = Number(d?.premium);
