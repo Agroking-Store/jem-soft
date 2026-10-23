@@ -154,12 +154,28 @@ function computeSummary(loan: any) {
       ? Math.round(((outstandingPrincipal * annualRate * daysSince) / 36500) * 100) / 100
       : 0;
 
+  // LIC policy loans are billed half-yearly (every 6 months from loan date)
+  const halfYearlyInterestDue =
+    outstandingPrincipal > 0 && annualRate > 0
+      ? Math.round(((outstandingPrincipal * annualRate * 0.5) / 100) * 100) / 100
+      : 0;
+
+  // Calculate Next Half-Yearly Interest Due Date
+  let nextInterestDueDate = new Date(loan.loanDate);
+  if (!isNaN(nextInterestDueDate.getTime())) {
+    while (nextInterestDueDate <= now) {
+      nextInterestDueDate.setMonth(nextInterestDueDate.getMonth() + 6);
+    }
+  }
+
   return {
     totalRepaid: Math.round(totalRepaid * 100) / 100,
     totalPrincipalRepaid: Math.round(totalPrincipalRepaid * 100) / 100,
     totalInterestPaid: Math.round(totalInterestPaid * 100) / 100,
     outstandingPrincipal: Math.round(outstandingPrincipal * 100) / 100,
     accruedInterest,
+    halfYearlyInterestDue,
+    nextInterestDueDate: !isNaN(nextInterestDueDate.getTime()) ? nextInterestDueDate.toISOString() : null,
     totalDue: Math.round((outstandingPrincipal + accruedInterest) * 100) / 100,
     daysSinceLastPayment: daysSince,
     lastPaymentDate: validLastDate.toISOString(),

@@ -153,7 +153,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
@@ -161,6 +161,10 @@ interface HeaderProps {
   isNavigationOpen: boolean;
   onMenuToggle: () => void;
 }
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationState = () => true;
+const getServerHydrationState = () => false;
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
   { match: "/dashboard/customers", title: "Customers" },
@@ -187,6 +191,18 @@ export const Header = ({
 }: HeaderProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+ Premium-Due-Statement
+=======
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationState,
+    getServerHydrationState
+  );
+
+  const displayName = isHydrated ? (user?.name || "User") : "User";
+  const displayRole = isHydrated ? (user?.role?.toLowerCase() || "Guest") : "Guest";
+  const displayEmail = isHydrated ? user?.email : "";
+ main
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -274,11 +290,18 @@ export const Header = ({
             </span>
 
             <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
+ Premium-Due-Statement
               <span className="max-w-32 truncate text-sm font-medium text-slate-900">
                 {displayName}
               </span>
 
               <span className="text-xs capitalize text-slate-500">
+=======
+              <span className="max-w-32 truncate text-sm font-medium text-slate-900" suppressHydrationWarning>
+                {displayName}
+              </span>
+              <span className="text-xs capitalize text-slate-500" suppressHydrationWarning>
+ main
                 {displayRole}
               </span>
             </span>
@@ -315,6 +338,7 @@ export const Header = ({
                   </span>
 
                   <span className="min-w-0">
+ Premium-Due-Statement
                     <span className="block truncate font-semibold text-slate-900">
                       {displayName}
                     </span>
@@ -326,6 +350,11 @@ export const Header = ({
                     <span className="block text-xs font-medium capitalize text-blue-600">
                       {isMounted ? user?.role?.toLowerCase() || "" : ""}
                     </span>
+=======
+                    <span className="block truncate font-semibold text-slate-900" suppressHydrationWarning>{displayName}</span>
+                    <span className="block truncate text-sm text-slate-500" suppressHydrationWarning>{displayEmail}</span>
+                    <span className="block text-xs font-medium capitalize text-blue-600" suppressHydrationWarning>{displayRole}</span>
+ main
                   </span>
                 </span>
               </Link>

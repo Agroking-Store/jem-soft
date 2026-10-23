@@ -242,33 +242,25 @@ export default function LoansPage() {
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
               <tr>
-                {[
-                  "Policy",
-                  "Customer",
-                  "Loan Amount",
-                  "Interest Rate",
-                  "Loan Date",
-                  "Outstanding",
-                  "Status",
-                  "Actions",
-                ].map((h) => (
-                  <th key={h} className="px-5 py-3">
-                    {h}
-                  </th>
-                ))}
+                <th className="px-5 py-3">Policy & Customer</th>
+                <th className="px-5 py-3">Loan & Rate</th>
+                <th className="px-5 py-3">Loan Date & Next Due</th>
+                <th className="px-5 py-3">Outstanding Principal</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
                     Loading loans…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={6}
                     className="px-5 py-12 text-center text-slate-500"
                   >
                     No loans found.
@@ -284,39 +276,70 @@ export default function LoansPage() {
                     loan.summary?.outstandingPrincipal ?? loan.loanAmount ?? 0;
 
                   return (
-                    <tr key={loan.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-4 font-semibold font-mono text-slate-900">
-                        {loan.policy?.policyNumber ?? "—"}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        <div className="flex gap-3 items-center">
-                          <Seal name={custName} size={34} />
-                          <span className="text-sm text-slate-600">{custName}</span>
+                    <tr key={loan.id} className="hover:bg-slate-50 transition-colors">
+                      {/* Policy & Customer */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <Seal name={custName} size={36} />
+                          <div>
+                            <div className="font-mono text-sm font-bold text-slate-900">
+                              {loan.policy?.policyNumber ?? "—"}
+                            </div>
+                            <div className="text-xs text-slate-600 truncate max-w-[180px]">
+                              {custName}
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-semibold text-slate-900">
-                        {money(loan.loanAmount)}
+
+                      {/* Loan Amount & Rate */}
+                      <td className="px-5 py-3.5">
+                        <div className="font-semibold text-sm text-slate-900">
+                          {money(loan.loanAmount)}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {loan.interestRate}% p.a.
+                        </div>
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {loan.interestRate}% p.a.
+
+                      {/* Dates: Taken & Next Due */}
+                      <td className="px-5 py-3.5">
+                        <div className="text-sm text-slate-700">
+                          {dt(loan.loanDate)}
+                        </div>
+                        <div className="text-xs text-blue-700 font-medium mt-0.5">
+                          {loan.summary?.nextInterestDueDate
+                            ? `Due: ${dt(loan.summary.nextInterestDueDate)}`
+                            : "—"}
+                        </div>
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {dt(loan.loanDate)}
+
+                      {/* Outstanding Principal */}
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-sm text-slate-900">
+                          {money(outstanding)}
+                        </div>
+                        {(loan.summary?.accruedInterest ?? 0) > 0 && (
+                          <div className="text-xs text-amber-700">
+                            + {money(loan.summary?.accruedInterest)} int.
+                          </div>
+                        )}
                       </td>
-                      <td className="px-5 py-4 font-semibold text-slate-900">
-                        {money(outstanding)}
-                      </td>
-                      <td className="px-5 py-4">
+
+                      {/* Status */}
+                      <td className="px-5 py-3.5">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge(loan.loanStatus?.statusCode)}`}
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(loan.loanStatus?.statusCode)}`}
                         >
                           {loan.loanStatus?.statusName ??
                             loan.loanStatus?.statusCode ??
                             "Unknown"}
                         </span>
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-1">
+
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           {loan.loanStatus?.statusCode === "ACTIVE" && isClient && canEdit && (
                             <button
                               onClick={() =>
