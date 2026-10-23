@@ -2,7 +2,8 @@
 "use client";
 
 import React from "react";
-import "./PremiumOutstandingReport.css";
+import styles from "./PremiumOutstandingReport.module.css";
+
 
 export type PremiumOutstandingRow = {
   policyNo: string;
@@ -49,8 +50,10 @@ const money = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const sum = (rows: PremiumOutstandingRow[], key: keyof PremiumOutstandingRow) =>
-  rows.reduce((total, row) => total + (Number(row[key]) || 0), 0);
+const sum = (
+  rows: PremiumOutstandingRow[],
+  key: keyof PremiumOutstandingRow
+) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0);
 
 export default function PremiumOutstandingReport({
   advisorName,
@@ -64,27 +67,29 @@ export default function PremiumOutstandingReport({
   groups,
 }: Props) {
   return (
-    <div className="premium-report">
-      <div className="report-toolbar">
+    <div className={styles["premium-report"]}>
+      <div className={styles["report-toolbar"]}>
         <span>Premium Outstanding Statement</span>
-        <button onClick={() => window.print()}>Print / Save PDF</button>
+        <button type="button" onClick={() => window.print()}>
+          Print / Save PDF
+        </button>
       </div>
 
-      <article className="report-page">
-        <header className="advisor-header">
-          <div className="advisor-name">{advisorName}</div>
+      <article className={styles["report-page"]}>
+        <header className={styles["advisor-header"]}>
+          <div className={styles["advisor-name"]}>{advisorName}</div>
           {qualification && <div>{qualification}</div>}
           {address && <div>{address}</div>}
           {phone && <div>{phone}</div>}
           {email && <div>{email}</div>}
         </header>
 
-        <div className="report-title">
+        <div className={styles["report-title"]}>
           <strong>Premium Outstanding Statement</strong>
           <strong>Groupwise</strong>
         </div>
 
-        <div className="report-meta">
+        <div className={styles["report-meta"]}>
           <div>Date of Report: {reportDate}</div>
           <div>
             Premium Outstanding between {periodFrom} and {periodTo}
@@ -97,25 +102,28 @@ export default function PremiumOutstandingReport({
           );
 
           return (
-            <section className="report-group" key={group.code}>
-              <h3 className="group-heading">
+            <section
+              className={styles["report-group"]}
+              key={group.code}
+            >
+              <h3 className={styles["group-heading"]}>
                 {group.code}: {group.name}
               </h3>
 
               {group.customers.map((customer, customerIndex) => (
                 <div
-                  className="customer-section"
+                  className={styles["customer-section"]}
                   key={`${group.code}-${customer.name}-${customerIndex}`}
                 >
-                  <div className="customer-heading">
+                  <div className={styles["customer-heading"]}>
                     <strong>{customer.name}</strong>
                     {customer.telephone && (
                       <span>Tel: {customer.telephone}</span>
                     )}
                   </div>
 
-                  <div className="table-scroll">
-                    <table className="premium-table">
+                  <div className={styles["table-scroll"]}>
+                    <table className={styles["premium-table"]}>
                       <thead>
                         <tr>
                           <th rowSpan={2}>Policy No.</th>
@@ -147,36 +155,39 @@ export default function PremiumOutstandingReport({
                             <td>{row.date || ""}</td>
                             <td>{row.planTermMode || ""}</td>
                             <td>{row.branch || ""}</td>
-                            <td className="number">
+                            <td className={styles.number}>
                               {money(row.installmentPremium)}
                             </td>
                             <td>{row.fupDate || ""}</td>
-                            <td className="number">
+                            <td className={styles.number}>
                               {money(row.amountDue1)}
                             </td>
                             <td>{row.dueDate1 || ""}</td>
-                            <td className="number">
+                            <td className={styles.number}>
                               {money(row.amountDue2)}
                             </td>
                             <td>{row.dueDate2 || ""}</td>
-                            <td className="number">
+                            <td className={styles.number}>
                               {money(row.taxBenefit || 0)}
                             </td>
-                            <td className="number">
+                            <td className={styles.number}>
                               {money(row.depositsExtraCharges || 0)}
                             </td>
                           </tr>
                         ))}
 
-                        <tr className="total-row">
-                          <td colSpan={8} className="total-label">
+                        <tr className={styles["total-row"]}>
+                          <td
+                            colSpan={8}
+                            className={styles["total-label"]}
+                          >
                             Total:
                           </td>
-                          <td className="number">
+                          <td className={styles.number}>
                             {money(sum(customer.rows, "amountDue1"))}
                           </td>
                           <td />
-                          <td className="number">
+                          <td className={styles.number}>
                             {money(sum(customer.rows, "amountDue2"))}
                           </td>
                           <td colSpan={3} />
@@ -187,21 +198,17 @@ export default function PremiumOutstandingReport({
                 </div>
               ))}
 
-              <div className="group-total">
+              <div className={styles["group-total"]}>
                 <strong>Group Total:</strong>
-                <strong>
-                  {money(sum(groupRows, "amountDue1"))}
-                </strong>
-                <strong>
-                  {money(sum(groupRows, "amountDue2"))}
-                </strong>
+                <strong>{money(sum(groupRows, "amountDue1"))}</strong>
+                <strong>{money(sum(groupRows, "amountDue2"))}</strong>
               </div>
             </section>
           );
         })}
 
         {groups.length === 0 && (
-          <div className="report-empty">
+          <div className={styles["report-empty"]}>
             No premium outstanding records found for the selected period.
           </div>
         )}
