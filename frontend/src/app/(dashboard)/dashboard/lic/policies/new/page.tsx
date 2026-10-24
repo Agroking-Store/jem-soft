@@ -788,9 +788,32 @@ function NewLICPolicyContent() {
       return true;
     });
 
+    const sortPlans = (a: typeof products[0], b: typeof products[0]) => {
+      const numA = a.planNumber ? parseInt(a.planNumber, 10) : NaN;
+      const numB = b.planNumber ? parseInt(b.planNumber, 10) : NaN;
+
+      const hasNumA = !isNaN(numA);
+      const hasNumB = !isNaN(numB);
+
+      // Both have valid numbers: sort numerically, then alphanumeric suffix if any
+      if (hasNumA && hasNumB) {
+        if (numA !== numB) return numA - numB;
+        return (a.planNumber ?? "").localeCompare(b.planNumber ?? "");
+      }
+
+      // If one has a number and the other doesn't, put numbered one first
+      if (hasNumA && !hasNumB) return -1;
+      if (!hasNumA && hasNumB) return 1;
+
+      // Neither has a numeric planNumber (empty, null, or purely alphabetic like ULIS / Rider)
+      const labelA = a.planNumber ? `${a.planNumber} - ${a.productName}` : a.productName;
+      const labelB = b.planNumber ? `${b.planNumber} - ${b.productName}` : b.productName;
+      return labelA.localeCompare(labelB);
+    };
+
     const active = filteredProducts
       .filter((p) => p.productType !== "Withdrawn")
-      .sort((a, b) => (a.planNumber ?? a.productName).localeCompare(b.planNumber ?? b.productName))
+      .sort(sortPlans)
       .map((p) => {
         const provider = providers.find((pr) => pr.id === p.providerId);
         return {
@@ -802,7 +825,7 @@ function NewLICPolicyContent() {
 
     const withdrawn = filteredProducts
       .filter((p) => p.productType === "Withdrawn")
-      .sort((a, b) => a.productName.localeCompare(b.productName))
+      .sort(sortPlans)
       .map((p) => {
         const provider = providers.find((pr) => pr.id === p.providerId);
         return {
