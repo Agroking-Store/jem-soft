@@ -185,35 +185,23 @@ const getPageTitle = (pathname: string) =>
   PAGE_TITLES.find(({ match }) => pathname.startsWith(match))?.title ??
   "Dashboard";
 
-export const Header = ({
-  isNavigationOpen,
-  onMenuToggle,
-}: HeaderProps) => {
+export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
- Premium-Due-Statement
-=======
+
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationState,
     getServerHydrationState
   );
 
-  const displayName = isHydrated ? (user?.name || "User") : "User";
-  const displayRole = isHydrated ? (user?.role?.toLowerCase() || "Guest") : "Guest";
-  const displayEmail = isHydrated ? user?.email : "";
- main
-
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(pathname);
 
-  // Render browser-dependent user information after mounting.
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const displayName = isHydrated ? user?.name || "User" : "User";
+  const displayRole = isHydrated ? user?.role?.toLowerCase() || "Guest" : "Guest";
+  const displayEmail = isHydrated ? user?.email || "" : "";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -237,14 +225,6 @@ export const Header = ({
     logout();
   };
 
-  // Use identical initial output for server and browser.
-  const displayName = isMounted ? user?.name || "User" : "User";
-  const displayRole = isMounted
-    ? user?.role?.toLowerCase() || "Guest"
-    : "Guest";
-
-  const displayEmail = isMounted ? user?.email || "" : "";
-
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -252,9 +232,7 @@ export const Header = ({
           type="button"
           onClick={onMenuToggle}
           className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 lg:hidden"
-          aria-label={
-            isNavigationOpen ? "Close navigation" : "Open navigation"
-          }
+          aria-label={isNavigationOpen ? "Close navigation" : "Open navigation"}
           aria-controls="primary-navigation"
           aria-expanded={isNavigationOpen}
         >
@@ -282,26 +260,15 @@ export const Header = ({
             aria-expanded={isProfileOpen}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-              <User
-                size={16}
-                className="text-blue-600"
-                aria-hidden="true"
-              />
+              <User size={16} className="text-blue-600" aria-hidden="true" />
             </span>
 
             <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
- Premium-Due-Statement
               <span className="max-w-32 truncate text-sm font-medium text-slate-900">
                 {displayName}
               </span>
 
               <span className="text-xs capitalize text-slate-500">
-=======
-              <span className="max-w-32 truncate text-sm font-medium text-slate-900" suppressHydrationWarning>
-                {displayName}
-              </span>
-              <span className="text-xs capitalize text-slate-500" suppressHydrationWarning>
- main
                 {displayRole}
               </span>
             </span>
@@ -338,7 +305,6 @@ export const Header = ({
                   </span>
 
                   <span className="min-w-0">
- Premium-Due-Statement
                     <span className="block truncate font-semibold text-slate-900">
                       {displayName}
                     </span>
@@ -348,13 +314,8 @@ export const Header = ({
                     </span>
 
                     <span className="block text-xs font-medium capitalize text-blue-600">
-                      {isMounted ? user?.role?.toLowerCase() || "" : ""}
+                      {displayRole}
                     </span>
-=======
-                    <span className="block truncate font-semibold text-slate-900" suppressHydrationWarning>{displayName}</span>
-                    <span className="block truncate text-sm text-slate-500" suppressHydrationWarning>{displayEmail}</span>
-                    <span className="block text-xs font-medium capitalize text-blue-600" suppressHydrationWarning>{displayRole}</span>
- main
                   </span>
                 </span>
               </Link>
