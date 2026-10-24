@@ -1,8 +1,11 @@
 import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
+import { licAgeBand } from "../utils/licAgeBand.js";
 import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
+import { calculateLIC904 } from "./premiumcalculators/lic904Calculator.js";
+import { calculateLIC915 } from "./premiumcalculators/lic915Calculator.js";
 import { calculateLIC717 } from "./premiumcalculators/lic717Calculator.js";
 import { calculateLIC748 } from "./premiumcalculators/lic748Calculator.js";
 import { calculateLIC771 } from "./premiumcalculators/lic771Calculator.js";
@@ -26,6 +29,13 @@ interface PremiumInput {
   premiumPayingTerm?: number | null;
   sumAssured: number;
   premiumMode: string;
+  /**
+   * Customer's date of birth and the policy's commencement date. Together they
+   * determine LIC's half-year age band. Both optional - without them the lookups
+   * fall back to integer entry age.
+   */
+  dateOfBirth?: string | null;
+  commencementDate?: string | null;
 }
 
 export interface CalculatorInput {
@@ -37,6 +47,23 @@ export interface CalculatorInput {
   sumAssured: number;
   tabularPremium: number;
   rate: number;
+}
+
+interface PremiumResult {
+  saRebateRate: number;
+  saRebateAmount: number;
+  modeRebateRate: number;
+  modeRebateAmount: number;
+  basicYearlyPremium: number;
+  /** Exact installment for calculators that divide by the mode divisor. */
+  installmentOverride?: number;
+  /** 915 keeps paise on the yearly premium; every other plan rounds GST. */
+  gstRounding?: "PAISE" | "WHOLE";
+  /** 904's table rate is an IDB-1,000 premium, not a per-1,000 rate. */
+  tabularPremiumOverride?: number;
+  /** 904 rounds the total premium, so the GST is the remainder. */
+  gstAmountOverride?: number;
+  totalOverride?: number;
 }
 
 function parseRequiredInt(value: unknown, fieldName: string): number {
@@ -199,9 +226,25 @@ export async function calculatePremium(data: PremiumInput) {
     throw new AppError("Product not found", 404);
   }
 
-  if (product.planNumber && ["717", "888", "883"].includes(product.planNumber)) {
+  if (
+    product.planNumber &&
+    ["717", "888", "883", "917"].includes(product.planNumber)
+  ) {
     data.premiumMode = "Single";
   }
+
+  // GST is a product-level fact (plan 917 charges 4.5% on a single premium;
+  // the older legacy plans predate GST and carry no GST_RATE attribute).
+  // Keeping it in the attribute table rather than in code means adding a
+  // GST-bearing plan never touches another plan's premium.
+  const gstAttribute = await prisma.productAttributeValue.findFirst({
+    where: {
+      productId: data.productId,
+      attribute: { attributeCode: "GST_RATE" },
+    },
+    select: { value: true },
+  });
+  const gstRate = gstAttribute ? Number(gstAttribute.value) : 0;
 
   // ==========================================
   // STEP 2 : Premium Lookup Term
@@ -222,6 +265,12 @@ export async function calculatePremium(data: PremiumInput) {
   const validatedPPT = premiumPayingTerm!;
 
   const lookupTerm: number = usesPptLookup ? validatedPPT : policyTerm;
+
+  // LIC legacy plans are rated on a half-year age band derived from the date of
+  // birth and the commencement date. Null for every other plan, and null when
+  // the caller did not supply a date of birth - the lookups below then use
+  // integer entry age exactly as before.
+  const ageBand = licAgeBand(data.dateOfBirth, data.commencementDate);
   // ==========================================
   // STEP 3 : Premium Rate
   // ==========================================
@@ -392,6 +441,23 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "904") {
+    // Jeevan Arogya is a health plan. Its table is keyed on age, gender and
+    // whether the life is the principal insured (option 1) or any other
+    // insured (option 2). It does not vary by policy term.
+    if (age >= 18 && activeGender == null) {
+      throw new AppError("Gender is required for LIC Plan 904", 400);
+    }
+
+    const insuredType = age < 18 ? 2 : option === 2 ? 2 : 1;
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        gender: activeGender ?? "M",
+        option: insuredType,
+      },
+    });
   } else {
     // ------------------------------------------
     // EXISTING PLANS
@@ -400,14 +466,31 @@ export async function calculatePremium(data: PremiumInput) {
     const premiumPayingTermFilter =
       premiumPayingTerm == null ? undefined : premiumPayingTerm;
 
-    premiumRate = await prisma.productPremiumRate.findFirst({
-      where: {
-        productId: data.productId,
-        entryAge: age,
-        policyTerm: lookupTerm,
-        premiumPayingTerm: premiumPayingTermFilter,
-      },
-    });
+    // LIC legacy plans store one rate per half-year age band. When the caller
+    // knows the customer's date of birth and the policy's commencement date we
+    // can reproduce LIC's band exactly, so prefer that row; otherwise fall back
+    // to the integer entry age row.
+    if (ageBand != null) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: {
+          productId: data.productId,
+          ageBand,
+          policyTerm: lookupTerm,
+          premiumPayingTerm: premiumPayingTermFilter,
+        },
+      });
+
+      if (!premiumRate) {
+        premiumRate = await prisma.productPremiumRate.findFirst({
+          where: {
+            productId: data.productId,
+            ageBand,
+            policyTerm: lookupTerm,
+            premiumPayingTerm: undefined,
+          },
+        });
+      }
+    }
 
     if (!premiumRate) {
       premiumRate = await prisma.productPremiumRate.findFirst({
@@ -415,9 +498,20 @@ export async function calculatePremium(data: PremiumInput) {
           productId: data.productId,
           entryAge: age,
           policyTerm: lookupTerm,
-          premiumPayingTerm: undefined,
+          premiumPayingTerm: premiumPayingTermFilter,
         },
       });
+
+      if (!premiumRate) {
+        premiumRate = await prisma.productPremiumRate.findFirst({
+          where: {
+            productId: data.productId,
+            entryAge: age,
+            policyTerm: lookupTerm,
+            premiumPayingTerm: undefined,
+          },
+        });
+      }
     }
   }
 
@@ -442,9 +536,34 @@ export async function calculatePremium(data: PremiumInput) {
   // STEP 5 : Plan Calculator
   // ==========================================
 
-  let premiumResult;
+  let premiumResult: PremiumResult;
 
   switch (product.planNumber) {
+    case "915":
+      premiumResult = await calculateLIC915({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "904":
+      premiumResult = await calculateLIC904({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
+      });
+      break;
+
     case "714":
     case "715":
     case "733":
@@ -608,10 +727,16 @@ export async function calculatePremium(data: PremiumInput) {
       break;
 
     default: {
-      const saRebate = await rebateService.calculateSumAssuredRebate(
+      // Legacy plans have no dedicated calculator. LIC's rebate for those
+      // varies with entry age and policy term, so prefer the age/term aware
+      // table and let it fall back to the classic sum-assured one.
+      const saRebate = await rebateService.calculateAgeTermRebate(
         data.productId,
+        age,
+        lookupTerm,
         data.sumAssured,
         tabularPremium,
+        ageBand,
       );
 
       premiumResult = {
@@ -632,9 +757,25 @@ export async function calculatePremium(data: PremiumInput) {
 
   const modeFactor = await getModeFactor(data.productId, data.premiumMode);
 
+  // A calculator that has already divided by the mode divisor hands back the
+  // exact installment; the generic factor path stays for every other plan.
   const installmentPremium = Number(
-    (premiumResult.basicYearlyPremium * modeFactor).toFixed(2),
+    (
+      premiumResult.installmentOverride ??
+      premiumResult.basicYearlyPremium * modeFactor
+    ).toFixed(2),
   );
+
+  // LIC rounds the tax to whole rupees on the premium it actually collects, so
+  // a 4.5% GST on 7,50,740 is 33,783 and not 33,783.30. Plan 915's yearly
+  // premium is the exception - LIC keeps the paise there.
+  const gst =
+    premiumResult.gstAmountOverride ??
+    (gstRate > 0
+      ? premiumResult.gstRounding === "PAISE"
+        ? Number(((installmentPremium * gstRate) / 100).toFixed(2))
+        : Math.round((installmentPremium * gstRate) / 100)
+      : 0);
 
   // ==========================================
   // STEP 7 : Return
@@ -643,7 +784,7 @@ export async function calculatePremium(data: PremiumInput) {
   return {
     rate,
 
-    tabularPremium,
+    tabularPremium: premiumResult.tabularPremiumOverride ?? tabularPremium,
 
     saRebateRate: premiumResult.saRebateRate,
     saRebateAmount: premiumResult.saRebateAmount,
@@ -657,6 +798,18 @@ export async function calculatePremium(data: PremiumInput) {
 
     installmentPremium,
 
-    gst: 0,
+    gstRate,
+
+    gstRounding: premiumResult.gstRounding,
+
+    gst,
+
+    gstAmountOverride: premiumResult.gstAmountOverride,
+
+    totalOverride: premiumResult.totalOverride,
+
+    totalInstallmentPremium:
+      premiumResult.totalOverride ??
+      Number((installmentPremium + gst).toFixed(2)),
   };
 }

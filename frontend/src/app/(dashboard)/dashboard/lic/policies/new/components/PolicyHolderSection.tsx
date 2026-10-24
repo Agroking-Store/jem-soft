@@ -10,11 +10,13 @@ export function PolicyHolderSection({
   groupMembers,
   selectedGroup,
   attributeHintsAge,
+  ageError,
 }: {
   groups: any[];
   groupMembers: any[];
   selectedGroup: any;
   attributeHintsAge?: string;
+  ageError?: string;
 }) {
   const { register, control, watch, formState: { errors } } = useFormContext<PolicyFormValues>();
   const watchGroupId = watch("groupId");
@@ -112,11 +114,15 @@ export function PolicyHolderSection({
             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
             readOnly
           />
-          {attributeHintsAge && (
+          {ageError ? (
+            <p className="text-xs text-red-500 mt-1">
+              {ageError}
+            </p>
+          ) : attributeHintsAge ? (
             <p className="text-xs text-slate-500 mt-1">
               {attributeHintsAge}
             </p>
-          )}
+          ) : null}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">

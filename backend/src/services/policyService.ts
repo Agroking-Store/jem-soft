@@ -331,6 +331,13 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
 
     if (isLic) {
       let premium: any = null;
+      // The half-year age band (plan 123/833/917) needs the life assured's date
+      // of birth, not just the integer age. Without it the lookup silently
+      // falls back to the first band of the age year.
+      const lifeAssured = await tx.customerMaster.findUnique({
+        where: { id: data.lifeAssuredId },
+        select: { dob: true },
+      });
       try {
         premium = await calculatePremium({
           productId: data.productId,
@@ -352,12 +359,29 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           premiumMode: data.mode,
           gender: data.gender,
           smoker: data.smoker,
+          dateOfBirth: lifeAssured?.dob
+            ? lifeAssured.dob.toISOString().slice(0, 10)
+            : null,
+          commencementDate: data.commencementDate,
         });
       } catch (err: any) {
         console.warn("calculatePremium failed for LIC plan:", err?.message);
       }
 
       if (premium) {
+        // GST is charged on the premium actually collected, which includes the
+        // riders. calculatePremium only knows the base premium, so the rider
+        // part is added here.
+        const gstRate = Number(premium.gstRate ?? 0);
+        const gstBase =
+          premium.installmentPremium + (totalRiderPremium ?? 0);
+        const gst =
+          premium.gstAmountOverride ??
+          (gstRate > 0
+            ? premium.gstRounding === "PAISE"
+              ? Number(((gstBase * gstRate) / 100).toFixed(2))
+              : Math.round((gstBase * gstRate) / 100)
+            : Number(premium.gst ?? 0));
         await tx.policyPremiumCalculation.create({
           data: {
             policyId: newPolicy.id,
@@ -371,8 +395,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               premium.basicYearlyPremium + (totalRiderPremium ?? 0),
             installmentPremium: premium.installmentPremium, // From service
             totalInstallmentPremium:
-              premium.installmentPremium + (totalRiderPremium ?? 0),
-            gst: premium.gst, // From service
+              premium.totalOverride !== undefined
+                ? premium.totalOverride + (totalRiderPremium ?? 0)
+                : premium.installmentPremium +
+                  (totalRiderPremium ?? 0) +
+                  (gstRate > 0 ? gst : 0),
+            gst,
             riderPremium: totalRiderPremium ?? 0,
           },
         });

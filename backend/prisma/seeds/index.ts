@@ -19,6 +19,7 @@ import { seedLIC717ModeRebates } from "../masterData/moderebates/lic717";
 import { seedLIC751SumAssuredRebates } from "../masterData/rebates/lic751";
 import { seedLIC748SumAssuredRebates } from "../masterData/rebates/lic748";
 import { seedPaymentModes } from './paymentModes.seed';
+import { seedLegacyPlans } from './seedLegacyPlans';
 import { seedPremiumRates } from '../seedPremiumRates';
 
 export const runSeeders = async (prisma: PrismaClient) => {
@@ -32,7 +33,8 @@ export const runSeeders = async (prisma: PrismaClient) => {
   await seedProducts(prisma);
   await seedProductAttributeValues(prisma);
   await seedAdvisors(prisma);
-  await seedRiders(prisma);
+  await seedRiders(prisma);                    // RiderMaster must exist before legacy rider links
+  await seedLegacyPlans(prisma);               // legacy LIC catalogue (plans 101+): attributes + rider links
   await seedPaymentStatuses(prisma);
   await seedLoanStatuses(prisma);
   await seedLIC714SumAssuredRebates(prisma);

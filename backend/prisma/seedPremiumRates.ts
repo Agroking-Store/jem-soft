@@ -52,6 +52,31 @@ import { seedADDB881 } from "./seedADDBB881";
 import { seedADDB883 } from "./seedADDB883";
 import { seedADDB888 } from "./seedADDB888";
 import { seedADDB912 } from "./seedADDB912";
+import {
+  seedPremiumRates833,
+  seedRiderPremium833,
+  seedModeFactors833,
+} from "./seedPremiumRates833";
+import {
+  seedPremiumRates123,
+  seedRiderPremium123,
+  seedModeFactors123,
+} from "./seedPremiumRates123";
+import {
+  seedPremiumRates917,
+  seedRiderPremium917,
+  seedModeFactors917,
+} from "./seedPremiumRates917";
+import {
+  seedPremiumRates915,
+  seedRiderPremium915,
+  seedModeFactors915,
+} from "./seedPremiumRates915";
+
+import {
+  seedPremiumRates904,
+  seedModeFactors904,
+} from "./seedPremiumRates904";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -109,6 +134,39 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedADDB883(prisma);
   await seedADDB888(prisma);
   await seedADDB912(prisma);
+
+  // Plan 833 (Jeevan Lakshya) - LIC legacy plan. Rated on a half-year age band
+  // rather than completed years, so it carries its own seeder rather than
+  // fitting the standard shape.
+  await seedPremiumRates833(prisma);
+  await seedRiderPremium833(prisma);
+  await seedModeFactors833(prisma);
+
+  // Plan 123 (Jeevan Sanchay 12 Yrs) - LIC legacy plan. Half-year age band, a
+  // formula rebate (3% of the rate plus 2 flat) and no riders at all.
+  await seedPremiumRates123(prisma);
+  await seedRiderPremium123(prisma);
+  await seedModeFactors123(prisma);
+
+  // Plan 917 (Single Premium Endowment) - 16 terms, single premium, GST 4.5%
+  // and two riders (DAB + Term Rider Benefit). The high sum assured rebate
+  // depends on sum assured only, so it lives in the plain SA table.
+  await seedPremiumRates917(prisma);
+  await seedRiderPremium917(prisma);
+  await seedModeFactors917(prisma);
+
+  // Plan 915 (LIC's New Jeevan Anand V02) - the predecessor of 715. Rated on
+  // the nearer birthday (no half-year band), 2%/1% rate-based mode rebate and
+  // three riders (DAB, TRB, CIR).
+  await seedPremiumRates915(prisma);
+  await seedRiderPremium915(prisma);
+  await seedModeFactors915(prisma);
+
+  // Plan 904 (LIC's Jeevan Arogya) - health plan. IDB 1,000/2,000/3,000/4,000
+  // per day and MSB = 100 x IDB. tabularRate is the annual IDB-1,000 table
+  // premium; lic904Calculator scales it and applies the mode/HCB rebates.
+  await seedPremiumRates904(prisma);
+  await seedModeFactors904(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };
