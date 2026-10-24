@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
@@ -198,6 +198,7 @@ function TablePagination({
 
 export default function CustomerListPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { customers, isLoading, error } = useSelector(
@@ -934,7 +935,13 @@ export default function CustomerListPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => openModal(activeTab === "group" ? "group-create" : "master-create")}
+              onClick={() => {
+                if (activeTab === "group") {
+                  router.push("/dashboard/customers/group/new");
+                } else {
+                  router.push("/dashboard/customers/master/new");
+                }
+              }}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
             >
               <Plus size={16} />
