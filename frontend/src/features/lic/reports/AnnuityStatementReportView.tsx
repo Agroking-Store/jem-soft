@@ -274,20 +274,10 @@ export default function AnnuityStatementReportView({
       // Schema has no annuity/pension amount field — show the real Sum Assured.
       const sumAssured = Number(p.premium?.sumAssured || 0);
       const mode = p.premiumMode?.modeName || "—";
-      const planNo = p.product?.planNo || p.product?.productCode || p.planNo || "";
-      const term = p.premium?.policyTerm ?? p.policyTerm ?? p.term ?? 0;
-      const ppt = p.premium?.premiumPayingTerm ?? p.premiumPayingTerm ?? p.ppt ?? 0;
-      const planName = planNo
-        ? `${planNo}/${term}/${ppt}`
-        : p.product?.productName || `${term}/${ppt}`;
+      const planName = p.product?.productName || "—";
       const payoutDate = fmtDate(p.nextPremiumDueDate || p.commencementDate);
       // Real payment mode (NACH/Cheque/…) — no hardcoded "NEFT Registered".
       const payMode = p.paymentMode?.modeName || "—";
-
-      const birthDate = fmtDate(custMaster?.dob || custMaster?.birthDate || custObj?.dob || custObj?.birthDate) || "—";
-      const comDate = fmtDate(p.commencementDate) || "—";
-      const premium = Number(p.premium?.netPremium || p.premium?.totalPremium || p.premium?.modalPremium || 0);
-      const annuityAmt = Number(p.annuityAmount || p.premium?.annuityAmount || p.premium?.installmentPremium || 0);
 
       const row = {
         policyNo,
@@ -297,10 +287,6 @@ export default function AnnuityStatementReportView({
         sumAssured,
         payoutDate,
         payMode,
-        birthDate,
-        comDate,
-        premium,
-        annuityAmt,
       };
 
       mem.policies.push(row);
@@ -322,9 +308,9 @@ export default function AnnuityStatementReportView({
     const toastId = toast.loading("Generating PDF statement...");
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff", logging: false });
-      const pdf = new jsPDF({ orientation: "l", unit: "mm", format: "a4", compress: true });
-      const pageWidthMm = 297;
-      const pageHeightMm = 210;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
       const pxPerMm = canvas.width / pageWidthMm;
       const pageHeightPx = Math.floor(pageHeightMm * pxPerMm);
 
@@ -413,16 +399,13 @@ export default function AnnuityStatementReportView({
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="font-bold">
-                <th className="px-1 py-1" style={thStyle}>Name of the Policy Holder</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Birth<br />Date</th>
-                <th className="px-1 py-1" style={thStyle}>Policy No.</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Com.<br />Date</th>
-                <th className="px-1 py-1" style={thStyle}>Plan/<br />Term/PPT</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Sum</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Annuity<br />Amt.</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Annuity<br />Starts<br />From</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>Ann.<br />Md</th>
+                <th className="px-1 py-1" style={thStyle}>Policy No</th>
+                <th className="px-1 py-1" style={thStyle}>Annuity Holder</th>
+                <th className="px-1 py-1" style={thStyle}>Plan / Option</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Mode</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Sum Assured (₹)</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Payout<br />Date</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Payment<br />Mode</th>
               </tr>
             </thead>
             <tbody>
@@ -430,7 +413,7 @@ export default function AnnuityStatementReportView({
                 <Fragment key={group.groupCode}>
                   {group.showHeading !== false && (
                     <tr>
-                      <td colSpan={10} className="pt-3 pb-1 text-center text-[13px] font-bold">
+                      <td colSpan={7} className="pt-3 pb-1 text-center text-[13px] font-bold">
                         {group.groupCode ? `${group.groupCode}: ` : ""}
                         {group.groupHeadName}
                       </td>
@@ -440,7 +423,7 @@ export default function AnnuityStatementReportView({
                     <Fragment key={member.name}>
                       {group.showHeading !== false && (
                         <tr>
-                          <td colSpan={10} className="pt-2 pb-0.5">
+                          <td colSpan={7} className="pt-2 pb-0.5">
                             <div className="text-[11px] font-bold">{member.name}</div>
                             {formData.reportType === "Statement" && (
                               <div className="text-[10px]">
@@ -455,25 +438,22 @@ export default function AnnuityStatementReportView({
                       )}
                       {member.policies.map((p: any, idx: number) => (
                         <tr key={p.policyNo + idx}>
-                          <td className="px-1 py-0.5">{p.memberName}</td>
-                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.birthDate}</td>
                           <td className="px-1 py-0.5 font-mono whitespace-nowrap">{p.policyNo}</td>
-                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.comDate}</td>
+                          <td className="px-1 py-0.5">{p.memberName}</td>
                           <td className="px-1 py-0.5">{p.planName}</td>
-                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.sumAssured.toLocaleString("en-IN")}</td>
-                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.premium.toLocaleString("en-IN")}</td>
-                          <td className="px-1 py-0.5 text-right whitespace-nowrap">{p.annuityAmt.toLocaleString("en-IN")}</td>
-                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.payoutDate}</td>
                           <td className="px-1 py-0.5 text-center">{p.mode}</td>
+                          <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.sumAssured.toLocaleString("en-IN")}</td>
+                          <td className="px-1 py-0.5 text-center whitespace-nowrap">{p.payoutDate}</td>
+                          <td className="px-1 py-0.5 text-center">{p.payMode}</td>
                         </tr>
                       ))}
                       {group.showHeading !== false && member.policies.length > 1 && (
                         <tr className="font-bold">
-                          <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
+                          <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Member Total :</td>
                           <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                             <span style={totalValueStyle}>{member.totalAnnuityAmount.toLocaleString("en-IN")}</span>
                           </td>
-                          <td colSpan={4}></td>
+                          <td colSpan={2}></td>
                         </tr>
                       )}
                     </Fragment>
@@ -481,14 +461,14 @@ export default function AnnuityStatementReportView({
                   {group.showHeading !== false && (
                     <>
                       <tr className="font-bold">
-                        <td colSpan={5} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total Sum Assured :</td>
+                        <td colSpan={4} className="px-1 pt-1.5 pb-1 text-right pr-3">Group Total Sum Assured :</td>
                         <td className="px-1 pt-1.5 pb-1 text-right font-mono whitespace-nowrap">
                           <span style={totalValueStyle}>{group.totalAnnuityAmount.toLocaleString("en-IN")}</span>
                         </td>
-                        <td colSpan={4}></td>
+                        <td colSpan={2}></td>
                       </tr>
                       <tr>
-                        <td colSpan={10} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
+                        <td colSpan={7} style={{ borderBottom: `1px solid ${BLACK}`, height: 6 }}></td>
                       </tr>
                     </>
                   )}

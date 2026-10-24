@@ -186,7 +186,7 @@ export default function LoansPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="cursor-pointer grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total Loans", stats.total],
           ["Active Loans", stats.activeLoans],
@@ -208,7 +208,7 @@ export default function LoansPage() {
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row">
           <div className="relative flex-1">
             <Search
@@ -225,7 +225,7 @@ export default function LoansPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            className="cursor-pointer rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -237,30 +237,38 @@ export default function LoansPage() {
       </div>
 
       {/* Table Card */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
               <tr>
-                <th className="px-5 py-3">Policy & Customer</th>
-                <th className="px-5 py-3">Loan & Rate</th>
-                <th className="px-5 py-3">Loan Date & Next Due</th>
-                <th className="px-5 py-3">Outstanding Principal</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3 text-right">Actions</th>
+                {[
+                  "Policy",
+                  "Customer",
+                  "Loan Amount",
+                  "Interest Rate",
+                  "Loan Date",
+                  "Outstanding",
+                  "Status",
+                  "Actions",
+                ].map((h) => (
+                  <th key={h} className="px-5 py-3">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
                     Loading loans…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="px-5 py-12 text-center text-slate-500"
                   >
                     No loans found.
@@ -276,70 +284,39 @@ export default function LoansPage() {
                     loan.summary?.outstandingPrincipal ?? loan.loanAmount ?? 0;
 
                   return (
-                    <tr key={loan.id} className="hover:bg-slate-50 transition-colors">
-                      {/* Policy & Customer */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <Seal name={custName} size={36} />
-                          <div>
-                            <div className="font-mono text-sm font-bold text-slate-900">
-                              {loan.policy?.policyNumber ?? "—"}
-                            </div>
-                            <div className="text-xs text-slate-600 truncate max-w-[180px]">
-                              {custName}
-                            </div>
-                          </div>
+                    <tr key={loan.id} className="hover:bg-slate-50">
+                      <td className="px-5 py-4 font-semibold font-mono text-slate-900">
+                        {loan.policy?.policyNumber ?? "—"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <div className="flex gap-3 items-center">
+                          <Seal name={custName} size={34} />
+                          <span className="text-sm text-slate-600">{custName}</span>
                         </div>
                       </td>
-
-                      {/* Loan Amount & Rate */}
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold text-sm text-slate-900">
-                          {money(loan.loanAmount)}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {loan.interestRate}% p.a.
-                        </div>
+                      <td className="px-5 py-4 font-semibold text-slate-900">
+                        {money(loan.loanAmount)}
                       </td>
-
-                      {/* Dates: Taken & Next Due */}
-                      <td className="px-5 py-3.5">
-                        <div className="text-sm text-slate-700">
-                          {dt(loan.loanDate)}
-                        </div>
-                        <div className="text-xs text-blue-700 font-medium mt-0.5">
-                          {loan.summary?.nextInterestDueDate
-                            ? `Due: ${dt(loan.summary.nextInterestDueDate)}`
-                            : "—"}
-                        </div>
+                      <td className="px-5 py-4 text-slate-600">
+                        {loan.interestRate}% p.a.
                       </td>
-
-                      {/* Outstanding Principal */}
-                      <td className="px-5 py-3.5">
-                        <div className="font-bold text-sm text-slate-900">
-                          {money(outstanding)}
-                        </div>
-                        {(loan.summary?.accruedInterest ?? 0) > 0 && (
-                          <div className="text-xs text-amber-700">
-                            + {money(loan.summary?.accruedInterest)} int.
-                          </div>
-                        )}
+                      <td className="px-5 py-4 text-slate-600">
+                        {dt(loan.loanDate)}
                       </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-4 font-semibold text-slate-900">
+                        {money(outstanding)}
+                      </td>
+                      <td className="px-5 py-4">
                         <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(loan.loanStatus?.statusCode)}`}
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge(loan.loanStatus?.statusCode)}`}
                         >
                           {loan.loanStatus?.statusName ??
                             loan.loanStatus?.statusCode ??
                             "Unknown"}
                         </span>
                       </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-1">
                           {loan.loanStatus?.statusCode === "ACTIVE" && isClient && canEdit && (
                             <button
                               onClick={() =>
@@ -447,7 +424,7 @@ export default function LoansPage() {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            className="cursor-pointer w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
           >
             &lt;
           </button>
@@ -462,7 +439,7 @@ export default function LoansPage() {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-9 h-9 rounded-lg border text-sm ${
+                  className={`cursor-pointer w-9 h-9 rounded-lg border text-sm ${
                     currentPage === page
                       ? "bg-blue-600 text-white border-blue-600"
                       : "border-slate-200 hover:bg-slate-50"
@@ -477,7 +454,7 @@ export default function LoansPage() {
                 <span className="px-1 text-slate-400">...</span>
                 <button
                   onClick={() => setCurrentPage(totalPages)}
-                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50"
+                  className="cursor-pointer w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50"
                 >
                   {totalPages}
                 </button>
@@ -488,7 +465,7 @@ export default function LoansPage() {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            className="cursor-pointer w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
           >
             &gt;
           </button>
@@ -496,7 +473,7 @@ export default function LoansPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
+            className="cursor-pointer h-9 rounded-lg border border-slate-200 px-2 text-sm"
           >
             <option value={5}>5 / page</option>
             <option value={10}>10 / page</option>

@@ -153,7 +153,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, User } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import NotificationBell from "@/features/notifications/components/NotificationBell";
 
@@ -161,10 +161,6 @@ interface HeaderProps {
   isNavigationOpen: boolean;
   onMenuToggle: () => void;
 }
-
-const subscribeToHydration = () => () => {};
-const getClientHydrationState = () => true;
-const getServerHydrationState = () => false;
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
   { match: "/dashboard/customers", title: "Customers" },
@@ -185,23 +181,23 @@ const getPageTitle = (pathname: string) =>
   PAGE_TITLES.find(({ match }) => pathname.startsWith(match))?.title ??
   "Dashboard";
 
-export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
+export const Header = ({
+  isNavigationOpen,
+  onMenuToggle,
+}: HeaderProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const isHydrated = useSyncExternalStore(
-    subscribeToHydration,
-    getClientHydrationState,
-    getServerHydrationState
-  );
-
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pageTitle = getPageTitle(pathname);
 
-  const displayName = isHydrated ? user?.name || "User" : "User";
-  const displayRole = isHydrated ? user?.role?.toLowerCase() || "Guest" : "Guest";
-  const displayEmail = isHydrated ? user?.email || "" : "";
+  // Render browser-dependent user information after mounting.
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -225,6 +221,14 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
     logout();
   };
 
+  // Use identical initial output for server and browser.
+  const displayName = isMounted ? user?.name || "User" : "User";
+  const displayRole = isMounted
+    ? user?.role?.toLowerCase() || "Guest"
+    : "Guest";
+
+  const displayEmail = isMounted ? user?.email || "" : "";
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -232,7 +236,9 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
           type="button"
           onClick={onMenuToggle}
           className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 lg:hidden"
-          aria-label={isNavigationOpen ? "Close navigation" : "Open navigation"}
+          aria-label={
+            isNavigationOpen ? "Close navigation" : "Open navigation"
+          }
           aria-controls="primary-navigation"
           aria-expanded={isNavigationOpen}
         >
@@ -251,7 +257,7 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
           <button
             type="button"
             onClick={() => setIsProfileOpen((isOpen) => !isOpen)}
-            className={`flex items-center gap-2 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:px-3 sm:py-2 ${
+            className={`flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:px-3 sm:py-2 ${
               isProfileOpen ? "bg-slate-100" : "hover:bg-slate-50"
             }`}
             aria-label="Open account menu"
@@ -260,7 +266,11 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
             aria-expanded={isProfileOpen}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-              <User size={16} className="text-blue-600" aria-hidden="true" />
+              <User
+                size={16}
+                className="text-blue-600"
+                aria-hidden="true"
+              />
             </span>
 
             <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
@@ -314,7 +324,7 @@ export const Header = ({ isNavigationOpen, onMenuToggle }: HeaderProps) => {
                     </span>
 
                     <span className="block text-xs font-medium capitalize text-blue-600">
-                      {displayRole}
+                      {isMounted ? user?.role?.toLowerCase() || "" : ""}
                     </span>
                   </span>
                 </span>

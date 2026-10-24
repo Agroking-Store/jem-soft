@@ -269,7 +269,7 @@ export default function PolicyRegisterReportView({
         termRider: 0,
         criticalIllness: 0,
         pwb: "N",
-        taxBen: p.taxBeneficiary || p.taxBen || "",
+        taxBen: "",
         nominee: nomineeName,
         isNach: Boolean(p.premiumMode?.modeName?.toLowerCase().includes("nach") || p.isNach),
         nachDebitDate: p.nachDebitDate
@@ -537,9 +537,9 @@ export default function PolicyRegisterReportView({
       // Restore full width screen styling
       elem.style.width = originalWidth;
 
-      const pdf = new jsPDF({ orientation: "l", unit: "mm", format: "a4", compress: true });
-      const pageWidthMm = 297;
-      const pageHeightMm = 210;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
 
       // How many canvas pixels fit on one A4 page at this width
       const pxPerMm = canvas.width / pageWidthMm;
@@ -618,9 +618,9 @@ export default function PolicyRegisterReportView({
     ? new Date(formData.reportDate).toLocaleDateString("en-GB")
     : new Date().toLocaleDateString("en-GB");
 
-  // Columns before "Premium": Policy No., Ag Cd, Com. Date, Pl/Tm/Pt, FUP Date, Status, Mat.Date, Brn, Md
+  // Columns before "Premium": Policy No, Ag, Com.Date, Pl/Tm/Pt, Md, Brn, FUP, Status, Mat.Date
   const LEADING_COLS = 9;
-  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + (showNachDetails ? 1 : 0) + (showNachDebitDatewise ? 1 : 0) + (showExistingPolicies ? 1 : 0) + 2;
+  const totalCols = LEADING_COLS + 3 + (showRiderDetails ? 3 : 0) + (showNachDetails ? 1 : 0) + (showNachDebitDatewise ? 1 : 0) + (showExistingPolicies ? 1 : 0) + 1;
 
   const BLACK = "#000";
   const thStyle: React.CSSProperties = {
@@ -660,7 +660,6 @@ export default function PolicyRegisterReportView({
         <span style={totalValueStyle}>{acc.toLocaleString("en-IN")}</span>
       </td>
       {showRiderDetails && <td colSpan={3}></td>}
-      <td></td>
       <td></td>
     </tr>
   );
@@ -733,17 +732,17 @@ export default function PolicyRegisterReportView({
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="font-bold">
-                <th className="px-1 py-1 text-left whitespace-nowrap" style={thStyle}>Policy No.</th>
+                <th className="px-1 py-1 text-left whitespace-nowrap" style={thStyle}>Policy No</th>
                 <th className="px-1 py-1 text-center" style={thStyle}>Ag<br />Cd</th>
                 <th className="px-1 py-1" style={thStyle}>Com.<br />Date</th>
-                <th className="px-1 py-1" style={thStyle}>Pl/Tm/Pt</th>
-                <th className="px-1 py-1" style={thStyle}>FUP Date<br />(mm/yy)</th>
-                <th className="px-1 py-1" style={thStyle}>Status</th>
-                <th className="px-1 py-1" style={thStyle}>Mat.Date<br />(mm/yy)</th>
+                <th className="px-1 py-1" style={thStyle}>Pl/<br />Tm/Pt</th>
+                <th className="px-1 py-1 text-center" style={thStyle}>Md</th>
                 <th className="px-1 py-1" style={thStyle}>Brn</th>
-                <th className="px-1 py-1 text-center" style={thStyle}>M<br />d</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Premium</th>
-                <th className="px-1 py-1 text-right" style={thStyle}>Sum</th>
+                <th className="px-1 py-1" style={thStyle}>FUP<br />Date</th>
+                <th className="px-1 py-1" style={thStyle}>Status</th>
+                <th className="px-1 py-1" style={thStyle}>Mat.<br />Date</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Premium<br />Amount</th>
+                <th className="px-1 py-1 text-right" style={thStyle}>Sum<br />Assured</th>
                 <th className="px-1 py-1 text-right" style={thStyle}>Acc.<br />Benefit</th>
                 {showRiderDetails && (
                   <>
@@ -761,7 +760,6 @@ export default function PolicyRegisterReportView({
                 {showExistingPolicies && (
                   <th className="px-1 py-1 text-center" style={thStyle}>Existing<br />Policy</th>
                 )}
-                <th className="px-1 py-1" style={thStyle}>Tax<br />Ben.</th>
                 <th className="px-1 py-1" style={thStyle}>Nominee</th>
               </tr>
             </thead>
@@ -815,11 +813,11 @@ export default function PolicyRegisterReportView({
                         <td className="px-1 py-0.5 text-center">{p.agCd}</td>
                         <td className="px-1 py-0.5 whitespace-nowrap">{p.comDate}</td>
                         <td className="px-1 py-0.5 whitespace-nowrap">{p.planTermPpt}</td>
+                        <td className="px-1 py-0.5 text-center">{p.md}</td>
+                        <td className="px-1 py-0.5">{p.brn}</td>
                         <td className="px-1 py-0.5 whitespace-nowrap">{p.fupDate}</td>
                         <td className="px-1 py-0.5 whitespace-nowrap">{p.status}</td>
                         <td className="px-1 py-0.5 whitespace-nowrap">{p.matDate}</td>
-                        <td className="px-1 py-0.5">{p.brn}</td>
-                        <td className="px-1 py-0.5 text-center">{p.md}</td>
                         <td className="px-1 py-0.5 text-right font-bold whitespace-nowrap">{p.premium}</td>
                         <td className="px-1 py-0.5 text-right whitespace-nowrap">
                           {p.sumAssured.toLocaleString("en-IN")}
@@ -843,7 +841,6 @@ export default function PolicyRegisterReportView({
                         {showExistingPolicies && (
                           <td className="px-1 py-0.5 text-center">{p.isExisting ? "Yes" : "No"}</td>
                         )}
-                        <td className="px-1 py-0.5">{p.taxBen}</td>
                         <td className="px-1 py-0.5">{p.nominee}</td>
                       </tr>
                     ))}

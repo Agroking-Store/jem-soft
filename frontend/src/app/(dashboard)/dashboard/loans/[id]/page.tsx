@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchLoanById, clearSelectedLoan } from "@/features/loans/loanSlice";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { Edit, FileText, HandCoins, Receipt, Landmark, ArrowLeft } from "lucide-react";
+import { Edit, FileText, HandCoins, Receipt, Landmark } from "lucide-react";
 import {
   CustomerBreadcrumbs,
   CustomerSectionCard,
@@ -67,14 +67,6 @@ export default function LoanDetailsPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard/loans")}
-            className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-sm cursor-pointer"
-            title="Back to Loans"
-          >
-            <ArrowLeft size={18} />
-          </button>
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-[#1e3a8a] to-[#2563eb] text-white shadow-lg shadow-blue-200/50">
             <Landmark size={24} />
           </span>
@@ -246,18 +238,6 @@ export default function LoanDetailsPage() {
                   value={`₹${Number(summary?.accruedInterest || 0).toLocaleString("en-IN")}`}
                   amber
                 />
-                {(summary?.halfYearlyInterestDue ?? 0) > 0 && (
-                  <SummaryRow
-                    label="Half-Yearly Interest Due"
-                    value={`₹${Number(summary?.halfYearlyInterestDue).toLocaleString("en-IN")}`}
-                  />
-                )}
-                {summary?.nextInterestDueDate && (
-                  <SummaryRow
-                    label="Next Interest Due Date"
-                    value={new Date(summary.nextInterestDueDate).toLocaleDateString("en-IN")}
-                  />
-                )}
                 <div className="mt-3 p-3 bg-slate-900 rounded-lg">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E8C77A] mb-1">
                     Total Due (as of today)

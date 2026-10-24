@@ -957,25 +957,9 @@ export default function EditLICPolicyPage() {
   }, [useNeft, watchLifeAssuredId, watchProposerId, watchAge, masterCustomers, selectedPolicy, setValue]);
 
   const availableProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
-      const numA = a.planNumber ? parseInt(a.planNumber, 10) : NaN;
-      const numB = b.planNumber ? parseInt(b.planNumber, 10) : NaN;
-
-      const hasNumA = !isNaN(numA);
-      const hasNumB = !isNaN(numB);
-
-      if (hasNumA && hasNumB) {
-        if (numA !== numB) return numA - numB;
-        return (a.planNumber ?? "").localeCompare(b.planNumber ?? "");
-      }
-
-      if (hasNumA && !hasNumB) return -1;
-      if (!hasNumA && hasNumB) return 1;
-
-      const labelA = a.planNumber ? `${a.planNumber} - ${a.productName}` : a.productName;
-      const labelB = b.planNumber ? `${b.planNumber} - ${b.productName}` : b.productName;
-      return labelA.localeCompare(labelB);
-    });
+    return [...products].sort((a, b) =>
+      (a.planNumber ?? "").localeCompare(b.planNumber ?? ""),
+    );
   }, [products]);
 
   const agencyOptions = useMemo(() => {

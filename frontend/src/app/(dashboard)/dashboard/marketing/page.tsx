@@ -350,7 +350,7 @@ export default function MarketingPage() {
       />
 
       {/* Metric Cards (Same clean CustomerStatCard styling) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="cursor-pointer grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <CustomerStatCard
           label="Total Audience"
           value={audienceCount?.totalMembers ?? 0}
@@ -450,7 +450,7 @@ export default function MarketingPage() {
                 <select
                   value={celebrationTypeFilter}
                   onChange={(e: any) => setCelebrationTypeFilter(e.target.value)}
-                  className="p-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white"
+                  className="cursor-pointer p-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white"
                 >
                   <option value="ALL">All Events</option>
                   <option value="BIRTHDAY">Birthdays Only 🎂</option>

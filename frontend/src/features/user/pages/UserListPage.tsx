@@ -207,7 +207,7 @@ export default function UserListPage() {
           </div>
           <Link
             href="/dashboard/users/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] self-start sm:self-auto"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] self-start sm:self-auto"
           >
             <Plus size={16} />
             Add User
@@ -216,7 +216,7 @@ export default function UserListPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="cursor-pointer grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
           { label: "Total Users", value: stats.total, icon: Users },
           { label: "Active", value: stats.active, icon: UserCheck },
@@ -253,7 +253,7 @@ export default function UserListPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+      <div className="cursor-pointer flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -271,7 +271,7 @@ export default function UserListPage() {
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+          className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
         >
           <option value="">All Roles</option>
           <option value="ADMIN">Admin</option>
@@ -393,7 +393,7 @@ export default function UserListPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setResetTarget(user)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                            className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
                             title="Reset Password"
                           >
                             <KeyRound size={14} />
@@ -411,7 +411,7 @@ export default function UserListPage() {
                             onClick={() =>
                               setDeleteTarget({ id: user.id, name: user.name })
                             }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
+                            className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
                             title="Delete"
                           >
                             <Trash2 size={14} />
