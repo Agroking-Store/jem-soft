@@ -310,7 +310,7 @@ function NewLICPolicyContent() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "881" || selectedProductPlan === "912") {
+      if (selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: "Option is required for this plan.",
           path: ["option"],
@@ -1312,8 +1312,13 @@ function NewLICPolicyContent() {
       : (watchSpouseAge ? parseFloat(String(watchSpouseAge)) : null);
     const option = watchOption || null;
     const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
+    // Plan 904 (Jeevan Arogya): term/ppt are irrelevant for rate lookup
+    const is904 = selectedPlan === "904";
 
-    if (!watchProductId || !sum || !term || !ppt || !mode || !age) {
+    if (!watchProductId || !sum || !mode || !age) {
+      return;
+    }
+    if (!is904 && (!term || !ppt)) {
       return;
     }
 
@@ -1398,13 +1403,34 @@ function NewLICPolicyContent() {
             : undefined,
         );
 
-        const totalInstallmentPremium = premium.installmentPremium + totalRider;
+        const exactTotal = premium.totalOverride;
+        const totalInstallmentPremium =
+          exactTotal !== undefined
+            ? exactTotal + totalRider
+            : premium.installmentPremium + totalRider;
         setValue(
           "totalInstallmentPremium",
           totalInstallmentPremium > 0
             ? parseFloat(totalInstallmentPremium.toFixed(2))
             : undefined,
         );
+
+        if (exactTotal !== undefined) {
+          // Plan 904 rounds the GST-inclusive total; use the calculator's
+          // exact figures instead of rebuilding them from the pre-tax amount.
+          setValue(
+            "gst",
+            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
+          );
+          setValue(
+            "totalYearlyPremium",
+            premium.basicYearlyPremium + totalRider > 0
+              ? parseFloat(
+                  (premium.basicYearlyPremium + totalRider).toFixed(2),
+                )
+              : undefined,
+          );
+        }
       } catch (error: any) {
         if (!axios.isCancel(error)) {
           setIsPremiumManual(true);
@@ -2403,6 +2429,26 @@ function NewLICPolicyContent() {
                         )}
                       </div>
                     )}
+                    {selectedProduct?.planNumber === "904" && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Insured Type <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("option")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        >
+                          <option value="">Select Insured Type</option>
+                          <option value="1">Principal Insured</option>
+                          <option value="2">Other Insured (Spouse / Parent / Child)</option>
+                        </select>
+                        {errors.option && (
+                          <p className="text-xs text-red-500 mt-1">
+                            {errors.option.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     {selectedProduct?.planNumber === "887" && (
                       <>
                         <div>
@@ -2644,6 +2690,17 @@ function NewLICPolicyContent() {
                                 const checked = e.target.checked;
                                 riderFields.forEach((_, idx) => {
                                   setValue(`riders.${idx}.selected`, checked, { shouldValidate: true, shouldDirty: true });
+                                  if (checked) {
+                                    if (!watchRiders?.[idx]?.sum && watchSumAssured) {
+                                      setValue(`riders.${idx}.sum`, Number(watchSumAssured) as any, { shouldValidate: true, shouldDirty: true });
+                                    }
+                                    if (!watchRiders?.[idx]?.term && watchTerm) {
+                                      setValue(`riders.${idx}.term`, Number(watchTerm) as any, { shouldValidate: true, shouldDirty: true });
+                                    }
+                                    if (!watchRiders?.[idx]?.ppt && watchPpt) {
+                                      setValue(`riders.${idx}.ppt`, Number(watchPpt) as any, { shouldValidate: true, shouldDirty: true });
+                                    }
+                                  }
                                 });
                               }}
                               checked={riderFields.length > 0 && riderFields.every((_, idx) => watchRiders?.[idx]?.selected)}
@@ -2686,6 +2743,20 @@ function NewLICPolicyContent() {
                                 <input
                                   type="checkbox"
                                   {...register(`riders.${index}.selected`)}
+                                  onChange={(e) => {
+                                    register(`riders.${index}.selected`).onChange(e);
+                                    if (e.target.checked) {
+                                      if (!watchRiders?.[index]?.sum && watchSumAssured) {
+                                        setValue(`riders.${index}.sum`, Number(watchSumAssured) as any, { shouldValidate: true, shouldDirty: true });
+                                      }
+                                      if (!watchRiders?.[index]?.term && watchTerm) {
+                                        setValue(`riders.${index}.term`, Number(watchTerm) as any, { shouldValidate: true, shouldDirty: true });
+                                      }
+                                      if (!watchRiders?.[index]?.ppt && watchPpt) {
+                                        setValue(`riders.${index}.ppt`, Number(watchPpt) as any, { shouldValidate: true, shouldDirty: true });
+                                      }
+                                    }
+                                  }}
                                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                 />
                               </td>

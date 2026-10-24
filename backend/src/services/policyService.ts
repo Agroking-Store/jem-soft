@@ -376,11 +376,12 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
         const gstBase =
           premium.installmentPremium + (totalRiderPremium ?? 0);
         const gst =
-          gstRate > 0
+          premium.gstAmountOverride ??
+          (gstRate > 0
             ? premium.gstRounding === "PAISE"
               ? Number(((gstBase * gstRate) / 100).toFixed(2))
               : Math.round((gstBase * gstRate) / 100)
-            : Number(premium.gst ?? 0);
+            : Number(premium.gst ?? 0));
         await tx.policyPremiumCalculation.create({
           data: {
             policyId: newPolicy.id,
@@ -394,9 +395,11 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
               premium.basicYearlyPremium + (totalRiderPremium ?? 0),
             installmentPremium: premium.installmentPremium, // From service
             totalInstallmentPremium:
-              premium.installmentPremium +
-              (totalRiderPremium ?? 0) +
-              (gstRate > 0 ? gst : 0),
+              premium.totalOverride !== undefined
+                ? premium.totalOverride + (totalRiderPremium ?? 0)
+                : premium.installmentPremium +
+                  (totalRiderPremium ?? 0) +
+                  (gstRate > 0 ? gst : 0),
             gst,
             riderPremium: totalRiderPremium ?? 0,
           },

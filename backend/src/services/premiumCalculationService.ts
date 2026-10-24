@@ -4,6 +4,7 @@ import { licAgeBand } from "../utils/licAgeBand.js";
 import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
+import { calculateLIC904 } from "./premiumcalculators/lic904Calculator.js";
 import { calculateLIC915 } from "./premiumcalculators/lic915Calculator.js";
 import { calculateLIC717 } from "./premiumcalculators/lic717Calculator.js";
 import { calculateLIC748 } from "./premiumcalculators/lic748Calculator.js";
@@ -58,6 +59,11 @@ interface PremiumResult {
   installmentOverride?: number;
   /** 915 keeps paise on the yearly premium; every other plan rounds GST. */
   gstRounding?: "PAISE" | "WHOLE";
+  /** 904's table rate is an IDB-1,000 premium, not a per-1,000 rate. */
+  tabularPremiumOverride?: number;
+  /** 904 rounds the total premium, so the GST is the remainder. */
+  gstAmountOverride?: number;
+  totalOverride?: number;
 }
 
 function parseRequiredInt(value: unknown, fieldName: string): number {
@@ -435,6 +441,23 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "904") {
+    // Jeevan Arogya is a health plan. Its table is keyed on age, gender and
+    // whether the life is the principal insured (option 1) or any other
+    // insured (option 2). It does not vary by policy term.
+    if (age >= 18 && activeGender == null) {
+      throw new AppError("Gender is required for LIC Plan 904", 400);
+    }
+
+    const insuredType = age < 18 ? 2 : option === 2 ? 2 : 1;
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        gender: activeGender ?? "M",
+        option: insuredType,
+      },
+    });
   } else {
     // ------------------------------------------
     // EXISTING PLANS
@@ -525,6 +548,19 @@ export async function calculatePremium(data: PremiumInput) {
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
+      });
+      break;
+
+    case "904":
+      premiumResult = await calculateLIC904({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
       });
       break;
 
@@ -734,11 +770,12 @@ export async function calculatePremium(data: PremiumInput) {
   // a 4.5% GST on 7,50,740 is 33,783 and not 33,783.30. Plan 915's yearly
   // premium is the exception - LIC keeps the paise there.
   const gst =
-    gstRate > 0
+    premiumResult.gstAmountOverride ??
+    (gstRate > 0
       ? premiumResult.gstRounding === "PAISE"
         ? Number(((installmentPremium * gstRate) / 100).toFixed(2))
         : Math.round((installmentPremium * gstRate) / 100)
-      : 0;
+      : 0);
 
   // ==========================================
   // STEP 7 : Return
@@ -747,7 +784,7 @@ export async function calculatePremium(data: PremiumInput) {
   return {
     rate,
 
-    tabularPremium,
+    tabularPremium: premiumResult.tabularPremiumOverride ?? tabularPremium,
 
     saRebateRate: premiumResult.saRebateRate,
     saRebateAmount: premiumResult.saRebateAmount,
@@ -767,6 +804,12 @@ export async function calculatePremium(data: PremiumInput) {
 
     gst,
 
-    totalInstallmentPremium: Number((installmentPremium + gst).toFixed(2)),
+    gstAmountOverride: premiumResult.gstAmountOverride,
+
+    totalOverride: premiumResult.totalOverride,
+
+    totalInstallmentPremium:
+      premiumResult.totalOverride ??
+      Number((installmentPremium + gst).toFixed(2)),
   };
 }

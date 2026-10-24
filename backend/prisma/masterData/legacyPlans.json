@@ -5248,14 +5248,14 @@
     "ppts": null,
     "termFormula": null,
     "pptFormula": null,
-    "pptNotes": "equal to term",
+    "pptNotes": "Term is not used in pricing; cover runs to age 80",
     "allowedRiders": [
       "DAB",
       "TRB"
     ],
     "minSumAssured": 100000,
-    "maxSumAssured": 100000,
-    "notes": "Min sum assured 100000"
+    "maxSumAssured": 400000,
+    "notes": "LIC's Jeevan Arogya health plan (UIN 512N266V02/V03). IDB Rs 1,000/2,000/3,000/4,000 per day; MSB = 100 x IDB (Rs 1L-4L). Premium table: LIC official chart, annual premium for IDB 1,000. GST 18%; mode rebate 2% yearly / 1% half-yearly; HCB rebate Rs 500/1,000/1,500 (PI) and Rs 250/500/750 (other). Only yearly and half-yearly modes."
   },
   {
     "planNumber": "915",

@@ -73,6 +73,11 @@ import {
   seedModeFactors915,
 } from "./seedPremiumRates915";
 
+import {
+  seedPremiumRates904,
+  seedModeFactors904,
+} from "./seedPremiumRates904";
+
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
 
@@ -156,6 +161,12 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates915(prisma);
   await seedRiderPremium915(prisma);
   await seedModeFactors915(prisma);
+
+  // Plan 904 (LIC's Jeevan Arogya) - health plan. IDB 1,000/2,000/3,000/4,000
+  // per day and MSB = 100 x IDB. tabularRate is the annual IDB-1,000 table
+  // premium; lic904Calculator scales it and applies the mode/HCB rebates.
+  await seedPremiumRates904(prisma);
+  await seedModeFactors904(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

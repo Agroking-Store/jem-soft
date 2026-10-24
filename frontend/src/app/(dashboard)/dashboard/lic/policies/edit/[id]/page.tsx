@@ -1331,13 +1331,24 @@ export default function EditLICPolicyPage() {
             : undefined,
         );
 
-        const totalInstallmentPremium = premium.installmentPremium + totalRider;
+        const exactTotal = premium.totalOverride;
+        const totalInstallmentPremium =
+          exactTotal !== undefined
+            ? exactTotal + totalRider
+            : premium.installmentPremium + totalRider;
         setValue(
           "totalInstallmentPremium",
           totalInstallmentPremium > 0
             ? parseFloat(totalInstallmentPremium.toFixed(2))
             : undefined,
         );
+
+        if (exactTotal !== undefined) {
+          setValue(
+            "gst",
+            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
+          );
+        }
         
         let multiplier = 1;
         if (mode === "Half Yearly") multiplier = 2;
