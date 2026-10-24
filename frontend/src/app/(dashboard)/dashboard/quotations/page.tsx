@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FileText, Plus } from "lucide-react";
 import { AppDispatch, RootState } from "@/store/store";
 import { fetchQuotations, fetchQuotationById } from "@/features/quotations/quotationSlice";
@@ -20,6 +20,7 @@ import { QuotationReportModal } from "@/features/quotations/components/Quotation
 
 function QuotationsPageInner() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { total } = useSelector((state: RootState) => state.quotations);
 
@@ -110,7 +111,7 @@ function QuotationsPageInner() {
         actions={
           <button
             type="button"
-            onClick={() => openModal("create")}
+            onClick={() => router.push(`/dashboard/quotations/create?product=${productType}`)}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Plus size={16} />
