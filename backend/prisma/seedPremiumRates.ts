@@ -58,6 +58,11 @@ import {
   seedModeFactors833,
 } from "./seedPremiumRates833";
 import {
+  seedPremiumRates903,
+  seedRiderPremium903,
+  seedModeFactors903,
+} from "./seedPremiumRates903";
+import {
   seedPremiumRates123,
   seedRiderPremium123,
   seedModeFactors123,
@@ -75,6 +80,7 @@ import {
 
 import {
   seedPremiumRates904,
+  seedRiderPremium904,
   seedModeFactors904,
 } from "./seedPremiumRates904";
 
@@ -142,6 +148,12 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedRiderPremium833(prisma);
   await seedModeFactors833(prisma);
 
+  // Plan 903 (Jeevan Arogya) - published annual HCB rates, four payment
+  // modes, and the DAB rider present in the legacy plan catalogue.
+  await seedPremiumRates903(prisma);
+  await seedRiderPremium903(prisma);
+  await seedModeFactors903(prisma);
+
   // Plan 123 (Jeevan Sanchay 12 Yrs) - LIC legacy plan. Half-year age band, a
   // formula rebate (3% of the rate plus 2 flat) and no riders at all.
   await seedPremiumRates123(prisma);
@@ -166,6 +178,7 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // per day and MSB = 100 x IDB. tabularRate is the annual IDB-1,000 table
   // premium; lic904Calculator scales it and applies the mode/HCB rebates.
   await seedPremiumRates904(prisma);
+  await seedRiderPremium904(prisma);
   await seedModeFactors904(prisma);
 
   console.log("Finished Premium Rates seeding.");

@@ -5,6 +5,7 @@ import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
 import { calculateLIC904 } from "./premiumcalculators/lic904Calculator.js";
+import { calculateLIC903 } from "./premiumcalculators/lic903Calculator.js";
 import { calculateLIC915 } from "./premiumcalculators/lic915Calculator.js";
 import { calculateLIC717 } from "./premiumcalculators/lic717Calculator.js";
 import { calculateLIC748 } from "./premiumcalculators/lic748Calculator.js";
@@ -441,6 +442,25 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "903") {
+    // Plan 903's rate table is keyed by last-birthday age, gender, and member
+    // role. Its tabular rate is an annual premium per Rs 1,000 HCB, independent
+    // of policy term; the published table has no half-year age bands.
+    if (age >= 18 && activeGender == null) {
+      throw new AppError("Gender is required for LIC Plan 903", 400);
+    }
+
+    const insuredType = age < 18 ? 2 : option === 2 ? 2 : 1;
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        gender: activeGender ?? "M",
+        option: insuredType,
+        policyTerm,
+        premiumPayingTerm: premiumPayingTerm ?? policyTerm,
+      },
+    });
   } else if (product.planNumber === "904") {
     // Jeevan Arogya is a health plan. Its table is keyed on age, gender and
     // whether the life is the principal insured (option 1) or any other
@@ -530,7 +550,12 @@ export async function calculatePremium(data: PremiumInput) {
 
   const rate = Number(premiumRate.tabularRate);
 
-  const tabularPremium = Number(((rate * data.sumAssured) / 1000).toFixed(2));
+  const tabularPremium = Number(
+    (product.planNumber === "903"
+      ? (rate * data.sumAssured) / 100000
+      : (rate * data.sumAssured) / 1000
+    ).toFixed(2),
+  );
 
   // ==========================================
   // STEP 5 : Plan Calculator
@@ -539,6 +564,17 @@ export async function calculatePremium(data: PremiumInput) {
   let premiumResult: PremiumResult;
 
   switch (product.planNumber) {
+    case "903":
+      premiumResult = await calculateLIC903({
+        premiumMode: data.premiumMode,
+        age: data.age,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
+      });
+      break;
+
     case "915":
       premiumResult = await calculateLIC915({
         productId: data.productId,

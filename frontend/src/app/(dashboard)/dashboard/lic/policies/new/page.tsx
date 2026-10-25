@@ -310,7 +310,7 @@ function NewLICPolicyContent() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904") {
+      if (selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904" || selectedProductPlan === "903") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: "Option is required for this plan.",
           path: ["option"],
@@ -2452,7 +2452,7 @@ function NewLICPolicyContent() {
                         )}
                       </div>
                     )}
-                    {selectedProduct?.planNumber === "904" && (
+                    {(selectedProduct?.planNumber === "904" || selectedProduct?.planNumber === "903") && (
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                           Insured Type <span className="text-red-500">*</span>

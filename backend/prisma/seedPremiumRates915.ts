@@ -1315,7 +1315,7 @@ const DAB_ROWS: [number, number][] = [
 ];
 
 /** [entryAge, riderTerm, ratePerThousand] */
-const TRB_ROWS: [number, number, number][] = [
+export const TRB_ROWS: [number, number, number][] = [
   [18, 15, 1.509],
   [18, 16, 1.509],
   [18, 17, 1.509],

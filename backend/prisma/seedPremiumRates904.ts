@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { TRB_ROWS } from "./seedPremiumRates915";
 
 /**
  * LIC Plan 904 - LIC's Jeevan Arogya (UIN 512N266V02 / 512N266V03).
@@ -302,4 +303,93 @@ export const seedModeFactors904 = async (prisma: PrismaClient) => {
     }
   }
   console.log(`      ${MODE_FACTORS.length} mode factors per product`);
+};
+
+export const seedRiderPremium904 = async (prisma: PrismaClient) => {
+  const products = await prisma.productMaster.findMany({
+    where: { planNumber: PLAN_NUMBER },
+    select: { id: true, productName: true, productCode: true },
+  });
+  if (products.length === 0) return;
+
+  const dab = await prisma.riderMaster.findFirst({
+    where: { riderCode: "DAB" },
+    select: { id: true },
+  });
+  const trb = await prisma.riderMaster.findFirst({
+    where: { riderCode: "TRB" },
+    select: { id: true },
+  });
+
+  for (const product of products) {
+    await prisma.riderPremiumRate.deleteMany({ where: { productId: product.id } });
+
+    const rows: any[] = [];
+
+    // 1. Double Accident Benefit (DAB): Rs 0.50 per Rs 1,000 Sum Assured flat
+    if (dab) {
+      for (let entryAge = 18; entryAge <= 65; entryAge++) {
+        const maxTerm = Math.min(35, 70 - entryAge);
+        for (let riderTerm = 1; riderTerm <= maxTerm; riderTerm++) {
+          rows.push({
+            riderId: dab.id,
+            productId: product.id,
+            entryAge,
+            ageBand: null,
+            riderTerm,
+            premiumPayingTerm: null,
+            ratePerThousand: 0.5,
+          });
+        }
+      }
+      // Also add fallback entryAge: 0 row so any unexpected term still returns 0.50
+      for (let riderTerm = 1; riderTerm <= 35; riderTerm++) {
+        rows.push({
+          riderId: dab.id,
+          productId: product.id,
+          entryAge: 0,
+          ageBand: null,
+          riderTerm,
+          premiumPayingTerm: null,
+          ratePerThousand: 0.5,
+        });
+      }
+    }
+
+    // 2. Term Rider Benefit (TRB): LIC standard term assurance rider rates
+    if (trb && TRB_ROWS && TRB_ROWS.length > 0) {
+      rows.push(
+        ...TRB_ROWS.map(([entryAge, riderTerm, ratePerThousand]) => ({
+          riderId: trb.id,
+          productId: product.id,
+          entryAge,
+          ageBand: null,
+          riderTerm,
+          premiumPayingTerm: null,
+          ratePerThousand,
+        })),
+      );
+    }
+
+    if (rows.length > 0) {
+      await prisma.riderPremiumRate.createMany({ data: rows });
+    }
+
+    // Ensure ProductRider relations are linked
+    for (const r of [dab, trb]) {
+      if (!r) continue;
+      const exists = await prisma.productRider.findFirst({
+        where: { productId: product.id, riderId: r.id },
+      });
+      if (!exists) {
+        await prisma.productRider.create({
+          data: { productId: product.id, riderId: r.id },
+        });
+      }
+    }
+
+    console.log(
+      `      Plan 904 (${product.productCode}): seeded ${rows.length} rider rates (DAB + TRB)`,
+    );
+  }
 };
