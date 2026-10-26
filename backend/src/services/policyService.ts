@@ -365,7 +365,13 @@ export const createPolicy = async (data: PolicyData): Promise<Policy> => {
           commencementDate: data.commencementDate,
         });
       } catch (err: any) {
-        console.warn("calculatePremium failed for LIC plan:", err?.message);
+        const isExpectedManual =
+          err?.statusCode === 404 ||
+          err?.message?.includes("Unit-Linked") ||
+          err?.message?.includes("manual entry");
+        if (!isExpectedManual) {
+          console.warn("calculatePremium failed for LIC plan:", err?.message);
+        }
       }
 
       if (premium) {
@@ -1382,7 +1388,13 @@ export const updatePolicy = async (
           smoker: data.smoker,
         });
       } catch (err: any) {
-        console.warn("calculatePremium update failed for LIC plan:", err?.message);
+        const isExpectedManual =
+          err?.statusCode === 404 ||
+          err?.message?.includes("Unit-Linked") ||
+          err?.message?.includes("manual entry");
+        if (!isExpectedManual) {
+          console.warn("calculatePremium update failed for LIC plan:", err?.message);
+        }
       }
 
       if (premium) {
