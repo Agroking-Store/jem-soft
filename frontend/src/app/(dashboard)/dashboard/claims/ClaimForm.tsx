@@ -528,10 +528,8 @@ export default function ClaimForm({ mode, initialClaim }: ClaimFormProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT COLUMN */}
           <div
-  className={`space-y-6 ${
-    selectedClaimType === "Death" ? "lg:col-span-2" : "lg:col-span-3"
-  }`}
->
+            className={`${selectedClaimType === "Death" ? "lg:col-span-2" : "lg:col-span-3"} space-y-6`}
+          >
             {/* Claim Information */}
             <CustomerSectionCard title="Claim Information" icon={FileText}>
               {/* Policy Select */}
