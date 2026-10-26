@@ -442,6 +442,12 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "901" || product.planNumber === "902") {
+    // LIC Health Plus (901) and Health Protection Plus (902) are ULIP health plans with no tabular rates.
+    throw new AppError(
+      `Plan ${product.planNumber} is a Unit-Linked Health Plan. Premium is customer-chosen (min Rs 5,000 p.a.) — manual entry applies.`,
+      404,
+    );
   } else if (product.planNumber === "903") {
     // Plan 903's rate table is keyed by last-birthday age, gender, and member
     // role. Its tabular rate is an annual premium per Rs 1,000 HCB, independent

@@ -83,6 +83,7 @@ import {
   seedRiderPremium904,
   seedModeFactors904,
 } from "./seedPremiumRates904";
+import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -180,6 +181,9 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates904(prisma);
   await seedRiderPremium904(prisma);
   await seedModeFactors904(prisma);
+
+  // Plans 901 & 902 (Health Plus & Health Protection Plus) - ULIP health plans
+  await seedPremiumRates901_902(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

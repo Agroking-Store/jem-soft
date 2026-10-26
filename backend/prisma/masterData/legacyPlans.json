@@ -5182,12 +5182,12 @@
     "terms": null,
     "ppts": null,
     "termFormula": "65-age at entry",
-    "pptFormula": null,
-    "pptNotes": "equal to term",
+    "pptFormula": "65-entry age",
+    "pptNotes": "PPT equals Term (65 minus entry age). ULIP plan: premium is user-chosen (min Rs 5,000 or 6x HCB p.a.). No tabular rate.",
     "allowedRiders": [],
-    "minSumAssured": 50000,
-    "maxSumAssured": 50000,
-    "notes": "Min sum assured 50000"
+    "minSumAssured": null,
+    "maxSumAssured": null,
+    "notes": "ULIP Health plan. HCB 250-2500/day (multiples of 50). MSB = 200x HCB. Min premium: higher of Rs 5,000 or 6x PI HCB p.a. Modes: Yearly/Half-Yearly/Monthly(ECS). Allocation charges: Y1 30%, Y2-Y5 4%, Y6+ 2%. No GST (pre-2017)."
   },
   {
     "planNumber": "902",
@@ -5204,11 +5204,11 @@
     "ppts": null,
     "termFormula": "75-entry age",
     "pptFormula": "65-entry age",
-    "pptNotes": null,
+    "pptNotes": "PPT = 65 minus entry age (shorter than term). ULIP plan: premium is user-chosen (min Rs 5,000 or 6x HCB p.a.). No tabular rate.",
     "allowedRiders": [],
-    "minSumAssured": 50000,
-    "maxSumAssured": 50000,
-    "notes": "Min sum assured 50000"
+    "minSumAssured": null,
+    "maxSumAssured": null,
+    "notes": "ULIP Health plan. HCB 250-2500/day (multiples of 50). MSB = 200x HCB. Min premium: higher of Rs 5,000 or 6x PI HCB p.a. Modes: Yearly/Half-Yearly/Monthly(ECS). No GST (pre-2017)."
   },
   {
     "planNumber": "903",
