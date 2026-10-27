@@ -163,7 +163,7 @@ function TablePagination({
             aria-label={`Rows per page for ${itemLabel}`}
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+            className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
           >
             {PAGE_SIZE_OPTIONS.map((option) => (
               <option key={option} value={option}>{option}</option>
