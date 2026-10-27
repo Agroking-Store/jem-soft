@@ -3935,17 +3935,17 @@
     "planName": "Bima Platinum",
     "introDate": "2026-09-07",
     "withdrawalDate": "2027-03-31",
-    "minEntryAge": null,
+    "minEntryAge": "0",
     "maxEntryAge": "55",
     "minPolicyTerm": "17",
-    "maxPolicyTerm": "30",
+    "maxPolicyTerm": "40",
     "minPpt": "7",
-    "maxPpt": "7",
-    "terms": "17,18,19,20,21,22,23,24,25,26,27,28,29,30",
-    "ppts": "7",
+    "maxPpt": "18",
+    "terms": "17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40",
+    "ppts": "7,10,12,15,18",
     "termFormula": null,
     "pptFormula": null,
-    "pptNotes": null,
+    "pptNotes": "Entry ages: PPT 7 min 11/max 55; PPT 10 min 8/max 55; PPT 12 min 6/max 53; PPT 15 min 3/max 50; PPT 18 min 30 days/max 47. Maximum entry ages are nearer birthday; maturity age 28-75.",
     "allowedRiders": [
       "ABR",
       "CIR",
@@ -3954,8 +3954,8 @@
       "TRB"
     ],
     "minSumAssured": 300000,
-    "maxSumAssured": 300000,
-    "notes": "Min sum assured 300000"
+    "maxSumAssured": null,
+    "notes": "LIC Bima Platinum (UIN 512N397V01). Minimum BSA Rs 300,000 in multiples of Rs 10,000; no stated upper limit, subject to underwriting. PPT 7/10/12/15/18 years; policy term 17-40 years subject to PPT-specific minimums (17/20/22/25/28) and maturity age 28-75."
   },
   {
     "planNumber": "801",

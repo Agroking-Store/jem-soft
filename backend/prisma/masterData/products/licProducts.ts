@@ -1381,7 +1381,7 @@ export const licProducts = [
     productCode: "LEGACY-770",
     planNumber: "770",
     providerCode: "LIC",
-    productType: "Withdrawn",
+    productType: "Endowment",
   },
   {
     productName: "Bima Plus",

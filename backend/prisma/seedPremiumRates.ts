@@ -84,6 +84,7 @@ import {
   seedModeFactors904,
 } from "./seedPremiumRates904";
 import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
+import { seedPremiumRates770 } from "./seedPremiumRates770";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -184,6 +185,10 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
 
   // Plans 901 & 902 (Health Plus & Health Protection Plus) - ULIP health plans
   await seedPremiumRates901_902(prisma);
+
+  // Plan 770 (Bima Platinum): exact brochure sample points and official mode
+  // conversion factors only; never interpolate unofficial figures.
+  await seedPremiumRates770(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

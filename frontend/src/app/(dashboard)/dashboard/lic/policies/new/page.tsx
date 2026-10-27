@@ -2920,11 +2920,9 @@ function NewLICPolicyContent() {
                         Terms, PPT, or rates are not present in database for this plan. You can enter all premium values manually.
                       </div>
                     )}
-                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (
+                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902") && (
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
-                        {(selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902")
-                          ? "ULIP Health Plan: premium is user-chosen — no tabular rates. Enter all premium fields manually."
-                          : "Premium rate not found for this combination. Please enter premium values manually."}
+                        ULIP Health Plan: premium is user-chosen — no tabular rates. Enter all premium fields manually.
                       </div>
                     )}
                     <div>
