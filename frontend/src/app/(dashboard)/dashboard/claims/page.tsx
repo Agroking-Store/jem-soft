@@ -153,7 +153,7 @@ export default function ClaimsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="cursor-pointer grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total Claims", stats.total],
           ["Pending", stats.pending],
@@ -180,7 +180,7 @@ export default function ClaimsPage() {
           <div className="relative flex-1">
             <Search
               size={17}
-              className="absolute left-3 top-3 text-slate-400"
+              className="cursor-pointer absolute left-3 top-3 text-slate-400"
             />
             <input
               value={search}
@@ -192,7 +192,7 @@ export default function ClaimsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+            className="cursor-pointer rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
           >
             <option value="ALL">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -205,7 +205,7 @@ export default function ClaimsPage() {
       </div>
 
       {/* Table Card */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
@@ -354,7 +354,7 @@ export default function ClaimsPage() {
       )}
 
       {/* Pagination Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3">
+      <div className="cursor-pointer flex flex-col md:flex-row items-center justify-between px-4 py-3">
         {/* Left */}
         <p className="text-sm text-slate-500">
           Showing{" "}
@@ -371,13 +371,13 @@ export default function ClaimsPage() {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            className="cursor-pointer w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
           >
             &lt;
           </button>
 
           {/* Page Numbers */}
-          <div className="flex items-center gap-1">
+          <div className="cursor-pointer flex items-center gap-1">
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .slice(
                 Math.max(0, currentPage - 2),
@@ -414,7 +414,7 @@ export default function ClaimsPage() {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
+            className="cursor-pointer w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
           >
             &gt;
           </button>
@@ -423,7 +423,7 @@ export default function ClaimsPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
+            className="cursor-pointer h-9 rounded-lg border border-slate-200 px-2 text-sm"
           >
             <option value={5}>5 / page</option>
             <option value={10}>10 / page</option>
