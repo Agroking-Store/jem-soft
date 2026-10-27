@@ -310,7 +310,7 @@ export default function LoanInterestOutstandingForm({
             {activeSortingOptions.map((opt) => (
               <label
                 key={opt.id}
-                className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition"
+                className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-slate-800 transition hover:text-[#1877F2]"
               >
                 <input
                   type="radio"
@@ -375,7 +375,7 @@ export default function LoanInterestOutstandingForm({
               ].map((opt) => (
                 <label
                   key={opt.key}
-                  className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition"
+                  className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-slate-800 transition hover:text-[#1877F2]"
                 >
                   <input
                     type="checkbox"
@@ -402,7 +402,7 @@ export default function LoanInterestOutstandingForm({
                 ].map((opt) => (
                   <label
                     key={opt.key}
-                    className="flex items-center gap-2.5 text-xs font-bold text-slate-800 hover:text-[#1877F2] cursor-pointer transition"
+                    className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-slate-800 transition hover:text-[#1877F2]"
                   >
                     <input
                       type="checkbox"
