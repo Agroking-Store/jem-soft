@@ -29,6 +29,7 @@ function QuotationsPageInner() {
       ? productParam
       : "LIFE_GUARD";
 
+  const [isCreating, setIsCreating] = useState(false);
   const [modalStack, setModalStack] = useState<QuotationModalEntry[]>([]);
   const [reportQuotation, setReportQuotation] = useState<Quotation | null>(null);
 
@@ -37,13 +38,12 @@ function QuotationsPageInner() {
   }, [dispatch, productType]);
 
   const openModal = (type: QuotationModalEntry["type"], id?: string, pt?: QuotationProductType) => {
-    const key = `${type}-${id || "new"}-${Date.now()}`;
-    let entry: QuotationModalEntry;
     if (type === "create") {
-      entry = { key, type, productType: pt || productType };
-    } else {
-      entry = { key, type, id: id || "" };
+      setIsCreating(true);
+      return;
     }
+    const key = `${type}-${id || "new"}-${Date.now()}`;
+    const entry: QuotationModalEntry = { key, type, id: id || "" };
     setModalStack((prev) => [...prev, entry]);
   };
 
@@ -57,6 +57,7 @@ function QuotationsPageInner() {
 
   const handleSaved = (quotation: Quotation, shouldViewReport: boolean) => {
     dispatch(fetchQuotations({ productType, page: 1, limit: 6 }));
+    setIsCreating(false);
     closeTopModal();
     if (shouldViewReport) {
       setReportQuotation(quotation);
@@ -103,31 +104,41 @@ function QuotationsPageInner() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <QuotationPageHero
-        title="Quotations"
-        subtitle={`Manage your LIC quotation illustrations and reports`}
-        icon={FileText}
-        actions={
-          <button
-            type="button"
-            onClick={() => openModal("create")}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
-          >
-            <Plus size={16} />
-            Add Quotation
-          </button>
-        }
-      />
+      {isCreating ? (
+        <QuotationCreatePage
+          productType={productType}
+          onClose={() => setIsCreating(false)}
+          onSaved={handleSaved}
+        />
+      ) : (
+        <>
+          <QuotationPageHero
+            title="Quotations"
+            subtitle={`Manage your LIC quotation illustrations and reports`}
+            icon={FileText}
+            actions={
+              <button
+                type="button"
+                onClick={() => openModal("create")}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+              >
+                <Plus size={16} />
+                Add Quotation
+              </button>
+            }
+          />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <QuotationModuleNav />
-      </div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <QuotationModuleNav />
+          </div>
 
-      <QuotationListPage
-        productType={productType}
-        onOpenModal={openModal}
-        onViewReport={handleViewReport}
-      />
+          <QuotationListPage
+            productType={productType}
+            onOpenModal={openModal}
+            onViewReport={handleViewReport}
+          />
+        </>
+      )}
 
       {modalStack.map((modal, index) => (
         <QuotationModalShell

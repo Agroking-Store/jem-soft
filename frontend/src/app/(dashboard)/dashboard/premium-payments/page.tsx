@@ -154,7 +154,7 @@ export default function PremiumPaymentsPage() {
           New Payment
         </button>
       </div>
-      <div className="cursor-pointer grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total Payments", stats.total],
           ["Paid", stats.paid],
@@ -179,7 +179,7 @@ export default function PremiumPaymentsPage() {
           <div className="relative flex-1">
             <Search
               size={17}
-              className="absolute left-3 top-3 cursor-pointer text-slate-400"
+              className="absolute left-3 top-3 text-slate-400"
             />
             <input
               value={search}
@@ -440,7 +440,7 @@ export default function PremiumPaymentsPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 cursor-pointer px-2 text-sm"
+            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
           >
             <option value={5}>5 / page</option>
             <option value={10}>10 / page</option>

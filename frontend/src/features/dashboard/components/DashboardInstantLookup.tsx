@@ -218,7 +218,7 @@ export default function DashboardInstantLookup({
     <div ref={containerRef} className="relative mb-8 w-full">
       {/* Search Input Bar */}
       <div
-        className={`cursor-pointer relative flex items-center rounded-2xl border bg-white shadow-sm transition-all duration-200 ${
+        className={`relative flex items-center rounded-2xl border bg-white shadow-sm transition-all duration-200 ${
           isOpen
             ? "border-blue-500 ring-4 ring-blue-500/10 shadow-lg shadow-blue-500/5"
             : "border-slate-200/90 hover:border-slate-300 hover:shadow-md"
@@ -303,7 +303,7 @@ export default function DashboardInstantLookup({
                   setActiveCategory("policies");
                   setSelectedIndex(0);
                 }}
-                className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   activeCategory === "policies"
                     ? "bg-[#1e3a8a] text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-200/60"
@@ -317,7 +317,7 @@ export default function DashboardInstantLookup({
                   setActiveCategory("customers");
                   setSelectedIndex(0);
                 }}
-                className={`cursor-pointer rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   activeCategory === "customers"
                     ? "bg-[#1e3a8a] text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-200/60"

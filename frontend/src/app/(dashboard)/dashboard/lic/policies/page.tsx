@@ -466,7 +466,7 @@ function LICPoliciesContent() {
             <button
               type="button"
               onClick={() => setIsPolicyTypeModalOpen(true)}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus size={16} />
               New Policy
