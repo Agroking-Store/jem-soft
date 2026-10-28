@@ -19,6 +19,7 @@ import { calculateLIC889 } from "./premiumcalculators/lic889Calculator.js";
 import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
 import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 import { calculateLIC894, validateLIC894Eligibility } from "./premiumcalculators/lic894Calculator.js";
+import { calculateLIC890, validateLIC890Eligibility } from "./premiumcalculators/lic890Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -490,6 +491,38 @@ export async function calculatePremium(data: PremiumInput) {
         404,
       );
     }
+  } else if (product.planNumber === "890") {
+    // New Bima Jyoti is priced on entry age and policy term only; the premium
+    // paying term is fixed at policy term minus 5 and the rate is the same for
+    // every sum assured, gender and smoking status (brochure sec.2 g, sec.9).
+    // Eligibility runs first so an impossible quote is rejected with the rule
+    // it broke instead of becoming a "manual premium".
+    const { ppt } = validateLIC890Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: ppt,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 890: Age ${age}, Term ${policyTerm}, PPT ${ppt}`,
+        404,
+      );
+    }
   } else if (product.planNumber === "901" || product.planNumber === "902") {
     // LIC Health Plus (901) and Health Protection Plus (902) are ULIP health plans with no tabular rates.
     throw new AppError(
@@ -654,6 +687,19 @@ export async function calculatePremium(data: PremiumInput) {
           data.premiumMode === "S"
             ? 1
             : policyTerm),
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "890":
+      premiumResult = await calculateLIC890({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm: premiumPayingTerm ?? policyTerm - 5,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,

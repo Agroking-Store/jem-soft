@@ -32,6 +32,13 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
   "184": { url: DEFAULT_URL, note: "Child Career Plan - verified 2026-10-17" },
   "915": { url: DEFAULT_URL, note: "LIC's New Jeevan Anand V02 - verified 2026-10-23" },
   "917": { url: DEFAULT_URL, note: "Single Premium Endowment - verified 2026-10-23" },
+  "890": {
+    url: DEFAULT_URL,
+    note:
+      "New Bima Jyoti - verified 2026-10-28. PPT = term-5; riders come from Lookup/Riders " +
+      "(3=DAB, 9=ABR, 2=TRB, 10=CIR option 1, 11=CIR option 2); CIR is gender specific and " +
+      "moves on the half-year age band.",
+  },
 
   // --- returned 0 on the default endpoint, need their own URL ---
   "110": { url: "", note: "Asha Deep-I - default endpoint returns 0" },

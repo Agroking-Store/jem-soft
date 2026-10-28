@@ -389,7 +389,13 @@ export const previewRiderPremium = catchAsync(
     // 2/4/12 for half-yearly/quarterly/monthly; only the mortality riders
     // (TRB/CIR) carry the ~1% loading in the product mode factor. Using the
     // product factor here would overcharge a 10 lakh DAB by 5 rupees.
+    //
+    // Plan 890 is the exception on the other side: LIC's rider lookup returns
+    // its mortality riders without that loading too (TRB annual 6,360.20 is
+    // quoted as 3,180.10 half-yearly, 1,589.56 quarterly and 530.18 monthly),
+    // so every rider of that plan is divided flat.
     const FLAT_MODE_RIDERS = new Set(["DAB", "ADDB", "ABR"]);
+    const FLAT_MODE_RIDER_PLANS = new Set(["890"]);
     const modeName = String(premiumMode ?? "").trim().toLowerCase();
     const flatModeFactor = modeName.startsWith("half")
       ? 0.5
@@ -400,12 +406,31 @@ export const previewRiderPremium = catchAsync(
           : 1;
 
     const modeFactor =
-      rider && FLAT_MODE_RIDERS.has(rider.riderCode)
+      rider &&
+      (FLAT_MODE_RIDERS.has(rider.riderCode) ||
+        FLAT_MODE_RIDER_PLANS.has(product.planNumber ?? ""))
         ? flatModeFactor
         : await getModeFactor(productId, premiumMode);
 
+    // The Critical Illness riders are the one exception: LIC prices them with
+    // the classic rider loading of 1% half-yearly and 2% quarterly/monthly, so
+    // plan 890 quotes a 6,380 yearly CIR as 3,222 / 1,627 / 542.
+    const isCriticalIllness =
+      rider != null && (rider.riderCode === "CIR" || rider.riderCode === "CIR2");
+    const cirModeFactor = modeName.startsWith("half")
+      ? 0.505
+      : modeName.startsWith("quarter")
+        ? 0.255
+        : modeName.startsWith("month")
+          ? 0.085
+          : 1;
+    const effectiveModeFactor =
+      isCriticalIllness && product.planNumber === "890"
+        ? cirModeFactor
+        : modeFactor;
+
     const installmentPremium = Number(
-      (tabularPremium * modeFactor).toFixed(2),
+      (tabularPremium * effectiveModeFactor).toFixed(2),
     );
 
     // =========================================================

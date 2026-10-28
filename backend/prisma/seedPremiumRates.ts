@@ -86,6 +86,7 @@ import {
 import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 import { seedPremiumRates770 } from "./seedPremiumRates770";
 import { seedPremiumRates894 } from "./seedPremiumRates894";
+import { seedPremiumRates890 } from "./seedPremiumRates890";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -195,6 +196,12 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // payment option) from masterData/premiumRates894.json, GST 18% and the
   // Accident Benefit Rider at Rs 0.50 per Rs 1,000.
   await seedPremiumRates894(prisma);
+
+  // Plan 890 (New Bima Jyoti): the age x term grid from
+  // masterData/premiumRates890.json (crawled from LIC's own engine), the four
+  // brochure mode factors, GST 0 (brochure: currently exempt) and the five
+  // optional riders (DAB, ABR, TRB, Critical Illness option 1 and 2).
+  await seedPremiumRates890(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

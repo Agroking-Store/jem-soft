@@ -5123,7 +5123,7 @@
     "planName": "New Bima Jyoti",
     "introDate": "2026-08-10",
     "withdrawalDate": "2199-03-31",
-    "minEntryAge": null,
+    "minEntryAge": "0",
     "maxEntryAge": "60",
     "minPolicyTerm": "15",
     "maxPolicyTerm": "20",
@@ -5133,17 +5133,17 @@
     "ppts": null,
     "termFormula": null,
     "pptFormula": "term-5",
-    "pptNotes": null,
+    "pptNotes": "Premium paying term is policy term minus 5 (10 to 15 years)",
     "allowedRiders": [
-      "ABR",
-      "CIR",
-      "CIR2",
       "DAB",
-      "TRB"
+      "ABR",
+      "TRB",
+      "CIR",
+      "CIR2"
     ],
     "minSumAssured": 125000,
-    "maxSumAssured": 125000,
-    "notes": "Min sum assured 125000"
+    "maxSumAssured": null,
+    "notes": "Entry age 30 days to 60 years, maturity age 18 to 75 years. BSA minimum 1,25,000 in multiples of 5,000 up to 2,75,000 and 25,000 above, no maximum. GST currently exempt."
   },
   {
     "planNumber": "894",

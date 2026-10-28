@@ -196,8 +196,24 @@ const take = <T,>(arr: T[], n: number): T[] =>
  * record says "Double Accident Benefit Rider" - so the two cannot be compared
  * verbatim.
  */
-const normRider = (s: string) => s.toLowerCase().replace(/\brider\b/g, "").replace(/[^a-z]/g, "");
-const sameRider = (a: string, b: string) => normRider(a) === normRider(b);
+const normRider = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/\brider\b/g, "")
+    .replace(/\boption\b/g, "")
+    .replace(/[^a-z0-9]/g, "");
+
+/**
+ * LIC names option-based riders "Critical Illness Rider - Option 1/2" while the
+ * master record may say "Critical Illness Rider" and "Critical Illness Rider 2".
+ * Normalising the option suffix away and defaulting a missing number to 1 makes
+ * the three shapes comparable.
+ */
+const riderKey = (s: string) => {
+  const key = normRider(s);
+  return /[0-9]$/.test(key) ? key : `${key}1`;
+};
+const sameRider = (a: string, b: string) => riderKey(a) === riderKey(b);
 
 // ---------------------------------------------------------------- fixture mode
 
