@@ -7,6 +7,15 @@
  *   node_modules\.bin\tsx.cmd prisma\scripts\verifyLegacyPlan.ts --plan=833
  *   node_modules\.bin\tsx.cmd prisma\scripts\verifyLegacyPlan.ts --plan=833 --sample=50
  *
+ * Plans LIC's CalcPremium endpoint does not serve (894 returns 0) are verified
+ * from published LIC values instead of from the live API:
+ *
+ *   node_modules\.bin\tsx.cmd prisma\scripts\verifyLegacyPlan.ts --plan=894 \
+ *     --fixture=prisma\fixtures\legacyPlan894.json
+ *
+ * The fixture is per-plan data (expected premiums plus the inputs to produce
+ * them); this script stays plan-agnostic and just compares our API against it.
+ *
  * Checks, in order:
  *   1. integer-age rate rows
  *   2. half-year band rate rows
@@ -19,6 +28,7 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "node:fs";
 import { endpointFor } from "./licEndpoints";
 
 const args = Object.fromEntries(
@@ -187,6 +197,101 @@ const take = <T,>(arr: T[], n: number): T[] =>
 const normRider = (s: string) => s.toLowerCase().replace(/\brider\b/g, "").replace(/[^a-z]/g, "");
 const sameRider = (a: string, b: string) => normRider(a) === normRider(b);
 
+// ---------------------------------------------------------------- fixture mode
+
+type FixtureCase = {
+  description: string;
+  input: Record<string, any>;
+  /** What LIC itself published for this case, for the record. */
+  official?: string;
+  /** Expected fields of the premium-preview payload. */
+  expect?: Record<string, number>;
+  /** Substring of the message a rejected input must produce (HTTP 4xx). */
+  expectError?: string;
+};
+
+/**
+ * Compares our own /policies/premium-preview against a per-plan JSON file of
+ * values published by LIC, instead of against i-magic - whose CalcPremium
+ * endpoint answers 0 for plan 894 and the other plans registered with an
+ * empty url. The expected numbers (and their sources) live in the fixture, so
+ * this runner stays plan-agnostic: `--fixture=<file>` selects the data.
+ */
+async function runFixture(P: string, fixturePath: string) {
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  console.log(`=== verifying plan ${PLAN} against ${fixturePath} ===`);
+  if (fixture.planName) console.log(`   ${fixture.planName}`);
+  for (const s of fixture.sources ?? []) console.log(`   - ${s}`);
+  console.log("");
+
+  let pass = 0;
+  let fail = 0;
+  const bad: string[] = [];
+
+  for (const c of fixture.cases as FixtureCase[]) {
+    const res = await fetch(API + "/policies/premium-preview", {
+      method: "POST",
+      headers: H,
+      body: JSON.stringify({ productId: P, ...c.input }),
+    });
+    const text = await res.text();
+    let body: any = null;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      /* non-JSON body - reported below */
+    }
+    const pr = body?.data?.premium;
+
+    if (c.expectError) {
+      const ok = !res.ok && text.includes(c.expectError);
+      ok ? pass++ : fail++;
+      if (ok) {
+        console.log(`  ok   rejects: ${c.description}`);
+      } else {
+        console.log(`  FAIL rejects: ${c.description}`);
+        bad.push(
+          `${c.description}: wanted 4xx containing "${c.expectError}", got HTTP ${res.status} ${text.slice(0, 160)}`,
+        );
+      }
+      continue;
+    }
+
+    if (!res.ok || !pr) {
+      fail++;
+      console.log(`  FAIL ${c.description}`);
+      bad.push(`${c.description}: HTTP ${res.status} ${text.slice(0, 200)}`);
+      continue;
+    }
+
+    const diffs: string[] = [];
+    for (const [field, want] of Object.entries(c.expect ?? {})) {
+      const got = Number(pr[field]);
+      if (!Number.isFinite(got) || Math.abs(got - Number(want)) > 0.01) {
+        diffs.push(`${field}: ours ${pr[field]} vs expected ${want}`);
+      }
+    }
+    if (diffs.length) {
+      fail++;
+      console.log(`  FAIL ${c.description}`);
+      bad.push(`${c.description}: ${diffs.join("; ")}`);
+    } else {
+      pass++;
+      console.log(
+        `  ok   ${c.description}` + (c.official ? `  [${c.official}]` : ""),
+      );
+    }
+  }
+
+  console.log(`\n=== RESULT: PASS ${pass}   FAIL ${fail} ===`);
+  if (bad.length) {
+    console.log("\nfailures:");
+    for (const b of bad.slice(0, 25)) console.log("  -", b);
+    if (bad.length > 25) console.log(`  ...and ${bad.length - 25} more`);
+  }
+  process.exitCode = fail ? 1 : 0;
+}
+
 // ---------------------------------------------------------------- main
 
 async function main() {
@@ -199,6 +304,12 @@ async function main() {
     process.exit(1);
   }
   const P = product.id;
+
+  if (args.fixture) {
+    await runFixture(P, args.fixture);
+    await prisma.$disconnect();
+    return;
+  }
 
   const baseRows = await prisma.productPremiumRate.findMany({
     where: { productId: P, ageBand: null },

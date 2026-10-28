@@ -5152,21 +5152,21 @@
     "withdrawalDate": "2199-03-31",
     "minEntryAge": "18",
     "maxEntryAge": "45",
-    "minPolicyTerm": "10",
-    "maxPolicyTerm": "10",
-    "minPpt": "10,15",
-    "maxPpt": "10,15",
-    "terms": "10",
-    "ppts": "10,15",
+    "minPolicyTerm": "15",
+    "maxPolicyTerm": "42",
+    "minPpt": "1",
+    "maxPpt": "42",
+    "terms": "15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42",
+    "ppts": "1,10,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42",
     "termFormula": null,
     "pptFormula": null,
-    "pptNotes": null,
+    "pptNotes": "Single Premium: PPT 1; Limited Premium: PPT 10, 15 (Limited 15 needs policy term 20+); Regular Premium: PPT equals Policy Term (15 to 42 yrs). Maximum maturity age 60.",
     "allowedRiders": [
       "ABR"
     ],
     "minSumAssured": 500000,
-    "maxSumAssured": 500000,
-    "notes": "Min sum assured 500000"
+    "maxSumAssured": 2400000,
+    "notes": "LIC Jeevan Raksha (Plan 894, UIN 512N368V01). Pure risk term plan on sale from 07 Sep 2026. Min SA Rs 5 Lakh (multiples of Rs 50,000 up to Rs 7 Lakh, Rs 1 Lakh above), Max SA Rs 24 Lakh. Entry age 18-45 yrs, Max maturity age 60 yrs. Premium modes Yearly / Half-Yearly only; GST 18%. Rates vary by gender and smoking status."
   },
   {
     "planNumber": "901",

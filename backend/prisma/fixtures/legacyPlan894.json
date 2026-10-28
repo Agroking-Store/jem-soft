@@ -1,0 +1,696 @@
+{
+  "planNumber": "894",
+  "planName": "LIC's Jeevan Raksha (UIN 512N368V01)",
+  "purpose": "Per-plan data for verifyLegacyPlan.ts --fixture. LIC's CalcPremium API returns 0 for plan 894, so the generic verifier compares our API against published LIC values instead of against i-magic at run time.",
+  "sources": [
+    "LIC sales brochure https://licindia.in/lic-s-jeevan-raksha - sec.2 eligibility, sec.5 premium paying terms, sec.7 printed sample premiums (12 cases), sec.8 rebates and 2% half-yearly conversion",
+    "User-verified i-magic CalcPremium rates (2 cases)",
+    "16 tabular rate tables in masterData/premiumRates894.json"
+  ],
+  "expectedFormula": {
+    "tabularPremium": "rate x sumAssured / 1000",
+    "saRebate": "tabularPremium x brochure sec.8 rebate % (age band x single/regular x sum assured band)",
+    "basicYearlyPremium": "tabularPremium - saRebate, rounded to 2dp",
+    "installmentPremium": "Yearly/single = round(basic); Half-Yearly = round(basic x 1.02 / 2)",
+    "gst": "round(installmentPremium x 18%)",
+    "totalInstallmentPremium": "installmentPremium + gst"
+  },
+  "cases": [
+    {
+      "description": "LIC brochure sec.7 sample - age 20, term 20, PPT 20 (printed Rs 2290)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 20,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "official": "brochure printed premium 2290",
+      "expect": {
+        "rate": 4.58,
+        "tabularPremium": 2290,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 2290,
+        "installmentPremium": 2290,
+        "gstRate": 18,
+        "gst": 412,
+        "totalInstallmentPremium": 2702
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 20, term 20, PPT 15 (printed Rs 2555)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 20,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 15
+      },
+      "official": "brochure printed premium 2555",
+      "expect": {
+        "rate": 5.11,
+        "tabularPremium": 2555,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 2555,
+        "installmentPremium": 2555,
+        "gstRate": 18,
+        "gst": 460,
+        "totalInstallmentPremium": 3015
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 20, term 20, PPT 10 (printed Rs 3150)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 20,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 10
+      },
+      "official": "brochure printed premium 3150",
+      "expect": {
+        "rate": 6.3,
+        "tabularPremium": 3150,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 3150,
+        "installmentPremium": 3150,
+        "gstRate": 18,
+        "gst": 567,
+        "totalInstallmentPremium": 3717
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 20, term 20, PPT 1 (printed Rs 19035)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 20,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 1
+      },
+      "official": "brochure printed premium 19035",
+      "expect": {
+        "rate": 38.07,
+        "tabularPremium": 19035,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 19035,
+        "installmentPremium": 19035,
+        "gstRate": 18,
+        "gst": 3426,
+        "totalInstallmentPremium": 22461
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 30, term 20, PPT 20 (printed Rs 2730)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "official": "brochure printed premium 2730",
+      "expect": {
+        "rate": 5.46,
+        "tabularPremium": 2730,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 2730,
+        "installmentPremium": 2730,
+        "gstRate": 18,
+        "gst": 491,
+        "totalInstallmentPremium": 3221
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 30, term 20, PPT 15 (printed Rs 3070)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 15
+      },
+      "official": "brochure printed premium 3070",
+      "expect": {
+        "rate": 6.14,
+        "tabularPremium": 3070,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 3070,
+        "installmentPremium": 3070,
+        "gstRate": 18,
+        "gst": 553,
+        "totalInstallmentPremium": 3623
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 30, term 20, PPT 10 (printed Rs 3825)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 10
+      },
+      "official": "brochure printed premium 3825",
+      "expect": {
+        "rate": 7.65,
+        "tabularPremium": 3825,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 3825,
+        "installmentPremium": 3825,
+        "gstRate": 18,
+        "gst": 689,
+        "totalInstallmentPremium": 4514
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 30, term 20, PPT 1 (printed Rs 23805)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 1
+      },
+      "official": "brochure printed premium 23805",
+      "expect": {
+        "rate": 47.61,
+        "tabularPremium": 23805,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 23805,
+        "installmentPremium": 23805,
+        "gstRate": 18,
+        "gst": 4285,
+        "totalInstallmentPremium": 28090
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 40, term 20, PPT 20 (printed Rs 4435)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "official": "brochure printed premium 4435",
+      "expect": {
+        "rate": 8.87,
+        "tabularPremium": 4435,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 4435,
+        "installmentPremium": 4435,
+        "gstRate": 18,
+        "gst": 798,
+        "totalInstallmentPremium": 5233
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 40, term 20, PPT 15 (printed Rs 5035)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 15
+      },
+      "official": "brochure printed premium 5035",
+      "expect": {
+        "rate": 10.07,
+        "tabularPremium": 5035,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 5035,
+        "installmentPremium": 5035,
+        "gstRate": 18,
+        "gst": 906,
+        "totalInstallmentPremium": 5941
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 40, term 20, PPT 10 (printed Rs 6390)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 10
+      },
+      "official": "brochure printed premium 6390",
+      "expect": {
+        "rate": 12.78,
+        "tabularPremium": 6390,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 6390,
+        "installmentPremium": 6390,
+        "gstRate": 18,
+        "gst": 1150,
+        "totalInstallmentPremium": 7540
+      }
+    },
+    {
+      "description": "LIC brochure sec.7 sample - age 40, term 20, PPT 1 (printed Rs 41770)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 1
+      },
+      "official": "brochure printed premium 41770",
+      "expect": {
+        "rate": 83.54,
+        "tabularPremium": 41770,
+        "saRebateRate": 0,
+        "saRebateAmount": 0,
+        "basicYearlyPremium": 41770,
+        "installmentPremium": 41770,
+        "gstRate": 18,
+        "gst": 7519,
+        "totalInstallmentPremium": 49289
+      }
+    },
+    {
+      "description": "i-magic verified rate - age 39, Female Non-Smoker, term 21, PPT 10 (rate 10.56)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1000000,
+        "age": 39,
+        "gender": "Female",
+        "smoker": false,
+        "policyTerm": 21,
+        "premiumPayingTerm": 10
+      },
+      "official": "i-magic premiumRate 10.56",
+      "expect": {
+        "rate": 10.56,
+        "tabularPremium": 10560,
+        "saRebateRate": 0.63,
+        "saRebateAmount": 633.6,
+        "basicYearlyPremium": 9926.4,
+        "installmentPremium": 9926,
+        "gstRate": 18,
+        "gst": 1787,
+        "totalInstallmentPremium": 11713
+      }
+    },
+    {
+      "description": "i-magic verified rate - age 39, Female Non-Smoker, term 21, PPT 1 (rate 68.07)",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1000000,
+        "age": 39,
+        "gender": "Female",
+        "smoker": false,
+        "policyTerm": 21,
+        "premiumPayingTerm": 1
+      },
+      "official": "i-magic premiumRate 68.07",
+      "expect": {
+        "rate": 68.07,
+        "tabularPremium": 68070,
+        "saRebateRate": 3.4,
+        "saRebateAmount": 3403.5,
+        "basicYearlyPremium": 64666.5,
+        "installmentPremium": 64667,
+        "gstRate": 18,
+        "gst": 11640,
+        "totalInstallmentPremium": 76307
+      }
+    },
+    {
+      "description": "Half-yearly mode - age 30, term 20, PPT 10, BSA 7,00,000 (2% conversion / 2)",
+      "input": {
+        "premiumMode": "Half-Yearly",
+        "sumAssured": 700000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 10
+      },
+      "expect": {
+        "rate": 7.65,
+        "tabularPremium": 5355,
+        "saRebateRate": 0.38,
+        "saRebateAmount": 267.75,
+        "basicYearlyPremium": 5087.25,
+        "installmentPremium": 2594,
+        "gstRate": 18,
+        "gst": 467,
+        "totalInstallmentPremium": 3061
+      }
+    },
+    {
+      "description": "Rebate - young band 18-30, BSA 20L -> 18%, age 30, term 20",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 2000000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expect": {
+        "rate": 5.46,
+        "tabularPremium": 10920,
+        "saRebateRate": 0.98,
+        "saRebateAmount": 1965.6,
+        "basicYearlyPremium": 8954.4,
+        "installmentPremium": 8954,
+        "gstRate": 18,
+        "gst": 1612,
+        "totalInstallmentPremium": 10566
+      }
+    },
+    {
+      "description": "Rebate - older band 31-45, BSA 20L -> 14%, age 40, term 20",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 2000000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expect": {
+        "rate": 8.87,
+        "tabularPremium": 17740,
+        "saRebateRate": 1.24,
+        "saRebateAmount": 2483.6,
+        "basicYearlyPremium": 15256.4,
+        "installmentPremium": 15256,
+        "gstRate": 18,
+        "gst": 2746,
+        "totalInstallmentPremium": 18002
+      }
+    },
+    {
+      "description": "Rebate - single, older band, BSA 15L -> 8%, age 40, term 20",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1500000,
+        "age": 40,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 1
+      },
+      "expect": {
+        "rate": 83.54,
+        "tabularPremium": 125310,
+        "saRebateRate": 6.68,
+        "saRebateAmount": 10024.8,
+        "basicYearlyPremium": 115285.2,
+        "installmentPremium": 115285,
+        "gstRate": 18,
+        "gst": 20751,
+        "totalInstallmentPremium": 136036
+      }
+    },
+    {
+      "description": "Rebate - young band, BSA 7L -> 5%, age 25, term 20",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 700000,
+        "age": 25,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 15
+      },
+      "expect": {
+        "rate": 5.42,
+        "tabularPremium": 3794,
+        "saRebateRate": 0.27,
+        "saRebateAmount": 189.7,
+        "basicYearlyPremium": 3604.3,
+        "installmentPremium": 3604,
+        "gstRate": 18,
+        "gst": 649,
+        "totalInstallmentPremium": 4253
+      }
+    },
+    {
+      "description": "Separate table - age 39, Male smoker, term 21, PPT 10",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1000000,
+        "age": 39,
+        "gender": "Male",
+        "smoker": true,
+        "policyTerm": 21,
+        "premiumPayingTerm": 10
+      },
+      "expect": {
+        "rate": 16.88,
+        "tabularPremium": 16880,
+        "saRebateRate": 1.01,
+        "saRebateAmount": 1012.8,
+        "basicYearlyPremium": 15867.2,
+        "installmentPremium": 15867,
+        "gstRate": 18,
+        "gst": 2856,
+        "totalInstallmentPremium": 18723
+      }
+    },
+    {
+      "description": "Separate table - age 39, Female smoker, term 21, PPT 10",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1000000,
+        "age": 39,
+        "gender": "Female",
+        "smoker": true,
+        "policyTerm": 21,
+        "premiumPayingTerm": 10
+      },
+      "expect": {
+        "rate": 13.88,
+        "tabularPremium": 13880,
+        "saRebateRate": 0.83,
+        "saRebateAmount": 832.8,
+        "basicYearlyPremium": 13047.2,
+        "installmentPremium": 13047,
+        "gstRate": 18,
+        "gst": 2348,
+        "totalInstallmentPremium": 15395
+      }
+    },
+    {
+      "description": "Separate table - age 39, Male non-smoker, term 21, PPT 10",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 1000000,
+        "age": 39,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 21,
+        "premiumPayingTerm": 10
+      },
+      "expect": {
+        "rate": 12.59,
+        "tabularPremium": 12590,
+        "saRebateRate": 0.76,
+        "saRebateAmount": 755.4,
+        "basicYearlyPremium": 11834.6,
+        "installmentPremium": 11835,
+        "gstRate": 18,
+        "gst": 2130,
+        "totalInstallmentPremium": 13965
+      }
+    },
+    {
+      "description": "Rejects - Quarterly mode is not offered",
+      "input": {
+        "premiumMode": "Quarterly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "only Yearly or Half-Yearly"
+    },
+    {
+      "description": "Rejects - Monthly mode is not offered",
+      "input": {
+        "premiumMode": "Monthly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "only Yearly or Half-Yearly"
+    },
+    {
+      "description": "Rejects - sum assured below Rs 5 lakh",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 300000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "between Rs 5,00,000 and Rs 24,00,000"
+    },
+    {
+      "description": "Rejects - sum assured above Rs 24 lakh",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 3000000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "between Rs 5,00,000 and Rs 24,00,000"
+    },
+    {
+      "description": "Rejects - sum assured not on the 1 lakh grid above Rs 7 lakh",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 850000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "multiples of Rs 1,00,000"
+    },
+    {
+      "description": "Rejects - sum assured not on the 50k grid up to Rs 7 lakh",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 575000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "multiples of Rs 50,000"
+    },
+    {
+      "description": "Rejects - entry age above 45",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 50,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "between 18 and 45"
+    },
+    {
+      "description": "Rejects - policy term below 15",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 10,
+        "premiumPayingTerm": 10
+      },
+      "expectError": "between 15 and 42"
+    },
+    {
+      "description": "Rejects - cover past age 60",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 45,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "beyond age 60"
+    },
+    {
+      "description": "Rejects - Limited Premium 15 with term under 20",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 15,
+        "premiumPayingTerm": 15
+      },
+      "expectError": "at least 20 years"
+    },
+    {
+      "description": "Rejects - unknown premium paying term",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "Male",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 12
+      },
+      "expectError": "premium paying term must be"
+    },
+    {
+      "description": "Rejects - gender missing",
+      "input": {
+        "premiumMode": "Yearly",
+        "sumAssured": 500000,
+        "age": 30,
+        "gender": "",
+        "smoker": false,
+        "policyTerm": 20,
+        "premiumPayingTerm": 20
+      },
+      "expectError": "Gender is required"
+    }
+  ]
+}

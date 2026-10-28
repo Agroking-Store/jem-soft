@@ -85,6 +85,7 @@ import {
 } from "./seedPremiumRates904";
 import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 import { seedPremiumRates770 } from "./seedPremiumRates770";
+import { seedPremiumRates894 } from "./seedPremiumRates894";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -189,6 +190,11 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // Plan 770 (Bima Platinum): exact brochure sample points and official mode
   // conversion factors only; never interpolate unofficial figures.
   await seedPremiumRates770(prisma);
+
+  // Plan 894 (Jeevan Raksha): all 16 official rate tables (gender x smoker x
+  // payment option) from masterData/premiumRates894.json, GST 18% and the
+  // Accident Benefit Rider at Rs 0.50 per Rs 1,000.
+  await seedPremiumRates894(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

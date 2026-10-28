@@ -18,6 +18,7 @@ import { calculateLIC888 } from "./premiumcalculators/lic888Calculator.js";
 import { calculateLIC889 } from "./premiumcalculators/lic889Calculator.js";
 import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
 import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
+import { calculateLIC894, validateLIC894Eligibility } from "./premiumcalculators/lic894Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -442,6 +443,53 @@ export async function calculatePremium(data: PremiumInput) {
         option,
       },
     });
+  } else if (product.planNumber === "894") {
+    // Jeevan Raksha prices on age, gender, smoking status, policy term and
+    // premium paying term (brochure sec.5) and publishes 16 separate rate
+    // tables, so a row for another gender or smoking status is a different
+    // price - never a fallback. Gender and smoker are both sent by the form;
+    // a missing smoker means the form's Non-Smoker default.
+    if (activeGender == null || String(activeGender).trim() === "") {
+      throw new AppError("Gender is required for LIC Plan 894", 400);
+    }
+
+    const genderKey =
+      activeGender === "F" ||
+      activeGender === "Female" ||
+      activeGender === "FEMALE"
+        ? "F"
+        : "M";
+    const smokerKey = activeSmoker === true;
+
+    // LIC's eligibility rules (age, term, PPT, sum assured, mode) run before
+    // the lookup, so an impossible quote is rejected with a reason rather than
+    // falling through to the manual-premium path reserved for missing rates.
+    const { ppt: pptVal } = validateLIC894Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        gender: genderKey,
+        smoker: smokerKey,
+        policyTerm,
+        premiumPayingTerm: pptVal,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 894: Age ${age}, Gender ${genderKey}, ` +
+          `${smokerKey ? "Smoker" : "Non-Smoker"}, Term ${policyTerm}, PPT ${pptVal}`,
+        404,
+      );
+    }
   } else if (product.planNumber === "901" || product.planNumber === "902") {
     // LIC Health Plus (901) and Health Protection Plus (902) are ULIP health plans with no tabular rates.
     throw new AppError(
@@ -587,6 +635,25 @@ export async function calculatePremium(data: PremiumInput) {
         premiumMode: data.premiumMode,
         age: data.age,
         policyTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "894":
+      premiumResult = await calculateLIC894({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm:
+          premiumPayingTerm ??
+          (data.premiumMode === "Single" ||
+          data.premiumMode === "O" ||
+          data.premiumMode === "S"
+            ? 1
+            : policyTerm),
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
