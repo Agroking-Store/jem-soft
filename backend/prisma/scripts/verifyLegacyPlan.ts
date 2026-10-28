@@ -11,10 +11,12 @@
  * from published LIC values instead of from the live API:
  *
  *   node_modules\.bin\tsx.cmd prisma\scripts\verifyLegacyPlan.ts --plan=894 \
- *     --fixture=prisma\fixtures\legacyPlan894.json
+ *     --fixture=prisma\masterData\premiumRates894.json
  *
  * The fixture is per-plan data (expected premiums plus the inputs to produce
  * them); this script stays plan-agnostic and just compares our API against it.
+ * A rate file may carry that data under a "verification" key, or the file may
+ * be a fixture on its own with "cases" at the top level.
  *
  * Checks, in order:
  *   1. integer-age rate rows
@@ -219,16 +221,21 @@ type FixtureCase = {
  */
 async function runFixture(P: string, fixturePath: string) {
   const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  // Either a standalone fixture file or a rate file that carries the expected
+  // values under a "verification" key.
+  const meta = fixture.verification ?? fixture;
+  const cases: FixtureCase[] = meta.cases ?? [];
+
   console.log(`=== verifying plan ${PLAN} against ${fixturePath} ===`);
-  if (fixture.planName) console.log(`   ${fixture.planName}`);
-  for (const s of fixture.sources ?? []) console.log(`   - ${s}`);
+  if (meta.planName) console.log(`   ${meta.planName}`);
+  for (const s of meta.sources ?? []) console.log(`   - ${s}`);
   console.log("");
 
   let pass = 0;
   let fail = 0;
   const bad: string[] = [];
 
-  for (const c of fixture.cases as FixtureCase[]) {
+  for (const c of cases) {
     const res = await fetch(API + "/policies/premium-preview", {
       method: "POST",
       headers: H,
