@@ -63,6 +63,11 @@ import {
   seedModeFactors874,
 } from "./seedPremiumRates874";
 import {
+  seedPremiumRates866,
+  seedRiderPremium866,
+  seedModeFactors866,
+} from "./seedPremiumRates866";
+import {
   seedPremiumRates903,
   seedRiderPremium903,
   seedModeFactors903,
@@ -161,6 +166,11 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates874(prisma);
   await seedRiderPremium874(prisma);
   await seedModeFactors874(prisma);
+
+  // Plan 866 (Dhan Varsha) - Single premium, term 10 & 15, Option 1 & 2
+  await seedPremiumRates866(prisma);
+  await seedRiderPremium866(prisma);
+  await seedModeFactors866(prisma);
 
   // Plan 903 (Jeevan Arogya) - published annual HCB rates, four payment
   // modes, and the DAB rider present in the legacy plan catalogue.

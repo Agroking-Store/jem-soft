@@ -231,7 +231,7 @@ export async function calculatePremium(data: PremiumInput) {
 
   if (
     product.planNumber &&
-    ["717", "888", "883", "917"].includes(product.planNumber)
+    ["717", "888", "883", "917", "866"].includes(product.planNumber)
   ) {
     data.premiumMode = "Single";
   }
@@ -280,7 +280,27 @@ export async function calculatePremium(data: PremiumInput) {
 
   let premiumRate;
 
-  if (product.planNumber === "874") {
+  if (product.planNumber === "866") {
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 866", 400);
+    }
+    const rateKey = {
+      productId: data.productId,
+      policyTerm,
+      premiumPayingTerm: 1,
+      option,
+    };
+    if (ageBand != null) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: { ...rateKey, ageBand },
+      });
+    }
+    if (!premiumRate) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: { ...rateKey, ageBand: null, entryAge: age },
+      });
+    }
+  } else if (product.planNumber === "874") {
     // Amritbaal rates are keyed by entry age, term, PPT and LIC's Sum Assured
     // Option (SBOption 1/2). This plan-specific branch leaves other legacy
     // plan lookups unchanged.

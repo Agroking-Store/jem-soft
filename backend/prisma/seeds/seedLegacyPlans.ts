@@ -143,8 +143,15 @@ export const seedLegacyPlans = async (prisma: PrismaClient) => {
 
   const licProvider = await prisma.insuranceProvider.findFirst({ where: { code: 'LIC' } });
   const products = await prisma.productMaster.findMany({
-    where: { providerId: licProvider?.id ?? undefined, productCode: { startsWith: 'LEGACY-' } },
+    where: { providerId: licProvider?.id ?? undefined },
     select: { id: true, planNumber: true, productCode: true, productName: true },
+    orderBy: { productCode: 'desc' }, // Ensures LEGACY-866 comes after non-legacy, or we sort explicitly
+  });
+  // Sort so LEGACY- products take precedence over non-legacy for duplicate plan numbers
+  products.sort((a, b) => {
+    const aLegacy = (a.productCode || '').startsWith('LEGACY-') ? 1 : 0;
+    const bLegacy = (b.productCode || '').startsWith('LEGACY-') ? 1 : 0;
+    return aLegacy - bLegacy;
   });
   const productByPlan = new Map(products.map((p) => [String(p.planNumber ?? '').trim(), p]));
 
@@ -163,7 +170,7 @@ export const seedLegacyPlans = async (prisma: PrismaClient) => {
   let skippedPlans: string[] = [];
 
   for (const p of inScope) {
-    const existing = productByPlan.get(p.planNumber);
+    let existing = productByPlan.get(p.planNumber);
 
     if (!existing) {
       // Only auto-create if the plan is not already present under another product code
@@ -176,8 +183,22 @@ export const seedLegacyPlans = async (prisma: PrismaClient) => {
         skippedPlans.push(`${p.planNumber} (already exists as ${dupe.productCode})`);
         continue;
       }
-      skippedPlans.push(`${p.planNumber} (no ProductMaster row)`);
-      continue;
+      if (!licProvider) {
+        skippedPlans.push(`${p.planNumber} (no LIC provider)`);
+        continue;
+      }
+      const newProduct = await prisma.productMaster.create({
+        data: {
+          productCode: `LEGACY-${p.planNumber}`,
+          productName: p.planName || `LIC Plan ${p.planNumber}`,
+          planNumber: p.planNumber,
+          providerId: licProvider.id,
+          isActive: true,
+        },
+      });
+      existing = newProduct;
+      productByPlan.set(p.planNumber, newProduct);
+      createdProducts++;
     }
 
     if (p.planName && existing.productName !== p.planName) {

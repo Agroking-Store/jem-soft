@@ -5,10 +5,32 @@ type ProductCreateData = Omit<ProductMaster, "id" | "createdAt" | "updatedAt">;
 type ProductUpdateData = Partial<ProductCreateData>;
 
 export const getProducts = async () => {
-  return await prisma.productMaster.findMany({
+  const products = await prisma.productMaster.findMany({
     include: { provider: true, category: true, riders: { include: { rider: true } } },
     orderBy: { productName: "asc" },
   });
+
+  // Automatically deduplicate products that share the same provider and planNumber.
+  // Prefer LEGACY- productCode (which holds the seeded rates & attributes) over duplicate placeholders.
+  const uniqueMap = new Map<string, typeof products[0]>();
+  for (const p of products) {
+    const key = `${p.providerId || "none"}_${(p.planNumber || "").trim()}`;
+    if (!p.planNumber || !p.planNumber.trim()) {
+      uniqueMap.set(p.id, p);
+      continue;
+    }
+    const existing = uniqueMap.get(key);
+    if (!existing) {
+      uniqueMap.set(key, p);
+    } else {
+      // If the current one is LEGACY-, replace the non-legacy placeholder
+      if ((p.productCode || "").startsWith("LEGACY-")) {
+        uniqueMap.set(key, p);
+      }
+    }
+  }
+
+  return Array.from(uniqueMap.values());
 };
 
 export const getProductById = async (id: string) => {

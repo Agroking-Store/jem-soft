@@ -306,7 +306,7 @@ export default function EditLICPolicyPage() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "874" || selectedProductPlan === "881") {
+      if (selectedProductPlan === "874" || selectedProductPlan === "866" || selectedProductPlan === "881") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: `Please select a sum assured option for LIC Plan ${selectedProductPlan}.`,
           path: ["option"],
@@ -1088,7 +1088,7 @@ export default function EditLICPolicyPage() {
   const isSinglePremiumPlan = useMemo(() => {
     if (isOtherPolicy) return false;
     const plan = selectedProduct?.planNumber;
-    return Boolean(plan && ["717", "888", "883"].includes(plan));
+    return Boolean(plan && ["717", "888", "883", "866"].includes(plan));
   }, [isOtherPolicy, selectedProduct?.planNumber]);
 
   const modeOptions = useMemo(() => {
@@ -1298,12 +1298,13 @@ export default function EditLICPolicyPage() {
 
     const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
     const is874 = selectedPlan === "874";
+    const is866 = selectedPlan === "866";
     const hasValidAge = watchAge !== undefined && watchAge !== null && watchAge !== "" && !isNaN(Number(watchAge));
 
     if (!watchProductId || !sum || !term || !ppt || !mode || !hasValidAge) {
       return;
     }
-    if (is874 && !option) {
+    if ((is874 || is866) && !option) {
       return;
     }
 
@@ -2119,6 +2120,25 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
+                  {selectedProduct?.planNumber === "866" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Sum Assured Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option 1 (1.25x Tabular Premium)</option>
+                        <option value="2">Option 2 (10x Tabular Premium)</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">{errors.option.message}</p>
+                      )}
+                    </div>
+                  )}
+
                   {selectedProduct?.planNumber === "874" && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">

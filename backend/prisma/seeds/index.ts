@@ -20,6 +20,7 @@ import { seedLIC751SumAssuredRebates } from "../masterData/rebates/lic751";
 import { seedLIC748SumAssuredRebates } from "../masterData/rebates/lic748";
 import { seedPaymentModes } from './paymentModes.seed';
 import { seedLegacyPlans } from './seedLegacyPlans';
+import { cleanDuplicate866 } from '../cleanDuplicate866';
 import { seedPremiumRates } from '../seedPremiumRates';
 
 export const runSeeders = async (prisma: PrismaClient) => {
@@ -44,5 +45,6 @@ export const runSeeders = async (prisma: PrismaClient) => {
   await seedLIC751SumAssuredRebates(prisma);
   await seedLIC748SumAssuredRebates(prisma);
   await seedPaymentModes(prisma);
+  await cleanDuplicate866(prisma);
   await seedPremiumRates(prisma);
 };

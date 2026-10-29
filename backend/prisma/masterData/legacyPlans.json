@@ -5083,11 +5083,11 @@
     "withdrawalDate": "2023-03-31",
     "minEntryAge": "3",
     "maxEntryAge": "60",
-    "minPolicyTerm": "15",
+    "minPolicyTerm": "10",
     "maxPolicyTerm": "15",
     "minPpt": "1",
     "maxPpt": "1",
-    "terms": "15",
+    "terms": "10,15",
     "ppts": "1",
     "termFormula": null,
     "pptFormula": null,
@@ -5095,7 +5095,7 @@
     "allowedRiders": [],
     "minSumAssured": 125000,
     "maxSumAssured": 125000,
-    "notes": "Min sum assured 125000"
+    "notes": "Single premium plan. Terms: 10, 15 yrs. Min sum assured 125000."
   },
   {
     "planNumber": "874",

@@ -675,7 +675,7 @@ function buildRebateRows() {
 
 export const seedPremiumRates874 = async (prisma: PrismaClient) => {
   const product = await prisma.productMaster.findFirst({
-    where: { planNumber: PLAN_NUMBER, productCode: { startsWith: "LEGACY-" } },
+    where: { planNumber: PLAN_NUMBER },
     select: { id: true, productName: true },
   });
   if (!product) {
@@ -700,7 +700,7 @@ export const seedPremiumRates874 = async (prisma: PrismaClient) => {
 
 export const seedRiderPremium874 = async (prisma: PrismaClient) => {
   const product = await prisma.productMaster.findFirst({
-    where: { planNumber: PLAN_NUMBER, productCode: { startsWith: "LEGACY-" } },
+    where: { planNumber: PLAN_NUMBER },
     select: { id: true },
   });
   if (!product) return;
@@ -713,7 +713,7 @@ export const seedRiderPremium874 = async (prisma: PrismaClient) => {
 
 export const seedModeFactors874 = async (prisma: PrismaClient) => {
   const product = await prisma.productMaster.findFirst({
-    where: { planNumber: PLAN_NUMBER, productCode: { startsWith: "LEGACY-" } },
+    where: { planNumber: PLAN_NUMBER },
     select: { id: true },
   });
   if (!product) return;
