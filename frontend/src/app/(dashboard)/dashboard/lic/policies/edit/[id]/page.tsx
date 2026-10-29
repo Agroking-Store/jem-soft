@@ -306,9 +306,9 @@ export default function EditLICPolicyPage() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "881") {
+      if (selectedProductPlan === "874" || selectedProductPlan === "881") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
-          message: "Please select an option for LIC Plan 881.",
+          message: `Please select a sum assured option for LIC Plan ${selectedProductPlan}.`,
           path: ["option"],
         });
       }
@@ -1296,7 +1296,14 @@ export default function EditLICPolicyPage() {
     const option = watchOption || null;
     const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
 
-    if (!watchProductId || !sum || !term || !ppt || !mode || !age) {
+    const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+    const is874 = selectedPlan === "874";
+    const hasValidAge = watchAge !== undefined && watchAge !== null && watchAge !== "" && !isNaN(Number(watchAge));
+
+    if (!watchProductId || !sum || !term || !ppt || !mode || !hasValidAge) {
+      return;
+    }
+    if (is874 && !option) {
       return;
     }
 
@@ -1359,18 +1366,11 @@ export default function EditLICPolicyPage() {
             : undefined,
         );
 
-        if (exactTotal !== undefined) {
-          setValue(
-            "gst",
-            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
-          );
-        }
-        
         let multiplier = 1;
-        if (mode === "Half Yearly") multiplier = 2;
-        if (mode === "Quarterly") multiplier = 4;
-        if (mode === "Monthly (NACH)" || mode === "Monthly") multiplier = 12;
-        if (mode === "SSS") multiplier = 12;
+        const lowerMode = String(mode || "").toLowerCase();
+        if (lowerMode.includes("half") || mode === "H") multiplier = 2;
+        else if (lowerMode.includes("quarter") || mode === "Q") multiplier = 4;
+        else if (lowerMode.includes("month") || mode === "M" || mode === "SSS") multiplier = 12;
 
         const totalYearlyPremium = premium.basicYearlyPremium + (totalRider * multiplier);
         setValue(
@@ -1379,6 +1379,13 @@ export default function EditLICPolicyPage() {
             ? parseFloat(totalYearlyPremium.toFixed(2))
             : undefined,
         );
+
+        if (premium.gst !== undefined && premium.gst !== null) {
+          setValue(
+            "gst",
+            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
+          );
+        }
 
       } catch (error: any) {
         if (!axios.isCancel(error)) {
@@ -1681,8 +1688,8 @@ export default function EditLICPolicyPage() {
     const selectedProduct = products.find(
       (product) => product.id === watchProductId,
     );
-    if (selectedProduct?.planNumber === "881" && formErrors.option) {
-      toast.error("Please select an option for LIC Plan 881.");
+    if ((selectedProduct?.planNumber === "874" || selectedProduct?.planNumber === "881") && formErrors.option) {
+      toast.error(`Please select an option for LIC Plan ${selectedProduct.planNumber}.`);
     }
     if (useNach && (formErrors.bankName || formErrors.accountNumber || formErrors.ifscCode || formErrors.accountHolderName || formErrors.bankBranch)) {
       toast.error("Please fill all required NACH details.");
@@ -2112,6 +2119,24 @@ export default function EditLICPolicyPage() {
                       </p>
                     )}
                   </div>
+                  {selectedProduct?.planNumber === "874" && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Sum Assured Option <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        {...register("option")}
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                      >
+                        <option value="">Select Option</option>
+                        <option value="1">Option I</option>
+                        <option value="2">Option II</option>
+                      </select>
+                      {errors.option && (
+                        <p className="text-xs text-red-500 mt-1">{errors.option.message}</p>
+                      )}
+                    </div>
+                  )}
                   {selectedProduct?.planNumber === "881" && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">

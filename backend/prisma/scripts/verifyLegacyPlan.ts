@@ -42,9 +42,9 @@ const args = Object.fromEntries(
 
 const PLAN = args.plan ?? "833";
 const SAMPLE = args.sample && args.sample !== "all" ? Number(args.sample) : Infinity;
-// Plans launched after 2018 (915 went on sale in Feb-2020) return no rate on
+// Plans launched after 2018 (874 and 915) return no rate on
 // the 2018 default, so the date is overridable.
-const CALC_DATE = args.date ?? "2018-07-12";
+const CALC_DATE = args.date ?? (PLAN === "874" ? "2026-10-06" : "2018-07-12");
 const REF_SA = 1000000;
 const API = process.env.VERIFY_API ?? "http://localhost:5000/api";
 
@@ -179,16 +179,26 @@ const monthsBetween = (dob: string, ref: string) => {
 };
 
 /** A date of birth that lands in a specific half-year age band. */
-function dobForBand(age: number, band: number): string | null {
+function dobForBand(band: number): string | null {
   const months = band * 6;
-  const iso = new Date(Date.UTC(CALC_YEAR - Math.floor(months / 12), 6 - (months % 12), 12))
-    .toISOString()
-    .slice(0, 10);
+  const date = new Date(`${CALC_DATE}T00:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() - months);
+  const iso = date.toISOString().slice(0, 10);
   return monthsBetween(iso, CALC_DATE) === months ? iso : null;
 }
 
 const take = <T,>(arr: T[], n: number): T[] =>
   n >= arr.length ? arr : Array.from({ length: n }, (_, i) => arr[Math.floor((i * arr.length) / n)]!);
+
+async function forEachLimit<T>(rows: T[], limit: number, fn: (row: T) => Promise<void>) {
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, rows.length) }, async () => {
+    while (next < rows.length) {
+      const row = rows[next++];
+      await fn(row!);
+    }
+  }));
+}
 
 /**
  * LIC's rider lookup names riders without the trailing " Rider" that
@@ -336,11 +346,11 @@ async function main() {
 
   const baseRows = await prisma.productPremiumRate.findMany({
     where: { productId: P, ageBand: null },
-    select: { entryAge: true, policyTerm: true, premiumPayingTerm: true, tabularRate: true },
+    select: { entryAge: true, policyTerm: true, premiumPayingTerm: true, option: true, tabularRate: true },
   });
   const bandRows = await prisma.productPremiumRate.findMany({
     where: { productId: P, ageBand: { not: null } },
-    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true, tabularRate: true },
+    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true, option: true, tabularRate: true },
   });
 
   console.log(`=== verifying plan ${PLAN} (${product.productName}) ===`);
@@ -353,28 +363,32 @@ async function main() {
   let fail = 0;
   let skip = 0;
   const bad: string[] = [];
+  const licOption = (option: number | null) => PLAN === "874"
+    ? { SBOption: option ?? 1, Options: "1" }
+    : {};
+  const appOption = (option: number | null) => PLAN === "874" ? { option: option ?? 1 } : {};
 
   // ---- 1 & 2 & 3: rates and rebates -------------------------------------
   console.log("--- 1. integer-age rate rows ---");
-  for (const r of tBase) {
-    const j: any = await licQuote({ DOB: dobFor(r.entryAge), Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm });
+  await forEachLimit(tBase, 4, async (r) => {
+    const j: any = await licQuote({ DOB: dobFor(r.entryAge), Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, ...licOption(r.option) });
     const licRate = Number(j?.ylyPremium?.premiumRate ?? 0);
-    if (licRate === 0) { skip++; continue; }
+    if (licRate === 0) { skip++; return; }
     const ok = Math.abs(Number(r.tabularRate) - licRate) < 0.01;
     ok ? pass++ : fail++;
     if (!ok) bad.push(`rate age ${r.entryAge} T${r.policyTerm}: stored ${r.tabularRate} vs LIC ${licRate}`);
     await new Promise((x) => setTimeout(x, 280));
-  }
+  });
   console.log(`   ${pass} pass, ${fail} fail, ${skip} no-rate-at-LIC`);
 
   console.log("\n--- 2 & 3. half-year band rates, with the rebate and basic premium ---");
   let bPass = 0, bFail = 0, bSkip = 0, rPass = 0, rFail = 0;
-  for (const r of tBand) {
-    const dob = dobForBand(r.entryAge, r.ageBand!);
-    if (!dob) { bSkip++; continue; }
-    const j: any = await licQuote({ DOB: dob, Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm });
+  await forEachLimit(tBand, 4, async (r) => {
+    const dob = dobForBand(r.ageBand!);
+    if (!dob) { bSkip++; return; }
+    const j: any = await licQuote({ DOB: dob, Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, ...licOption(r.option) });
     const licRate = Number(j?.ylyPremium?.premiumRate ?? 0);
-    if (licRate === 0) { bSkip++; continue; }
+    if (licRate === 0) { bSkip++; return; }
 
     const ok = Math.abs(Number(r.tabularRate) - licRate) < 0.01;
     ok ? bPass++ : bFail++;
@@ -385,7 +399,7 @@ async function main() {
     const licBasic = Number(j.ylyPremium.basicPremium ?? 0);
     const ours: any = await ourPost("/policies/premium-preview", {
       productId: P, age: r.entryAge, policyTerm: r.policyTerm,
-      premiumPayingTerm: r.premiumPayingTerm, sumAssured: REF_SA,
+      premiumPayingTerm: r.premiumPayingTerm, sumAssured: REF_SA, ...appOption(r.option),
       premiumMode: "Yearly", gender: "Male", smoker: false,
       dateOfBirth: dob, commencementDate: CALC_DATE,
     });
@@ -396,7 +410,7 @@ async function main() {
     rbOk ? rPass++ : rFail++;
     if (!rbOk) bad.push(`rebate band ${r.ageBand} T${r.policyTerm}: ours ${pr?.saRebateRate}/${pr?.basicYearlyPremium} vs LIC ${licRebate}/${licBasic}`);
     await new Promise((x) => setTimeout(x, 280));
-  }
+  });
   pass += bPass + rPass;
   fail += bFail + rFail;
   console.log(`   rate   : ${bPass} pass, ${bFail} fail, ${bSkip} skipped`);
@@ -462,7 +476,7 @@ async function main() {
   const midPpt = bandMid?.premiumPayingTerm ?? midTerm;
   const midDob =
     bandMid?.ageBand != null
-      ? dobForBand(midAge, bandMid.ageBand)
+      ? dobForBand(bandMid.ageBand)
       : dobFor(midAge);
   let mPass = 0, mFail = 0;
   console.log("  mode        | rider | LIC prem | our prem | diff");

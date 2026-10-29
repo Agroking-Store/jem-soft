@@ -310,7 +310,7 @@ function NewLICPolicyContent() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904" || selectedProductPlan === "903") {
+      if (selectedProductPlan === "874" || selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904" || selectedProductPlan === "903") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: "Option is required for this plan.",
           path: ["option"],
@@ -1335,15 +1335,20 @@ function NewLICPolicyContent() {
       : (watchSpouseAge ? parseFloat(String(watchSpouseAge)) : null);
     const option = watchOption || null;
     const totalRider = parseFloat(String(watchTotalRiderPremium)) || 0;
-    // Plan 904 (Jeevan Arogya): term/ppt are irrelevant for rate lookup
-    const is904 = selectedPlan === "904";
-
-    if (!watchProductId || !sum || !mode || !age) {
-      return;
-    }
-    if (!is904 && (!term || !ppt)) {
-      return;
-    }
+    // Plan 904 (Jeevan Arogya): term/ppt are irrelevant for rate lookup
+    const is904 = selectedPlan === "904";
+    const is874 = selectedPlan === "874";
+    const hasValidAge = watchAge !== undefined && watchAge !== null && watchAge !== "" && !isNaN(Number(watchAge));
+
+    if (!watchProductId || !sum || !mode || !hasValidAge) {
+      return;
+    }
+    if (is874 && !option) {
+      return;
+    }
+    if (!is904 && (!term || !ppt)) {
+      return;
+    }
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
@@ -1438,22 +1443,26 @@ function NewLICPolicyContent() {
             : undefined,
         );
 
-        if (exactTotal !== undefined) {
-          // Plan 904 rounds the GST-inclusive total; use the calculator's
-          // exact figures instead of rebuilding them from the pre-tax amount.
-          setValue(
-            "gst",
-            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
-          );
-          setValue(
-            "totalYearlyPremium",
-            premium.basicYearlyPremium + totalRider > 0
-              ? parseFloat(
-                  (premium.basicYearlyPremium + totalRider).toFixed(2),
-                )
-              : undefined,
-          );
-        }
+        let multiplier = 1;
+        const lowerMode = String(mode || "").toLowerCase();
+        if (lowerMode.includes("half") || mode === "H") multiplier = 2;
+        else if (lowerMode.includes("quarter") || mode === "Q") multiplier = 4;
+        else if (lowerMode.includes("month") || mode === "M" || mode === "SSS") multiplier = 12;
+
+        const calculatedTotalYearly = premium.basicYearlyPremium + (totalRider * multiplier);
+        setValue(
+          "totalYearlyPremium",
+          calculatedTotalYearly > 0
+            ? parseFloat(calculatedTotalYearly.toFixed(2))
+            : undefined,
+        );
+
+        if (premium.gst !== undefined && premium.gst !== null) {
+          setValue(
+            "gst",
+            premium.gst > 0 ? parseFloat(premium.gst.toFixed(2)) : undefined,
+          );
+        }
       } catch (error: any) {
         if (!axios.isCancel(error)) {
           setIsPremiumManual(true);
@@ -2424,6 +2433,25 @@ function NewLICPolicyContent() {
                         <p className="text-xs text-slate-500 mt-1">{attributeHints.ppt}</p>
                       )}
                     </div>
+                    {selectedProduct?.planNumber === "874" && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Sum Assured Option <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          {...register("option")}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm"
+                        >
+                          <option value="">Select Option</option>
+                          <option value="1">Option I</option>
+                          <option value="2">Option II</option>
+                        </select>
+                        {errors.option && (
+                          <p className="text-xs text-red-500 mt-1">{errors.option.message}</p>
+                        )}
+                      </div>
+                    )}
+
                     {selectedProduct?.planNumber === "881" && (
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">

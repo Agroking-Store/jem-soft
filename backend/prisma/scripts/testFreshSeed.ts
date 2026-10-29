@@ -14,6 +14,11 @@
 import { execSync } from "child_process";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
+import {
+  seedPremiumRates874,
+  seedRiderPremium874,
+  seedModeFactors874,
+} from "../seedPremiumRates874";
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -53,19 +58,21 @@ async function priceProbe(id: string) {
 
   const band = await prisma.productPremiumRate.findFirst({
     where: { productId: id, ageBand: { not: null } },
-    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true },
-    orderBy: [{ entryAge: "asc" }, { policyTerm: "asc" }],
+    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true, option: true },
+    orderBy: [{ entryAge: "asc" }, { policyTerm: "asc" }, { option: "asc" }],
   });
   if (!band) { console.log("   no band rows to price"); return; }
 
   const months = band.ageBand! * 6;
-  const dob = new Date(Date.UTC(2018 - Math.floor(months / 12), 6 - (months % 12), 12))
-    .toISOString().slice(0, 10);
+  const commencementDate = "2026-10-06";
+  const dobDate = new Date(`${commencementDate}T00:00:00Z`);
+  dobDate.setUTCMonth(dobDate.getUTCMonth() - months);
+  const dob = dobDate.toISOString().slice(0, 10);
 
   const base = {
     productId: id, age: band.entryAge, policyTerm: band.policyTerm,
-    premiumPayingTerm: band.premiumPayingTerm, sumAssured: 100000,
-    gender: "Male", smoker: false, dateOfBirth: dob, commencementDate: "2018-07-12",
+    premiumPayingTerm: band.premiumPayingTerm, sumAssured: 500000, option: band.option,
+    gender: "Male", smoker: false, dateOfBirth: dob, commencementDate,
   };
 
   const y: any = (await (await fetch("http://localhost:5000/api/policies/premium-preview", {
@@ -110,16 +117,27 @@ async function main() {
   await prisma.riderPremiumRate.deleteMany({ where: { productId: p } });
   await prisma.productRider.deleteMany({ where: { productId: p } });
   await prisma.productPremiumModeFactor.deleteMany({ where: { productId: p } });
-  await prisma.productAttributeValue.deleteMany({ where: { productId: p } });
+  // Plan 874's premium seeder does not own catalogue attributes. Keep its
+  // metadata intact so this plan-scoped test never needs the all-plan seed.
+  if (PLAN !== "874") {
+    await prisma.productAttributeValue.deleteMany({ where: { productId: p } });
+  }
   await counts("  after wipe:");
 
-  console.log("\n3. running the standard seed chain");
-  try {
-    execSync("node_modules\\.bin\\tsx.cmd prisma\\seed.ts", { stdio: "pipe", encoding: "utf8" });
-    console.log("  seed finished without error");
-  } catch (e: any) {
-    console.log("  SEED FAILED:\n" + (e.stdout ?? "") + (e.stderr ?? ""));
-    process.exit(1);
+  console.log("\n3. re-seeding the plan-specific rates");
+  if (PLAN === "874") {
+    await seedPremiumRates874(prisma);
+    await seedRiderPremium874(prisma);
+    await seedModeFactors874(prisma);
+    console.log("  plan 874 seed finished without error");
+  } else {
+    try {
+      execSync("node_modules\\.bin\\tsx.cmd prisma\\seed.ts", { stdio: "pipe", encoding: "utf8" });
+      console.log("  seed finished without error");
+    } catch (e: any) {
+      console.log("  SEED FAILED:\n" + (e.stdout ?? "") + (e.stderr ?? ""));
+      process.exit(1);
+    }
   }
 
   console.log("\n4. state after the seed");

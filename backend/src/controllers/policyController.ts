@@ -39,7 +39,22 @@ export const previewPremium = catchAsync(
       commencementDate,
     } = req.body;
 
-    if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
+    // Age 0 is valid for Amritbaal, while preserving existing validation for
+    // every other plan.
+    let allowZeroAge = false;
+    if (Number(age) === 0 && productId) {
+      const { prisma } = await import("../config/database.js");
+      const product = await prisma.productMaster.findUnique({
+        where: { id: productId },
+        select: { planNumber: true },
+      });
+      allowZeroAge = product?.planNumber === "874";
+    }
+    if (
+      !productId || age === undefined || age === null || age === "" ||
+      (!allowZeroAge && !age) ||
+      !policyTerm || !sumAssured || !premiumMode
+    ) {
       throw new AppError(
         "Product, age, term, sum assured, and mode are required.",
         400,

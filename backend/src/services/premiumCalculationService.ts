@@ -280,7 +280,34 @@ export async function calculatePremium(data: PremiumInput) {
 
   let premiumRate;
 
-  if (product.planNumber === "888") {
+  if (product.planNumber === "874") {
+    // Amritbaal rates are keyed by entry age, term, PPT and LIC's Sum Assured
+    // Option (SBOption 1/2). This plan-specific branch leaves other legacy
+    // plan lookups unchanged.
+    if (option == null) {
+      throw new AppError("Option is required for LIC Plan 874", 400);
+    }
+    if (premiumPayingTerm == null) {
+      throw new AppError("Premium Paying Term is required for LIC Plan 874", 400);
+    }
+
+    const rateKey = {
+      productId: data.productId,
+      policyTerm,
+      premiumPayingTerm,
+      option,
+    };
+    if (ageBand != null) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: { ...rateKey, ageBand },
+      });
+    }
+    if (!premiumRate) {
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: { ...rateKey, ageBand: null, entryAge: age },
+      });
+    }
+  } else if (product.planNumber === "888") {
     // ------------------------------------------
     // PLAN 888 - JEEVAN SATHI
     // ------------------------------------------

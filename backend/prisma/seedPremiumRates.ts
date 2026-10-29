@@ -58,6 +58,11 @@ import {
   seedModeFactors833,
 } from "./seedPremiumRates833";
 import {
+  seedPremiumRates874,
+  seedRiderPremium874,
+  seedModeFactors874,
+} from "./seedPremiumRates874";
+import {
   seedPremiumRates903,
   seedRiderPremium903,
   seedModeFactors903,
@@ -151,6 +156,11 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates833(prisma);
   await seedRiderPremium833(prisma);
   await seedModeFactors833(prisma);
+
+  // Plan 874 (Amritbaal) - age/term/PPT and Sum Assured Option rate grid.
+  await seedPremiumRates874(prisma);
+  await seedRiderPremium874(prisma);
+  await seedModeFactors874(prisma);
 
   // Plan 903 (Jeevan Arogya) - published annual HCB rates, four payment
   // modes, and the DAB rider present in the legacy plan catalogue.
