@@ -129,9 +129,6 @@ export default function CommissionBillForm({
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                    Selected Filter
-                  </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                     <span className="text-slate-800 font-semibold truncate">
                       {getFilterDisplayLabel()}
@@ -179,22 +176,17 @@ export default function CommissionBillForm({
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Report Date
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                  Report Date
-                </span>
-                <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                  <input
-                    type="text"
-                    value={formData.reportDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                    }
-                    placeholder="01/Sep/2026"
-                    className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                  />
-                  <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                </div>
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="text"
+                  value={formData.reportDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+                  }
+                  placeholder="01/Sep/2026"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                />
+                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
               </div>
             </div>
           </div>
@@ -259,24 +251,19 @@ export default function CommissionBillForm({
             </div>
 
             {/* Commission Bill code(mm/yy) Input */}
-            <div className="space-y-1.5 max-w-sm">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Commission Bill code(mm/yy)
+            <div className="space-y-2 max-w-sm">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                Commission Bill Code (mm/yy)
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                  Bill Date
-                </span>
-                <input
-                  type="text"
-                  value={formData.billCode}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, billCode: e.target.value }))
-                  }
-                  placeholder="12/206"
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 transition bg-slate-50/40"
-                />
-              </div>
+              <input
+                type="text"
+                value={formData.billCode}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, billCode: e.target.value }))
+                }
+                placeholder="12/206"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 transition bg-slate-50/40"
+              />
             </div>
           </div>
         </div>
