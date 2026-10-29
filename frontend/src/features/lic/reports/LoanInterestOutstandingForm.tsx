@@ -7,7 +7,6 @@ import {
   Filter,
   FilterX,
   ChevronLeft,
-  ArrowRight,
 } from "lucide-react";
 import FilterOptionsModal, {
   type SelectedFilterItem,
@@ -64,9 +63,11 @@ interface LoanInterestOutstandingFormProps {
 
 const getToday = () => format(new Date(), "yyyy-MM-dd");
 
+// Dates start empty and are filled in on the client (see useEffect below)
+// to avoid server/client hydration mismatches.
 const defaultFormData = (): LoanInterestOutstandingFormData => ({
-  calculationDate: getToday(),
-  reportDate: getToday(),
+  calculationDate: "",
+  reportDate: "",
   reportType: "Statement",
   sortingOption: "groupsWise",
   selectedGroups: [],
@@ -135,25 +136,49 @@ export default function LoanInterestOutstandingForm({
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isSortingModalOpen, setIsSortingModalOpen] = useState(false);
+  // Bumped on reset so the modals (which keep their own internal selection state) remount cleanly.
+  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+    } else {
+      const today = getToday();
+      setFormData((prev) => ({
+        ...prev,
+        calculationDate: prev.calculationDate || today,
+        reportDate: prev.reportDate || today,
+      }));
     }
   }, [initialData]);
 
   const handleReset = () => {
-    setFormData(initialData ?? defaultFormData());
+    setResetKey((k) => k + 1);
+    const base = initialData ?? defaultFormData();
+    const today = getToday();
+    setFormData({
+      ...base,
+      calculationDate: base.calculationDate || today,
+      reportDate: base.reportDate || today,
+    });
   };
 
   const handleGenerateReport = () => {
-    if (!parseDate(formData.calculationDate)) {
+    const calcDate = parseDate(formData.calculationDate);
+    const repDate = parseDate(formData.reportDate);
+
+    if (!calcDate) {
       alert("Please select a valid calculation date.");
       return;
     }
 
-    if (!parseDate(formData.reportDate)) {
+    if (!repDate) {
       alert("Please select a valid report date.");
+      return;
+    }
+
+    if (repDate < calcDate) {
+      alert("Report date cannot be before the calculation date.");
       return;
     }
 
@@ -165,7 +190,7 @@ export default function LoanInterestOutstandingForm({
         !Number.isFinite(cost) ||
         cost < 0
       ) {
-        alert("Please enter a valid, non-negative cost per dispatch.");
+        alert("Please enter a valid, non-negative cost per despatch.");
         return;
       }
     }
@@ -375,6 +400,7 @@ export default function LoanInterestOutstandingForm({
                         prev.sortingOption !== "groupMemberwise"
                           ? {
                               sortingOption: "groupsWise" as const,
+                              selectedGroups: [],
                               sortingFilterSelection: null,
                             }
                           : {}),
@@ -545,4 +571,124 @@ export default function LoanInterestOutstandingForm({
                 ).map((option) => (
                   <label
                     key={option.key}
-                    className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-slate-800 transition
+                    className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-slate-800 transition hover:text-[#1877F2]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.intimationOptions[option.key]}
+                      onChange={(event) =>
+                        updateIntimationOption(option.key, event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-[#1877F2] focus:ring-[#1877F2]"
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="costPerDespatch"
+                    className="text-xs font-semibold uppercase tracking-wider text-slate-500"
+                  >
+                    Cost per Despatch
+                  </label>
+                  <input
+                    id="costPerDespatch"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.intimationOptions.costPerDespatch}
+                    onChange={(event) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        intimationOptions: {
+                          ...prev.intimationOptions,
+                          costPerDespatch: event.target.value,
+                        },
+                      }))
+                    }
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+
+                <div className="space-y-1.5 lg:col-span-2">
+                  <label
+                    htmlFor="intimationPurpose"
+                    className="text-xs font-semibold uppercase tracking-wider text-slate-500"
+                  >
+                    Purpose
+                  </label>
+                  <input
+                    id="intimationPurpose"
+                    type="text"
+                    value={formData.intimationOptions.purpose}
+                    onChange={(event) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        intimationOptions: {
+                          ...prev.intimationOptions,
+                          purpose: event.target.value,
+                        },
+                      }))
+                    }
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modals */}
+      <FilterOptionsModal
+        key={`filter-${resetKey}`}
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        agencies={agencies}
+        policyStatuses={policyStatuses}
+        customers={customers}
+        branches={branches}
+        visibleCategories={VISIBLE_CATEGORIES}
+        enableDefaultStatusSelection={false}
+        selectedFilters={formData.appliedFilters}
+        onApplyFilters={(filters: SelectedFilterItem[]) => {
+          setFormData((prev) => ({ ...prev, appliedFilters: filters }));
+          setIsFilterModalOpen(false);
+        }}
+      />
+
+      <SelectGroupModal
+        key={`group-${resetKey}`}
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        customers={customers}
+        selectedGroups={formData.selectedGroups}
+        onApplyGroups={(groups: GroupFilterItem[]) => {
+          setFormData((prev) => ({ ...prev, selectedGroups: groups }));
+          setIsGroupModalOpen(false);
+        }}
+      />
+
+      <SortingFilterModal
+        key={`sorting-${formData.sortingOption}-${resetKey}`}
+        isOpen={isSortingModalOpen}
+        onClose={() => setIsSortingModalOpen(false)}
+        sortingOption={formData.sortingOption}
+        customers={customers}
+        policies={policies}
+        branches={branches}
+        selectedFilters={formData.sortingFilterSelection}
+        onApplySortingFilter={(selection: SortingFilterSelection) => {
+          setFormData((prev) => ({
+            ...prev,
+            sortingFilterSelection: selection,
+          }));
+          setIsSortingModalOpen(false);
+        }}
+      />
+    </div>
+  );
+}
