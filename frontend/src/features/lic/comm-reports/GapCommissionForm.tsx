@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   RotateCcw,
   Filter,
@@ -14,6 +14,82 @@ import {
 import CommissionAgencyFilterModal from "./CommissionAgencyFilterModal";
 import { GapCommissionFormData } from "./gapCommissionData";
 import toast from "react-hot-toast";
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// "2026-04-01" -> "01/Apr/2026"
+const isoToDisplay = (iso: string) => {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${MONTHS[Number(m) - 1]}/${y}`;
+};
+
+// "01/Apr/2026" -> "2026-04-01"
+const displayToIso = (display: string) => {
+  const parts = display.split("/");
+  if (parts.length !== 3) return "";
+  const [d, mon, y] = parts;
+  const m = MONTHS.findIndex((x) => x.toLowerCase() === mon.toLowerCase());
+  if (m === -1) return "";
+  return `${y}-${String(m + 1).padStart(2, "0")}-${d.padStart(2, "0")}`;
+};
+
+interface DateFieldProps {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  className?: string;
+  iconSize?: number;
+}
+
+function DateField({
+  label,
+  value,
+  placeholder,
+  onChange,
+  className = "",
+  iconSize = 16,
+}: DateFieldProps) {
+  const pickerRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className={`relative ${className}`}>
+      <span className="absolute -top-2 left-3 z-10 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase">
+        {label}
+      </span>
+
+      <div className="relative flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+        />
+
+        <button
+          type="button"
+          onClick={() => pickerRef.current?.showPicker()}
+          className="shrink-0 text-[#1877F2] hover:text-blue-800 transition"
+          title="Pick a date"
+        >
+          <CalendarIcon size={iconSize} />
+        </button>
+
+        <input
+          ref={pickerRef}
+          type="date"
+          value={displayToIso(value)}
+          onChange={(e) => onChange(isoToDisplay(e.target.value))}
+          className="pointer-events-none absolute right-2 bottom-0 h-0 w-0 opacity-0"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
+}
 
 interface GapCommissionFormProps {
   initialData?: GapCommissionFormData | null;
@@ -59,7 +135,7 @@ export default function GapCommissionForm({
     if (selectedAgencies.length === 1) {
       return selectedAgencies[0].name;
     }
-    return `${selectedAgencies.length} filters applied`;
+    return `${selectedAgencies.length} agencies selected`;
   };
 
   return (
@@ -123,16 +199,16 @@ export default function GapCommissionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 max-w-4xl">
             {/* Filter Options (Agencies Modal Trigger) */}
-            <div className="space-y-1.5 md:col-span-2 max-w-md">
+            <div className="space-y-5 md:col-span-2 max-w-md">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <Building2 size={13} className="text-[#1877F2]" />
                 Filter Options
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
+                  <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
                     Selected Filter
                   </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
@@ -143,7 +219,7 @@ export default function GapCommissionForm({
                       <button
                         type="button"
                         onClick={() => setIsAgencyFilterModalOpen(true)}
-                        className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                        className="ml-2 shrink-0 px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
                       >
                         View
                       </button>
@@ -177,73 +253,42 @@ export default function GapCommissionForm({
             </div>
 
             {/* Date Range: Date From & To */}
-            <div className="space-y-1.5 md:col-span-2 max-w-2xl">
+            <div className="space-y-5 md:col-span-2 max-w-2xl">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Due Date Range
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Date From
-                  </span>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      type="text"
-                      value={formData.dateFrom}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
-                      }
-                      placeholder="01/Apr/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={15} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="Date From"
+                  value={formData.dateFrom}
+                  placeholder="01/Apr/2026"
+                  iconSize={15}
+                  onChange={(v) => setFormData((prev) => ({ ...prev, dateFrom: v }))}
+                   />
 
-                <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    To Date
-                  </span>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      type="text"
-                      value={formData.dateTo}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
-                      }
-                      placeholder="31/Mar/2027"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={15} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="To Date"
+                  value={formData.dateTo}
+                  placeholder="31/Mar/2027"
+                  iconSize={15}
+                  onChange={(v) => setFormData((prev) => ({ ...prev, dateTo: v }))}
+                   />
               </div>
             </div>
 
             {/* Report Date */}
-            <div className="space-y-1.5 max-w-sm">
+            <div className="space-y-5 max-w-sm">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Report Date
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                  Date of Report
-                </span>
-                <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                  <input
-                    type="text"
-                    value={formData.reportDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                    }
-                    placeholder="01/Sep/2026"
-                    className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                  />
-                  <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                </div>
-              </div>
+              <DateField
+                label="Date of Report"
+                value={formData.reportDate}
+                placeholder="01/Sep/2026"
+                onChange={(v) => setFormData((prev) => ({ ...prev, reportDate: v }))}
+                />
             </div>
           </div>
         </div>
@@ -255,7 +300,7 @@ export default function GapCommissionForm({
             onClick={onBack}
             className="w-full sm:w-auto px-6 py-2.5 border border-slate-200 bg-white text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 transition"
           >
-            Cancel / Back
+            Cancel
           </button>
 
           <button

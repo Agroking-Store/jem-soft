@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Save,
   RotateCcw,
@@ -17,6 +17,74 @@ import {
 import CommissionAgencyFilterModal from "./CommissionAgencyFilterModal";
 import { CommissionSummaryFormData } from "./commissionSummaryData";
 import toast from "react-hot-toast";
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// "2026-04-01" -> "01/Apr/2026"
+const isoToDisplay = (iso: string) => {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${MONTHS[Number(m) - 1]}/${y}`;
+};
+
+// "01/Apr/2026" -> "2026-04-01"
+const displayToIso = (display: string) => {
+  const parts = display.split("/");
+  if (parts.length !== 3) return "";
+  const [d, mon, y] = parts;
+  const m = MONTHS.findIndex((x) => x.toLowerCase() === mon.toLowerCase());
+  if (m === -1) return "";
+  return `${y}-${String(m + 1).padStart(2, "0")}-${d.padStart(2, "0")}`;
+};
+
+interface DateFieldProps {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  className?: string;
+}
+
+function DateField({ label, value, placeholder, onChange, className = "" }: DateFieldProps) {
+  const pickerRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className={`relative ${className}`}>
+      <span className="absolute -top-2 left-3 z-10 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase">
+        {label}
+      </span>
+
+      <div className="relative flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+        />
+
+        <button
+          type="button"
+          onClick={() => pickerRef.current?.showPicker()}
+          className="shrink-0 text-[#1877F2] hover:text-blue-800 transition"
+          title="Pick a date"
+        >
+          <CalendarIcon size={16} />
+        </button>
+
+        <input
+          ref={pickerRef}
+          type="date"
+          value={displayToIso(value)}
+          onChange={(e) => onChange(isoToDisplay(e.target.value))}
+          className="pointer-events-none absolute right-2 bottom-0 h-0 w-0 opacity-0"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
+}
 
 interface CommissionSummaryFormProps {
   initialData?: CommissionSummaryFormData | null;
@@ -147,7 +215,7 @@ export default function CommissionSummaryForm({
             </div>
           </div>
 
-          <div className="space-y-5 max-w-4xl">
+          <div className="space-y-6 max-w-4xl pt-1">
             {/* Filter Options (Agency Modal Trigger) */}
             <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
@@ -157,7 +225,7 @@ export default function CommissionSummaryForm({
 
               <div className="sm:col-span-3 flex items-center gap-2 max-w-lg">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
+                  <span className=" absolute -top-2 left-3 z-10 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase">
                     Selected Filter
                   </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
@@ -223,7 +291,7 @@ export default function CommissionSummaryForm({
             </div>
           </div>
 
-          <div className="space-y-6 max-w-4xl">
+          <div className="space-y-8 max-w-4xl pt-1">
             {/* Mode: Receipt Date vs Bill Code */}
             <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
@@ -263,7 +331,7 @@ export default function CommissionSummaryForm({
             </div>
 
             {/* Date Range: Date From & To Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Date Range
@@ -271,56 +339,36 @@ export default function CommissionSummaryForm({
 
               <div className="sm:col-span-3 flex flex-col sm:flex-row items-center gap-3 max-w-xl">
                 {/* Date From */}
-                <div className="relative flex-1 w-full">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                    DateFrom
-                  </span>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      type="text"
-                      value={formData.dateFrom}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
-                      }
-                      placeholder="01/Apr/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                   label="DateFrom"
+                   value={formData.dateFrom}
+                   placeholder="01/Apr/2026"
+                   className="flex-1 w-full"
+                   onChange={(v) => setFormData((prev) => ({ ...prev, dateFrom: v }))}
+                  />
 
                 <span className="text-xs font-bold text-slate-400">To</span>
 
                 {/* To Date */}
-                <div className="relative flex-1 w-full">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                    To Date
-                  </span>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      type="text"
-                      value={formData.dateTo}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
-                      }
-                      placeholder="31/Mar/2027"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="To Date"
+                  value={formData.dateTo}
+                  placeholder="31/Mar/2027"
+                  className="flex-1 w-full"
+                   onChange={(v) => setFormData((prev) => ({ ...prev, dateTo: v }))}
+                  />
               </div>
             </div>
 
             {/* Bill Code input when Bill Code mode is active */}
             {formData.reportMode === "bill-code" && (
-              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-5">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
                   Bill Code (mm/yy)
                 </label>
                 <div className="sm:col-span-3 max-w-sm">
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
+                    <span className=" absolute -top-2 left-3 z-10 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase">
                       Bill Date
                     </span>
                     <input
@@ -338,29 +386,19 @@ export default function CommissionSummaryForm({
             )}
 
             {/* Report Date & Show Description */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Date of Report
               </label>
 
               <div className="sm:col-span-3 flex flex-col sm:flex-row sm:items-center gap-6">
-                <div className="relative max-w-xs w-full">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
-                    Date of Report
-                  </span>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      type="text"
-                      value={formData.reportDate}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                      }
-                      placeholder="01/Sep/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+               <DateField
+                 label="Date of Report"
+                 value={formData.reportDate}
+                 placeholder="01/Sep/2026"
+                 className="max-w-xs w-full"
+                 onChange={(v) => setFormData((prev) => ({ ...prev, reportDate: v }))}
+                  />
 
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-800 cursor-pointer select-none">
                   <input
@@ -385,7 +423,7 @@ export default function CommissionSummaryForm({
             onClick={onBack}
             className="w-full sm:w-auto px-6 py-2.5 border border-slate-200 bg-white text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 transition"
           >
-            Cancel / Back
+            Cancel
           </button>
 
           <button
