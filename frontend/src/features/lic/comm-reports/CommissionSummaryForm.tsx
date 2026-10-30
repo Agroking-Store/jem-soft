@@ -331,32 +331,49 @@ export default function CommissionSummaryForm({
             </div>
 
             {/* Date Range: Date From & To Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-5">
+            <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Date Range
               </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                <div className="space-y-1">
+                  <label htmlFor="commission-summary-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
+                    From Date
+                  </label>
+                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                    <input
+                      id="commission-summary-from-date"
+                      type="text"
+                      value={formData.dateFrom}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
+                      }
+                      placeholder="01/Apr/2026"
+                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                    />
+                    <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
+                  </div>
+                </div>
 
-              <div className="sm:col-span-3 flex flex-col sm:flex-row items-center gap-3 max-w-xl">
-                {/* Date From */}
-                <DateField
-                   label="DateFrom"
-                   value={formData.dateFrom}
-                   placeholder="01/Apr/2026"
-                   className="flex-1 w-full"
-                   onChange={(v) => setFormData((prev) => ({ ...prev, dateFrom: v }))}
-                  />
-
-                <span className="text-xs font-bold text-slate-400">To</span>
-
-                {/* To Date */}
-                <DateField
-                  label="To Date"
-                  value={formData.dateTo}
-                  placeholder="31/Mar/2027"
-                  className="flex-1 w-full"
-                   onChange={(v) => setFormData((prev) => ({ ...prev, dateTo: v }))}
-                  />
+                <div className="space-y-1">
+                  <label htmlFor="commission-summary-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
+                    To Date
+                  </label>
+                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                    <input
+                      id="commission-summary-to-date"
+                      type="text"
+                      value={formData.dateTo}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
+                      }
+                      placeholder="31/Mar/2027"
+                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                    />
+                    <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
+                  </div>
+                </div>
               </div>
             </div>
 

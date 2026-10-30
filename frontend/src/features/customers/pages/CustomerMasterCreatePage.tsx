@@ -316,6 +316,7 @@ function GroupAutoComplete({
         <Link
           href="/dashboard/customers/new"
           target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-[#1877F2] transition-colors cursor-pointer"
           title="Add new group"
         >

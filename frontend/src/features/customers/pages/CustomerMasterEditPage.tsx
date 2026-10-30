@@ -301,7 +301,7 @@ function GroupAutoComplete({
             <button type="button" onClick={() => { onChange(""); setQuery(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><X size={13} /></button>
           )}
         </div>
-        <Link href="/dashboard/customers/new" target="_blank" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors cursor-pointer" title="Add new group">
+        <Link href="/dashboard/customers/new" className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-blue-50 text-[#1877F2] hover:bg-blue-50 transition-colors cursor-pointer" title="Add new group">
           <Plus size={16} />
         </Link>
       </div>

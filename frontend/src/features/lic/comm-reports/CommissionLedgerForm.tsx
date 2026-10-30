@@ -164,17 +164,23 @@ export default function CommissionLedgerForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Date Range Inputs */}
-            <div className="space-y-1.5 lg:col-span-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <Calendar size={13} className="text-[#1877F2]" />
-                Date Range (Previous Month Default)
-              </label>
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative flex-1 w-full">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
+            <div className="space-y-2 lg:col-span-2">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <Calendar size={13} className="text-[#1877F2]" />
+                  Date Range
+                </label>
+                <p className="text-[10px] font-medium text-slate-400">
+                  Previous Month Default
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label htmlFor="commission-ledger-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
                     From Date
-                  </span>
+                  </label>
                   <input
+                    id="commission-ledger-from-date"
                     type="date"
                     value={formData.fromDate}
                     onChange={(e) => {
@@ -184,12 +190,12 @@ export default function CommissionLedgerForm({
                     className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 transition bg-slate-50/40"
                   />
                 </div>
-                <span className="text-xs font-bold text-slate-400">To</span>
-                <div className="relative flex-1 w-full">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase">
+                <div className="space-y-1">
+                  <label htmlFor="commission-ledger-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
                     To Date
-                  </span>
+                  </label>
                   <input
+                    id="commission-ledger-to-date"
                     type="date"
                     value={formData.toDate}
                     onChange={(e) => {

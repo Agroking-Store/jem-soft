@@ -385,9 +385,6 @@ export default function CommissionOutstandingForm({
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Selected Filter
-                  </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                     <span className="text-slate-800 font-semibold truncate">
                       {getAgencyFilterDisplayLabel()}
@@ -446,27 +443,49 @@ export default function CommissionOutstandingForm({
 
 
             {/* Date Range: From & To */}
-            <div className="space-y-5">
+            <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Date Range
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <DateField
-                  label="From Date"
-                  value={formData.dateFrom}
-                  placeholder="01/Sep/2026"
-                  iconSize={14}
-                 onChange={(v) => setFormData((prev) => ({ ...prev, dateFrom: v }))}
-                 />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label htmlFor="commission-outstanding-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
+                    From Date
+                  </label>
+                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                    <input
+                      id="commission-outstanding-from-date"
+                      type="text"
+                      value={formData.dateFrom}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
+                      }
+                      placeholder="01/Sep/2026"
+                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                    />
+                    <CalendarIcon size={14} className="text-[#1877F2] shrink-0" />
+                  </div>
+                </div>
 
-                <DateField
-                  label="To Date"
-                  value={formData.dateTo}
-                  placeholder="08/Sep/2026"
-                  iconSize={14}
-                  onChange={(v) => setFormData((prev) => ({ ...prev, dateTo: v }))}
-                  />
+                <div className="space-y-1">
+                  <label htmlFor="commission-outstanding-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
+                    To Date
+                  </label>
+                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                    <input
+                      id="commission-outstanding-to-date"
+                      type="text"
+                      value={formData.dateTo}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
+                      }
+                      placeholder="08/Sep/2026"
+                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                    />
+                    <CalendarIcon size={14} className="text-[#1877F2] shrink-0" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -476,12 +495,18 @@ export default function CommissionOutstandingForm({
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Report Date
               </label>
-              <DateField
-                label="Report Date"
-                value={formData.reportDate}
-                placeholder="08/Sep/2026"
-               onChange={(v) => setFormData((prev) => ({ ...prev, reportDate: v }))}
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="text"
+                  value={formData.reportDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+                  }
+                  placeholder="08/Sep/2026"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
                 />
+                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
+              </div>
             </div>
 
             {/* Include Date of Payment till */}
@@ -490,12 +515,18 @@ export default function CommissionOutstandingForm({
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Include Date of Payment till
               </label>
-              <DateField
-                label="Payment Till Date"
-                value={formData.includePaymentTill}
-                placeholder="08/Sep/2026"
-                onChange={(v) => setFormData((prev) => ({ ...prev, includePaymentTill: v }))}
-                 />
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="text"
+                  value={formData.includePaymentTill}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, includePaymentTill: e.target.value }))
+                  }
+                  placeholder="08/Sep/2026"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                />
+                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
+              </div>
             </div>
 
             {/* Payment Type (Non-Monthly, Monthly) */}
@@ -685,9 +716,6 @@ export default function CommissionOutstandingForm({
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                      Selected Filter
-                    </span>
                     <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                       <span className="text-slate-800 font-semibold truncate">
                         {getBranchFilterDisplayLabel()}
@@ -738,9 +766,6 @@ export default function CommissionOutstandingForm({
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                      Selected Filter
-                    </span>
                     <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                       <span className="text-slate-800 font-semibold truncate">
                         {getPolicyFilterDisplayLabel()}

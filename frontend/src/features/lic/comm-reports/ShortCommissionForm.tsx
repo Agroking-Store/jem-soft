@@ -252,9 +252,6 @@ export default function ShortCommissionForm({
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Selected Filter
-                  </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                     <span className="text-slate-800 font-semibold truncate">
                       {getAgencyFilterDisplayLabel()}
@@ -302,12 +299,18 @@ export default function ShortCommissionForm({
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Report Date
               </label>
-              <DateField
-                label="Report Date"
-                value={formData.reportDate}
-                placeholder="01/Sep/2026"
-                onChange={(v) => setFormData((prev) => ({ ...prev, reportDate: v }))}
-                 />
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="text"
+                  value={formData.reportDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+                  }
+                  placeholder="01/Sep/2026"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                />
+                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
+              </div>
             </div>
 
             {/* Ignore difference of */}
@@ -316,24 +319,19 @@ export default function ShortCommissionForm({
                 <Hash size={13} className="text-[#1877F2]" />
                 Ignore difference of
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                  Difference Threshold
-                </span>
-                <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.ignoreDifferenceOf}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, ignoreDifferenceOf: parseFloat(e.target.value) || 0 }))
-                    }
-                    placeholder="0"
-                    className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                  />
-                  <span className="text-[11px] font-bold text-slate-400">INR</span>
-                </div>
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.ignoreDifferenceOf}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, ignoreDifferenceOf: parseFloat(e.target.value) || 0 }))
+                  }
+                  placeholder="0"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                />
+                <span className="text-[11px] font-bold text-slate-400">INR</span>
               </div>
             </div>
           </div>
@@ -401,9 +399,6 @@ export default function ShortCommissionForm({
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 leading-none text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Selected Filter
-                  </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                     <span className="text-slate-800 font-semibold truncate">
                       {getPolicyFilterDisplayLabel()}
