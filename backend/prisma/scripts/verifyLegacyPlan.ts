@@ -44,7 +44,9 @@ const PLAN = args.plan ?? "833";
 const SAMPLE = args.sample && args.sample !== "all" ? Number(args.sample) : Infinity;
 // Plans launched after 2018 (874 and 915) return no rate on
 // the 2018 default, so the date is overridable.
-const CALC_DATE = args.date ?? (PLAN === "874" ? "2026-10-06" : "2018-07-12");
+const CALC_DATE =
+  args.date ??
+  (PLAN === "874" ? "2026-10-06" : PLAN === "866" ? "2023-02-01" : "2018-07-12");
 const REF_SA = 1000000;
 const API = process.env.VERIFY_API ?? "http://localhost:5000/api";
 
@@ -363,10 +365,13 @@ async function main() {
   let fail = 0;
   let skip = 0;
   const bad: string[] = [];
-  const licOption = (option: number | null) => PLAN === "874"
-    ? { SBOption: option ?? 1, Options: "1" }
-    : {};
-  const appOption = (option: number | null) => PLAN === "874" ? { option: option ?? 1 } : {};
+  const licOption = (option: number | null) => {
+    if (PLAN === "874") return { SBOption: option ?? 1, Options: "1" };
+    if (PLAN === "866") return { Options: String(option ?? 1) };
+    return {};
+  };
+  const appOption = (option: number | null) =>
+    PLAN === "874" || PLAN === "866" ? { option: option ?? 1 } : {};
 
   // ---- 1 & 2 & 3: rates and rebates -------------------------------------
   console.log("--- 1. integer-age rate rows ---");

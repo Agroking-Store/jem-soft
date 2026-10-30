@@ -60,3 +60,33 @@ export function completedYears(dob: Date, onDate: Date): number {
   const months = completeMonthsBetween(dob, onDate);
   return Math.floor(months / 12);
 }
+
+/**
+ * LIC's "nearer birthday" age, used by plans such as 866 (Dhan Varsha).
+ *
+ * Probing 866 shows the quoted rate stepping on the birthday, not on the
+ * half-year band: a life aged 7 years 6 months pays the age-8 rate, while one
+ * aged 7 years 5 months pays the age-7 rate. Six completed months therefore
+ * round up:
+ *
+ *     floor((complete months + 6) / 12)
+ *
+ * Returns null when either date is missing or nonsensical so callers can fall
+ * back to the integer age supplied by the form.
+ */
+export function licNearestAge(
+  dateOfBirth: Date | string | null | undefined,
+  onDate: Date | string | null | undefined,
+): number | null {
+  if (!dateOfBirth || !onDate) return null;
+
+  const dob = typeof dateOfBirth === "string" ? new Date(dateOfBirth) : dateOfBirth;
+  const ref = typeof onDate === "string" ? new Date(onDate) : onDate;
+
+  if (Number.isNaN(dob.getTime()) || Number.isNaN(ref.getTime())) return null;
+
+  const months = completeMonthsBetween(dob, ref);
+  if (months < 0) return null;
+
+  return Math.floor((months + 6) / 12);
+}

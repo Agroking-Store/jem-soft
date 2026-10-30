@@ -1,6 +1,6 @@
 import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
-import { licAgeBand } from "../utils/licAgeBand.js";
+import { licAgeBand, licNearestAge } from "../utils/licAgeBand.js";
 import rebateService from "./rebateService.js";
 
 import { calculateLIC714 } from "./premiumcalculators/lic714Calculator.js";
@@ -284,22 +284,21 @@ export async function calculatePremium(data: PremiumInput) {
     if (option == null) {
       throw new AppError("Option is required for LIC Plan 866", 400);
     }
-    const rateKey = {
-      productId: data.productId,
-      policyTerm,
-      premiumPayingTerm: 1,
-      option,
-    };
-    if (ageBand != null) {
-      premiumRate = await prisma.productPremiumRate.findFirst({
-        where: { ...rateKey, ageBand },
-      });
-    }
-    if (!premiumRate) {
-      premiumRate = await prisma.productPremiumRate.findFirst({
-        where: { ...rateKey, ageBand: null, entryAge: age },
-      });
-    }
+    // Dhan Varsha is priced on the nearer birthday, not the completed age:
+    // 7y6m pays the age-8 rate and 7y5m pays the age-7 rate. The rate grid
+    // therefore stores one row per nearest-birthday age (ageBand null).
+    const nearestAge =
+      licNearestAge(data.dateOfBirth, data.commencementDate) ?? age;
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: nearestAge,
+        policyTerm,
+        premiumPayingTerm: 1,
+        option,
+        ageBand: null,
+      },
+    });
   } else if (product.planNumber === "874") {
     // Amritbaal rates are keyed by entry age, term, PPT and LIC's Sum Assured
     // Option (SBOption 1/2). This plan-specific branch leaves other legacy

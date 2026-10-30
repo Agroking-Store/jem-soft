@@ -39,6 +39,19 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "(3=DAB, 9=ABR, 2=TRB, 10=CIR option 1, 11=CIR option 2); CIR is gender specific and " +
       "moves on the half-year age band.",
   },
+  "866": {
+    url: DEFAULT_URL,
+    note:
+      "Dhan Varsha - complete age x term x option grid verified 2026-10-30. " +
+      "Single premium (PPT 1); term 10 ages 8-60, term 15 ages 3-60; " +
+      "Option 2 only up to age 40 (T10) / 35 (T15).",
+  },
+  "874": {
+    url: DEFAULT_URL,
+    note:
+      "Amritbaal V01 - complete age x term x PPT x SBOption grid verified 2026-10-29 " +
+      "(commencement 2026-10-06).",
+  },
 
   // --- returned 0 on the default endpoint, need their own URL ---
   "110": { url: "", note: "Asha Deep-I - default endpoint returns 0" },
