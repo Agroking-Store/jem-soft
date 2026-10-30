@@ -274,6 +274,12 @@ export const previewRiderPremium = catchAsync(
       select: { riderCode: true },
     });
 
+    // Plan 855's Double Accident Benefit is priced on the cover term LIC
+    // actually grants (capped at age 69), not on the term the user typed.
+    if (product.planNumber === "855" && rider?.riderCode === "DAB") {
+      whereClause.riderTerm = Math.max(1, Math.min(Number(riderTerm), 69 - Number(age)));
+    }
+
     const usesRiderPPT = [
       "771",
       "745",

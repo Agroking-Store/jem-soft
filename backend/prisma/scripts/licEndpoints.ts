@@ -52,6 +52,18 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "Amritbaal V01 - complete age x term x PPT x SBOption grid verified 2026-10-29 " +
       "(commencement 2026-10-06).",
   },
+  "855": {
+    url: DEFAULT_URL,
+    note:
+      "Jeevan Amar - complete age x term x PPT x option x gender x smoker grid " +
+      "verified 2026-10-30. Whole-year age table; single/regular/limited PPT.",
+  },
+  "856": {
+    url: "",
+    note:
+      "PMVVY Modified-2020 - CalcPremium returns premiumRate 0 and premium = sum " +
+      "assured; purchase-price/pension data comes from the brochure fixture.",
+  },
 
   // --- returned 0 on the default endpoint, need their own URL ---
   "110": { url: "", note: "Asha Deep-I - default endpoint returns 0" },

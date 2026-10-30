@@ -97,6 +97,8 @@ import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 import { seedPremiumRates770 } from "./seedPremiumRates770";
 import { seedPremiumRates894 } from "./seedPremiumRates894";
 import { seedPremiumRates890 } from "./seedPremiumRates890";
+import { seedPremiumRates855 } from "./seedPremiumRates855";
+import { seedPremiumRates856 } from "./seedPremiumRates856";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -222,6 +224,14 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // brochure mode factors, GST 0 (brochure: currently exempt) and the five
   // optional riders (DAB, ABR, TRB, Critical Illness option 1 and 2).
   await seedPremiumRates890(prisma);
+
+  // Plan 855 (Jeevan Amar): the complete age x term x PPT x option x gender x
+  // smoker grid from masterData/premiumRates855.json, GST 18%, DAB and ABR
+  // riders, and the term-specific PPT formula in legacyPlans.json.
+  await seedPremiumRates855(prisma);
+
+  // Plan 856 (PMVVY, Modified-2020): purchase-price rows, GST 0, no riders.
+  await seedPremiumRates856(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

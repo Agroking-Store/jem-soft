@@ -46,7 +46,13 @@ const SAMPLE = args.sample && args.sample !== "all" ? Number(args.sample) : Infi
 // the 2018 default, so the date is overridable.
 const CALC_DATE =
   args.date ??
-  (PLAN === "874" ? "2026-10-06" : PLAN === "866" ? "2023-02-01" : "2018-07-12");
+  (PLAN === "874"
+    ? "2026-10-06"
+    : PLAN === "866"
+      ? "2023-02-01"
+      : PLAN === "855"
+        ? "2022-10-06"
+        : "2018-07-12");
 const REF_SA = 1000000;
 const API = process.env.VERIFY_API ?? "http://localhost:5000/api";
 
@@ -348,11 +354,11 @@ async function main() {
 
   const baseRows = await prisma.productPremiumRate.findMany({
     where: { productId: P, ageBand: null },
-    select: { entryAge: true, policyTerm: true, premiumPayingTerm: true, option: true, tabularRate: true },
+    select: { entryAge: true, policyTerm: true, premiumPayingTerm: true, option: true, gender: true, smoker: true, tabularRate: true },
   });
   const bandRows = await prisma.productPremiumRate.findMany({
     where: { productId: P, ageBand: { not: null } },
-    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true, option: true, tabularRate: true },
+    select: { entryAge: true, ageBand: true, policyTerm: true, premiumPayingTerm: true, option: true, gender: true, smoker: true, tabularRate: true },
   });
 
   console.log(`=== verifying plan ${PLAN} (${product.productName}) ===`);
@@ -367,16 +373,16 @@ async function main() {
   const bad: string[] = [];
   const licOption = (option: number | null) => {
     if (PLAN === "874") return { SBOption: option ?? 1, Options: "1" };
-    if (PLAN === "866") return { Options: String(option ?? 1) };
+    if (PLAN === "866" || PLAN === "855") return { Options: String(option ?? 1) };
     return {};
   };
   const appOption = (option: number | null) =>
-    PLAN === "874" || PLAN === "866" ? { option: option ?? 1 } : {};
+    PLAN === "874" || PLAN === "866" || PLAN === "855" ? { option: option ?? 1 } : {};
 
   // ---- 1 & 2 & 3: rates and rebates -------------------------------------
   console.log("--- 1. integer-age rate rows ---");
   await forEachLimit(tBase, 4, async (r) => {
-    const j: any = await licQuote({ DOB: dobFor(r.entryAge), Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, ...licOption(r.option) });
+    const j: any = await licQuote({ DOB: dobFor(r.entryAge), Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, Gender: r.gender ?? "M", IsSmoker: r.smoker ?? false, ...licOption(r.option) });
     const licRate = Number(j?.ylyPremium?.premiumRate ?? 0);
     if (licRate === 0) { skip++; return; }
     const ok = Math.abs(Number(r.tabularRate) - licRate) < 0.01;
@@ -391,7 +397,7 @@ async function main() {
   await forEachLimit(tBand, 4, async (r) => {
     const dob = dobForBand(r.ageBand!);
     if (!dob) { bSkip++; return; }
-    const j: any = await licQuote({ DOB: dob, Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, ...licOption(r.option) });
+    const j: any = await licQuote({ DOB: dob, Age: r.entryAge, Term: r.policyTerm, PPT: r.premiumPayingTerm ?? r.policyTerm, Gender: r.gender ?? "M", IsSmoker: r.smoker ?? false, ...licOption(r.option) });
     const licRate = Number(j?.ylyPremium?.premiumRate ?? 0);
     if (licRate === 0) { bSkip++; return; }
 
@@ -405,7 +411,7 @@ async function main() {
     const ours: any = await ourPost("/policies/premium-preview", {
       productId: P, age: r.entryAge, policyTerm: r.policyTerm,
       premiumPayingTerm: r.premiumPayingTerm, sumAssured: REF_SA, ...appOption(r.option),
-      premiumMode: "Yearly", gender: "Male", smoker: false,
+      premiumMode: "Yearly", gender: r.gender ?? "Male", smoker: r.smoker ?? false,
       dateOfBirth: dob, commencementDate: CALC_DATE,
     });
     const pr = ours?.premium;

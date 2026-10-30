@@ -20,6 +20,8 @@ import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
 import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 import { calculateLIC894, validateLIC894Eligibility } from "./premiumcalculators/lic894Calculator.js";
 import { calculateLIC890, validateLIC890Eligibility } from "./premiumcalculators/lic890Calculator.js";
+import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators/lic855Calculator.js";
+import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -236,6 +238,12 @@ export async function calculatePremium(data: PremiumInput) {
     data.premiumMode = "Single";
   }
 
+  // Plan 855 also offers a single-premium option, but only when the selected
+  // PPT is 1. Regular and limited premiums stay on the Yearly/Half-Yearly path.
+  if (product.planNumber === "855" && premiumPayingTerm === 1) {
+    data.premiumMode = "Single";
+  }
+
   // GST is a product-level fact (plan 917 charges 4.5% on a single premium;
   // the older legacy plans predate GST and carry no GST_RATE attribute).
   // Keeping it in the attribute table rather than in code means adding a
@@ -325,6 +333,83 @@ export async function calculatePremium(data: PremiumInput) {
       premiumRate = await prisma.productPremiumRate.findFirst({
         where: { ...rateKey, ageBand: null, entryAge: age },
       });
+    }
+  } else if (product.planNumber === "855") {
+    // Jeevan Amar is rated on last-birthday age, term, PPT, death-benefit
+    // option, gender and smoking status. Unlike the half-year-band legacy
+    // plans, its table is whole-year, so ageBand is deliberately null.
+    if (activeGender == null || String(activeGender).trim() === "") {
+      throw new AppError("Gender is required for LIC Plan 855", 400);
+    }
+
+    const genderKey =
+      activeGender === "F" ||
+      activeGender === "Female" ||
+      activeGender === "FEMALE"
+        ? "F"
+        : "M";
+    const smokerKey = activeSmoker === true;
+
+    const eligibility = validateLIC855Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+      option,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        gender: genderKey,
+        smoker: smokerKey,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+        option: eligibility.option,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 855: Age ${age}, Gender ${genderKey}, ` +
+          `${smokerKey ? "Smoker" : "Non-Smoker"}, Term ${policyTerm}, ` +
+          `PPT ${eligibility.ppt}, Option ${eligibility.option}`,
+        404,
+      );
+    }
+  } else if (product.planNumber === "856") {
+    // PMVVY is a single-premium purchase-price plan. The engine stores a zero
+    // rate and returns the sum assured; eligibility is mode-specific because
+    // the minimum/maximum purchase price changes with the pension mode.
+    validateLIC856Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: 1,
+        option: null,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 856: Age ${age}, Term ${policyTerm}`,
+        404,
+      );
     }
   } else if (product.planNumber === "888") {
     // ------------------------------------------
@@ -746,6 +831,33 @@ export async function calculatePremium(data: PremiumInput) {
         age: data.age,
         policyTerm,
         premiumPayingTerm: premiumPayingTerm ?? policyTerm - 5,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "855":
+      premiumResult = await calculateLIC855({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
+      });
+      break;
+
+    case "856":
+      premiumResult = await calculateLIC856({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
