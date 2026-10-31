@@ -18,3 +18,21 @@ imagic_customers_rich_301.json
 backend/*.json
 !backend/package.json
 !backend/tsconfig.json
+
+# LIC rate crawl output.
+#
+# Everything in here is DERIVED data that the crawler scripts regenerate from
+# LIC's own APIs, so it does not belong in version control. It is also large and
+# grows fast: plan 833 alone produces ~130 KB across five CSVs, and there are
+# 155 legacy plans to capture.
+#
+# The reproducible pipeline is what is committed:
+#   backend/prisma/scripts/fetchLICRates.ts        base premium rates
+#   backend/prisma/scripts/fetchLICRateBands.ts    half-year age bands
+#   backend/prisma/scripts/fetchLICRebateBands.ts  sum-assured rebate bands
+#   backend/prisma/scripts/fetchLICRiderRates.ts   rider rates
+#   backend/prisma/scripts/fetchLICModeFactors.ts  premium mode factors
+#   backend/prisma/seeds/seedPremiumRatesCsv.ts    writes them to the database
+backend/lic-rate-export/
+backend/*.log
+frontend/next-start.log

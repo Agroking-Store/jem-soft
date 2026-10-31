@@ -3,6 +3,11 @@ import { z } from "zod";
 export const riderSchema = z.object({
   description: z.string().optional().nullable(),
 
+  // Carried through from the product's rider list so the page can price a rider
+  // by id instead of re-finding it by name.
+  riderId: z.string().optional().nullable(),
+  riderCode: z.string().optional().nullable(),
+
   sum: z.preprocess(
     (val) => (val === "" ? null : val),
     z.coerce.number().positive("Must be positive").nullable().optional(),

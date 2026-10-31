@@ -678,14 +678,7 @@ export const licProducts = [
     providerCode: "LIC",
     productType: "Withdrawn",
   },
-  {
-    productName: "LIC's Dhan Varsha",
-    productCode: "512N349V01",
-    planNumber: "866",
-    providerCode: "LIC",
-    productType: "Withdrawn",
-  },
-  {
+    {
     productName: "LIC's New One Year Renewable Group Term Assurance Plan-I",
     productCode: "512N275V02",
     planNumber: "",
@@ -1381,7 +1374,7 @@ export const licProducts = [
     productCode: "LEGACY-770",
     planNumber: "770",
     providerCode: "LIC",
-    productType: "Withdrawn",
+    productType: "Endowment",
   },
   {
     productName: "Bima Plus",

@@ -52,6 +52,54 @@ import { seedADDB881 } from "./seedADDBB881";
 import { seedADDB883 } from "./seedADDB883";
 import { seedADDB888 } from "./seedADDB888";
 import { seedADDB912 } from "./seedADDB912";
+import {
+  seedPremiumRates833,
+  seedRiderPremium833,
+  seedModeFactors833,
+} from "./seedPremiumRates833";
+import {
+  seedPremiumRates874,
+  seedRiderPremium874,
+  seedModeFactors874,
+} from "./seedPremiumRates874";
+import {
+  seedPremiumRates866,
+  seedRiderPremium866,
+  seedModeFactors866,
+} from "./seedPremiumRates866";
+import {
+  seedPremiumRates903,
+  seedRiderPremium903,
+  seedModeFactors903,
+} from "./seedPremiumRates903";
+import {
+  seedPremiumRates123,
+  seedRiderPremium123,
+  seedModeFactors123,
+} from "./seedPremiumRates123";
+import {
+  seedPremiumRates917,
+  seedRiderPremium917,
+  seedModeFactors917,
+} from "./seedPremiumRates917";
+import {
+  seedPremiumRates915,
+  seedRiderPremium915,
+  seedModeFactors915,
+} from "./seedPremiumRates915";
+
+import {
+  seedPremiumRates904,
+  seedRiderPremium904,
+  seedModeFactors904,
+} from "./seedPremiumRates904";
+import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
+import { seedPremiumRates770 } from "./seedPremiumRates770";
+import { seedPremiumRates894 } from "./seedPremiumRates894";
+import { seedPremiumRates890 } from "./seedPremiumRates890";
+import { seedPremiumRates854 } from "./seedPremiumRates854";
+import { seedPremiumRates855 } from "./seedPremiumRates855";
+import { seedPremiumRates856 } from "./seedPremiumRates856";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -109,6 +157,88 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedADDB883(prisma);
   await seedADDB888(prisma);
   await seedADDB912(prisma);
+
+  // Plan 833 (Jeevan Lakshya) - LIC legacy plan. Rated on a half-year age band
+  // rather than completed years, so it carries its own seeder rather than
+  // fitting the standard shape.
+  await seedPremiumRates833(prisma);
+  await seedRiderPremium833(prisma);
+  await seedModeFactors833(prisma);
+
+  // Plan 874 (Amritbaal) - age/term/PPT and Sum Assured Option rate grid.
+  await seedPremiumRates874(prisma);
+  await seedRiderPremium874(prisma);
+  await seedModeFactors874(prisma);
+
+  // Plan 866 (Dhan Varsha) - Single premium, term 10 & 15, Option 1 & 2
+  await seedPremiumRates866(prisma);
+  await seedRiderPremium866(prisma);
+  await seedModeFactors866(prisma);
+
+  // Plan 903 (Jeevan Arogya) - published annual HCB rates, four payment
+  // modes, and the DAB rider present in the legacy plan catalogue.
+  await seedPremiumRates903(prisma);
+  await seedRiderPremium903(prisma);
+  await seedModeFactors903(prisma);
+
+  // Plan 123 (Jeevan Sanchay 12 Yrs) - LIC legacy plan. Half-year age band, a
+  // formula rebate (3% of the rate plus 2 flat) and no riders at all.
+  await seedPremiumRates123(prisma);
+  await seedRiderPremium123(prisma);
+  await seedModeFactors123(prisma);
+
+  // Plan 917 (Single Premium Endowment) - 16 terms, single premium, GST 4.5%
+  // and two riders (DAB + Term Rider Benefit). The high sum assured rebate
+  // depends on sum assured only, so it lives in the plain SA table.
+  await seedPremiumRates917(prisma);
+  await seedRiderPremium917(prisma);
+  await seedModeFactors917(prisma);
+
+  // Plan 915 (LIC's New Jeevan Anand V02) - the predecessor of 715. Rated on
+  // the nearer birthday (no half-year band), 2%/1% rate-based mode rebate and
+  // three riders (DAB, TRB, CIR).
+  await seedPremiumRates915(prisma);
+  await seedRiderPremium915(prisma);
+  await seedModeFactors915(prisma);
+
+  // Plan 904 (LIC's Jeevan Arogya) - health plan. IDB 1,000/2,000/3,000/4,000
+  // per day and MSB = 100 x IDB. tabularRate is the annual IDB-1,000 table
+  // premium; lic904Calculator scales it and applies the mode/HCB rebates.
+  await seedPremiumRates904(prisma);
+  await seedRiderPremium904(prisma);
+  await seedModeFactors904(prisma);
+
+  // Plans 901 & 902 (Health Plus & Health Protection Plus) - ULIP health plans
+  await seedPremiumRates901_902(prisma);
+
+  // Plan 770 (Bima Platinum): exact brochure sample points and official mode
+  // conversion factors only; never interpolate unofficial figures.
+  await seedPremiumRates770(prisma);
+
+  // Plan 894 (Jeevan Raksha): all 16 official rate tables (gender x smoker x
+  // payment option) from masterData/premiumRates894.json, GST 18% and the
+  // Accident Benefit Rider at Rs 0.50 per Rs 1,000.
+  await seedPremiumRates894(prisma);
+
+  // Plan 890 (New Bima Jyoti): the age x term grid from
+  // masterData/premiumRates890.json (crawled from LIC's own engine), the four
+  // brochure mode factors, GST 0 (brochure: currently exempt) and the five
+  // optional riders (DAB, ABR, TRB, Critical Illness option 1 and 2).
+  await seedPremiumRates890(prisma);
+
+  // Plan 854 (Tech-Term): the official brochure sample table only - 24
+  // tabular rates for term 20, male non-smoker, ages 20/30/40. The public
+  // brochure does not publish the full age x term grid, so nothing is
+  // interpolated. ABR is the only rider (Rs 0.50 per 1,000).
+  await seedPremiumRates854(prisma);
+
+  // Plan 855 (Jeevan Amar): the complete age x term x PPT x option x gender x
+  // smoker grid from masterData/premiumRates855.json, GST 18%, DAB and ABR
+  // riders, and the term-specific PPT formula in legacyPlans.json.
+  await seedPremiumRates855(prisma);
+
+  // Plan 856 (PMVVY, Modified-2020): purchase-price rows, GST 0, no riders.
+  await seedPremiumRates856(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

@@ -4,6 +4,7 @@ import { catchAsync } from "../utils/catchAsync.js";
 import * as policyService from "../services/policyService.js";
 import { calculatePremium } from "../services/premiumCalculationService.js";
 import { AppError } from "../utils/AppError.js";
+import { licAgeBand } from "../utils/licAgeBand.js";
 
 export const createPolicy = catchAsync(
   async (req: Request, res: Response) => {
@@ -31,9 +32,29 @@ export const previewPremium = catchAsync(
       premiumMode,
       gender,
       smoker,
+      // LIC legacy plans are rated on a half-year age band. When the caller
+      // sends the customer's date of birth and the policy's commencement date we
+      // can reproduce LIC's band exactly instead of guessing from integer age.
+      dateOfBirth,
+      commencementDate,
     } = req.body;
 
-    if (!productId || !age || !policyTerm || !sumAssured || !premiumMode) {
+    // Age 0 is valid for Amritbaal, while preserving existing validation for
+    // every other plan.
+    let allowZeroAge = false;
+    if (Number(age) === 0 && productId) {
+      const { prisma } = await import("../config/database.js");
+      const product = await prisma.productMaster.findUnique({
+        where: { id: productId },
+        select: { planNumber: true },
+      });
+      allowZeroAge = product?.planNumber === "874";
+    }
+    if (
+      !productId || age === undefined || age === null || age === "" ||
+      (!allowZeroAge && !age) ||
+      !policyTerm || !sumAssured || !premiumMode
+    ) {
       throw new AppError(
         "Product, age, term, sum assured, and mode are required.",
         400,
@@ -89,6 +110,8 @@ export const previewPremium = catchAsync(
         sumAssured: Number(sumAssured),
         premiumMode,
         gender,
+        dateOfBirth: dateOfBirth || null,
+        commencementDate: commencementDate || null,
         smoker,
       });
 
@@ -127,6 +150,9 @@ export const previewRiderPremium = catchAsync(
       productId,
       option,
       gender,
+      // Rider rates move on the same half-year age band as the base rate.
+      dateOfBirth,
+      commencementDate,
     } = req.body;
 
     if (
@@ -248,6 +274,12 @@ export const previewRiderPremium = catchAsync(
       select: { riderCode: true },
     });
 
+    // Plan 855's Double Accident Benefit is priced on the cover term LIC
+    // actually grants (capped at age 69), not on the term the user typed.
+    if (product.planNumber === "855" && rider?.riderCode === "DAB") {
+      whereClause.riderTerm = Math.max(1, Math.min(Number(riderTerm), 69 - Number(age)));
+    }
+
     const usesRiderPPT = [
       "771",
       "745",
@@ -256,7 +288,9 @@ export const previewRiderPremium = catchAsync(
       "881",
       "889",
       "912"
-    ].includes(product.planNumber || "") || (product.planNumber === "736" && rider?.riderCode === "ADDB");
+    ].includes(product.planNumber || "") ||
+      (product.productCode?.startsWith("LEGACY-") ?? false) ||
+      (product.planNumber === "736" && rider?.riderCode === "ADDB");
 
     let riderRate = null;
 
@@ -302,11 +336,36 @@ export const previewRiderPremium = catchAsync(
     // EXECUTE QUERIES
     // =========================================================
 
-    for (const query of queriesToTry) {
-      riderRate = await prisma.riderPremiumRate.findFirst({
-        where: query,
-      });
-      if (riderRate) break;
+    // LIC legacy rider rates are quoted on a half-year age band. When we know
+    // the customer's date of birth and the commencement date, try the band
+    // rows first - plan 833's Term Rider Benefit differs by 9.5% between the
+    // two halves of an age year - then fall back to the whole-age rows.
+    const riderAgeBand = licAgeBand(dateOfBirth, commencementDate);
+
+    if (riderAgeBand != null) {
+      for (const query of queriesToTry) {
+        riderRate = await prisma.riderPremiumRate.findFirst({
+          where: { ...query, entryAge: undefined, ageBand: riderAgeBand },
+        });
+        if (riderRate) break;
+      }
+      if (!riderRate) {
+        for (const query of queriesToTry) {
+          riderRate = await prisma.riderPremiumRate.findFirst({
+            where: { ...query, entryAge: undefined, ageBand: riderAgeBand },
+          });
+          if (riderRate) break;
+        }
+      }
+    }
+
+    if (!riderRate) {
+      for (const query of queriesToTry) {
+        riderRate = await prisma.riderPremiumRate.findFirst({
+          where: query,
+        });
+        if (riderRate) break;
+      }
     }
 
     // =========================================================
@@ -347,13 +406,52 @@ export const previewRiderPremium = catchAsync(
       (Number(riderRate.ratePerThousand) * Number(sumAssured)) /
       1000;
 
-    const modeFactor = await getModeFactor(
-      productId,
-      premiumMode,
-    );
+    // DAB/ADDB/ABR are flat per-1000 benefits. LIC divides them by exactly
+    // 2/4/12 for half-yearly/quarterly/monthly; only the mortality riders
+    // (TRB/CIR) carry the ~1% loading in the product mode factor. Using the
+    // product factor here would overcharge a 10 lakh DAB by 5 rupees.
+    //
+    // Plan 890 is the exception on the other side: LIC's rider lookup returns
+    // its mortality riders without that loading too (TRB annual 6,360.20 is
+    // quoted as 3,180.10 half-yearly, 1,589.56 quarterly and 530.18 monthly),
+    // so every rider of that plan is divided flat.
+    const FLAT_MODE_RIDERS = new Set(["DAB", "ADDB", "ABR"]);
+    const FLAT_MODE_RIDER_PLANS = new Set(["890"]);
+    const modeName = String(premiumMode ?? "").trim().toLowerCase();
+    const flatModeFactor = modeName.startsWith("half")
+      ? 0.5
+      : modeName.startsWith("quarter")
+        ? 0.25
+        : modeName.startsWith("month")
+          ? 1 / 12
+          : 1;
+
+    const modeFactor =
+      rider &&
+      (FLAT_MODE_RIDERS.has(rider.riderCode) ||
+        FLAT_MODE_RIDER_PLANS.has(product.planNumber ?? ""))
+        ? flatModeFactor
+        : await getModeFactor(productId, premiumMode);
+
+    // The Critical Illness riders are the one exception: LIC prices them with
+    // the classic rider loading of 1% half-yearly and 2% quarterly/monthly, so
+    // plan 890 quotes a 6,380 yearly CIR as 3,222 / 1,627 / 542.
+    const isCriticalIllness =
+      rider != null && (rider.riderCode === "CIR" || rider.riderCode === "CIR2");
+    const cirModeFactor = modeName.startsWith("half")
+      ? 0.505
+      : modeName.startsWith("quarter")
+        ? 0.255
+        : modeName.startsWith("month")
+          ? 0.085
+          : 1;
+    const effectiveModeFactor =
+      isCriticalIllness && product.planNumber === "890"
+        ? cirModeFactor
+        : modeFactor;
 
     const installmentPremium = Number(
-      (tabularPremium * modeFactor).toFixed(2),
+      (tabularPremium * effectiveModeFactor).toFixed(2),
     );
 
     // =========================================================
