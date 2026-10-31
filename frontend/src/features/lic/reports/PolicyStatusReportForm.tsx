@@ -328,11 +328,11 @@ export default function PolicyStatusReportForm({
               <div className="space-y-4 pt-2">
                 {/* Policy No Searchable Dropdown */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Policy No. (with Client Name)
                   </label>
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       Policy No.
                     </span>
                     <select
@@ -454,7 +454,7 @@ export default function PolicyStatusReportForm({
                 {/* Sum, Premium, DAB */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       Sum
                     </span>
                     <input
@@ -468,7 +468,7 @@ export default function PolicyStatusReportForm({
                   </div>
 
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       Premium
                     </span>
                     <input
@@ -482,7 +482,7 @@ export default function PolicyStatusReportForm({
                   </div>
 
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       DAB
                     </span>
                     <input
@@ -499,7 +499,7 @@ export default function PolicyStatusReportForm({
                 {/* Deposit Amount, Branch, FUP Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="relative">
-                    <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                    <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                       Deposit Amount
                     </span>
                     <input

@@ -154,10 +154,10 @@ export default function ComprehensiveInsuranceChartForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Filter Options</label>
+              <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Filter Options</label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">Selected Filter</span>
+                  <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">Selected Filter</span>
                   <div className="flex items-center justify-between border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white">
                     <span className="text-slate-800 font-semibold">
                       {formData.appliedFilters.length > 0 ? `${formData.appliedFilters.length} filter applied` : "No filters applied"}
@@ -175,7 +175,7 @@ export default function ComprehensiveInsuranceChartForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cash Flow Start Date</label>
+              <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Cash Flow Start Date</label>
               <DatePicker
                 value={formData.cashFlowStartDate ? new Date(formData.cashFlowStartDate) : undefined}
                 onChange={(date) => setFormData((prev) => ({ ...prev, cashFlowStartDate: date ? format(date, "yyyy-MM-dd") : "" }))}
@@ -183,7 +183,7 @@ export default function ComprehensiveInsuranceChartForm({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
+              <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Report Date</label>
               <DatePicker
                 value={formData.reportDate ? new Date(formData.reportDate) : undefined}
                 onChange={(date) => setFormData((prev) => ({ ...prev, reportDate: date ? format(date, "yyyy-MM-dd") : "" }))}
