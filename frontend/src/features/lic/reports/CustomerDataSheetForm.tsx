@@ -120,12 +120,12 @@ export default function CustomerDataSheetForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             {/* Client Selection */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Client Selection
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                  <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Selected Filter
                   </span>
                   <div className="flex items-center justify-between border border-slate-300 rounded-xl px-3 py-2 text-xs bg-white">
@@ -155,11 +155,11 @@ export default function CustomerDataSheetForm({
 
             {/* Report Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
               <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Report Date
                 </span>
                 <DatePicker
