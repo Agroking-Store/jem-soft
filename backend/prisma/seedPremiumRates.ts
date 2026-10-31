@@ -97,6 +97,7 @@ import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 import { seedPremiumRates770 } from "./seedPremiumRates770";
 import { seedPremiumRates894 } from "./seedPremiumRates894";
 import { seedPremiumRates890 } from "./seedPremiumRates890";
+import { seedPremiumRates854 } from "./seedPremiumRates854";
 import { seedPremiumRates855 } from "./seedPremiumRates855";
 import { seedPremiumRates856 } from "./seedPremiumRates856";
 
@@ -224,6 +225,12 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // brochure mode factors, GST 0 (brochure: currently exempt) and the five
   // optional riders (DAB, ABR, TRB, Critical Illness option 1 and 2).
   await seedPremiumRates890(prisma);
+
+  // Plan 854 (Tech-Term): the official brochure sample table only - 24
+  // tabular rates for term 20, male non-smoker, ages 20/30/40. The public
+  // brochure does not publish the full age x term grid, so nothing is
+  // interpolated. ABR is the only rider (Rs 0.50 per 1,000).
+  await seedPremiumRates854(prisma);
 
   // Plan 855 (Jeevan Amar): the complete age x term x PPT x option x gender x
   // smoker grid from masterData/premiumRates855.json, GST 18%, DAB and ABR

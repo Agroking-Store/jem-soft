@@ -64,6 +64,13 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "PMVVY Modified-2020 - CalcPremium returns premiumRate 0 and premium = sum " +
       "assured; purchase-price/pension data comes from the brochure fixture.",
   },
+  "854": {
+    url: "",
+    note:
+      "Tech-Term - CalcPremium returns 0. LIC's public brochure publishes only " +
+      "the term-20, male non-smoker, Rs 1 crore sample at ages 20/30/40; the " +
+      "seeded rates are exactly that sample, with no interpolation.",
+  },
 
   // --- returned 0 on the default endpoint, need their own URL ---
   "110": { url: "", note: "Asha Deep-I - default endpoint returns 0" },

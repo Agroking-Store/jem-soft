@@ -1299,7 +1299,7 @@ export default function EditLICPolicyPage() {
     const selectedPlan = products.find((p) => p.id === watchProductId)?.planNumber;
     const is874 = selectedPlan === "874";
     const is866 = selectedPlan === "866";
-    const hasValidAge = watchAge !== undefined && watchAge !== null && watchAge !== "" && !isNaN(Number(watchAge));
+    const hasValidAge = watchAge !== undefined && watchAge !== null && !isNaN(Number(watchAge));
 
     if (!watchProductId || !sum || !term || !ppt || !mode || !hasValidAge) {
       return;

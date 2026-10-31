@@ -1,0 +1,980 @@
+{
+  "planNumber": "854",
+  "planName": "LIC's Tech-Term (UIN 512N333V01)",
+  "description": "Official LIC English sales brochure sample premium table. The public brochure publishes only the term-20, male non-smoker, Rs 1 crore illustrative premiums at ages 20/30/40. This file stores those exact tabular rates per Rs 1,000; no interpolated or third-party rates are included.",
+  "source": "LIC English Sales Brochure 'LIC's Tech-Term', section 6 'Sample Illustrative Premium', page 2 (Basic Sum Assured Rs 1,00,00,000, Non-Smoker, Male, Standard lives, policy term 20; premiums exclusive of GST).",
+  "sourceUrl": "https://licindia.in/documents/d/guest/brochure-eng1",
+  "extractedAt": "2026-10-31",
+  "samplePremiums": {
+    "sumAssured": 10000000,
+    "policyTerm": 20,
+    "gender": "M",
+    "smoker": false,
+    "premiums": {
+      "option1_age20_ppt20": 5368,
+      "option1_age20_ppt15": 6160,
+      "option1_age20_ppt10": 8008,
+      "option1_age20_ppt1": 64592,
+      "option1_age30_ppt20": 7216,
+      "option1_age30_ppt15": 8360,
+      "option1_age30_ppt10": 10912,
+      "option1_age30_ppt1": 87120,
+      "option1_age40_ppt20": 13770,
+      "option1_age40_ppt15": 16110,
+      "option1_age40_ppt10": 21060,
+      "option1_age40_ppt1": 166230,
+      "option2_age20_ppt20": 7020,
+      "option2_age20_ppt15": 8190,
+      "option2_age20_ppt10": 10620,
+      "option2_age20_ppt1": 85140,
+      "option2_age30_ppt20": 10350,
+      "option2_age30_ppt15": 12060,
+      "option2_age30_ppt10": 15750,
+      "option2_age30_ppt1": 124920,
+      "option2_age40_ppt20": 21252,
+      "option2_age40_ppt15": 24932,
+      "option2_age40_ppt10": 32568,
+      "option2_age40_ppt1": 256036
+    }
+  },
+  "rows": [
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 1,
+      "tabularRate": 0.5368
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 1,
+      "tabularRate": 0.616
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 1,
+      "tabularRate": 0.8008
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 1,
+      "tabularRate": 6.4592
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 1,
+      "tabularRate": 0.7216
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 1,
+      "tabularRate": 0.836
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 1,
+      "tabularRate": 1.0912
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 1,
+      "tabularRate": 8.712
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 1,
+      "tabularRate": 1.377
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 1,
+      "tabularRate": 1.611
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 1,
+      "tabularRate": 2.106
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 1,
+      "tabularRate": 16.623
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 2,
+      "tabularRate": 0.702
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 2,
+      "tabularRate": 0.819
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 2,
+      "tabularRate": 1.062
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 2,
+      "tabularRate": 8.514
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 2,
+      "tabularRate": 1.035
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 2,
+      "tabularRate": 1.206
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 2,
+      "tabularRate": 1.575
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 2,
+      "tabularRate": 12.492
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": 2,
+      "tabularRate": 2.1252
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 15,
+      "option": 2,
+      "tabularRate": 2.4932
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 10,
+      "option": 2,
+      "tabularRate": 3.2568
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 20,
+      "premiumPayingTerm": 1,
+      "option": 2,
+      "tabularRate": 25.6036
+    }
+  ],
+  "verification": {
+    "planName": "LIC's Tech-Term (Plan 854)",
+    "sources": [
+      "LIC English Sales Brochure, section 6 sample illustrative premium table (page 2)",
+      "LIC English Sales Brochure, section 7 high sum assured rebate and 2% half-yearly modal loading",
+      "GST at 18% as applicable to life insurance premiums during the plan's sale period"
+    ],
+    "cases": [
+      {
+        "description": "age 20, T20, P20, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 5,368 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.5368,
+          "tabularPremium": 5368.0,
+          "saRebateAmount": 644.16,
+          "basicYearlyPremium": 4723.84,
+          "installmentPremium": 4724,
+          "gst": 850,
+          "totalInstallmentPremium": 5574
+        }
+      },
+      {
+        "description": "age 20, T20, P15, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 6,160 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.616,
+          "tabularPremium": 6160.0,
+          "saRebateAmount": 739.2,
+          "basicYearlyPremium": 5420.8,
+          "installmentPremium": 5421,
+          "gst": 976,
+          "totalInstallmentPremium": 6397
+        }
+      },
+      {
+        "description": "age 20, T20, P10, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 8,008 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.8008,
+          "tabularPremium": 8008.0,
+          "saRebateAmount": 960.96,
+          "basicYearlyPremium": 7047.04,
+          "installmentPremium": 7047,
+          "gst": 1268,
+          "totalInstallmentPremium": 8315
+        }
+      },
+      {
+        "description": "age 20, T20, P1, opt1, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 64,592 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 6.4592,
+          "tabularPremium": 64592.0,
+          "saRebateAmount": 7751.04,
+          "basicYearlyPremium": 56840.96,
+          "installmentPremium": 56841,
+          "gst": 10231,
+          "totalInstallmentPremium": 67072
+        }
+      },
+      {
+        "description": "age 30, T20, P20, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 7,216 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.7216,
+          "tabularPremium": 7216.0,
+          "saRebateAmount": 865.92,
+          "basicYearlyPremium": 6350.08,
+          "installmentPremium": 6350,
+          "gst": 1143,
+          "totalInstallmentPremium": 7493
+        }
+      },
+      {
+        "description": "age 30, T20, P15, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 8,360 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.836,
+          "tabularPremium": 8360.0,
+          "saRebateAmount": 1003.2,
+          "basicYearlyPremium": 7356.8,
+          "installmentPremium": 7357,
+          "gst": 1324,
+          "totalInstallmentPremium": 8681
+        }
+      },
+      {
+        "description": "age 30, T20, P10, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 10,912 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 1.0912,
+          "tabularPremium": 10912.0,
+          "saRebateAmount": 1309.44,
+          "basicYearlyPremium": 9602.56,
+          "installmentPremium": 9603,
+          "gst": 1729,
+          "totalInstallmentPremium": 11332
+        }
+      },
+      {
+        "description": "age 30, T20, P1, opt1, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 87,120 (before 12% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 8.712,
+          "tabularPremium": 87120.0,
+          "saRebateAmount": 10454.4,
+          "basicYearlyPremium": 76665.6,
+          "installmentPremium": 76666,
+          "gst": 13800,
+          "totalInstallmentPremium": 90466
+        }
+      },
+      {
+        "description": "age 40, T20, P20, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 13,770 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 1.377,
+          "tabularPremium": 13770.0,
+          "saRebateAmount": 1377.0,
+          "basicYearlyPremium": 12393.0,
+          "installmentPremium": 12393,
+          "gst": 2231,
+          "totalInstallmentPremium": 14624
+        }
+      },
+      {
+        "description": "age 40, T20, P15, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 16,110 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 1.611,
+          "tabularPremium": 16110.0,
+          "saRebateAmount": 1611.0,
+          "basicYearlyPremium": 14499.0,
+          "installmentPremium": 14499,
+          "gst": 2610,
+          "totalInstallmentPremium": 17109
+        }
+      },
+      {
+        "description": "age 40, T20, P10, opt1, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 21,060 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 2.106,
+          "tabularPremium": 21060.0,
+          "saRebateAmount": 2106.0,
+          "basicYearlyPremium": 18954.0,
+          "installmentPremium": 18954,
+          "gst": 3412,
+          "totalInstallmentPremium": 22366
+        }
+      },
+      {
+        "description": "age 40, T20, P1, opt1, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 166,230 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 16.623,
+          "tabularPremium": 166230.0,
+          "saRebateAmount": 16623.0,
+          "basicYearlyPremium": 149607.0,
+          "installmentPremium": 149607,
+          "gst": 26929,
+          "totalInstallmentPremium": 176536
+        }
+      },
+      {
+        "description": "age 20, T20, P20, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 7,020 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 0.702,
+          "tabularPremium": 7020.0,
+          "saRebateAmount": 702.0,
+          "basicYearlyPremium": 6318.0,
+          "installmentPremium": 6318,
+          "gst": 1137,
+          "totalInstallmentPremium": 7455
+        }
+      },
+      {
+        "description": "age 20, T20, P15, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 8,190 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 0.819,
+          "tabularPremium": 8190.0,
+          "saRebateAmount": 819.0,
+          "basicYearlyPremium": 7371.0,
+          "installmentPremium": 7371,
+          "gst": 1327,
+          "totalInstallmentPremium": 8698
+        }
+      },
+      {
+        "description": "age 20, T20, P10, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 10,620 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 1.062,
+          "tabularPremium": 10620.0,
+          "saRebateAmount": 1062.0,
+          "basicYearlyPremium": 9558.0,
+          "installmentPremium": 9558,
+          "gst": 1720,
+          "totalInstallmentPremium": 11278
+        }
+      },
+      {
+        "description": "age 20, T20, P1, opt2, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 85,140 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 8.514,
+          "tabularPremium": 85140.0,
+          "saRebateAmount": 8514.0,
+          "basicYearlyPremium": 76626.0,
+          "installmentPremium": 76626,
+          "gst": 13793,
+          "totalInstallmentPremium": 90419
+        }
+      },
+      {
+        "description": "age 30, T20, P20, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 10,350 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 1.035,
+          "tabularPremium": 10350.0,
+          "saRebateAmount": 1035.0,
+          "basicYearlyPremium": 9315.0,
+          "installmentPremium": 9315,
+          "gst": 1677,
+          "totalInstallmentPremium": 10992
+        }
+      },
+      {
+        "description": "age 30, T20, P15, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 12,060 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 1.206,
+          "tabularPremium": 12060.0,
+          "saRebateAmount": 1206.0,
+          "basicYearlyPremium": 10854.0,
+          "installmentPremium": 10854,
+          "gst": 1954,
+          "totalInstallmentPremium": 12808
+        }
+      },
+      {
+        "description": "age 30, T20, P10, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 15,750 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 1.575,
+          "tabularPremium": 15750.0,
+          "saRebateAmount": 1575.0,
+          "basicYearlyPremium": 14175.0,
+          "installmentPremium": 14175,
+          "gst": 2552,
+          "totalInstallmentPremium": 16727
+        }
+      },
+      {
+        "description": "age 30, T20, P1, opt2, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 124,920 (before 10% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 12.492,
+          "tabularPremium": 124920.0,
+          "saRebateAmount": 12492.0,
+          "basicYearlyPremium": 112428.0,
+          "installmentPremium": 112428,
+          "gst": 20237,
+          "totalInstallmentPremium": 132665
+        }
+      },
+      {
+        "description": "age 40, T20, P20, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 21,252 (before 8% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 2.1252,
+          "tabularPremium": 21252.0,
+          "saRebateAmount": 1700.16,
+          "basicYearlyPremium": 19551.84,
+          "installmentPremium": 19552,
+          "gst": 3519,
+          "totalInstallmentPremium": 23071
+        }
+      },
+      {
+        "description": "age 40, T20, P15, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 24,932 (before 8% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 2.4932,
+          "tabularPremium": 24932.0,
+          "saRebateAmount": 1994.56,
+          "basicYearlyPremium": 22937.44,
+          "installmentPremium": 22937,
+          "gst": 4129,
+          "totalInstallmentPremium": 27066
+        }
+      },
+      {
+        "description": "age 40, T20, P10, opt2, M non-smoker, SA 1Cr, yearly",
+        "official": "brochure sample tabular Rs 32,568 (before 8% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 10,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 3.2568,
+          "tabularPremium": 32568.0,
+          "saRebateAmount": 2605.44,
+          "basicYearlyPremium": 29962.56,
+          "installmentPremium": 29963,
+          "gst": 5393,
+          "totalInstallmentPremium": 35356
+        }
+      },
+      {
+        "description": "age 40, T20, P1, opt2, M non-smoker, SA 1Cr, single",
+        "official": "brochure sample tabular Rs 256,036 (before 8% high-SA rebate), exclusive of GST",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 1,
+          "sumAssured": 10000000,
+          "premiumMode": "Single",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 25.6036,
+          "tabularPremium": 256036.0,
+          "saRebateAmount": 20482.88,
+          "basicYearlyPremium": 235553.12,
+          "installmentPremium": 235553,
+          "gst": 42400,
+          "totalInstallmentPremium": 277953
+        }
+      },
+      {
+        "description": "age 20, T20, P20, opt1, M non-smoker, SA 1Cr, half-yearly",
+        "official": "brochure sample tabular Rs 5,368; 2% modal loading on tabular",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Half-Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expect": {
+          "rate": 0.5368,
+          "tabularPremium": 5368.0,
+          "saRebateAmount": 644.16,
+          "modeRebateAmount": -107.36,
+          "basicYearlyPremium": 4831.2,
+          "installmentPremium": 2416,
+          "gst": 435,
+          "totalInstallmentPremium": 2851
+        }
+      },
+      {
+        "description": "age 40, T20, P15, opt2, M non-smoker, SA 1Cr, half-yearly",
+        "official": "brochure sample tabular Rs 24,932; 2% modal loading on tabular",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 15,
+          "sumAssured": 10000000,
+          "premiumMode": "Half-Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 2
+        },
+        "expect": {
+          "rate": 2.4932,
+          "tabularPremium": 24932.0,
+          "saRebateAmount": 1994.56,
+          "modeRebateAmount": -498.64,
+          "basicYearlyPremium": 23436.08,
+          "installmentPremium": 11718,
+          "gst": 2109,
+          "totalInstallmentPremium": 13827
+        }
+      },
+      {
+        "description": "female rate not published in the official brochure sample",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Female",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "male non-smokers"
+      },
+      {
+        "description": "smoker rate not published in the official brochure sample",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 10000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": true,
+          "option": 1
+        },
+        "expectError": "male non-smokers"
+      },
+      {
+        "description": "age 42 / term 38 is outside the published sample table",
+        "input": {
+          "age": 42,
+          "policyTerm": 38,
+          "premiumPayingTerm": 38,
+          "sumAssured": 5000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "sample rates only"
+      },
+      {
+        "description": "SA below Rs 50,00,000",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 4500000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "at least Rs 50,00,000"
+      },
+      {
+        "description": "invalid PPT for term 20",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 12,
+          "sumAssured": 5000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "premium paying term must be one of"
+      },
+      {
+        "description": "term 9 below minimum",
+        "input": {
+          "age": 30,
+          "policyTerm": 9,
+          "premiumPayingTerm": 9,
+          "sumAssured": 5000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "between 10 and 40"
+      },
+      {
+        "description": "age 17 below entry age",
+        "input": {
+          "age": 17,
+          "policyTerm": 10,
+          "premiumPayingTerm": 10,
+          "sumAssured": 5000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "between 18 and 65"
+      },
+      {
+        "description": "SA 80L is not a multiple of Rs 25,00,000 above Rs 75L",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 20,
+          "sumAssured": 8000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": 1
+        },
+        "expectError": "multiples of Rs 25,00,000"
+      }
+    ]
+  }
+}

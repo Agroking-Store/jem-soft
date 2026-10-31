@@ -20,6 +20,7 @@ import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
 import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 import { calculateLIC894, validateLIC894Eligibility } from "./premiumcalculators/lic894Calculator.js";
 import { calculateLIC890, validateLIC890Eligibility } from "./premiumcalculators/lic890Calculator.js";
+import { calculateLIC854, validateLIC854Eligibility } from "./premiumcalculators/lic854Calculator.js";
 import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators/lic855Calculator.js";
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
 
@@ -240,7 +241,10 @@ export async function calculatePremium(data: PremiumInput) {
 
   // Plan 855 also offers a single-premium option, but only when the selected
   // PPT is 1. Regular and limited premiums stay on the Yearly/Half-Yearly path.
-  if (product.planNumber === "855" && premiumPayingTerm === 1) {
+  if (
+    (product.planNumber === "855" || product.planNumber === "854") &&
+    premiumPayingTerm === 1
+  ) {
     data.premiumMode = "Single";
   }
 
@@ -378,6 +382,61 @@ export async function calculatePremium(data: PremiumInput) {
           `${smokerKey ? "Smoker" : "Non-Smoker"}, Term ${policyTerm}, ` +
           `PPT ${eligibility.ppt}, Option ${eligibility.option}`,
         404,
+      );
+    }
+  } else if (product.planNumber === "854") {
+    // Tech-Term's public brochure publishes only the term-20 sample table for
+    // male non-smokers at ages 20/30/40 and Rs 1 crore. The rate file stores
+    // exactly those 24 official tabular rates. Female/smoker rates and every
+    // other age/term combination are deliberately absent rather than guessed.
+    if (activeGender == null || String(activeGender).trim() === "") {
+      throw new AppError("Gender is required for LIC Plan 854", 400);
+    }
+
+    const genderKey =
+      activeGender === "F" ||
+      activeGender === "Female" ||
+      activeGender === "FEMALE"
+        ? "F"
+        : "M";
+    const smokerKey = activeSmoker === true;
+
+    if (genderKey !== "M" || smokerKey) {
+      throw new AppError(
+        "LIC Plan 854's official brochure publishes sample rates only for male non-smokers; " +
+          "female and smoker rates are not available from the public source.",
+        400,
+      );
+    }
+
+    const eligibility = validateLIC854Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+      option,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        gender: "M",
+        smoker: false,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+        option: eligibility.option,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `LIC Plan 854's official brochure publishes sample rates only for term 20 and ` +
+          `entry ages 20, 30 and 40 (male non-smoker). No authentic rate is available ` +
+          `for age ${age}, term ${policyTerm}, PPT ${eligibility.ppt}, Option ${eligibility.option}.`,
+        400,
       );
     }
   } else if (product.planNumber === "856") {
@@ -834,6 +893,20 @@ export async function calculatePremium(data: PremiumInput) {
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
+      });
+      break;
+
+    case "854":
+      premiumResult = await calculateLIC854({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
       });
       break;
 

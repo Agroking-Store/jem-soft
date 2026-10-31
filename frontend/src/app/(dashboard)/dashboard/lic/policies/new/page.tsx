@@ -310,7 +310,7 @@ function NewLICPolicyContent() {
       const selectedProductPlan = products.find(
         (product) => product.id === values.productId,
       )?.planNumber;
-      if (selectedProductPlan === "874" || selectedProductPlan === "866" || selectedProductPlan === "855" || selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904" || selectedProductPlan === "903") {
+      if (selectedProductPlan === "874" || selectedProductPlan === "866" || selectedProductPlan === "855" || selectedProductPlan === "854" || selectedProductPlan === "881" || selectedProductPlan === "912" || selectedProductPlan === "904" || selectedProductPlan === "903") {
         refinedSchema = refinedSchema.refine((data) => Boolean(data.option), {
           message: "Option is required for this plan.",
           path: ["option"],
@@ -505,7 +505,7 @@ function NewLICPolicyContent() {
 
   useEffect(() => {
     const plan = products.find((p) => p.id === watchProductId)?.planNumber;
-    if (plan === "855" && (watchOption === undefined || watchOption === null || watchOption === "")) {
+    if ((plan === "855" || plan === "854") && (watchOption === undefined || watchOption === null || watchOption === "")) {
       setValue("option", "1", { shouldValidate: true });
     }
   }, [watchProductId, products, watchOption, setValue]);
@@ -884,7 +884,7 @@ function NewLICPolicyContent() {
   const isSinglePremiumPlan = useMemo(() => {
     if (isOtherPolicy) return false;
     const plan = selectedProduct?.planNumber;
-    return Boolean(plan && (["717", "888", "883", "866"].includes(plan) || (plan === "855" && Number(watchPpt) === 1)));
+    return Boolean(plan && (["717", "888", "883", "866"].includes(plan) || ((plan === "855" || plan === "854") && Number(watchPpt) === 1)));
   }, [isOtherPolicy, selectedProduct?.planNumber, watchPpt]);
 
   const modeOptions = useMemo(() => {
@@ -1347,12 +1347,13 @@ function NewLICPolicyContent() {
     const is874 = selectedPlan === "874";
     const is866 = selectedPlan === "866";
     const is855 = selectedPlan === "855";
-    const hasValidAge = watchAge !== undefined && watchAge !== null && watchAge !== "" && !isNaN(Number(watchAge));
+    const is854 = selectedPlan === "854";
+    const hasValidAge = watchAge !== undefined && watchAge !== null && !isNaN(Number(watchAge));
 
     if (!watchProductId || !sum || !mode || !hasValidAge) {
       return;
     }
-    if ((is874 || is866 || is855) && !option) {
+    if ((is874 || is866 || is855 || is854) && !option) {
       return;
     }
     if (!is904 && (!term || !ppt)) {
@@ -2480,7 +2481,7 @@ function NewLICPolicyContent() {
                       </div>
                     )}
 
-                    {selectedProduct?.planNumber === "855" && (
+                    {["855", "854"].includes(selectedProduct?.planNumber ?? "") && (
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
                           Death Benefit Option <span className="text-red-500">*</span>

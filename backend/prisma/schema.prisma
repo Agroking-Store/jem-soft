@@ -272,7 +272,7 @@ model ProductPremiumRate {
   ageBand Int?
 
   option Int?
-  tabularRate Decimal @db.Decimal(10,2)
+  tabularRate Decimal @db.Decimal(10,4)
 
   effectiveFrom DateTime?
   effectiveTo DateTime?
