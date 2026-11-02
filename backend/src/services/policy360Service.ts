@@ -67,7 +67,7 @@ const toDateString = (date: Date): string => {
 const buildLifeAssuredName = (customer: {
   firstName: string;
   middleName?: string | null;
-  lastName: string;
+  lastName?: string | null;
 }): string =>
   [customer.firstName, customer.middleName, customer.lastName]
     .filter((part) => part && part.trim())
