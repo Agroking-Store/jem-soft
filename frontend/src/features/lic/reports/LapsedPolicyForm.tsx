@@ -193,12 +193,12 @@ export default function LapsedPolicyForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             {/* Filter Options selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Filter Options
               </label>
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                  <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                     Selected Filter
                   </span>
                   <input
@@ -226,11 +226,11 @@ export default function LapsedPolicyForm({
 
             {/* Interest Calculation */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Interest Calculation
               </label>
               <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Revival Interest Calculation Date
                 </span>
                 <DatePicker
@@ -247,11 +247,11 @@ export default function LapsedPolicyForm({
 
             {/* Policies Lapsed */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Policies Lapsed
               </label>
               <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
+                <span className="absolute z-10 -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase tracking-wider">
                   Include Policies Lapsed since
                 </span>
                 <DatePicker
@@ -265,7 +265,7 @@ export default function LapsedPolicyForm({
 
             {/* Report Type */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Type
               </label>
               <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full">
@@ -288,7 +288,7 @@ export default function LapsedPolicyForm({
 
             {/* Payment Type */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Payment Type
               </label>
               <div className="flex items-center gap-6 pt-2">
@@ -326,7 +326,7 @@ export default function LapsedPolicyForm({
 
             {/* Report Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+               <label className="block mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Report Date
               </label>
               <DatePicker

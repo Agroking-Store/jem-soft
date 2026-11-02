@@ -181,7 +181,7 @@ export default function LICCommReportsPage() {
             className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-[#1877F2] transition cursor-pointer"
           >
             <ArrowLeft size={15} className="text-[#1877F2]" />
-            <span>← Back to All Commission Reports</span>
+            <span>Back to All Commission Reports</span>
           </button>
         </div>
       )}

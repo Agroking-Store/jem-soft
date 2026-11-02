@@ -132,9 +132,6 @@ export default function GapCommissionForm({
               </label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Selected Filter
-                  </span>
                   <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
                     <span className="text-slate-800 font-semibold truncate">
                       {getAgencyFilterDisplayLabel()}
@@ -177,18 +174,19 @@ export default function GapCommissionForm({
             </div>
 
             {/* Date Range: Date From & To */}
-            <div className="space-y-1.5 md:col-span-2 max-w-2xl">
+            <div className="space-y-2 md:col-span-2 max-w-2xl">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Due Date Range
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                    Date From
-                  </span>
+                <div className="space-y-1">
+                  <label htmlFor="gap-commission-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
+                    From Date
+                  </label>
                   <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
                     <input
+                      id="gap-commission-from-date"
                       type="text"
                       value={formData.dateFrom}
                       onChange={(e) =>
@@ -201,12 +199,13 @@ export default function GapCommissionForm({
                   </div>
                 </div>
 
-                <div className="relative">
-                  <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
+                <div className="space-y-1">
+                  <label htmlFor="gap-commission-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
                     To Date
-                  </span>
+                  </label>
                   <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
                     <input
+                      id="gap-commission-to-date"
                       type="text"
                       value={formData.dateTo}
                       onChange={(e) =>
@@ -227,22 +226,17 @@ export default function GapCommissionForm({
                 <CalendarIcon size={13} className="text-[#1877F2]" />
                 Report Date
               </label>
-              <div className="relative">
-                <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-[#1877F2] font-bold uppercase z-10">
-                  Date of Report
-                </span>
-                <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                  <input
-                    type="text"
-                    value={formData.reportDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                    }
-                    placeholder="01/Sep/2026"
-                    className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                  />
-                  <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-                </div>
+              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
+                <input
+                  type="text"
+                  value={formData.reportDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
+                  }
+                  placeholder="01/Sep/2026"
+                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
+                />
+                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
               </div>
             </div>
           </div>
