@@ -1762,7 +1762,7 @@ function NewLICPolicyContent() {
 
     const plan = selectedProduct?.planNumber;
 
-    return Boolean(plan && (["717", "888", "883", "866"].includes(plan) || ((plan === "855" || plan === "854") && Number(watchPpt) === 1)));
+    return Boolean(plan && (["717", "888", "883", "866"].includes(plan) || ((plan === "855" || plan === "854" || plan === "853") && Number(watchPpt) === 1)));
 
   }, [isOtherPolicy, selectedProduct?.planNumber, watchPpt]);
 

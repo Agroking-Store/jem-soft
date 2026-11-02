@@ -97,6 +97,7 @@ import { seedPremiumRates901_902 } from "./seedPremiumRates901_902";
 import { seedPremiumRates770 } from "./seedPremiumRates770";
 import { seedPremiumRates894 } from "./seedPremiumRates894";
 import { seedPremiumRates890 } from "./seedPremiumRates890";
+import { seedPremiumRates853 } from "./seedPremiumRates853";
 import { seedPremiumRates854 } from "./seedPremiumRates854";
 import { seedPremiumRates855 } from "./seedPremiumRates855";
 import { seedPremiumRates856 } from "./seedPremiumRates856";
@@ -225,6 +226,9 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // brochure mode factors, GST 0 (brochure: currently exempt) and the five
   // optional riders (DAB, ABR, TRB, Critical Illness option 1 and 2).
   await seedPremiumRates890(prisma);
+
+  // Plan 853 (Navjeevan): flat rate 152.95 per 1000, GST 0, ABR rider (i-Magic data)
+  await seedPremiumRates853(prisma);
 
   // Plan 854 (Tech-Term): the official brochure sample table only - 24
   // tabular rates for term 20, male non-smoker, ages 20/30/40. The public

@@ -4990,23 +4990,23 @@
     "planName": "Navjeevan",
     "introDate": "2019-03-18",
     "withdrawalDate": "2019-08-15",
-    "minEntryAge": null,
+    "minEntryAge": "0",
     "maxEntryAge": "65",
     "minPolicyTerm": "10",
     "maxPolicyTerm": "18",
-    "minPpt": "5",
+    "minPpt": "1",
     "maxPpt": "5",
     "terms": "10,11,12,13,14,15,16,17,18",
-    "ppts": "5",
+    "ppts": "1,5",
     "termFormula": null,
     "pptFormula": null,
-    "pptNotes": null,
+    "pptNotes": "Single 1; Limited 5",
     "allowedRiders": [
       "ABR"
     ],
     "minSumAssured": 100000,
-    "maxSumAssured": 100000,
-    "notes": "Min sum assured 100000"
+    "maxSumAssured": null,
+    "notes": "Entry: single 90 days-44 yrs, limited 90 days-60 yrs (opt1) / 65 yrs (opt2); term 10-18; PPT single 1 or limited 5; SA min 1,00,000 (20k steps up to 9L, 50k single/25k limited above); GST 0; single premium min 39415, limited min 10035/10635; rider ABR. Rate 152.95 per 1000 (i-Magic, unverified)."
   },
   {
     "planNumber": "854",

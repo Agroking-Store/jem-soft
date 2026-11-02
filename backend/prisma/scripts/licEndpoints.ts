@@ -26,7 +26,10 @@ export const DEFAULT_URL = "https://vmprobl.i-magic.in/api/Calc/CalcPremium";
 
 export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
   // --- verified working on the default endpoint ---
-  "833": { url: DEFAULT_URL, note: "Jeevan Lakshya - verified 2026-10-17" },
+  "853": {
+    url: DEFAULT_URL,
+    note: "Navjeevan - i-Magic data, flat rate 152.95 per 1000, GST 0",
+  },
   "836": { url: DEFAULT_URL, note: "Jeevan Labh - verified 2026-10-17" },
   "102": { url: DEFAULT_URL, note: "Jeevan Kishore - verified 2026-10-17" },
   "184": { url: DEFAULT_URL, note: "Child Career Plan - verified 2026-10-17" },

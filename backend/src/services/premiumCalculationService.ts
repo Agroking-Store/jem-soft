@@ -20,6 +20,7 @@ import { calculateLIC774 } from "./premiumcalculators/lic774Calculator.js";
 import { calculateLIC887 } from "./premiumcalculators/lic887Calculator.js";
 import { calculateLIC894, validateLIC894Eligibility } from "./premiumcalculators/lic894Calculator.js";
 import { calculateLIC890, validateLIC890Eligibility } from "./premiumcalculators/lic890Calculator.js";
+import { calculateLIC853, validateLIC853Eligibility } from "./premiumcalculators/lic853Calculator.js";
 import { calculateLIC854, validateLIC854Eligibility } from "./premiumcalculators/lic854Calculator.js";
 import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators/lic855Calculator.js";
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
@@ -242,7 +243,7 @@ export async function calculatePremium(data: PremiumInput) {
   // Plan 855 also offers a single-premium option, but only when the selected
   // PPT is 1. Regular and limited premiums stay on the Yearly/Half-Yearly path.
   if (
-    (product.planNumber === "855" || product.planNumber === "854") &&
+    (product.planNumber === "855" || product.planNumber === "854" || product.planNumber === "853") &&
     premiumPayingTerm === 1
   ) {
     data.premiumMode = "Single";
@@ -381,6 +382,52 @@ export async function calculatePremium(data: PremiumInput) {
         `Premium rate not found for LIC Plan 855: Age ${age}, Gender ${genderKey}, ` +
           `${smokerKey ? "Smoker" : "Non-Smoker"}, Term ${policyTerm}, ` +
           `PPT ${eligibility.ppt}, Option ${eligibility.option}`,
+        404,
+      );
+    }
+  } else if (product.planNumber === "853") {
+    // Navjeevan: flat rate 152.95 per 1000 (i-Magic, unverified).
+    // Rate is the same for all ages/terms. SA rebate (high basic sum assured)
+    // and modal loading are applied by the calculator.
+    if (activeGender == null || String(activeGender).trim() === "") {
+      throw new AppError("Gender is required for LIC Plan 853", 400);
+    }
+
+    const eligibility = validateLIC853Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+      option,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+      },
+    });
+
+    if (!premiumRate) {
+      // Fallback to entryAge 0 (flat rate)
+      premiumRate = await prisma.productPremiumRate.findFirst({
+        where: {
+          productId: data.productId,
+          entryAge: 0,
+          ageBand: null,
+          policyTerm,
+          premiumPayingTerm: eligibility.ppt,
+        },
+      });
+    }
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 853: Age ${age}, Term ${policyTerm}, PPT ${eligibility.ppt}`,
         404,
       );
     }
@@ -893,6 +940,20 @@ export async function calculatePremium(data: PremiumInput) {
         sumAssured: data.sumAssured,
         tabularPremium,
         rate,
+      });
+      break;
+
+    case "853":
+      premiumResult = await calculateLIC853({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+        option,
       });
       break;
 

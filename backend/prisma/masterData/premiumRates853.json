@@ -1,0 +1,5433 @@
+{
+  "planNumber": "853",
+  "planName": "LIC's Navjeevan (UIN 512N331V01)",
+  "description": "i-Magic data: flat rate 152.95 per 1000, GST 0, ABR rider",
+  "source": "i-Magic CalcPremium engine, crawled 2026-10-31",
+  "sourceUrl": "https://licindia.in/documents/20121/125071/Sales-Brochure-LIC-s-Navjeevan-to-CC-Dept.pdf",
+  "extractedAt": "2026-10-31",
+  "rows": [
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 0,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 1,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 2,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 3,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 4,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 5,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 6,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 7,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 8,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 9,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 10,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 11,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 12,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 13,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 14,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 15,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 16,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 17,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 19,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 20,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 21,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 22,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 23,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 24,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 26,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 27,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 28,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 29,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 30,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 31,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 32,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 33,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 34,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 36,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 37,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 38,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 39,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 40,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 41,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 42,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 43,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 44,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 46,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 47,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 48,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 49,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 50,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 51,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 52,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 53,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 54,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 56,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 57,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 58,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 59,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 60,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 61,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 62,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 63,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 64,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 11,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 13,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 14,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 16,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 17,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    },
+    {
+      "entryAge": 65,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 18,
+      "premiumPayingTerm": 5,
+      "option": null,
+      "tabularRate": 152.95
+    }
+  ],
+  "verification": {
+    "planName": "LIC's Navjeevan (Plan 853)",
+    "sources": [
+      "i-Magic CalcPremium engine"
+    ],
+    "cases": [
+      {
+        "description": "age 40, T10, P5, SA 10L, yearly, limited premium",
+        "official": "i-Magic: tabular 152950, high SA rebate 9000, basic 143950, GST 0",
+        "input": {
+          "age": 40,
+          "policyTerm": 10,
+          "premiumPayingTerm": 5,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": null
+        },
+        "expect": {
+          "rate": 152.95,
+          "tabularPremium": 152950,
+          "saRebateAmount": 9000,
+          "basicYearlyPremium": 143950,
+          "installmentPremium": 143950,
+          "gst": 0,
+          "totalInstallmentPremium": 143950
+        }
+      },
+      {
+        "description": "age 40, T10, P5, SA 5L, yearly, limited premium",
+        "official": "i-Magic: tabular 76475, high SA rebate 3500, basic 72975, GST 0",
+        "input": {
+          "age": 40,
+          "policyTerm": 10,
+          "premiumPayingTerm": 5,
+          "sumAssured": 500000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": null
+        },
+        "expect": {
+          "rate": 152.95,
+          "tabularPremium": 76475,
+          "saRebateAmount": 3500,
+          "basicYearlyPremium": 72975,
+          "installmentPremium": 72975,
+          "gst": 0,
+          "totalInstallmentPremium": 72975
+        }
+      },
+      {
+        "description": "age 40, T10, P5, SA 1L, yearly, limited premium",
+        "official": "i-Magic: tabular 15295, high SA rebate 0, basic 15295, GST 0",
+        "input": {
+          "age": 40,
+          "policyTerm": 10,
+          "premiumPayingTerm": 5,
+          "sumAssured": 100000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false,
+          "option": null
+        },
+        "expect": {
+          "rate": 152.95,
+          "tabularPremium": 15295,
+          "saRebateAmount": 0,
+          "basicYearlyPremium": 15295,
+          "installmentPremium": 15295,
+          "gst": 0,
+          "totalInstallmentPremium": 15295
+        }
+      }
+    ]
+  }
+}
