@@ -5890,11 +5890,11 @@ function NewLICPolicyContent() {
 
                     )}
 
-                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902") && (
+                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902" || selectedProduct?.planNumber === "852") && (
 
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
 
-                        ULIP Health Plan: premium is user-chosen — no tabular rates. Enter all premium fields manually.
+                        ULIP Plan: premium is user-chosen — no tabular rates. Enter all premium fields manually.
 
                       </div>
 

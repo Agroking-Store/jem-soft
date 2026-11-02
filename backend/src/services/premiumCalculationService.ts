@@ -760,10 +760,10 @@ export async function calculatePremium(data: PremiumInput) {
         404,
       );
     }
-  } else if (product.planNumber === "901" || product.planNumber === "902") {
-    // LIC Health Plus (901) and Health Protection Plus (902) are ULIP health plans with no tabular rates.
+  } else if (product.planNumber === "901" || product.planNumber === "902" || product.planNumber === "852") {
+    // LIC Health Plus (901), Health Protection Plus (902) and SIIP (852) are Unit-Linked plans with no tabular rates.
     throw new AppError(
-      `Plan ${product.planNumber} is a Unit-Linked Health Plan. Premium is customer-chosen (min Rs 5,000 p.a.) — manual entry applies.`,
+      `Plan ${product.planNumber} is a Unit-Linked Plan. Premium is customer-chosen - manual entry applies.`,
       404,
     );
   } else if (product.planNumber === "903") {

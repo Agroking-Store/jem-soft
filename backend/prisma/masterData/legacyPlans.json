@@ -4967,23 +4967,23 @@
     "planName": "SIIP  Plan",
     "introDate": "2020-03-02",
     "withdrawalDate": "2199-03-31",
-    "minEntryAge": null,
+    "minEntryAge": "0",
     "maxEntryAge": "65",
     "minPolicyTerm": "10",
     "maxPolicyTerm": "25",
-    "minPpt": null,
-    "maxPpt": null,
+    "minPpt": "1",
+    "maxPpt": "25",
     "terms": "10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25",
-    "ppts": null,
+    "ppts": "equal to term",
     "termFormula": null,
-    "pptFormula": null,
-    "pptNotes": "equal to term",
+    "pptFormula": "equal to term",
+    "pptNotes": "PPT = Policy Term",
     "allowedRiders": [
       "DAB"
     ],
     "minSumAssured": 400000,
-    "maxSumAssured": 400000,
-    "notes": "Min sum assured 400000"
+    "maxSumAssured": null,
+    "notes": "ULIP: premium is customer-chosen (min Rs 40,000 p.a. Y / 22,000 H / 12,000 Q / 4,000 M). SA min 4,00,000. Term 10-25. PPT = term. Rider DAB (builtin, premium 0). GST 18%? (ULIP). No tabular rates - manual entry."
   },
   {
     "planNumber": "853",

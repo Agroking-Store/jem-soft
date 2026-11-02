@@ -30,6 +30,10 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
     url: DEFAULT_URL,
     note: "Navjeevan - i-Magic data, flat rate 152.95 per 1000, GST 0",
   },
+  "852": {
+    url: "",
+    note: "SIIP - Unit-Linked plan, premium is customer-chosen. No tabular rates.",
+  },
   "836": { url: DEFAULT_URL, note: "Jeevan Labh - verified 2026-10-17" },
   "102": { url: DEFAULT_URL, note: "Jeevan Kishore - verified 2026-10-17" },
   "184": { url: DEFAULT_URL, note: "Child Career Plan - verified 2026-10-17" },
