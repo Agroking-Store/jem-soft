@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo} from "react";
 import {
   RotateCcw,
   Filter,
@@ -23,6 +23,9 @@ import {
   format9DigitPolicyNo,
 } from "./commissionOutstandingData";
 import toast from "react-hot-toast";
+import DateField from "@/shared/components/DateField";
+
+
 
 interface CommissionOutstandingFormProps {
   initialData?: CommissionOutstandingFormData | null;
@@ -300,9 +303,9 @@ export default function CommissionOutstandingForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 max-w-4xl">
             {/* Filter Options (Agencies Modal Trigger) */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <Building2 size={13} className="text-[#1877F2]" />
                 Filter Options
@@ -317,7 +320,7 @@ export default function CommissionOutstandingForm({
                       <button
                         type="button"
                         onClick={() => setIsAgencyFilterModalOpen(true)}
-                        className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                        className="ml-2 shrink-0 px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
                       >
                         View
                       </button>
@@ -373,88 +376,53 @@ export default function CommissionOutstandingForm({
                 Date Range
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label htmlFor="commission-outstanding-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
-                    From Date
-                  </label>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      id="commission-outstanding-from-date"
-                      type="text"
-                      value={formData.dateFrom}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
-                      }
-                      placeholder="01/Sep/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={14} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="From Date"
+                  value={formData.dateFrom}
+                  placeholder="01/Sep/2026"
+                  onChange={(v) =>
+                  setFormData((prev) => ({ ...prev, dateFrom: v }))
+                   }
+                  />
 
-                <div className="space-y-1">
-                  <label htmlFor="commission-outstanding-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
-                    To Date
-                  </label>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      id="commission-outstanding-to-date"
-                      type="text"
-                      value={formData.dateTo}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
-                      }
-                      placeholder="08/Sep/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={14} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+               <DateField
+                 label="To Date"
+                 value={formData.dateTo}
+                 placeholder="08/Sep/2026"
+                 onChange={(v) =>
+                 setFormData((prev) => ({ ...prev, dateTo: v }))
+                  }
+                />
               </div>
             </div>
 
             {/* Report Date */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <CalendarIcon size={13} className="text-[#1877F2]" />
-                Report Date
-              </label>
-              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                <input
-                  type="text"
-                  value={formData.reportDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                  }
-                  placeholder="08/Sep/2026"
-                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                />
-                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-              </div>
-            </div>
+            <DateField
+             label="Report Date"
+             value={formData.reportDate}
+             placeholder="08/Sep/2026"
+             className="w-full"
+             onChange={(v) =>
+             setFormData((prev) => ({ ...prev, reportDate: v }))
+              }
+             />
 
             {/* Include Date of Payment till */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <CalendarIcon size={13} className="text-[#1877F2]" />
-                Include Date of Payment till
-              </label>
-              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                <input
-                  type="text"
-                  value={formData.includePaymentTill}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, includePaymentTill: e.target.value }))
-                  }
-                  placeholder="08/Sep/2026"
-                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                />
-                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-              </div>
-            </div>
+            <DateField
+              label="Include Date of Payment Till"
+              value={formData.includePaymentTill}
+              placeholder="08/Sep/2026"
+              className="w-full"
+              onChange={(v) =>
+              setFormData((prev) => ({
+              ...prev,
+              includePaymentTill: v,
+               }))
+              }
+             />
 
             {/* Payment Type (Non-Monthly, Monthly) */}
-            <div className="space-y-2 md:col-span-2 pt-1">
+            <div className="space-y-3 md:col-span-2 pt-1">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <Layers size={13} className="text-[#1877F2]" />
                 Payment Type
@@ -633,7 +601,7 @@ export default function CommissionOutstandingForm({
 
             {/* Dynamic Filter Row based on Sorting Option */}
             {formData.sortingOption === "branch-wise" && (
-              <div className="space-y-1.5 max-w-md pt-2">
+              <div className="space-y-2 max-w-md pt-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                   <GitBranch size={13} className="text-[#1877F2]" />
                   Select Branches
@@ -648,7 +616,7 @@ export default function CommissionOutstandingForm({
                         <button
                           type="button"
                           onClick={() => setIsBranchFilterModalOpen(true)}
-                          className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                          className="ml-2 shrink-0 px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
                         >
                           View
                         </button>
@@ -683,7 +651,7 @@ export default function CommissionOutstandingForm({
             )}
 
             {formData.sortingOption === "policy-wise" && (
-              <div className="space-y-1.5 max-w-md pt-2">
+              <div className="space-y-2 max-w-md pt-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                   <FileCheck2 size={13} className="text-[#1877F2]" />
                   Select Policies
@@ -691,14 +659,14 @@ export default function CommissionOutstandingForm({
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <div className="flex items-center justify-between border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/50">
-                      <span className="text-slate-800 font-semibold truncate font-mono">
+                      <span className="text-slate-800 font-semibold truncate">
                         {getPolicyFilterDisplayLabel()}
                       </span>
                       {formData.selectedPolicyIds && formData.selectedPolicyIds.length > 0 && (
                         <button
                           type="button"
                           onClick={() => setIsPolicyFilterModalOpen(true)}
-                          className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                          className="ml-2 shrink-0 px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
                         >
                           View
                         </button>
@@ -741,7 +709,7 @@ export default function CommissionOutstandingForm({
             onClick={onBack}
             className="w-full sm:w-auto px-6 py-2.5 border border-slate-200 bg-white text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 transition"
           >
-            Cancel / Back
+            Cancel
           </button>
 
           <button
