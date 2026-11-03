@@ -1,0 +1,175 @@
+{
+  "planNumber": "851",
+  "planName": "LIC's Micro Bachat (UIN 512N329V01)",
+  "description": "Official LIC brochure sample premium table. Rates per 1000 SA for ages 18/25/35/45/55 and terms 10/12/15.",
+  "source": "LIC Micro Bachat brochure, section 4 'Sample Premium Rates'",
+  "sourceUrl": "https://licindia.in/documents/20121/124893/m-bachat-brochure-final.pdf",
+  "extractedAt": "2026-11-02",
+  "rows": [
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 85.45
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 68.25
+    },
+    {
+      "entryAge": 18,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 51.5
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 85.55
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 68.35
+    },
+    {
+      "entryAge": 25,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 51.6
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 85.9
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 68.8
+    },
+    {
+      "entryAge": 35,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 52.2
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 87.6
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 70.75
+    },
+    {
+      "entryAge": 45,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 54.5
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 91.9
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 12,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 75.4
+    },
+    {
+      "entryAge": 55,
+      "gender": "M",
+      "smoker": false,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 59.8
+    }
+  ],
+  "verification": {
+    "planName": "LIC's Micro Bachat (Plan 851)",
+    "sources": [
+      "LIC Micro Bachat brochure, section 4 sample premium rates"
+    ],
+    "cases": [
+      {
+        "description": "age 35, T10, P10, SA 1L, yearly",
+        "official": "brochure sample rate 85.90 per 1000",
+        "input": {
+          "age": 35,
+          "policyTerm": 10,
+          "premiumPayingTerm": 10,
+          "sumAssured": 100000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 85.9,
+          "tabularPremium": 8590.0,
+          "saRebateAmount": 0.0,
+          "basicYearlyPremium": 8418.2,
+          "installmentPremium": 8418,
+          "gst": 0,
+          "totalInstallmentPremium": 8418
+        }
+      }
+    ]
+  }
+}

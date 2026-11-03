@@ -26,9 +26,9 @@ export const DEFAULT_URL = "https://vmprobl.i-magic.in/api/Calc/CalcPremium";
 
 export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
   // --- verified working on the default endpoint ---
-  "853": {
+  "851": {
     url: DEFAULT_URL,
-    note: "Navjeevan - i-Magic data, flat rate 152.95 per 1000, GST 0",
+    note: "Micro Bachat - i-Magic data, sample rates from brochure",
   },
   "852": {
     url: "",

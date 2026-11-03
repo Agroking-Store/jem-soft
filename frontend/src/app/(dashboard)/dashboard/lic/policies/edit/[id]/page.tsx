@@ -2098,7 +2098,7 @@ export default function EditLICPolicyPage() {
                         onChange={(e) => {
                           register("ppt").onChange(e);
                         }}
-                        disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                        disabled={!selectedLegacyPlan && productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
                         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
                       >
                         <option value="">

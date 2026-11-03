@@ -3475,9 +3475,11 @@ function NewLICPolicyContent() {
 
         ppt:
 
-          listOrRange(usablePpts) ||
-
-          (selectedLegacyPlan.pptFormula ? `Calculated: ${selectedLegacyPlan.pptFormula}` : ""),
+          [
+            selectedLegacyPlan.pptNotes?.toLowerCase().includes("equal to term") ? "PPT = Policy Term" : "",
+            listOrRange(usablePpts),
+            selectedLegacyPlan.pptFormula ? `Calculated: ${selectedLegacyPlan.pptFormula}` : "",
+          ].filter(Boolean).join(" · "),
 
         sumAssured: selectedLegacyPlan.defaultSumAssured
 
@@ -4801,7 +4803,7 @@ function NewLICPolicyContent() {
 
                           }}
 
-                          disabled={productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
+                          disabled={!selectedLegacyPlan && productOptionsData.combinations.length > 0 && productOptionsData.combinations.every(c => c.term === c.ppt)}
 
                           className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B8873A]/20 focus:border-[#B8873A] text-sm disabled:bg-slate-50 disabled:cursor-not-allowed"
 

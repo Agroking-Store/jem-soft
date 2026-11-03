@@ -48,10 +48,11 @@ export interface LegacyPlanMeta {
 export const parseNumberList = (raw?: string | null): number[] => {
   if (!raw) return [];
   const cleaned = raw.replace(/\band\b/gi, ",").replace(/[^\d,.\-]/g, "");
-  const parts = cleaned
-    .split(/[,.\s]+/)
-    .map((s) => Number(s))
-    .filter((n) => Number.isFinite(n));
+  const parts = cleaned
+    .split(/[,.\s]+/)
+    .filter((s) => s.trim() !== "")
+    .map((s) => Number(s))
+    .filter((n) => Number.isFinite(n));
   return Array.from(new Set(parts)).sort((a, b) => a - b);
 };
 
@@ -280,12 +281,13 @@ export const useLegacyPlanMetadata = () => {
       getPpts: (n?: string | null, term?: number | null, age?: number | null) => {
         const m = n ? map.get(String(n).trim().toUpperCase()) : undefined;
         if (!m) return [] as number[];
-        if (m.ppts.length) return m.ppts;
-        if (m.pptNotes && m.pptNotes.toLowerCase().includes("equal to term")) {
+        const positivePpts = m.ppts.filter((p) => p > 0);
+        if (positivePpts.length) return positivePpts;
+        if (m.pptNotes && (m.pptNotes.toLowerCase().includes("equal to term") || m.pptNotes.toLowerCase().includes("policy term"))) {
           if (term) return [term];
           if (m.terms.length) return m.terms;
         }
-        if (m.pptFormula && m.pptFormula.toLowerCase().includes("equal to term")) {
+        if (m.pptFormula && (m.pptFormula.toLowerCase().includes("equal to term") || m.pptFormula.toLowerCase().includes("policy term"))) {
           if (term) return [term];
           if (m.terms.length) return m.terms;
         }

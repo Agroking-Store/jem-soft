@@ -4948,19 +4948,20 @@
     "maxEntryAge": "55",
     "minPolicyTerm": "10",
     "maxPolicyTerm": "15",
-    "minPpt": null,
-    "maxPpt": null,
+    "minPpt": "10",
+    "maxPpt": "15",
     "terms": "10,11,12,13,14,15",
-    "ppts": null,
+    "ppts": "equal to term",
     "termFormula": null,
     "pptFormula": null,
     "pptNotes": "equal to term",
     "allowedRiders": [
-      "ABR"
+      "ABR",
+      "ADD"
     ],
     "minSumAssured": 50000,
-    "maxSumAssured": 50000,
-    "notes": "Min sum assured 50000"
+    "maxSumAssured": 200000,
+    "notes": "Micro insurance: SA 50000-200000 (20k steps up to 9L, 50k above). Term 10-15. PPT = term. Mode rebate: yearly 2%, half-yearly 1% of tabular premium. GST 0. Riders: ABR, ADD. Sample rates for ages 18/25/35/45/55 and terms 10/12/15."
   },
   {
     "planNumber": "852",
