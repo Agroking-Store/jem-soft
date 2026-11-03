@@ -1100,6 +1100,7 @@ export async function calculatePremium(data: PremiumInput) {
         tabularPremium,
         rate,
       });
+      break;
 
     case "720":
     case "721":
