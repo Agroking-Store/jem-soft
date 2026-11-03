@@ -5892,7 +5892,7 @@ function NewLICPolicyContent() {
 
                     )}
 
-                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902" || selectedProduct?.planNumber === "852") && (
+                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902" || selectedProduct?.planNumber === "852" || selectedProduct?.planNumber === "849") && (
 
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
 

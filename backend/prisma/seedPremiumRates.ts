@@ -102,6 +102,8 @@ import { seedPremiumRates853 } from "./seedPremiumRates853";
 import { seedPremiumRates854 } from "./seedPremiumRates854";
 import { seedPremiumRates855 } from "./seedPremiumRates855";
 import { seedPremiumRates856 } from "./seedPremiumRates856";
+import { seedPremiumRates849 } from "./seedPremiumRates849";
+import { seedPremiumRates850 } from "./seedPremiumRates850";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -247,6 +249,8 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
 
   // Plan 856 (PMVVY, Modified-2020): purchase-price rows, GST 0, no riders.
   await seedPremiumRates856(prisma);
+  await seedPremiumRates849(prisma);
+  await seedPremiumRates850(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

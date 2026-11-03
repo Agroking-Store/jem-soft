@@ -24,6 +24,7 @@ import { calculateLIC853, validateLIC853Eligibility } from "./premiumcalculators
 import { calculateLIC854, validateLIC854Eligibility } from "./premiumcalculators/lic854Calculator.js";
 import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators/lic855Calculator.js";
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
+import { calculateLIC850, validateLIC850Eligibility } from "./premiumcalculators/lic850Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -486,6 +487,36 @@ export async function calculatePremium(data: PremiumInput) {
         400,
       );
     }
+  } else if (product.planNumber === "850") {
+    // Jeevan Shanti (850) is a single-premium annuity plan. Purchase price = Sum Assured.
+    // Zero tabular rate rows are stored per entry age (30-100).
+    validateLIC850Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: 1,
+        option: null,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 850: Age ${age}, Term ${policyTerm}`,
+        404,
+      );
+    }
   } else if (product.planNumber === "856") {
     // PMVVY is a single-premium purchase-price plan. The engine stores a zero
     // rate and returns the sum assured; eligibility is mode-specific because
@@ -760,7 +791,7 @@ export async function calculatePremium(data: PremiumInput) {
         404,
       );
     }
-  } else if (product.planNumber === "901" || product.planNumber === "902" || product.planNumber === "852") {
+  } else if (product.planNumber === "901" || product.planNumber === "902" || product.planNumber === "852" || product.planNumber === "849") {
     // LIC Health Plus (901), Health Protection Plus (902) and SIIP (852) are Unit-Linked plans with no tabular rates.
     throw new AppError(
       `Plan ${product.planNumber} is a Unit-Linked Plan. Premium is customer-chosen - manual entry applies.`,
@@ -982,6 +1013,19 @@ export async function calculatePremium(data: PremiumInput) {
         tabularPremium,
         rate,
         option,
+      });
+      break;
+
+    case "850":
+      premiumResult = await calculateLIC850({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
       });
       break;
 

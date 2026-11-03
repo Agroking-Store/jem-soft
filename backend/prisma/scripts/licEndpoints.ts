@@ -34,6 +34,14 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
     url: "",
     note: "SIIP - Unit-Linked plan, premium is customer-chosen. No tabular rates.",
   },
+  "849": {
+    url: "",
+    note: "Nivesh Plus - Unit-Linked Single Premium plan, premium is customer-chosen. No tabular rates.",
+  },
+  "850": {
+    url: DEFAULT_URL,
+    note: "Jeevan Shanti - CalcPremium returns premiumRate 0 and basicPremium = sum assured. GST is 1.8%.",
+  },
   "836": { url: DEFAULT_URL, note: "Jeevan Labh - verified 2026-10-17" },
   "102": { url: DEFAULT_URL, note: "Jeevan Kishore - verified 2026-10-17" },
   "184": { url: DEFAULT_URL, note: "Child Career Plan - verified 2026-10-17" },

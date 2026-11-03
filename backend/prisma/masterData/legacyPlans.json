@@ -4900,7 +4900,7 @@
     "planName": "Nivesh Plus",
     "introDate": "2020-03-02",
     "withdrawalDate": "2199-03-31",
-    "minEntryAge": null,
+    "minEntryAge": "0",
     "maxEntryAge": "70",
     "minPolicyTerm": "10",
     "maxPolicyTerm": "25",
@@ -4915,8 +4915,8 @@
       "DAB"
     ],
     "minSumAssured": 125000,
-    "maxSumAssured": 125000,
-    "notes": "Min sum assured 125000"
+    "maxSumAssured": null,
+    "notes": "ULIP Single Premium: customer-chosen premium (min Rs 1,00,000). Option 1: SA = 1.25x premium (min SA 1,25,000, max age 70). Option 2: SA = 10x premium (min SA 10,00,000, max age 35). Term 10-25, PPT 1. No tabular rates - manual entry."
   },
   {
     "planNumber": "850",
@@ -4936,8 +4936,8 @@
     "pptNotes": null,
     "allowedRiders": [],
     "minSumAssured": 150000,
-    "maxSumAssured": 150000,
-    "notes": "Min sum assured 150000"
+    "maxSumAssured": null,
+    "notes": "Single-premium annuity plan. Purchase price = Sum Assured (min Rs 1,50,000, no max). Entry age 30-100 (Option F allows up to age 100). Term 1, PPT 1, Single mode. GST 1.8% on purchase price."
   },
   {
     "planNumber": "851",
