@@ -102,8 +102,16 @@ import { seedPremiumRates853 } from "./seedPremiumRates853";
 import { seedPremiumRates854 } from "./seedPremiumRates854";
 import { seedPremiumRates855 } from "./seedPremiumRates855";
 import { seedPremiumRates856 } from "./seedPremiumRates856";
-import { seedPremiumRates849 } from "./seedPremiumRates849";
-import { seedPremiumRates850 } from "./seedPremiumRates850";
+import {
+  seedPremiumRates849,
+  seedRiderPremium849,
+  seedModeFactors849,
+} from "./seedPremiumRates849";
+import {
+  seedPremiumRates850,
+  seedRiderPremium850,
+  seedModeFactors850,
+} from "./seedPremiumRates850";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -249,8 +257,15 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
 
   // Plan 856 (PMVVY, Modified-2020): purchase-price rows, GST 0, no riders.
   await seedPremiumRates856(prisma);
+  // Plan 849 (LIC Nivesh Plus): ULIP single premium, term 10-25, DAB rider
   await seedPremiumRates849(prisma);
+  await seedRiderPremium849(prisma);
+  await seedModeFactors849(prisma);
+
+  // Plan 850 (LIC Jeevan Shanti): annuity single premium, purchase price = SA, GST 1.8%
   await seedPremiumRates850(prisma);
+  await seedRiderPremium850(prisma);
+  await seedModeFactors850(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

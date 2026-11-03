@@ -2077,34 +2077,25 @@ function NewLICPolicyContent() {
 
 
         const isAddb = desc.includes("accidental death") || desc.includes("addb");
-
-
+        const isDab = desc.includes("double accident") || desc.includes("dab");
+        const isAbr = desc.includes("accident benefit") || desc.includes("abr");
+        const riderRecord = riders.find((rv: any) => rv.riderName === r.description || rv.riderCode === r.description);
+        const resolvedRiderId = r.riderId || riderRecord?.id;
 
         if (
-
-          // A rider the database has actually linked to this product always
-
-          // fills, whatever it is called. The name tests below only cover rows
-
-          // that arrive without an id, i.e. the hand-picked fallback lists.
-
+          resolvedRiderId ||
           r.riderId ||
-
           desc.includes("term") ||
-
           desc.includes("critical illness") ||
-
           desc.includes("cir") ||
-
-          ((selectedPlan === "717" || selectedPlan === "733" || selectedPlan === "736" || selectedPlan === "745" || selectedPlan === "760" || selectedPlan === "771" || selectedPlan === "881" || selectedPlan === "883" || selectedPlan === "888" || selectedPlan === "912") && isAddb)
-
+          isAddb ||
+          isDab ||
+          isAbr ||
+          desc.length > 0
         ) {
-
           const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
-
           let expectedTerm = watchTerm ? Number(watchTerm) : null;
-
-          let expectedPpt = watchPpt ? Number(watchPpt) : null;
+          let expectedPpt = (selectedPlan === "849" || selectedPlan === "850") ? 1 : (watchPpt ? Number(watchPpt) : null);
 
 
 
@@ -2196,20 +2187,19 @@ function NewLICPolicyContent() {
 
 
 
-          if (String(r.sum || "") !== String(expectedSum || "") || String(r.term || "") !== String(expectedTerm || "") || String(r.ppt || "") !== String(expectedPpt || "")) {
-
+          if (
+            String(r.sum || "") !== String(expectedSum || "") ||
+            String(r.term || "") !== String(expectedTerm || "") ||
+            String(r.ppt || "") !== String(expectedPpt || "") ||
+            (resolvedRiderId && r.riderId !== resolvedRiderId)
+          ) {
             updateRider(index, {
-
               ...r,
-
+              riderId: resolvedRiderId || r.riderId,
               sum: expectedSum,
-
               term: expectedTerm,
-
               ppt: expectedPpt
-
             });
-
           }
 
         }
@@ -2415,41 +2405,31 @@ function NewLICPolicyContent() {
 
 
           updatedRiders.forEach(({ index, newPremium, currentPremium, isValid }) => {
-
-            const effectivePremium = newPremium > 0 ? newPremium : currentPremium;
+            const hasValidPremium = typeof newPremium === "number" && !Number.isNaN(newPremium);
+            const effectivePremium = hasValidPremium ? newPremium : currentPremium;
 
             if (watchRiders[index]?.selected) {
-
-              totalInstallmentRiderPremium += effectivePremium;
-
+              totalInstallmentRiderPremium += (effectivePremium || 0);
             }
 
-            if (isValid && newPremium > 0 && newPremium !== currentPremium) {
-
+            if (
+              isValid &&
+              hasValidPremium &&
+              (newPremium !== currentPremium || watchRiders[index]?.premium === null || watchRiders[index]?.premium === undefined || watchRiders[index]?.premium === "")
+            ) {
               updateRider(index, {
-
                 ...watchRiders[index],
-
                 premium: newPremium
-
               });
-
             }
-
           });
 
-
-
           setValue(
-
             "totalRiderPremium",
-
-            totalInstallmentRiderPremium > 0
-
+            totalInstallmentRiderPremium >= 0
               ? totalInstallmentRiderPremium
-
-              : undefined,
-
+              : 0,
+            { shouldValidate: true, shouldDirty: true }
           );
 
 
@@ -5668,6 +5648,22 @@ function NewLICPolicyContent() {
 
                                     {...register(`riders.${index}.description`)}
 
+                                    onChange={(e) => {
+                                      register(`riders.${index}.description`).onChange(e);
+                                      const selectedName = e.target.value;
+                                      const foundRider = riders.find((rv: any) => rv.riderName === selectedName || rv.riderCode === selectedName);
+                                      if (foundRider) {
+                                        const expectedSum = watchSumAssured ? Number(watchSumAssured) : null;
+                                        const expectedTerm = watchTerm ? Number(watchTerm) : null;
+                                        const currentPlan = products.find((p) => p.id === watchProductId)?.planNumber;
+                                        const expectedPpt = (currentPlan === "849" || currentPlan === "850") ? 1 : (watchPpt ? Number(watchPpt) : null);
+                                        setValue(`riders.${index}.riderId`, foundRider.id, { shouldDirty: true });
+                                        if (expectedSum) setValue(`riders.${index}.sum`, expectedSum as any, { shouldDirty: true });
+                                        if (expectedTerm) setValue(`riders.${index}.term`, expectedTerm as any, { shouldDirty: true });
+                                        if (expectedPpt) setValue(`riders.${index}.ppt`, expectedPpt as any, { shouldDirty: true });
+                                      }
+                                    }}
+
                                     disabled={!watchRiders?.[index]?.selected}
 
                                     className="w-full text-sm border-slate-200 rounded-md focus:outline-none focus:ring-[#B8873A]/20 focus:border-[#B8873A] disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
@@ -5892,7 +5888,7 @@ function NewLICPolicyContent() {
 
                     )}
 
-                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902" || selectedProduct?.planNumber === "852" || selectedProduct?.planNumber === "849") && (
+                    {isPremiumManual && !isPlanDataMissing && !isOtherPolicy && (selectedProduct?.planNumber === "901" || selectedProduct?.planNumber === "902" || selectedProduct?.planNumber === "852" ) && (
 
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
 

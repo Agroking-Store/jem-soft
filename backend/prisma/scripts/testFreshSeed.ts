@@ -130,6 +130,18 @@ async function main() {
     await seedRiderPremium874(prisma);
     await seedModeFactors874(prisma);
     console.log("  plan 874 seed finished without error");
+  } else if (PLAN === "850") {
+    const { seedPremiumRates850, seedRiderPremium850, seedModeFactors850 } = await import("../seedPremiumRates850.js");
+    await seedPremiumRates850(prisma);
+    await seedRiderPremium850(prisma);
+    await seedModeFactors850(prisma);
+    console.log("  plan 850 seed finished without error");
+  } else if (PLAN === "849") {
+    const { seedPremiumRates849, seedRiderPremium849, seedModeFactors849 } = await import("../seedPremiumRates849.js");
+    await seedPremiumRates849(prisma);
+    await seedRiderPremium849(prisma);
+    await seedModeFactors849(prisma);
+    console.log("  plan 849 seed finished without error");
   } else {
     try {
       execSync("node_modules\\.bin\\tsx.cmd prisma\\seed.ts", { stdio: "pipe", encoding: "utf8" });

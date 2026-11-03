@@ -1,4 +1,4 @@
-import { AppError } from "../errors/AppError.js";
+import { AppError } from "../../utils/AppError.js";
 
 interface LIC850CalculatorInput {
   productId: string;
@@ -29,7 +29,11 @@ export function validateLIC850Eligibility(data: {
     m === "SIN" ||
     m === "O" ||
     m === "S" ||
-    m === "1";
+    m === "1" ||
+    m === "YEARLY" ||
+    m === "Y" ||
+    m === "YLY" ||
+    m === "ANNUAL";
 
   if (!isSingle) {
     throw new AppError(
