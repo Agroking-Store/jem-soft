@@ -265,7 +265,7 @@ export default function IncomeReplacementCalculator() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || previewing}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {downloading ? "Generating..." : "Download PDF"}
@@ -365,7 +365,7 @@ export default function IncomeReplacementCalculator() {
         )}
 
         <div className="border-t border-slate-200 px-5 py-4">
-          <button onClick={calculate} className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
+          <button onClick={calculate} className="rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer">
             Calculate
           </button>
         </div>

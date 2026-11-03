@@ -104,7 +104,7 @@ export default function QuotationDetailsPage({
         <button
           type="button"
           onClick={() => setIsReportOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
         >
           <FileText size={14} />
           View Report

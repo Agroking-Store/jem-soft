@@ -18,7 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
+import SharedTablePagination from "@/shared/components/TablePagination";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchAllUsers, deleteUser } from "@/features/user/userSlice";
 import type { ManagedUser, UserRole } from "@/features/user/types";
@@ -126,7 +126,17 @@ function TableHeadCell({
 }
 
 type DeleteTarget = { id: string; name: string } | null;
-
+function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const result: (number | "ellipsis")[] = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+  if (left > 2) result.push("ellipsis");
+  for (let i = left; i <= right; i++) result.push(i);
+  if (right < totalPages - 1) result.push("ellipsis");
+  result.push(totalPages);
+  return result;
+}
 export default function UserListPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -140,6 +150,8 @@ export default function UserListPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [resetTarget, setResetTarget] = useState<ManagedUser | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     dispatch(fetchAllUsers());
@@ -154,7 +166,12 @@ export default function UserListPage() {
     const matchesRole = roleFilter ? u.role === roleFilter : true;
     return matchesSearch && matchesRole;
   });
-
+   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+   const safePage = Math.min(currentPage, totalPages);
+   const paginatedUsers = filtered.slice(
+        (safePage - 1) * itemsPerPage,
+         safePage * itemsPerPage,
+        );
   const stats = {
     total: users.length,
     active: users.filter((u) => u.isActive).length,
@@ -200,14 +217,11 @@ export default function UserListPage() {
             </span>
             <div>
               <h1 className="text-xl font-bold text-slate-900">User Management</h1>
-              <p className="mt-0.5 text-sm text-slate-500">
-                Manage system users, roles, and access permissions
-              </p>
             </div>
           </div>
           <Link
             href="/dashboard/users/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] self-start sm:self-auto"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] self-start sm:self-auto"
           >
             <Plus size={16} />
             Add User
@@ -227,7 +241,7 @@ export default function UserListPage() {
           return (
             <div
               key={stat.label}
-              className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm cursor-pointer"
             >
               <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] to-blue-200" />
               <div className="flex items-center justify-between">
@@ -264,14 +278,14 @@ export default function UserListPage() {
             placeholder="Search by name, email or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15 cursor-text"
           />
         </div>
 
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15 cursor-pointer"
         >
           <option value="">All Roles</option>
           <option value="ADMIN">Admin</option>
@@ -281,7 +295,7 @@ export default function UserListPage() {
 
         <Link
           href="/dashboard/users/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
         >
           <Plus size={16} />
           New User
@@ -300,7 +314,7 @@ export default function UserListPage() {
             <p className="text-slate-500">{error}</p>
             <button
               onClick={() => dispatch(fetchAllUsers())}
-              className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
+              className="rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
             >
               Try Again
             </button>
@@ -317,7 +331,7 @@ export default function UserListPage() {
             {!searchTerm && !roleFilter && (
               <Link
                 href="/dashboard/users/new"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 transition-all"
               >
                 <Plus size={16} />
                 Add First User
@@ -339,7 +353,7 @@ export default function UserListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((user, index) => (
+                  {paginatedUsers.map((user, index) => (
                     <tr
                       key={user.id}
                       onDoubleClick={() =>
@@ -393,7 +407,7 @@ export default function UserListPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setResetTarget(user)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 cursor-pointer"
                             title="Reset Password"
                           >
                             <KeyRound size={14} />
@@ -401,7 +415,7 @@ export default function UserListPage() {
 
                           <Link
                             href={`/dashboard/users/${user.id}/edit`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[#1877F2] transition-colors hover:bg-blue-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[#1877F2] transition-colors hover:bg-blue-100 cursor-pointer"
                             title="Edit"
                           >
                             <Edit size={14} />
@@ -411,7 +425,7 @@ export default function UserListPage() {
                             onClick={() =>
                               setDeleteTarget({ id: user.id, name: user.name })
                             }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100 cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 size={14} />
@@ -424,13 +438,20 @@ export default function UserListPage() {
               </table>
             </div>
 
-            <div className="border-t border-slate-100 px-4 py-3">
-              <p className="text-xs text-slate-500">
-                Showing{" "}
-                <strong className="text-slate-700">{filtered.length}</strong> of{" "}
-                <strong className="text-slate-700">{users.length}</strong> users
-              </p>
-            </div>
+            <SharedTablePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              startIndex={(safePage - 1) * itemsPerPage}
+              endIndex={Math.min(safePage * itemsPerPage, filtered.length)}
+              rowsPerPage={itemsPerPage}
+              pageItems={buildPageItems(safePage, totalPages)}
+              onPageChange={setCurrentPage}
+              onRowsPerPageChange={(rows) => {
+              setItemsPerPage(rows);
+              setCurrentPage(1);
+              }}
+           />
           </>
         )}
       </div>

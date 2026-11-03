@@ -583,7 +583,7 @@ export default function PremiumCalendarReportView({
         <button
           onClick={handleDownloadPDF}
           disabled={isExporting}
-          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-50 uppercase tracking-wider"
+          className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition disabled:opacity-50 uppercase tracking-wider"
         >
           <Download size={16} />
           <span>{isExporting ? "Exporting..." : "Download PDF"}</span>

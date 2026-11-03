@@ -142,7 +142,7 @@ export default function CommissionSummaryReportView({
             type="button"
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-60"
           >
             <Download size={15} />
             {isExporting ? "Exporting PDF..." : "Download PDF"}

@@ -321,7 +321,7 @@ export default function UserForm({ mode, initialData }: Props) {
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading
             ? mode === "create"

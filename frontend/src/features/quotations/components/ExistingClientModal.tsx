@@ -327,7 +327,7 @@ export const ExistingClientModal: React.FC<ExistingClientModalProps> = ({
 
           <button
             onClick={handleSelectAndClose}
-            className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] rounded-xl shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+            className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#4f46e5] to-[#3730a3] rounded-xl shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
           >
             Select & Close
           </button>

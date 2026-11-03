@@ -262,7 +262,7 @@ export default function BankDetailsRecordsEditor({
           <button
             onClick={handleAddOrUpdate}
             type="button"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] hover:brightness-110 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
           >
             <Plus size={15} />
             {editingIndex !== null ? "Update Account" : "Add Account"}

@@ -160,7 +160,7 @@ export default function CustomerMasterDetailsPage({
       <div className="max-w-3xl mx-auto text-center py-16 px-4">
         <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Customer</h3>
         <p className="text-slate-500 mb-6">{error}</p>
-        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200">Back to Customers</button>
+        <button type="button" onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers?tab=master"))} className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200">Back to Customers</button>
       </div>
     );
   }

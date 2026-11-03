@@ -576,7 +576,7 @@ export default function CustomerCreatePage({ isModal = false, onClose, onSaved }
         <Button
           type="submit"
           isLoading={isSubmitting}
-          className="w-auto rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+          className="w-auto rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
         >
           Create Customer Group
         </Button>

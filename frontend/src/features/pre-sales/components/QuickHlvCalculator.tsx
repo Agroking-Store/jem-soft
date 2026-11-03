@@ -343,7 +343,7 @@ export default function QuickHlvCalculator() {
           <button
             type="button"
             onClick={() => calculate()}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
           >
             <Play size={14} className="fill-current" />
             Calculate

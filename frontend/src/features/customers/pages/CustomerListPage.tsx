@@ -20,6 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import SharedTablePagination from "@/shared/components/TablePagination";
 
 import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -131,69 +132,16 @@ function TableHeadCell({
   );
 }
 
-function TablePagination({
-  itemLabel,
-  totalItems,
-  page,
-  pageSize,
-  onPageChange,
-  onPageSizeChange,
-}: {
-  itemLabel: string;
-  totalItems: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
-}) {
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const firstItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-  const lastItem = Math.min(page * pageSize, totalItems);
-
-  return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-slate-500">
-        Showing <strong className="text-slate-700">{firstItem}-{lastItem}</strong> of{" "}
-        <strong className="text-slate-700">{totalItems}</strong> {itemLabel}
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
-          Rows
-          <select
-            aria-label={`Rows per page for ${itemLabel}`}
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
-          >
-            {PAGE_SIZE_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          aria-label={`Previous ${itemLabel} page`}
-          disabled={page === 1}
-          onClick={() => onPageChange(page - 1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <ChevronLeft size={16} aria-hidden="true" />
-        </button>
-        <span className="min-w-20 text-center text-xs font-semibold text-slate-600">
-          Page {page} of {totalPages}
-        </span>
-        <button
-          type="button"
-          aria-label={`Next ${itemLabel} page`}
-          disabled={page === totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <ChevronRight size={16} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-  );
+function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const result: (number | "ellipsis")[] = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+  if (left > 2) result.push("ellipsis");
+  for (let i = left; i <= right; i++) result.push(i);
+  if (right < totalPages - 1) result.push("ellipsis");
+  result.push(totalPages);
+  return result;
 }
 
 export default function CustomerListPage() {
@@ -466,7 +414,7 @@ export default function CustomerListPage() {
               action={
                 <button
                   onClick={() => dispatch(fetchCustomers())}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
                 >
                   Try Again
                 </button>
@@ -485,7 +433,7 @@ export default function CustomerListPage() {
                   <button
                     type="button"
                     onClick={() => openModal("group-create")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
                   >
                     <Plus size={16} />
                     Add First Group
@@ -496,15 +444,18 @@ export default function CustomerListPage() {
           ) : (
             <CustomerTableFrame
             footer={
-                <TablePagination
-                  itemLabel="groups"
-                  totalItems={filteredCustomers.length}
-                  page={safeGroupPage}
-                  pageSize={groupPageSize}
-                  onPageChange={setGroupPage}
-                  onPageSizeChange={(pageSize) => {
-                    setGroupPageSize(pageSize);
-                    setGroupPage(1);
+               <SharedTablePagination
+                 currentPage={safeGroupPage}
+                 totalPages={groupTotalPages}
+                 totalItems={filteredCustomers.length}
+                 startIndex={(safeGroupPage - 1) * groupPageSize}
+                 endIndex={Math.min(safeGroupPage * groupPageSize, filteredCustomers.length)}
+                 rowsPerPage={groupPageSize}
+                 pageItems={buildPageItems(safeGroupPage, groupTotalPages)}
+                 onPageChange={setGroupPage}
+                 onRowsPerPageChange={(rows) => {
+                 setGroupPageSize(rows);
+                 setGroupPage(1);
                   }}
                 />
               }
@@ -624,7 +575,7 @@ export default function CustomerListPage() {
             action={
               <button
                 onClick={() => dispatch(fetchCustomersMaster())}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
               >
                 Try Again
               </button>
@@ -643,7 +594,7 @@ export default function CustomerListPage() {
                 <button
                   type="button"
                   onClick={() => openModal("master-create")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                 >
                   <Plus size={16} />
                   Add First Customer
@@ -654,16 +605,19 @@ export default function CustomerListPage() {
         ) : (
           <CustomerTableFrame
               footer={
-              <TablePagination
-                itemLabel="customers"
+              <SharedTablePagination
+                currentPage={safeMasterPage}
+                totalPages={masterTotalPages}
                 totalItems={filteredMasterCustomers.length}
-                page={safeMasterPage}
-                pageSize={masterPageSize}
+                startIndex={(safeMasterPage - 1) * masterPageSize}
+                endIndex={Math.min(safeMasterPage * masterPageSize, filteredMasterCustomers.length)}
+                rowsPerPage={masterPageSize}
+                pageItems={buildPageItems(safeMasterPage, masterTotalPages)}
                 onPageChange={setMasterPage}
-                onPageSizeChange={(pageSize) => {
-                  setMasterPageSize(pageSize);
-                  setMasterPage(1);
-                }}
+                onRowsPerPageChange={(rows) => {
+                setMasterPageSize(rows);
+                setMasterPage(1);
+                 }}
               />
             }
           >

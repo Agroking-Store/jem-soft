@@ -145,7 +145,7 @@ export default function PolicyMaturityForm({
           <button onClick={handleReset} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer" title="Reset Form">
             <RotateCcw size={17} />
           </button>
-          <button onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer" title="Generate Report">
+          <button onClick={() => onGenerateReport(formData)} className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer" title="Generate Report">
             <FileText size={15} /><span>Generate</span>
           </button>
         </div>
@@ -175,7 +175,7 @@ export default function PolicyMaturityForm({
                     className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 cursor-pointer"
                   />
                 </div>
-                <button type="button" onClick={() => setIsFilterModalOpen(true)} className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer" title="Open Filter Options">
+                <button type="button" onClick={() => setIsFilterModalOpen(true)} className="p-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer" title="Open Filter Options">
                   <Filter size={16} />
                 </button>
               </div>
@@ -278,7 +278,7 @@ export default function PolicyMaturityForm({
                 onClick={openSelectGroupsModal}
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 cursor-pointer"
               />
-              <button type="button" onClick={openSelectGroupsModal} className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer" title="Open Select Groups Modal">
+              <button type="button" onClick={openSelectGroupsModal} className="p-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer" title="Open Select Groups Modal">
                 <Filter size={16} />
               </button>
             </div>
@@ -331,7 +331,7 @@ export default function PolicyMaturityForm({
           <button
             type="button"
             onClick={() => onGenerateReport(formData)}
-            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
           >
             <span>Generate Report</span>
             <ArrowRight size={16} />

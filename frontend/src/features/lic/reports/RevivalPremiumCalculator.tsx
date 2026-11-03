@@ -355,7 +355,7 @@ export default function RevivalPremiumCalculator({
             <button
               onClick={handleDownloadPDF}
               disabled={isExporting}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
             >
               <Download size={15} />
               <span>{isExporting ? "Exporting..." : "Download PDF"}</span>
@@ -608,7 +608,7 @@ export default function RevivalPremiumCalculator({
                   <button
                     type="button"
                     onClick={handleCalculate}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition uppercase tracking-wider whitespace-nowrap"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white shadow-blue-200 font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition uppercase tracking-wider whitespace-nowrap"
                   >
                     <Calculator size={16} />
                     Calculate

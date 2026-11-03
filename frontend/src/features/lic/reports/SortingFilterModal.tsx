@@ -639,7 +639,7 @@ export default function SortingFilterModal({
         <div className="flex items-center justify-end px-6 py-3 border-t border-slate-200 bg-white">
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition cursor-pointer"
+            className="px-6 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md shadow-blue-200 hover:brightness-110 transition cursor-pointer"
           >
             Apply Filter
           </button>

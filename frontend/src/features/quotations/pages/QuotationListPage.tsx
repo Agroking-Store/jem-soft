@@ -152,7 +152,7 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
           action={
             <button
               onClick={() => dispatch(fetchQuotations({ productType, page: 1, limit: 6 }))}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
             >
               Try Again
             </button>
@@ -171,7 +171,7 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
               <button
                 type="button"
                 onClick={() => onOpenModal("create")}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
               >
                 <Plus size={16} />
                 Add First Quotation

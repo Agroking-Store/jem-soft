@@ -237,7 +237,7 @@ export default function CommissionBranchFilterModal({
             <button
               type="button"
               onClick={handleApply}
-              className="px-6 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
+              className="px-6 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
             >
               Apply Filter
             </button>

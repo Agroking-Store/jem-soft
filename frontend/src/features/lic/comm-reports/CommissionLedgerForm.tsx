@@ -280,7 +280,7 @@ export default function CommissionLedgerForm({
               className={`inline-flex items-center gap-2 px-6 py-2.5 text-xs font-semibold rounded-xl shadow-md transition-all active:scale-[0.98] ${
                 isProcessed
                   ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  : "bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 hover:brightness-110"
+                  : "bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white shadow-blue-200 hover:brightness-110"
               }`}
             >
               <Layers size={15} />

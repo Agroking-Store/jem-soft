@@ -57,9 +57,6 @@ export default function Policy360Page() {
               <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
                 Policy 360
               </h1>
-              <p className="mt-1 text-sm font-medium text-slate-500">
-                Complete policy monitoring and management
-              </p>
             </div>
           </div>
         </div>

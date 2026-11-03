@@ -13,11 +13,23 @@ import { fetchPolicies } from "@/features/policy/policySlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import { useNotificationStore } from "@/store/notificationStore";
+import SharedTablePagination from "@/shared/components/TablePagination";
 
 const money = (v: number | undefined | null) => `
 ₹${Number(v ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const dt = (v?: string | null) =>
   v ? new Date(v).toLocaleDateString("en-IN") : "—";
+function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const result: (number | "ellipsis")[] = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+  if (left > 2) result.push("ellipsis");
+  for (let i = left; i <= right; i++) result.push(i);
+  if (right < totalPages - 1) result.push("ellipsis");
+  result.push(totalPages);
+  return result;
+}
 export default function PremiumPaymentsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -141,14 +153,11 @@ export default function PremiumPaymentsPage() {
             <h1 className="font-serif text-2xl font-semibold text-slate-900">
               Premium Payments
             </h1>
-            <p className="text-sm text-slate-500">
-              View and manage policy premium installments.
-            </p>
           </div>
         </div>
         <button
           onClick={() => router.push("/dashboard/premium-payments/new")}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
         >
           <Plus size={18} />
           New Payment
@@ -369,87 +378,20 @@ export default function PremiumPaymentsPage() {
           </div>
        </div>
       )}
-      <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3">
-          {/* Left */}
-          <p className="text-sm text-slate-500">
-            Showing{" "}
-            {filtered.length === 0
-              ? 0
-              : (currentPage - 1) * itemsPerPage + 1}
-            {" - "}
-            {Math.min(currentPage * itemsPerPage, filtered.length)}
-            {" of "}
-            {filtered.length} entries
-          </p>
-
-          {/* Right */}
-          <div className="flex items-center gap-3 mt-3 md:mt-0">
-
-            {/* Previous */}
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
-            >
-              &lt;
-            </button>
-          {/* Page Numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(
-                Math.max(0, currentPage - 2),
-                Math.min(totalPages, currentPage + 1)
-              )
-              .map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-9 h-9 rounded-lg border text-sm ${currentPage === page
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-slate-200 hover:bg-slate-50"
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-            {totalPages > 3 && currentPage < totalPages - 1 && (
-              <>
-                <span className="px-1 text-slate-400">...</span>
-
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50"
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Next */}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
-          >
-            &gt;
-          </button>
-
-          {/* Rows Per Page */}
-          <select
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 cursor-pointer px-2 text-sm"
-          >
-            <option value={5}>5 / page</option>
-            <option value={10}>10 / page</option>
-            <option value={20}>20 / page</option>
-            <option value={50}>50 / page</option>
-          </select>
-
-      </div>  
-      </div>
+      <SharedTablePagination
+  currentPage={currentPage}
+  totalPages={totalPages}
+  totalItems={filtered.length}
+  startIndex={(currentPage - 1) * itemsPerPage}
+  endIndex={Math.min(currentPage * itemsPerPage, filtered.length)}
+  rowsPerPage={itemsPerPage}
+  pageItems={buildPageItems(currentPage, totalPages)}
+  onPageChange={setCurrentPage}
+  onRowsPerPageChange={(rows) => {
+    setItemsPerPage(rows);
+    setCurrentPage(1);
+  }}
+/>
     </div>
     
   );

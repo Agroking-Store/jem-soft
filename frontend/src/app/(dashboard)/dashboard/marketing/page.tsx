@@ -325,7 +325,6 @@ export default function MarketingPage() {
       {/* Clean Brand Hero Header (Matching Customer & Policy 360 styling) */}
       <CustomerPageHero
         title="Marketing & Communications Hub"
-        subtitle="Automated policy due alerts, birthday & anniversary wishes, and intelligent campaign broadcasts."
         icon={Megaphone}
         actions={
           <div className="flex flex-wrap items-center gap-2.5">

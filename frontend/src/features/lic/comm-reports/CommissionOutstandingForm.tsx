@@ -715,7 +715,7 @@ export default function CommissionOutstandingForm({
           <button
             type="button"
             onClick={handleGenerate}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-semibold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white font-semibold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
           >
             <span>Generate Commission Outstanding Report</span>
             <ArrowRight size={15} />

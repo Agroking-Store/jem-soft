@@ -1015,7 +1015,7 @@ export default function CustomerMasterEditPage({ isModal = false, customerId, on
           ) : (
             <Link href="/dashboard/customers?tab=master" className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm rounded-lg transition-colors">Cancel</Link>
           )}
-          <button type="submit" disabled={isSubmitting} className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
+          <button type="submit" disabled={isSubmitting} className="rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save Changes"}</button>
         </div>
       </form>
       </FormProvider>

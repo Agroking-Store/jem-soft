@@ -443,7 +443,6 @@ function LICPoliciesContent() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-8">
-      <LicModuleNav />
 
       {/* Top Banner Card */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
@@ -455,9 +454,6 @@ function LICPoliciesContent() {
             <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">
               Policies
             </h1>
-            <p className="mt-0.5 text-sm font-medium text-slate-500">
-              Manage all policies and their details
-            </p>
           </div>
         </div>
 
@@ -466,7 +462,7 @@ function LICPoliciesContent() {
             <button
               type="button"
               onClick={() => setIsPolicyTypeModalOpen(true)}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus size={16} />
               New Policy
@@ -474,7 +470,7 @@ function LICPoliciesContent() {
           </div>
         )}
       </div>
-
+      <LicModuleNav />
       <PolicyTypeModal
         isOpen={isPolicyTypeModalOpen}
         onClose={() => setIsPolicyTypeModalOpen(false)}
@@ -539,7 +535,7 @@ function LICPoliciesContent() {
                   <button
                     type="button"
                     onClick={() => setIsPolicyTypeModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110"
                   >
                     <Plus size={16} />
                     New Policy

@@ -997,7 +997,7 @@ export default function CustomerMasterCreatePage({ isModal = false, onClose, onS
             </Link>
           )}
           <button type="submit" disabled={isSubmitting}
-            className="rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">
+            className="rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 disabled:opacity-60">
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
         </div>

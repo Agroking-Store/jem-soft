@@ -371,7 +371,7 @@ export default function FamilyHistoryForm({ recordId, onClose, preselectedMember
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 disabled:bg-slate-400 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] hover:brightness-110 disabled:bg-slate-400 text-white rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all cursor-pointer"
           >
             <Save size={15} />
             {isEditMode ? "Save Changes" : "Save Family History"}

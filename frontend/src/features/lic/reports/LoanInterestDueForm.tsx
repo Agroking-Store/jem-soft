@@ -185,7 +185,7 @@ export default function LoanInterestDueForm({
           </button>
           <button
             onClick={() => onGenerateReport(formData)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"
             title="Generate Report"
           >
             <FileText size={15} /><span>Generate</span>
@@ -229,7 +229,7 @@ export default function LoanInterestDueForm({
                 <button
                   type="button"
                   onClick={() => setIsFilterModalOpen(true)}
-                  className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
+                  className="p-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
                   title="Open Filter Options"
                 >
                   <Filter size={16} />
@@ -380,7 +380,7 @@ export default function LoanInterestDueForm({
               <button
                 type="button"
                 onClick={openSelectGroupsModal}
-                className="p-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
+                className="p-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl transition shadow-md border border-slate-800 cursor-pointer"
                 title="Open Selection Modal"
               >
                 <Filter size={16} />
@@ -503,7 +503,7 @@ export default function LoanInterestDueForm({
           <button
             type="button"
             onClick={() => onGenerateReport(formData)}
-            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
+            className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white shadow-blue-200 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:brightness-105 transition cursor-pointer"
           >
             <span>Generate Report</span>
             <ArrowRight size={16} />

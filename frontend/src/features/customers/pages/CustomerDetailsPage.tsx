@@ -204,7 +204,7 @@ export default function CustomerDetailsPage({
         <button
           type="button"
           onClick={() => (isModal ? onClose?.() : router.push("/dashboard/customers"))}
-          className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200"
+          className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-md shadow-blue-200"
         >
           Back to Customers
         </button>
@@ -459,7 +459,7 @@ export default function CustomerDetailsPage({
               <button
                 type="button"
                 onClick={() => onOpenModal?.("master-create", currentCustomer.id)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-200 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] hover:brightness-110 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-200 transition-all cursor-pointer"
               >
                 <Plus size={13} /> Add Member
               </button>

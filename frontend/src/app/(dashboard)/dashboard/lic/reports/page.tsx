@@ -904,7 +904,7 @@ export default function LICReportsPage() {
                   setPreviewModalCard(null);
                   setCurrentView("policy-register-form");
                 }}
-                className="cursor-pointer px-4 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
+                className="cursor-pointer px-4 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white text-xs font-bold rounded-xl uppercase tracking-wider shadow-md shadow-blue-200 hover:brightness-110"
               >
                 Open Policy Register Form
               </button>

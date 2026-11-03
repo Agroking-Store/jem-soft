@@ -358,7 +358,7 @@ export default function LoanSurrenderQuotationForm({
           <button
             type="button"
             onClick={() => onGenerateReport(formData)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] uppercase tracking-wider cursor-pointer"
             title="Generate Quotation Report"
           >
             <FileText size={15} />
@@ -582,7 +582,7 @@ export default function LoanSurrenderQuotationForm({
                   <button
                     type="button"
                     onClick={() => setIsRidersModalOpen(true)}
-                    className="w-full py-2 px-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] hover:brightness-110 text-white text-xs font-bold rounded-xl transition shadow-sm shadow-blue-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] hover:brightness-110 text-white text-xs font-bold rounded-xl transition shadow-sm shadow-blue-200 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Shield size={14} />
                     <span>Riders</span>
@@ -687,7 +687,7 @@ export default function LoanSurrenderQuotationForm({
                   <button
                     type="button"
                     onClick={handleCalculate}
-                    className="w-full py-2.5 px-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                    className="w-full py-2.5 px-3 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
                   >
                     <Calculator size={15} />
                     <span>Calculate</span>
@@ -816,7 +816,7 @@ export default function LoanSurrenderQuotationForm({
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="px-8 py-3 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
+            className="px-8 py-3 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-200 hover:brightness-110 transition flex items-center gap-2 cursor-pointer"
           >
             <span>Generate Value Quotation Report</span>
             <ArrowRight size={16} />
@@ -878,7 +878,7 @@ export default function LoanSurrenderQuotationForm({
               <button
                 type="button"
                 onClick={() => setIsRidersModalOpen(false)}
-                className="px-5 py-2 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-bold text-xs rounded-xl uppercase tracking-wider hover:brightness-110 transition cursor-pointer"
+                className="px-5 py-2 bg-gradient-to-r from-[#4f46e5] to-[#3730a3] text-white font-bold text-xs rounded-xl uppercase tracking-wider hover:brightness-110 transition cursor-pointer"
               >
                 Close
               </button>

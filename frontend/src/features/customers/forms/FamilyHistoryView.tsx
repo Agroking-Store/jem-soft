@@ -79,7 +79,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
         <p className="mb-4 text-xs text-slate-500">{error}</p>
         <button
           onClick={onClose}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2 text-xs font-semibold text-white transition-colors hover:brightness-110"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2 text-xs font-semibold text-white transition-colors hover:brightness-110"
         >
           Back to list
         </button>
@@ -116,7 +116,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
         </div>
         <button
           onClick={() => onEdit(currentRecord.id)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition-colors hover:brightness-110"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition-colors hover:brightness-110"
         >
           <Edit2 size={14} />
           Edit Record
@@ -154,7 +154,7 @@ export default function FamilyHistoryView({ recordId, onClose, onEdit }: FamilyH
                 </tr>
               ) : (
                 currentRecord.records.map((r, index) => (
-                  <tr key={index} className="transition-colors hover:bg-gradient-to-r from-[#5c67ff] to-[#3a47ff]/[0.025]">
+                  <tr key={index} className="transition-colors hover:bg-gradient-to-r from-[#4f46e5] to-[#3730a3]/[0.025]">
                     <td className="px-4 py-3 font-semibold text-slate-800">{r.relation}</td>
                     <td className="px-4 py-3 text-slate-700">{r.age}</td>
                     <td className="px-4 py-3 text-slate-700">{r.isDead ? "—" : calculateCurrentAge(r.age, currentRecord.date)}</td>

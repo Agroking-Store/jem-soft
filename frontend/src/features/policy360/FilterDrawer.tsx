@@ -164,7 +164,7 @@ export function FilterDrawer({
           <button
             type="button"
             onClick={onApply}
-            className="flex-1 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
+            className="flex-1 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98]"
           >
             Apply Filters
           </button>
