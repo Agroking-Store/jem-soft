@@ -1,8 +1,124 @@
 import prisma from "../config/database.js";
-import { CommunicationChannel, DeliveryStatus } from "@prisma/client";
+import { CommunicationChannel, DeliveryStatus, Prisma } from "@prisma/client";
+import { differenceInCalendarDays } from "date-fns";
 import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
-import { renderTemplateText } from "./templateService.js";
+
+const campaignRecipientInclude = {
+  preferences: true,
+  contactInfo: true,
+  policies: {
+    include: {
+      product: true,
+      provider: true,
+      premium: true,
+      premiumMode: true,
+      advisor: { include: { agency: true } },
+      status: true,
+    },
+  },
+} satisfies Prisma.CustomerMasterInclude;
+
+type CampaignRecipient = Prisma.CustomerMasterGetPayload<{
+  include: typeof campaignRecipientInclude;
+}>;
+
+const inactivePolicyStatuses = new Set([
+  "SURRENDERED",
+  "FULLY PAID UP",
+  "COMPLETED",
+  "MATURITY CLAIMED",
+  "CLAIMED",
+  "LAPSED",
+]);
+
+export const buildCampaignTemplateVariables = (
+  customer: CampaignRecipient,
+  criteria: { policyId?: string; providerId?: string; productId?: string } = {},
+) => {
+  const matchingPolicies = customer.policies.filter(
+    (policy) =>
+      (!criteria.policyId || policy.id === criteria.policyId) &&
+      (!criteria.providerId || policy.providerId === criteria.providerId) &&
+      (!criteria.productId || policy.productId === criteria.productId),
+  );
+  const candidatePolicies =
+    criteria.policyId || criteria.providerId || criteria.productId
+      ? matchingPolicies
+      : customer.policies;
+  const eligiblePolicies = candidatePolicies.filter(
+    (policy) => !inactivePolicyStatuses.has(policy.status.statusCode.toUpperCase()),
+  );
+  const policiesToRank = eligiblePolicies.length > 0 ? eligiblePolicies : candidatePolicies;
+  const today = new Date();
+  const selectedPolicy = [...policiesToRank].sort((a, b) => {
+    const aDue = a.nextPremiumDueDate
+      ? differenceInCalendarDays(a.nextPremiumDueDate, today)
+      : Number.POSITIVE_INFINITY;
+    const bDue = b.nextPremiumDueDate
+      ? differenceInCalendarDays(b.nextPremiumDueDate, today)
+      : Number.POSITIVE_INFINITY;
+    const aPriority = aDue >= 0 ? 0 : 1;
+    const bPriority = bDue >= 0 ? 0 : 1;
+
+    return (
+      aPriority - bPriority ||
+      Math.abs(aDue) - Math.abs(bDue) ||
+      b.updatedAt.getTime() - a.updatedAt.getTime()
+    );
+  })[0];
+  const dueDays =
+    selectedPolicy?.nextPremiumDueDate
+      ? differenceInCalendarDays(selectedPolicy.nextPremiumDueDate, today)
+      : undefined;
+  const premiumAmount =
+    selectedPolicy?.premium?.totalInstallmentPremium ??
+    selectedPolicy?.premium?.installmentPremium;
+  const advisor = selectedPolicy?.advisor;
+
+  return {
+    customer_name:
+      `${customer.salutation ? `${customer.salutation} ` : ""}${customer.firstName} ${customer.lastName || ""}`.trim() ||
+      "Customer",
+    policy_number: selectedPolicy?.policyNumber || "Not available",
+    plan_name: selectedPolicy?.product.productName || "Not available",
+    provider_name: selectedPolicy?.provider.name || "Not available",
+    premium_amount: premiumAmount?.toString() || "Not available",
+    premium_mode: selectedPolicy?.premiumMode.modeName || "Not available",
+    due_date: selectedPolicy?.nextPremiumDueDate
+      ? selectedPolicy.nextPremiumDueDate.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "Not available",
+    due_days: dueDays ?? "Not available",
+    due_days_text:
+      dueDays === undefined
+        ? "Not available"
+        : dueDays === 0
+          ? "Today"
+          : dueDays > 0
+            ? `${dueDays} days remaining`
+            : `${Math.abs(dueDays)} days overdue`,
+    advisor_name: advisor?.advisorName || "Not available",
+    advisor_phone: advisor?.phone || "Not available",
+    agency_name: advisor?.agency?.agencyName || "Not available",
+  };
+};
+
+export const renderCampaignTemplate = (
+  template: string,
+  variables: ReturnType<typeof buildCampaignTemplateVariables>,
+) =>
+  template.replace(/\{\{\s*(\w+)\s*\}\}|\{\s*(\w+)\s*\}/g, (_match, doubleKey, singleKey) => {
+    const key = (doubleKey || singleKey).toLowerCase();
+    const variable = Object.entries(variables).find(
+      ([name]) => name.toLowerCase() === key,
+    );
+
+    return variable ? String(variable[1]) : "Not available";
+  });
 
 export interface CreateCampaignDTO {
   title: string;
@@ -102,10 +218,7 @@ export const executeCampaign = async (campaignId: string) => {
 
   const audience = await prisma.customerMaster.findMany({
     where,
-    include: {
-      preferences: true,
-      contactInfo: true,
-    },
+    include: campaignRecipientInclude,
   });
 
   let successfulCount = 0;
@@ -130,28 +243,29 @@ export const executeCampaign = async (campaignId: string) => {
           const allowsWhatsapp = customer.preferences ? customer.preferences.smsMarketing : true;
           const allowsEmail = customer.preferences ? customer.preferences.emailMarketing : true;
 
-          const templateVars = {
-            customer_name: customerName,
-            advisor_name: "Your Insurance Advisor",
-            advisor_phone: "+91-9876543210",
-            agency_name: "Jem Soft Insurance",
-          };
+          const templateVars = buildCampaignTemplateVariables(customer, criteria);
 
-          const messageText =
+          const messageText = renderCampaignTemplate(
             campaign.customMessage ||
             (campaign.template?.smsBody
-              ? renderTemplateText(campaign.template.smsBody, templateVars)
-              : "Exclusive insurance plans available from your advisor.");
+              ? campaign.template.smsBody
+              : "Exclusive insurance plans available from your advisor."),
+            templateVars,
+          );
 
-          const emailSubject =
+          const emailSubject = renderCampaignTemplate(
             campaign.customSubject ||
             (campaign.template?.subject
-              ? renderTemplateText(campaign.template.subject, templateVars)
-              : campaign.title);
+              ? campaign.template.subject
+              : campaign.title),
+            templateVars,
+          );
 
-          const emailHtml = campaign.template?.emailBody
-            ? renderTemplateText(campaign.template.emailBody, templateVars)
-            : `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`;
+          const emailHtml = renderCampaignTemplate(
+            campaign.template?.emailBody ||
+              `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`,
+            templateVars,
+          );
 
           // 1. Send WhatsApp if allowed
           const sendWhatsappChannel =
