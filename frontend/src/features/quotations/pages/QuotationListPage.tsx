@@ -24,6 +24,8 @@ import {
   QuotationTableHeadCell,
 } from "@/features/quotations/components/QuotationUi";
 import type { QuotationModalEntry } from "@/features/quotations/components/QuotationModalStack";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 
 const PRODUCT_LABELS: Record<QuotationProductType, string> = {
   LIFE_GUARD: "Life Guard",
@@ -82,6 +84,20 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
   const [deleteTarget, setDeleteTarget] = useState<Quotation | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+const [rowsPerPage, setRowsPerPage] = useState(10);
+
+const goToPage = (nextPage: number, nextLimit = rowsPerPage) => {
+  dispatch(
+    fetchQuotations({
+      productType,
+      search: searchTerm,
+      field: searchField,
+      page: nextPage,
+      limit: nextLimit,
+    }),
+  );
+};
+
   useEffect(() => {
     dispatch(
       fetchQuotations({
@@ -89,10 +105,10 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
         search: searchTerm,
         field: searchField,
         page,
-        limit: 6,
+        limit: rowsPerPage,
       })
     );
-  }, [dispatch, productType, searchTerm, searchField, page]);
+  }, [dispatch, productType, searchTerm, searchField, page, rowsPerPage]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -100,7 +116,7 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
     try {
       await dispatch(deleteQuotation(deleteTarget.id)).unwrap();
       toast.success("Quotation deleted successfully");
-      dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: 1, limit: 6 }));
+      dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: 1, limit: rowsPerPage }));
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete");
     } finally {
@@ -151,7 +167,7 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
           description={error}
           action={
             <button
-              onClick={() => dispatch(fetchQuotations({ productType, page: 1, limit: 6 }))}
+              onClick={() => dispatch(fetchQuotations({ productType, page: 1, limit: rowsPerPage }))}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#3730a3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer"
             >
               Try Again
@@ -182,44 +198,21 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
       ) : (
         <QuotationTableFrame
           footer={
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>
-                Showing <strong className="text-slate-700">{filteredQuotations.length}</strong> of{" "}
-                <strong className="text-slate-700">{total}</strong> quotations
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: 1, limit: 6 }))}
-                  disabled={page === 1}
-                  className="rounded px-2 py-1 font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
-                >
-                  |&lt;
-                </button>
-                <button
-                  onClick={() => dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: Math.max(1, page - 1), limit: 6 }))}
-                  disabled={page === 1}
-                  className="rounded px-2 py-1 font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
-                >
-                  &lt;
-                </button>
-                <span className="rounded bg-blue-600 px-2.5 py-1 font-medium text-white">{page}</span>
-                <button
-                  onClick={() => dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: Math.min(totalPages, page + 1), limit: 6 }))}
-                  disabled={page === totalPages || totalPages === 0}
-                  className="rounded px-2 py-1 font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
-                >
-                  &gt;
-                </button>
-                <button
-                  onClick={() => dispatch(fetchQuotations({ productType, search: searchTerm, field: searchField, page: totalPages, limit: 6 }))}
-                  disabled={page === totalPages || totalPages === 0}
-                  className="rounded px-2 py-1 font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
-                >
-                  &gt;|
-                </button>
-              </div>
-            </div>
-          }
+        <SharedTablePagination
+          currentPage={page}
+          totalPages={Math.max(1, totalPages)}
+          totalItems={total}
+          startIndex={(page - 1) * rowsPerPage}
+          endIndex={Math.min(page * rowsPerPage, total)}
+          rowsPerPage={rowsPerPage}
+          pageItems={buildPageItems(page, Math.max(1, totalPages))}
+          onPageChange={(p) => goToPage(p)}
+          onRowsPerPageChange={(rows) => {
+          setRowsPerPage(rows);
+          goToPage(1, rows);
+          }}
+          />
+}
         >
           <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
             <thead>

@@ -51,6 +51,8 @@ import {
 import { fetchCustomersMaster } from "@/features/customers/customerMasterSlice";
 import { SendReminderModal } from "@/features/marketing/components/SendReminderModal";
 import { format, addYears, differenceInYears, addMonths, add } from "date-fns";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
 type SectionKey =
   | "policyDetails"
@@ -71,8 +73,6 @@ export default function PremiumDuePage() {
   const [filters, setFilters] = useState<LapsedPolicyFilters>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] =
     useState<LapsedPolicyFilters>(EMPTY_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const dispatch = useDispatch<AppDispatch>();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy>();
   const [policyLoan, setPolicyLoan] = useState({
@@ -190,15 +190,22 @@ export default function PremiumDuePage() {
     });
   }, [policies, searchTerm, appliedFilters]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredPolicies.length / itemsPerPage),
-  );
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedPolicies = filteredPolicies.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
+  const {
+  currentPage,
+  setCurrentPage,
+  rowsPerPage,
+  handleRowsPerPageChange,
+  totalItems,
+  totalPages,
+  startIndex,
+  endIndex,
+  pageItems,
+  paginatedItems: paginatedPolicies,
+} = usePagination(filteredPolicies);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm, appliedFilters]);
 
   const handleApplyFilters = () => {
     setAppliedFilters(filters);
@@ -216,11 +223,6 @@ export default function PremiumDuePage() {
     setSearchTerm("");
     setFilters(EMPTY_FILTERS);
     setAppliedFilters(EMPTY_FILTERS);
-    setCurrentPage(1);
-  };
-
-  const handleItemsPerPageChange = (value: number) => {
-    setItemsPerPage(value);
     setCurrentPage(1);
   };
 
@@ -646,87 +648,17 @@ export default function PremiumDuePage() {
         onApply={handleApplyFilters}
         onClear={handleClearAll}
       />
-      <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.05)] md:flex-row">
-        {/* Left */}
-        <p className="text-sm text-slate-500">
-          Showing{" "}
-          {filteredPolicies.length === 0
-            ? 0
-            : (currentPage - 1) * itemsPerPage + 1}
-          {" - "}
-          {Math.min(currentPage * itemsPerPage, filteredPolicies.length)}
-          {" of "}
-          {filteredPolicies.length} entries
-        </p>
-
-        {/* Right */}
-        <div className="flex items-center gap-3 mt-3 md:mt-0">
-          {/* Previous */}
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            &lt;
-          </button>
-
-          {/* Page Numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(
-                Math.max(0, currentPage - 2),
-                Math.min(totalPages, currentPage + 1),
-              )
-              .map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm transition ${
-                    currentPage === page
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-            {totalPages > 3 && currentPage < totalPages - 1 && (
-              <>
-                <span className="px-1 text-slate-400">...</span>
-
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50"
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Next */}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            &gt;
-          </button>
-
-          {/* Rows Per Page */}
-          <select
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
-          >
-            <option value={5}>5 / page</option>
-            <option value={10}>10 / page</option>
-            <option value={20}>20 / page</option>
-            <option value={50}>50 / page</option>
-          </select>
-        </div>
+      <SharedTablePagination
+       currentPage={currentPage}
+       totalPages={totalPages}
+       totalItems={totalItems}
+       startIndex={startIndex}
+       endIndex={endIndex}
+       rowsPerPage={rowsPerPage}
+       pageItems={pageItems}
+       onPageChange={setCurrentPage}
+       onRowsPerPageChange={handleRowsPerPageChange}
+       />
       </div>
-    </div>
   );
 }

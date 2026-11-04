@@ -22,6 +22,7 @@ import { fetchLoans, deleteLoan, type Loan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
 const money = (v: number | undefined | null) =>
   `₹${Number(v ?? 0).toLocaleString("en-IN", {
@@ -38,17 +39,6 @@ const STATUS_MAP: Record<string, string> = {
   DEFAULTED: "bg-rose-100 text-rose-700",
   CLOSED: "bg-slate-100 text-slate-700",
 };
-function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const result: (number | "ellipsis")[] = [1];
-  const left = Math.max(2, currentPage - 1);
-  const right = Math.min(totalPages - 1, currentPage + 1);
-  if (left > 2) result.push("ellipsis");
-  for (let i = left; i <= right; i++) result.push(i);
-  if (right < totalPages - 1) result.push("ellipsis");
-  result.push(totalPages);
-  return result;
-}
 export default function LoansPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -62,8 +52,6 @@ export default function LoansPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loanToDelete, setLoanToDelete] = useState<Loan | null>(null);
 
@@ -84,10 +72,6 @@ export default function LoansPage() {
     if (error) toast.error(error);
   }, [error]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, itemsPerPage]);
-
   const filtered = useMemo(() => {
     return loans.filter((loan) => {
       const q = search.toLowerCase();
@@ -107,6 +91,22 @@ export default function LoansPage() {
       return matchesSearch && matchesStatus;
     });
   }, [loans, search, statusFilter]);
+  const {
+  currentPage,
+  setCurrentPage,
+  rowsPerPage,
+  handleRowsPerPageChange,
+  totalItems,
+  totalPages,
+  startIndex,
+  endIndex,
+  pageItems,
+  paginatedItems: paginatedLoans,
+} = usePagination(filtered);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [search, statusFilter]);
 
   const stats = useMemo(() => {
     const total = loans.length;
@@ -145,13 +145,6 @@ export default function LoansPage() {
       setLoanToDelete(null);
     }
   };
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedLoans = filtered.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -398,6 +391,17 @@ export default function LoansPage() {
             </tbody>
           </table>
         </div>
+        <SharedTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          rowsPerPage={rowsPerPage}
+          pageItems={pageItems}
+          onPageChange={setCurrentPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -439,22 +443,6 @@ export default function LoansPage() {
           </div>
         </div>
       )}
-
-      {/* Pagination Bar */}
-      <SharedTablePagination
-       currentPage={currentPage}
-       totalPages={totalPages}
-       totalItems={filtered.length}
-       startIndex={(currentPage - 1) * itemsPerPage}
-       endIndex={Math.min(currentPage * itemsPerPage, filtered.length)}
-       rowsPerPage={itemsPerPage}
-       pageItems={buildPageItems(currentPage, totalPages)}
-       onPageChange={setCurrentPage}
-       onRowsPerPageChange={(rows) => {
-       setItemsPerPage(rows);
-       setCurrentPage(1);
-       }}
-       />
     </div>
   );
 }

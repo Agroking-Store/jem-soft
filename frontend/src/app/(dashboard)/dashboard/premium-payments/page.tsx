@@ -14,22 +14,12 @@ import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import { useNotificationStore } from "@/store/notificationStore";
 import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
 const money = (v: number | undefined | null) => `
 ₹${Number(v ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const dt = (v?: string | null) =>
   v ? new Date(v).toLocaleDateString("en-IN") : "—";
-function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const result: (number | "ellipsis")[] = [1];
-  const left = Math.max(2, currentPage - 1);
-  const right = Math.min(totalPages - 1, currentPage + 1);
-  if (left > 2) result.push("ellipsis");
-  for (let i = left; i <= right; i++) result.push(i);
-  if (right < totalPages - 1) result.push("ellipsis");
-  result.push(totalPages);
-  return result;
-}
 export default function PremiumPaymentsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -40,8 +30,6 @@ export default function PremiumPaymentsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
   const [policyAgeFilter, setPolicyAgeFilter] = useState<"All" | "New" | "Old">("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<PremiumPayment | null>(null);
 
@@ -93,6 +81,24 @@ export default function PremiumPaymentsPage() {
       return timeB - timeA;
     });
   }, [payments, search, status, policyAgeFilter]);
+
+   const {
+    currentPage,
+    setCurrentPage,
+    rowsPerPage,
+    handleRowsPerPageChange,
+    totalItems,
+    totalPages,
+    startIndex,
+    endIndex,
+    pageItems,
+    paginatedItems: paginatedPayments,
+  } = usePagination(filtered);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status, policyAgeFilter]);
+
   const stats = useMemo(
     () => ({
       total: payments.length,
@@ -128,20 +134,6 @@ export default function PremiumPaymentsPage() {
       setPaymentToDelete(null);
     }
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, status, policyAgeFilter]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filtered.length / itemsPerPage),
-  );
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedPayments = filtered.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-blue-100 bg-[#f0f7ff] p-5 shadow-sm">
@@ -337,6 +329,17 @@ export default function PremiumPaymentsPage() {
             </tbody>
           </table>
         </div>
+         <SharedTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          rowsPerPage={rowsPerPage}
+          pageItems={pageItems}
+          onPageChange={setCurrentPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
       </div>   
 
       {/* Delete Confirmation Modal */}
@@ -378,20 +381,6 @@ export default function PremiumPaymentsPage() {
           </div>
        </div>
       )}
-      <SharedTablePagination
-  currentPage={currentPage}
-  totalPages={totalPages}
-  totalItems={filtered.length}
-  startIndex={(currentPage - 1) * itemsPerPage}
-  endIndex={Math.min(currentPage * itemsPerPage, filtered.length)}
-  rowsPerPage={itemsPerPage}
-  pageItems={buildPageItems(currentPage, totalPages)}
-  onPageChange={setCurrentPage}
-  onRowsPerPageChange={(rows) => {
-    setItemsPerPage(rows);
-    setCurrentPage(1);
-  }}
-/>
     </div>
     
   );

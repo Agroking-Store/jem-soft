@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 
 import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -130,18 +131,6 @@ function TableHeadCell({
       {children}
     </th>
   );
-}
-
-function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const result: (number | "ellipsis")[] = [1];
-  const left = Math.max(2, currentPage - 1);
-  const right = Math.min(totalPages - 1, currentPage + 1);
-  if (left > 2) result.push("ellipsis");
-  for (let i = left; i <= right; i++) result.push(i);
-  if (right < totalPages - 1) result.push("ellipsis");
-  result.push(totalPages);
-  return result;
 }
 
 export default function CustomerListPage() {

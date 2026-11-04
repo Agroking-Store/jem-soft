@@ -10,6 +10,7 @@ import { fetchClaims, deleteClaim, type Claim } from "@/features/claim/claimSlic
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
 import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
 const money = (v: number | undefined | null) =>
   `₹${Number(v ?? 0).toLocaleString("en-IN", {
@@ -27,17 +28,7 @@ const STATUS_MAP: Record<string, string> = {
   "In Progress": "bg-blue-100 text-blue-700",
   Pending: "bg-amber-100 text-amber-700",
 };
-function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const result: (number | "ellipsis")[] = [1];
-  const left = Math.max(2, currentPage - 1);
-  const right = Math.min(totalPages - 1, currentPage + 1);
-  if (left > 2) result.push("ellipsis");
-  for (let i = left; i <= right; i++) result.push(i);
-  if (right < totalPages - 1) result.push("ellipsis");
-  result.push(totalPages);
-  return result;
-}
+
 export default function ClaimsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -51,8 +42,6 @@ export default function ClaimsPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [claimToDelete, setClaimToDelete] = useState<Claim | null>(null);
 
@@ -67,10 +56,6 @@ export default function ClaimsPage() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, itemsPerPage]);
 
   const filtered = useMemo(() => {
     return claims.filter((claim) => {
@@ -128,12 +113,22 @@ export default function ClaimsPage() {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedClaims = filtered.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
+  const {
+  currentPage,
+  setCurrentPage,
+  rowsPerPage,
+  handleRowsPerPageChange,
+  totalItems,
+  totalPages,
+  startIndex,
+  endIndex,
+  pageItems,
+  paginatedItems: paginatedClaims,
+} = usePagination(filtered);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [search, statusFilter]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -319,6 +314,18 @@ export default function ClaimsPage() {
             </tbody>
           </table>
         </div>
+        {/* Pagination Bar */}
+      <SharedTablePagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalItems={totalItems}
+      startIndex={startIndex}
+      endIndex={endIndex}
+      rowsPerPage={rowsPerPage}
+      pageItems={pageItems}
+      onPageChange={setCurrentPage}
+      onRowsPerPageChange={handleRowsPerPageChange}
+      />
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -361,21 +368,7 @@ export default function ClaimsPage() {
         </div>
       )}
 
-      {/* Pagination Bar */}
-      <SharedTablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filtered.length}
-        startIndex={(currentPage - 1) * itemsPerPage}
-        endIndex={Math.min(currentPage * itemsPerPage, filtered.length)}
-        rowsPerPage={itemsPerPage}
-        pageItems={buildPageItems(currentPage, totalPages)}
-        onPageChange={setCurrentPage}
-        onRowsPerPageChange={(rows) => {
-        setItemsPerPage(rows);
-        setCurrentPage(1);
-         }}
-         />
+      
       </div>
    
   );

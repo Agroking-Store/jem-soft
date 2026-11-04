@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchAllUsers, deleteUser } from "@/features/user/userSlice";
 import type { ManagedUser, UserRole } from "@/features/user/types";
@@ -126,17 +127,6 @@ function TableHeadCell({
 }
 
 type DeleteTarget = { id: string; name: string } | null;
-function buildPageItems(currentPage: number, totalPages: number): (number | "ellipsis")[] {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const result: (number | "ellipsis")[] = [1];
-  const left = Math.max(2, currentPage - 1);
-  const right = Math.min(totalPages - 1, currentPage + 1);
-  if (left > 2) result.push("ellipsis");
-  for (let i = left; i <= right; i++) result.push(i);
-  if (right < totalPages - 1) result.push("ellipsis");
-  result.push(totalPages);
-  return result;
-}
 export default function UserListPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
