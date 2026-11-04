@@ -1,5 +1,8 @@
 "use client";
 
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, RotateCcw, Download, Eye, AlertCircle, Loader2 } from "lucide-react";
@@ -47,6 +50,8 @@ const CATEGORY_DEFS: { key: string; label: string; mode: CategoryMode; resultLab
 ];
 
 export default function ChildEducationNeedsCalculator() {
+  const { user } = useSelector((state: RootState) => state.auth);
+ const userRole = user?.role?.toUpperCase();
   const router = useRouter();
   const proposalRef = useRef<HTMLDivElement>(null);
 
@@ -354,6 +359,7 @@ export default function ChildEducationNeedsCalculator() {
             <input readOnly value={`Rs. ${fmt(totalUpbringingCost)}`} className="w-56 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-700" />
           </div>
           <div className="flex items-center gap-2">
+            {userRole !== "VIEWER" && (
             <button
               onClick={handleViewPDF}
               disabled={previewing || downloading}
@@ -362,6 +368,8 @@ export default function ChildEducationNeedsCalculator() {
               {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
               {previewing ? "Preparing..." : "View PDF"}
             </button>
+            )}
+            {userRole !== "VIEWER" && (
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || previewing}
@@ -370,6 +378,7 @@ export default function ChildEducationNeedsCalculator() {
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {downloading ? "Generating..." : "Download PDF"}
             </button>
+            )}
           </div>
         </div>
         {validationError && (
