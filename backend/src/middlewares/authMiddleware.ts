@@ -33,6 +33,16 @@ export const protect = catchAsync(
           new AppError("The user belonging to this token no longer exists.", 401)
         );
       }
+      
+            // Block deactivated users, including users with existing tokens
+      if (!currentUser.isActive) {
+        return next(
+          new AppError(
+            "Your account has been deactivated. Please contact your administrator.",
+            403
+          )
+        );
+      }
 
       // Grant access to route
       req.user = currentUser;
