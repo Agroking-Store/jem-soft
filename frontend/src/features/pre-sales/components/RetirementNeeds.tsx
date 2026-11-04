@@ -1,5 +1,8 @@
 "use client";
 
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, RotateCcw, Download, Eye, AlertCircle, Loader2 } from "lucide-react";
@@ -42,6 +45,8 @@ const CATEGORY_DEFS: { key: string; label: string }[] = [
 ];
 
 export default function RetirementNeedsCalculator() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const userRole = user?.role?.toUpperCase();
   const router = useRouter();
   const proposalRef = useRef<HTMLDivElement>(null);
 
@@ -299,6 +304,7 @@ export default function RetirementNeedsCalculator() {
             <p className="mt-1 break-words text-2xl font-bold text-slate-900">₹ {fmt(totalAnnualCost)}</p>
           </div>
           <div className="flex items-center gap-2">
+            {userRole !== "VIEWER" && (
             <button
               onClick={handleViewPDF}
               disabled={previewing || downloading}
@@ -307,6 +313,8 @@ export default function RetirementNeedsCalculator() {
               {previewing ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
               {previewing ? "Preparing..." : "View PDF"}
             </button>
+            )}
+            {userRole !== "VIEWER" && (
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || previewing}
@@ -315,6 +323,7 @@ export default function RetirementNeedsCalculator() {
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {downloading ? "Generating..." : "Download PDF"}
             </button>
+            )}
           </div>
         </div>
         {validationError && (
