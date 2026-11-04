@@ -1,5 +1,8 @@
 "use client";
 
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+
 import React, { useState, useEffect } from "react";
 import {
   Megaphone,
@@ -61,6 +64,8 @@ import {
 type TabType = "overview" | "campaigns" | "templates" | "settings" | "logs";
 
 export default function MarketingPage() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const userRole = user?.role?.toUpperCase();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -329,6 +334,7 @@ export default function MarketingPage() {
         icon={Megaphone}
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
+            {userRole !== "VIEWER" && (
             <button
               onClick={handleRunScan}
               disabled={isScanning}
@@ -337,6 +343,7 @@ export default function MarketingPage() {
               <Play size={14} className={isScanning ? "animate-spin" : ""} />
               {isScanning ? "Scanning System..." : "Run Daily Scan Now"}
             </button>
+            )}
             <button
               onClick={loadAllData}
               disabled={isLoading}
@@ -350,7 +357,7 @@ export default function MarketingPage() {
       />
 
       {/* Metric Cards (Same clean CustomerStatCard styling) */}
-      <div className="cursor-pointer grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <CustomerStatCard
           label="Total Audience"
           value={audienceCount?.totalMembers ?? 0}
@@ -429,7 +436,7 @@ export default function MarketingPage() {
                 </p>
               )}
             </div>
-
+             {userRole !== "VIEWER" && (
             <button
               onClick={handleRunScan}
               disabled={isScanning}
@@ -438,6 +445,7 @@ export default function MarketingPage() {
               <Play size={14} className={isScanning ? "animate-spin" : ""} />
               {isScanning ? "Scanning..." : "Execute Scan Now"}
             </button>
+             )}
           </div>
 
           {/* UPCOMING CELEBRATIONS PREVIEW WIDGET */}
@@ -450,7 +458,7 @@ export default function MarketingPage() {
                 <select
                   value={celebrationTypeFilter}
                   onChange={(e: any) => setCelebrationTypeFilter(e.target.value)}
-                  className="cursor-pointer p-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white"
+                  className="p-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white"
                 >
                   <option value="ALL">All Events</option>
                   <option value="BIRTHDAY">Birthdays Only 🎂</option>
