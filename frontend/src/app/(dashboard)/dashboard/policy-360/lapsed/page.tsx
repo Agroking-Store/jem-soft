@@ -30,7 +30,7 @@ import {
   CustomerEmptyState,
 } from "@/features/customers/components/CustomerUi";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
-import SharedTablePagination from "@/shared/components/TablePagination";
+import SharedTablePagination from "../../../../../shared/components/TablePagination";
 import { usePagination } from "@/shared/hooks/usePagination";
 
 
@@ -437,8 +437,6 @@ useEffect(() => {
           />
         )}
       </section>
-
-     
 
       <FilterDrawer
         open={isFilterOpen}

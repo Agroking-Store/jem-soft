@@ -433,7 +433,7 @@ export default function CustomerListPage() {
           ) : (
             <CustomerTableFrame
             footer={
-                <TablePagination
+                <SharedTablePagination
                   itemLabel="groups"
                   totalItems={filteredCustomers.length}
                   page={safeGroupPage}
@@ -591,7 +591,7 @@ export default function CustomerListPage() {
         ) : (
           <CustomerTableFrame
               footer={
-              <TablePagination
+              <SharedTablePagination
                 itemLabel="customers"
                 totalItems={filteredMasterCustomers.length}
                 page={safeMasterPage}
