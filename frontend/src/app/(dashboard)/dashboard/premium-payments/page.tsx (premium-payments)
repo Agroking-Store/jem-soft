@@ -290,6 +290,7 @@ export default function PremiumPaymentsPage() {
                       </span>
                     </td>
                     <td>
+                      {userRole !== "VIEWER" && (
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/new?policyId=${p.policyId}`)
@@ -299,6 +300,7 @@ export default function PremiumPaymentsPage() {
                       >
                         <CreditCard size={16} />
                       </button>
+                      )}
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/${p.id}`)
@@ -308,6 +310,8 @@ export default function PremiumPaymentsPage() {
                       >
                         <Eye size={16} />
                       </button>
+                      {userRole !== "VIEWER" && (
+                        <>
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/edit/${p.id}`)
@@ -316,6 +320,7 @@ export default function PremiumPaymentsPage() {
                         title="Edit"
                       >
                         <Edit size={16} />
+                        
                       </button>
                       <button
                         onClick={() => handleDeletePayment(p)}
@@ -325,8 +330,12 @@ export default function PremiumPaymentsPage() {
                       >
                         <Trash2 size={16} />
                       </button>
+                      </> 
+                      )}
                     </td>
+                      
                   </tr>
+                      
                 ))
               )}
             </tbody>
