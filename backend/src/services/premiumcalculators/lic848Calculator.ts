@@ -1,10 +1,7 @@
 import { AppError } from "../../utils/AppError.js";
 import rebateService from "../rebateService.js";
 
-type PlanNumber = "847" | "848";
-
-interface LIC847848Input {
-  planNumber: PlanNumber;
+interface LIC848Input {
   productId: string;
   premiumMode: string;
   age: number;
@@ -17,28 +14,11 @@ interface LIC847848Input {
 
 const TERMS = [14, 16, 18, 20] as const;
 
-/**
- * Eligibility rules from the LIC sales brochures:
- *   - Jeevan Shiromani (847), sec.4: min basic SA Rs 1 crore, multiples of
- *     Rs 5 lakh, no maximum, entry age 18; max 55/51/48/45 for terms
- *     14/16/18/20.
- *   - Bima Shree (848), sec.4: min basic SA Rs 10 lakh, multiples of Rs 1
- *     lakh, no maximum, entry age 8; the same term-dependent maximums.
- *   - Both: policy term 14/16/18/20 and PPT = term - 4.
- */
 const RULES = {
-  "847": {
-    name: "Jeevan Shiromani",
-    minEntryAge: 18,
-    minSumAssured: 10000000,
-    sumAssuredStep: 500000,
-  },
-  "848": {
-    name: "Bima Shree",
-    minEntryAge: 8,
-    minSumAssured: 1000000,
-    sumAssuredStep: 100000,
-  },
+  name: "Bima Shree",
+  minEntryAge: 8,
+  minSumAssured: 1000000,
+  sumAssuredStep: 100000,
 } as const;
 
 const MAX_ENTRY_AGE_BY_TERM: Record<number, number> = {
@@ -53,9 +33,7 @@ function modeInfo(premiumMode: string) {
   if (["Y", "YEARLY", "YLY", "ANNUAL"].includes(mode)) {
     return { divisor: 1, rebatePct: 0.02 };
   }
-  if (
-    ["H", "HALF-YEARLY", "HALFYEARLY", "HLY", "SEMI-ANNUAL"].includes(mode)
-  ) {
+  if (["H", "HALF-YEARLY", "HALFYEARLY", "HLY", "SEMI-ANNUAL"].includes(mode)) {
     return { divisor: 2, rebatePct: 0.01 };
   }
   if (["Q", "QUARTERLY", "QLY"].includes(mode)) {
@@ -67,7 +45,7 @@ function modeInfo(premiumMode: string) {
   return null;
 }
 
-export interface LIC847848EligibilityInput {
+export interface LIC848EligibilityInput {
   premiumMode: string;
   age: number;
   policyTerm: number;
@@ -75,15 +53,12 @@ export interface LIC847848EligibilityInput {
   sumAssured: number;
 }
 
-export function validateLIC847848Eligibility(
-  planNumber: PlanNumber,
-  data: LIC847848EligibilityInput,
-) {
-  const rule = RULES[planNumber];
+export function validateLIC848Eligibility(data: LIC848EligibilityInput) {
+  const rule = RULES;
   const mode = modeInfo(data.premiumMode);
   if (!mode) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) allows Yearly, Half-Yearly, ` +
+      `LIC Plan 848 (${rule.name}) allows Yearly, Half-Yearly, ` +
         `Quarterly or Monthly premium mode`,
       400,
     );
@@ -95,7 +70,7 @@ export function validateLIC847848Eligibility(
     data.age > 55
   ) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) entry age must be between ` +
+      `LIC Plan 848 (${rule.name}) entry age must be between ` +
         `${rule.minEntryAge} and 55 years`,
       400,
     );
@@ -106,7 +81,7 @@ export function validateLIC847848Eligibility(
     !(TERMS as readonly number[]).includes(data.policyTerm)
   ) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) policy term must be one of ` +
+      `LIC Plan 848 (${rule.name}) policy term must be one of ` +
         `14, 16, 18 or 20 years`,
       400,
     );
@@ -115,7 +90,7 @@ export function validateLIC847848Eligibility(
   const maxAge = MAX_ENTRY_AGE_BY_TERM[data.policyTerm]!;
   if (data.age > maxAge) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) maximum entry age for a ` +
+      `LIC Plan 848 (${rule.name}) maximum entry age for a ` +
         `${data.policyTerm}-year term is ${maxAge} years`,
       400,
     );
@@ -127,7 +102,7 @@ export function validateLIC847848Eligibility(
     Number(data.premiumPayingTerm) !== ppt
   ) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) premium paying term must be ` +
+      `LIC Plan 848 (${rule.name}) premium paying term must be ` +
         `${ppt} years (policy term minus 4)`,
       400,
     );
@@ -136,14 +111,14 @@ export function validateLIC847848Eligibility(
   const sa = data.sumAssured;
   if (!Number.isFinite(sa) || sa < rule.minSumAssured) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) basic sum assured must be at ` +
+      `LIC Plan 848 (${rule.name}) basic sum assured must be at ` +
         `least Rs ${rule.minSumAssured.toLocaleString("en-IN")}`,
       400,
     );
   }
   if (sa % rule.sumAssuredStep !== 0) {
     throw new AppError(
-      `LIC Plan ${planNumber} (${rule.name}) basic sum assured must be in ` +
+      `LIC Plan 848 (${rule.name}) basic sum assured must be in ` +
         `multiples of Rs ${rule.sumAssuredStep.toLocaleString("en-IN")}`,
       400,
     );
@@ -152,22 +127,8 @@ export function validateLIC847848Eligibility(
   return { ppt, mode };
 }
 
-/**
- * Plans 847 (Jeevan Shiromani) and 848 (Bima Shree).
- *
- *   tabular  = rate x sum assured / 1000
- *   basic    = tabular - high-SA rebate - mode rebate
- *   mode     = 2% yearly, 1% half-yearly, nil quarterly/monthly
- *   instalment = basic / 1, 2, 4 or 12, collected in whole rupees
- *   GST      = 4.5% first year
- *
- * The high sum assured rebate is stored in ProductSumAssuredRebate and read
- * through rebateService, so the slabs stay data-driven instead of being
- * duplicated in code.
- */
-export async function calculateLIC847848(data: LIC847848Input) {
-  const { mode } = validateLIC847848Eligibility(data.planNumber, data);
-
+export async function calculateLIC848(data: LIC848Input) {
+  const { mode } = validateLIC848Eligibility(data);
   const saRebate = await rebateService.calculateSumAssuredRebate(
     data.productId,
     data.sumAssured,
@@ -183,8 +144,6 @@ export async function calculateLIC847848(data: LIC847848Input) {
     (saRebate.basicPremium - modeRebateAmount).toFixed(2),
   );
 
-  // LIC keeps paise on the yearly premium but rounds the half-yearly,
-  // quarterly and monthly instalments to whole rupees before adding GST.
   const installmentOverride =
     mode.divisor === 1
       ? Math.round(basicYearlyPremium)

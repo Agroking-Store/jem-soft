@@ -25,7 +25,7 @@ export const riderSchema = z.object({
 
   premium: z.preprocess(
     (val) => (val === "" ? null : val),
-    z.coerce.number().positive("Must be positive").nullable().optional(),
+    z.coerce.number().nonnegative("Must be zero or positive").nullable().optional(),
   ),
   mode: z.string().optional(),
   option: z.string().optional(),
@@ -110,7 +110,7 @@ export const policySchema = z.object({
   ),
   totalRiderPremium: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.coerce.number().positive().optional(),
+    z.coerce.number().nonnegative().optional(),
   ),
   installmentPremium: z.preprocess(
     (val) => (val === "" ? undefined : val),

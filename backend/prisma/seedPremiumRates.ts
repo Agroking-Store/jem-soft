@@ -114,8 +114,8 @@ import {
 } from "./seedPremiumRates850";
 import {
   seedPremiumRates847,
-  seedPremiumRates848,
-} from "./seedPremiumRates847848";
+} from "./seedPremiumRates847";
+import { seedPremiumRates848 } from "./seedPremiumRates848";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");

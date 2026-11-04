@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
 import legacyPlans from "./masterData/legacyPlans.json";
-import rates847 from "./masterData/premiumRates847.json";
 import rates848 from "./masterData/premiumRates848.json";
 
 /**
@@ -22,8 +21,6 @@ import rates848 from "./masterData/premiumRates848.json";
  * Rs 10,00,000 and are stored per Rs 1,000. i-Magic returns no rider data for
  * age 40 / term 16, so that combination stays manual rather than guessed.
  */
-
-type PlanNumber = "847" | "848";
 
 const RIDER_CODE_BY_NAME: Record<string, string> = {
   "Double Accident Benefit": "DAB",
@@ -65,9 +62,10 @@ async function upsertAttribute(
   });
 }
 
-async function seedPlan(prisma: PrismaClient, planNumber: PlanNumber) {
-  const rates = planNumber === "847" ? rates847 : rates848;
-  const productCode = `LEGACY-${planNumber}`;
+async function seedPlan(prisma: PrismaClient) {
+  const planNumber = "848";
+  const rates = rates848;
+  const productCode = "LEGACY-848";
   const startedAt = Date.now();
 
   const product = await prisma.productMaster.findFirst({
@@ -249,10 +247,8 @@ async function seedPlan(prisma: PrismaClient, planNumber: PlanNumber) {
   );
 }
 
-export const seedPremiumRates847 = async (prisma: PrismaClient) => {
-  await seedPlan(prisma, "847");
-};
 
 export const seedPremiumRates848 = async (prisma: PrismaClient) => {
-  await seedPlan(prisma, "848");
+  await seedPlan(prisma);
 };
+
