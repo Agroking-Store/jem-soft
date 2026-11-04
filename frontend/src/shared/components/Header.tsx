@@ -18,6 +18,7 @@ const getServerHydrationState = () => false;
 
 const PAGE_TITLES: Array<{ match: string; title: string }> = [
   { match: "/dashboard/customers", title: "Customers" },
+  { match: "/dashboard/quotations", title: "Quotations" },
   { match: "/dashboard/lic", title: "LIC" },
   { match: "/dashboard/premium-payments", title: "Premium Payments" },
   { match: "/dashboard/claims", title: "Claims" },

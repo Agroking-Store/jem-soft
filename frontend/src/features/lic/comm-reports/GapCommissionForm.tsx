@@ -14,6 +14,8 @@ import {
 import CommissionAgencyFilterModal from "./CommissionAgencyFilterModal";
 import { GapCommissionFormData } from "./gapCommissionData";
 import toast from "react-hot-toast";
+import DateField from "@/shared/components/DateField";
+
 
 interface GapCommissionFormProps {
   initialData?: GapCommissionFormData | null;
@@ -59,7 +61,7 @@ export default function GapCommissionForm({
     if (selectedAgencies.length === 1) {
       return selectedAgencies[0].name;
     }
-    return `${selectedAgencies.length} filters applied`;
+    return `${selectedAgencies.length} agencies selected`;
   };
 
   return (
@@ -123,9 +125,9 @@ export default function GapCommissionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 max-w-4xl">
             {/* Filter Options (Agencies Modal Trigger) */}
-            <div className="space-y-1.5 md:col-span-2 max-w-md">
+            <div className="space-y-2 md:col-span-2 max-w-md">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <Building2 size={13} className="text-[#1877F2]" />
                 Filter Options
@@ -140,7 +142,7 @@ export default function GapCommissionForm({
                       <button
                         type="button"
                         onClick={() => setIsAgencyFilterModalOpen(true)}
-                        className="px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
+                        className="ml-2 shrink-0 px-2 py-0.5 text-[10px] font-bold text-[#1877F2] bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition uppercase"
                       >
                         View
                       </button>
@@ -180,65 +182,30 @@ export default function GapCommissionForm({
                 Due Date Range
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="gap-commission-from-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
-                    From Date
-                  </label>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      id="gap-commission-from-date"
-                      type="text"
-                      value={formData.dateFrom}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateFrom: e.target.value }))
-                      }
-                      placeholder="01/Apr/2026"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={15} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="From Date"
+                  value={formData.dateFrom}
+                  placeholder="01/Apr/2026"
+                  onChange={(v) => setFormData((prev) => ({ ...prev, dateFrom: v }))}
+                  />
 
-                <div className="space-y-1">
-                  <label htmlFor="gap-commission-to-date" className="block text-[10px] font-bold uppercase tracking-wider text-[#1877F2]">
-                    To Date
-                  </label>
-                  <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                    <input
-                      id="gap-commission-to-date"
-                      type="text"
-                      value={formData.dateTo}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, dateTo: e.target.value }))
-                      }
-                      placeholder="31/Mar/2027"
-                      className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                    />
-                    <CalendarIcon size={15} className="text-[#1877F2] shrink-0" />
-                  </div>
-                </div>
+                <DateField
+                  label="To Date"
+                  value={formData.dateTo}
+                  placeholder="31/Mar/2027"
+                  onChange={(v) => setFormData((prev) => ({ ...prev, dateTo: v }))}
+                  />
               </div>
             </div>
 
             {/* Report Date */}
-            <div className="space-y-1.5 max-w-sm">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <CalendarIcon size={13} className="text-[#1877F2]" />
-                Report Date
-              </label>
-              <div className="flex items-center border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs bg-slate-50/40 focus-within:border-[#1877F2] focus-within:ring-2 focus-within:ring-blue-500/15 transition">
-                <input
-                  type="text"
-                  value={formData.reportDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, reportDate: e.target.value }))
-                  }
-                  placeholder="01/Sep/2026"
-                  className="w-full text-xs font-semibold text-slate-900 focus:outline-none bg-transparent"
-                />
-                <CalendarIcon size={16} className="text-[#1877F2] shrink-0" />
-              </div>
-            </div>
+            <DateField
+              label="Report Date"
+              value={formData.reportDate}
+              placeholder="01/Sep/2026"
+              className="max-w-sm"
+              onChange={(v) => setFormData((prev) => ({ ...prev, reportDate: v }))}
+               />
           </div>
         </div>
 
@@ -249,13 +216,14 @@ export default function GapCommissionForm({
             onClick={onBack}
             className="w-full sm:w-auto px-6 py-2.5 border border-slate-200 bg-white text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 transition"
           >
-            Cancel / Back
+            Cancel
           </button>
 
           <button
             type="button"
             onClick={handleGenerate}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-semibold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
+            className="w-full sm:w-auto inline-flex i
+            tems-center justify-center gap-2 px-8 py-2.5 bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] text-white font-semibold text-xs rounded-xl shadow-md shadow-blue-200 hover:brightness-110 active:scale-[0.98] transition"
           >
             <span>Generate Gap Commission Report</span>
             <ArrowRight size={15} />
