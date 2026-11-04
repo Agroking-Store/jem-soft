@@ -21,6 +21,8 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { fetchLoans, deleteLoan, type Loan } from "@/features/loans/loanSlice";
 import toast from "react-hot-toast";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
 const money = (v: number | undefined | null) =>
   `₹${Number(v ?? 0).toLocaleString("en-IN", {
@@ -37,7 +39,6 @@ const STATUS_MAP: Record<string, string> = {
   DEFAULTED: "bg-rose-100 text-rose-700",
   CLOSED: "bg-slate-100 text-slate-700",
 };
-
 export default function LoansPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -51,8 +52,6 @@ export default function LoansPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loanToDelete, setLoanToDelete] = useState<Loan | null>(null);
 
@@ -73,10 +72,6 @@ export default function LoansPage() {
     if (error) toast.error(error);
   }, [error]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, itemsPerPage]);
-
   const filtered = useMemo(() => {
     return loans.filter((loan) => {
       const q = search.toLowerCase();
@@ -96,6 +91,22 @@ export default function LoansPage() {
       return matchesSearch && matchesStatus;
     });
   }, [loans, search, statusFilter]);
+  const {
+  currentPage,
+  setCurrentPage,
+  rowsPerPage,
+  handleRowsPerPageChange,
+  totalItems,
+  totalPages,
+  startIndex,
+  endIndex,
+  pageItems,
+  paginatedItems: paginatedLoans,
+} = usePagination(filtered);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [search, statusFilter]);
 
   const stats = useMemo(() => {
     const total = loans.length;
@@ -134,13 +145,6 @@ export default function LoansPage() {
       setLoanToDelete(null);
     }
   };
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedLoans = filtered.slice(
-    (safePage - 1) * itemsPerPage,
-    safePage * itemsPerPage,
-  );
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -390,6 +394,17 @@ export default function LoansPage() {
             </tbody>
           </table>
         </div>
+        <SharedTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          rowsPerPage={rowsPerPage}
+          pageItems={pageItems}
+          onPageChange={setCurrentPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -431,80 +446,6 @@ export default function LoansPage() {
           </div>
         </div>
       )}
-
-      {/* Pagination Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3">
-        <p className="text-sm text-slate-500">
-          Showing{" "}
-          {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-          {" - "}
-          {Math.min(currentPage * itemsPerPage, filtered.length)}
-          {" of "}
-          {filtered.length} entries
-        </p>
-
-        <div className="flex items-center gap-3 mt-3 md:mt-0">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
-          >
-            &lt;
-          </button>
-
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(
-                Math.max(0, currentPage - 2),
-                Math.min(totalPages, currentPage + 1),
-              )
-              .map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-9 h-9 rounded-lg border text-sm ${
-                    currentPage === page
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-            {totalPages > 3 && currentPage < totalPages - 1 && (
-              <>
-                <span className="px-1 text-slate-400">...</span>
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50"
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-          </div>
-
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="w-9 h-9 rounded-lg border border-slate-200 disabled:opacity-50 hover:bg-slate-50"
-          >
-            &gt;
-          </button>
-
-          <select
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
-          >
-            <option value={5}>5 / page</option>
-            <option value={10}>10 / page</option>
-            <option value={20}>20 / page</option>
-            <option value={50}>50 / page</option>
-          </select>
-        </div>
-      </div>
     </div>
   );
 }

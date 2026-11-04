@@ -20,6 +20,8 @@ import {
   Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 
 import type { AppDispatch, RootState } from "@/store/store";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -128,71 +130,6 @@ function TableHeadCell({
     >
       {children}
     </th>
-  );
-}
-
-function TablePagination({
-  itemLabel,
-  totalItems,
-  page,
-  pageSize,
-  onPageChange,
-  onPageSizeChange,
-}: {
-  itemLabel: string;
-  totalItems: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
-}) {
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const firstItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-  const lastItem = Math.min(page * pageSize, totalItems);
-
-  return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-slate-500">
-        Showing <strong className="text-slate-700">{firstItem}-{lastItem}</strong> of{" "}
-        <strong className="text-slate-700">{totalItems}</strong> {itemLabel}
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
-          Rows
-          <select
-            aria-label={`Rows per page for ${itemLabel}`}
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
-          >
-            {PAGE_SIZE_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          aria-label={`Previous ${itemLabel} page`}
-          disabled={page === 1}
-          onClick={() => onPageChange(page - 1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <ChevronLeft size={16} aria-hidden="true" />
-        </button>
-        <span className="min-w-20 text-center text-xs font-semibold text-slate-600">
-          Page {page} of {totalPages}
-        </span>
-        <button
-          type="button"
-          aria-label={`Next ${itemLabel} page`}
-          disabled={page === totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <ChevronRight size={16} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
   );
 }
 
