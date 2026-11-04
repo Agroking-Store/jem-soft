@@ -4850,15 +4850,15 @@
     "withdrawalDate": "2020-01-31",
     "minEntryAge": "18",
     "maxEntryAge": "55",
-    "minPolicyTerm": "14, 16, 18, and 20",
-    "maxPolicyTerm": "14, 16, 18, and 20",
+    "minPolicyTerm": "14",
+    "maxPolicyTerm": "20",
     "minPpt": "term-4",
     "maxPpt": "term-4",
     "terms": "14,16,18,20",
     "ppts": null,
     "termFormula": null,
     "pptFormula": "term-4",
-    "pptNotes": null,
+    "pptNotes": "Premium paying term is policy term minus 4 (10, 12, 14 or 16 years).",
     "allowedRiders": [
       "ABR",
       "CIR",
@@ -4866,8 +4866,8 @@
       "TRB"
     ],
     "minSumAssured": 10000000,
-    "maxSumAssured": 10000000,
-    "notes": "Min sum assured 1,00,00,000"
+    "maxSumAssured": null,
+    "notes": "Minimum basic sum assured Rs 1,00,00,000; multiples of Rs 5,00,000; no maximum."
   },
   {
     "planNumber": "848",
@@ -4876,15 +4876,15 @@
     "withdrawalDate": "2020-01-31",
     "minEntryAge": "8",
     "maxEntryAge": "55",
-    "minPolicyTerm": "14, 16, 18, and 20",
-    "maxPolicyTerm": "14, 16, 18, and 20",
+    "minPolicyTerm": "14",
+    "maxPolicyTerm": "20",
     "minPpt": "term-4",
     "maxPpt": "term-4",
     "terms": "14,16,18,20",
     "ppts": null,
     "termFormula": null,
     "pptFormula": "term-4",
-    "pptNotes": null,
+    "pptNotes": "Premium paying term is policy term minus 4 (10, 12, 14 or 16 years).",
     "allowedRiders": [
       "ABR",
       "CIR",
@@ -4892,8 +4892,8 @@
       "TRB"
     ],
     "minSumAssured": 1000000,
-    "maxSumAssured": 1000000,
-    "notes": "Min sum asssured 1000000"
+    "maxSumAssured": null,
+    "notes": "Minimum basic sum assured Rs 10,00,000; multiples of Rs 1,00,000; no maximum."
   },
   {
     "planNumber": "849",

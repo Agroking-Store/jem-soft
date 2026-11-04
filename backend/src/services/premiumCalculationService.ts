@@ -26,6 +26,10 @@ import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
 import { calculateLIC850, validateLIC850Eligibility } from "./premiumcalculators/lic850Calculator.js";
 import { calculateLIC849, validateLIC849Eligibility } from "./premiumcalculators/lic849Calculator.js";
+import {
+  calculateLIC847848,
+  validateLIC847848Eligibility,
+} from "./premiumcalculators/lic847848Calculator.js";
 
 interface PremiumInput {
   productId: string;
@@ -554,6 +558,39 @@ export async function calculatePremium(data: PremiumInput) {
         404,
       );
     }
+  } else if (product.planNumber === "847" || product.planNumber === "848") {
+    // Jeevan Shiromani (847) and Bima Shree (848) publish only a sample rate
+    // table, keyed on entry age, policy term and the fixed PPT (term - 4).
+    // The rates are the same for both genders and for smokers/non-smokers.
+    const planNumber = product.planNumber as "847" | "848";
+    const eligibility = validateLIC847848Eligibility(planNumber, {
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+        option: null,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `LIC Plan ${planNumber}'s published rate table is a sample: no ` +
+          `authentic rate is available for age ${age}, term ${policyTerm}.`,
+        400,
+      );
+    }
   } else if (product.planNumber === "856") {
     // PMVVY is a single-premium purchase-price plan. The engine stores a zero
     // rate and returns the sum assured; eligibility is mode-specific because
@@ -1069,6 +1106,21 @@ export async function calculatePremium(data: PremiumInput) {
 
     case "850":
       premiumResult = await calculateLIC850({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+
+    case "847":
+    case "848":
+      premiumResult = await calculateLIC847848({
+        planNumber: product.planNumber as "847" | "848",
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,

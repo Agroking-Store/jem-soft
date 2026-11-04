@@ -97,7 +97,7 @@ export function validateLIC853Eligibility(data: LIC853EligibilityInput): LIC853E
 }
 
 export async function calculateLIC853(data: LIC853CalculatorInput) {
-  const { isSingle, isHalfYearly } = validateLIC853Eligibility(data);
+  validateLIC853Eligibility(data);
   const sa = data.sumAssured;
 
   const modeRebatePer1000 = getModeRebatePer1000(sa);

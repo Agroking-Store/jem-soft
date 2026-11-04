@@ -112,6 +112,10 @@ import {
   seedRiderPremium850,
   seedModeFactors850,
 } from "./seedPremiumRates850";
+import {
+  seedPremiumRates847,
+  seedPremiumRates848,
+} from "./seedPremiumRates847848";
 
 export const seedPremiumRates = async (prisma: PrismaClient) => {
   console.log("Starting Premium Rates seeding...");
@@ -266,6 +270,11 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   await seedPremiumRates850(prisma);
   await seedRiderPremium850(prisma);
   await seedModeFactors850(prisma);
+
+  // Plans 847 (Jeevan Shiromani) and 848 (Bima Shree): sample rate tables,
+  // PPT = term - 4, high sum assured and mode rebates, four riders.
+  await seedPremiumRates847(prisma);
+  await seedPremiumRates848(prisma);
 
   console.log("Finished Premium Rates seeding.");
 };

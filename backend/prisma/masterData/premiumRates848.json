@@ -1,0 +1,1172 @@
+{
+  "planNumber": "848",
+  "planName": "LIC's Bima Shree (UIN 512N316V01)",
+  "description": "Sample premium table for LIC Plan 848. The public brochure and the i-Magic calculator publish only the ages/terms in this file; no other age or term is interpolated or estimated.",
+  "source": "LIC English sales brochure sample premium table and i-Magic CalcPremium responses. Rates are tabular annual premiums per Rs 1,000 basic sum assured, exclusive of GST.",
+  "sourceUrl": "https://licindia.in/documents/20121/124787/848_LIC-s-Bima-Shree_512N316V01_SL-BI.pdf/1e57d2ee-7a64-6767-53f0-058cbcd514e0?t=1669268590213",
+  "extractedAt": "2026-11-04",
+  "eligibility": {
+    "minEntryAge": 8,
+    "maxEntryAgeByTerm": {
+      "14": 55,
+      "16": 51,
+      "18": 48,
+      "20": 45
+    },
+    "terms": [
+      14,
+      16,
+      18,
+      20
+    ],
+    "pptFormula": "term-4",
+    "minSumAssured": 1000000,
+    "sumAssuredStep": 100000,
+    "maxSumAssured": null
+  },
+  "saRebateBands": [
+    [
+      1000000,
+      1999999.99,
+      0
+    ],
+    [
+      2000000,
+      4999999.99,
+      0.3
+    ],
+    [
+      5000000,
+      null,
+      0.5
+    ]
+  ],
+  "modeFactors": {
+    "YLY": 1,
+    "HLY": 0.5,
+    "QLY": 0.25,
+    "MLY": 0.083333
+  },
+  "rows": [
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 14,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 110.25
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 16,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 92.6
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 18,
+      "premiumPayingTerm": 14,
+      "option": null,
+      "tabularRate": 79.7
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 16,
+      "option": null,
+      "tabularRate": 70.8
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 14,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 110.8
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 16,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 93.2
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 18,
+      "premiumPayingTerm": 14,
+      "option": null,
+      "tabularRate": 80.45
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 16,
+      "option": null,
+      "tabularRate": 71.7
+    },
+    {
+      "entryAge": 33,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 14,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 111.2
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 14,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 113.15
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 16,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 95.85
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 18,
+      "premiumPayingTerm": 14,
+      "option": null,
+      "tabularRate": 83.35
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 16,
+      "option": null,
+      "tabularRate": 74.9
+    },
+    {
+      "entryAge": 50,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 14,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 119.7
+    },
+    {
+      "entryAge": 50,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 16,
+      "premiumPayingTerm": 12,
+      "option": null,
+      "tabularRate": 102.65
+    }
+  ],
+  "riders": [
+    {
+      "age": 20,
+      "term": 14,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.3,
+          "prem": 1300,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 1.882,
+          "prem": 1882,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 1.274,
+          "prem": 1274,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 20,
+      "term": 16,
+      "ppt": 12,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.25,
+          "prem": 1250,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 1.793,
+          "prem": 1793,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 1.254,
+          "prem": 1254,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 20,
+      "term": 18,
+      "ppt": 14,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.2,
+          "prem": 1200,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 1.754,
+          "prem": 1754,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 1.274,
+          "prem": 1274,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 20,
+      "term": 20,
+      "ppt": 16,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.15,
+          "prem": 1150,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 1.764,
+          "prem": 1764,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 1.352,
+          "prem": 1352,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 30,
+      "term": 14,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.3,
+          "prem": 1300,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 2.528,
+          "prem": 2528,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 2.695,
+          "prem": 2695,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 30,
+      "term": 16,
+      "ppt": 12,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.25,
+          "prem": 1250,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 2.528,
+          "prem": 2528,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 2.764,
+          "prem": 2764,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 30,
+      "term": 18,
+      "ppt": 14,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.2,
+          "prem": 1200,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 2.597,
+          "prem": 2597,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 2.881,
+          "prem": 2881,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 30,
+      "term": 20,
+      "ppt": 16,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.15,
+          "prem": 1150,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 2.744,
+          "prem": 2744,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 3.077,
+          "prem": 3077,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 33,
+      "term": 14,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.3,
+          "prem": 1300,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 3.028,
+          "prem": 3028,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 3.548,
+          "prem": 3548,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 33,
+      "term": 16,
+      "ppt": 12,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.25,
+          "prem": 1250,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 3.087,
+          "prem": 3087,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 3.636,
+          "prem": 3636,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 33,
+      "term": 18,
+      "ppt": 14,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.2,
+          "prem": 1200,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 3.205,
+          "prem": 3205,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 3.802,
+          "prem": 3802,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 33,
+      "term": 20,
+      "ppt": 16,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.15,
+          "prem": 1150,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 3.43,
+          "prem": 3430,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 4.067,
+          "prem": 4067,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 40,
+      "term": 14,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.3,
+          "prem": 1300,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 5.419,
+          "prem": 5419,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 6.742,
+          "prem": 6742,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 40,
+      "term": 16,
+      "ppt": 12,
+      "riders": {}
+    },
+    {
+      "age": 40,
+      "term": 18,
+      "ppt": 14,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.2,
+          "prem": 1200,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 5.811,
+          "prem": 5811,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 7.134,
+          "prem": 7134,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 40,
+      "term": 20,
+      "ppt": 16,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.15,
+          "prem": 1150,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 6.164,
+          "prem": 6164,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 7.526,
+          "prem": 7526,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 50,
+      "term": 14,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.3,
+          "prem": 1300,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 12.858,
+          "prem": 12858,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 15.141,
+          "prem": 15141,
+          "max": 2500000
+        }
+      }
+    },
+    {
+      "age": 50,
+      "term": 16,
+      "ppt": 12,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 1.25,
+          "prem": 1250,
+          "max": 10000000
+        },
+        "Accident Benefit Rider": {
+          "rate": 0.5,
+          "prem": 500,
+          "max": 10000000
+        },
+        "Term Rider Benefit": {
+          "rate": 12.985,
+          "prem": 12985,
+          "max": 2500000
+        },
+        "Critical Illness Rider": {
+          "rate": 15.131,
+          "prem": 15131,
+          "max": 2500000
+        }
+      }
+    }
+  ],
+  "verification": {
+    "planName": "LIC's Bima Shree (UIN 512N316V01)",
+    "sources": [
+      "LIC English sales brochure sample premium table",
+      "i-Magic CalcPremium responses supplied with the plan data",
+      "Brochure mode rebate: 2% yearly, 1% half-yearly, nil quarterly/monthly",
+      "Brochure high sum assured rebate bands",
+      "GST 4.5% first year"
+    ],
+    "cases": [
+      {
+        "description": "age 20, T14, P10, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 110.25 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 20,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 110.25,
+          "tabularPremium": 110250,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2205,
+          "basicYearlyPremium": 108045,
+          "installmentPremium": 108045,
+          "gst": 4862.02,
+          "totalInstallmentPremium": 112907.02
+        }
+      },
+      {
+        "description": "age 20, T16, P12, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 92.6 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 20,
+          "policyTerm": 16,
+          "premiumPayingTerm": 12,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 92.6,
+          "tabularPremium": 92600,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1852,
+          "basicYearlyPremium": 90748,
+          "installmentPremium": 90748,
+          "gst": 4083.66,
+          "totalInstallmentPremium": 94831.66
+        }
+      },
+      {
+        "description": "age 20, T18, P14, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 79.7 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 20,
+          "policyTerm": 18,
+          "premiumPayingTerm": 14,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 79.7,
+          "tabularPremium": 79700,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1594,
+          "basicYearlyPremium": 78106,
+          "installmentPremium": 78106,
+          "gst": 3514.77,
+          "totalInstallmentPremium": 81620.77
+        }
+      },
+      {
+        "description": "age 20, T20, P16, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 70.8 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 20,
+          "policyTerm": 20,
+          "premiumPayingTerm": 16,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 70.8,
+          "tabularPremium": 70800,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1416,
+          "basicYearlyPremium": 69384,
+          "installmentPremium": 69384,
+          "gst": 3122.28,
+          "totalInstallmentPremium": 72506.28
+        }
+      },
+      {
+        "description": "age 30, T14, P10, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 110.8 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 30,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 110.8,
+          "tabularPremium": 110800,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2216,
+          "basicYearlyPremium": 108584,
+          "installmentPremium": 108584,
+          "gst": 4886.28,
+          "totalInstallmentPremium": 113470.28
+        }
+      },
+      {
+        "description": "age 30, T16, P12, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 93.2 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 30,
+          "policyTerm": 16,
+          "premiumPayingTerm": 12,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 93.2,
+          "tabularPremium": 93200,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1864,
+          "basicYearlyPremium": 91336,
+          "installmentPremium": 91336,
+          "gst": 4110.12,
+          "totalInstallmentPremium": 95446.12
+        }
+      },
+      {
+        "description": "age 30, T18, P14, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 80.45 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 30,
+          "policyTerm": 18,
+          "premiumPayingTerm": 14,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 80.45,
+          "tabularPremium": 80450,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1609,
+          "basicYearlyPremium": 78841,
+          "installmentPremium": 78841,
+          "gst": 3547.84,
+          "totalInstallmentPremium": 82388.84
+        }
+      },
+      {
+        "description": "age 30, T20, P16, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 71.7 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 30,
+          "policyTerm": 20,
+          "premiumPayingTerm": 16,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 71.7,
+          "tabularPremium": 71700,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1434,
+          "basicYearlyPremium": 70266,
+          "installmentPremium": 70266,
+          "gst": 3161.97,
+          "totalInstallmentPremium": 73427.97
+        }
+      },
+      {
+        "description": "age 33, T14, P10, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 111.2 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 111200,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2224,
+          "basicYearlyPremium": 108976,
+          "installmentPremium": 108976,
+          "gst": 4903.92,
+          "totalInstallmentPremium": 113879.92
+        }
+      },
+      {
+        "description": "age 40, T14, P10, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 113.15 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 40,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 113.15,
+          "tabularPremium": 113150,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2263,
+          "basicYearlyPremium": 110887,
+          "installmentPremium": 110887,
+          "gst": 4989.91,
+          "totalInstallmentPremium": 115876.91
+        }
+      },
+      {
+        "description": "age 40, T16, P12, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 95.85 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 40,
+          "policyTerm": 16,
+          "premiumPayingTerm": 12,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 95.85,
+          "tabularPremium": 95850,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1917,
+          "basicYearlyPremium": 93933,
+          "installmentPremium": 93933,
+          "gst": 4226.98,
+          "totalInstallmentPremium": 98159.98
+        }
+      },
+      {
+        "description": "age 40, T18, P14, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 83.35 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 40,
+          "policyTerm": 18,
+          "premiumPayingTerm": 14,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 83.35,
+          "tabularPremium": 83350,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1667,
+          "basicYearlyPremium": 81683,
+          "installmentPremium": 81683,
+          "gst": 3675.74,
+          "totalInstallmentPremium": 85358.74
+        }
+      },
+      {
+        "description": "age 40, T20, P16, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 74.9 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 40,
+          "policyTerm": 20,
+          "premiumPayingTerm": 16,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 74.9,
+          "tabularPremium": 74900,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 1498,
+          "basicYearlyPremium": 73402,
+          "installmentPremium": 73402,
+          "gst": 3303.09,
+          "totalInstallmentPremium": 76705.09
+        }
+      },
+      {
+        "description": "age 50, T14, P10, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 119.7 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 50,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 119.7,
+          "tabularPremium": 119700,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2394,
+          "basicYearlyPremium": 117306,
+          "installmentPremium": 117306,
+          "gst": 5278.77,
+          "totalInstallmentPremium": 122584.77
+        }
+      },
+      {
+        "description": "age 50, T16, P12, SA 1000000, yearly",
+        "official": "Brochure sample tabular rate Rs 102.65 per 1,000; 2% yearly mode rebate",
+        "input": {
+          "age": 50,
+          "policyTerm": 16,
+          "premiumPayingTerm": 12,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Male",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 102.65,
+          "tabularPremium": 102650,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2053,
+          "basicYearlyPremium": 100597,
+          "installmentPremium": 100597,
+          "gst": 4526.86,
+          "totalInstallmentPremium": 105123.86
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 2000000, Yearly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 222400, basic 217352",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 2000000,
+          "premiumMode": "Yearly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 222400,
+          "saRebateAmount": 600,
+          "modeRebateAmount": 4448,
+          "basicYearlyPremium": 217352,
+          "installmentPremium": 217352,
+          "gst": 9780.84,
+          "totalInstallmentPremium": 227132.84
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 1000000, Yearly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 111200, basic 108976",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 111200,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 2224,
+          "basicYearlyPremium": 108976,
+          "installmentPremium": 108976,
+          "gst": 4903.92,
+          "totalInstallmentPremium": 113879.92
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 1500000, Yearly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 166800, basic 163464",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 1500000,
+          "premiumMode": "Yearly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 166800,
+          "saRebateAmount": 0,
+          "modeRebateAmount": 3336,
+          "basicYearlyPremium": 163464,
+          "installmentPremium": 163464,
+          "gst": 7355.88,
+          "totalInstallmentPremium": 170819.88
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 5000000, Yearly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 556000, basic 542380",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 5000000,
+          "premiumMode": "Yearly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 556000,
+          "saRebateAmount": 2500,
+          "modeRebateAmount": 11120,
+          "basicYearlyPremium": 542380,
+          "installmentPremium": 542380,
+          "gst": 24407.1,
+          "totalInstallmentPremium": 566787.1
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 2000000, Half-Yearly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 222400, basic 219576",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 2000000,
+          "premiumMode": "Half-Yearly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 222400,
+          "saRebateAmount": 600,
+          "modeRebateAmount": 2224,
+          "basicYearlyPremium": 219576,
+          "installmentPremium": 109788,
+          "gst": 4940,
+          "totalInstallmentPremium": 114728
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 2000000, Monthly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 222400, basic 221800",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 2000000,
+          "premiumMode": "Monthly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 222400,
+          "saRebateAmount": 600,
+          "modeRebateAmount": 0,
+          "basicYearlyPremium": 221800,
+          "installmentPremium": 18483,
+          "gst": 832,
+          "totalInstallmentPremium": 19315
+        }
+      },
+      {
+        "description": "i-Magic age 33 F, T14, P10, SA 2000000, Quarterly",
+        "official": "i-Magic CalcPremium response: rate 111.2, tabular 222400, basic 221800",
+        "input": {
+          "age": 33,
+          "policyTerm": 14,
+          "premiumPayingTerm": 10,
+          "sumAssured": 2000000,
+          "premiumMode": "Quarterly",
+          "gender": "Female",
+          "smoker": false
+        },
+        "expect": {
+          "rate": 111.2,
+          "tabularPremium": 222400,
+          "saRebateAmount": 600,
+          "modeRebateAmount": 0,
+          "basicYearlyPremium": 221800,
+          "installmentPremium": 55450,
+          "gst": 2495,
+          "totalInstallmentPremium": 57945
+        }
+      }
+    ]
+  }
+}

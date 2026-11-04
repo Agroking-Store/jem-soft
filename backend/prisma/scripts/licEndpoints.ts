@@ -86,6 +86,20 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "the term-20, male non-smoker, Rs 1 crore sample at ages 20/30/40; the " +
       "seeded rates are exactly that sample, with no interpolation.",
   },
+  "847": {
+    url: DEFAULT_URL,
+    note:
+      "Jeevan Shiromani - sample rate table only (ages 20/30/33/40/50, terms " +
+      "14/16/18/20). PPT = term-4; 2%/1% yearly/half-yearly mode rebate; " +
+      "high-SA rebate 0.03/0.05 per 1000; GST 4.5%.",
+  },
+  "848": {
+    url: DEFAULT_URL,
+    note:
+      "Bima Shree - sample rate table only (ages 20/30/33/40/50, terms " +
+      "14/16/18/20). PPT = term-4; 2%/1% yearly/half-yearly mode rebate; " +
+      "high-SA rebate 0.30/0.50 per 1000; GST 4.5%.",
+  },
 
   // --- returned 0 on the default endpoint, need their own URL ---
   "110": { url: "", note: "Asha Deep-I - default endpoint returns 0" },

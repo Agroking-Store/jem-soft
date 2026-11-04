@@ -15,9 +15,27 @@ const ATTRIBUTES: [string, string][] = [
 const MODE_FACTORS: [string, number][] = [
   ["YLY", 1],
   ["HLY", 0.51],
-  ["QRY", 0.2575],
-  ["MTH", 0.08625],
+  ["QLY", 0.2575],
+  ["MLY", 0.08625],
   ["SIN", 1],
+];
+
+/**
+ * Accident Benefit Rider (ABR) on plan 853 is age-independent and priced by
+ * the policy term. i-Magic's Lookup/Riders returns these per-Rs-1,000 rates
+ * (maxRiderSum Rs 1,00,00,000) at every age from 18 upward; ages below 18 are
+ * not eligible for the rider.
+ */
+const ABR_RATES: [number, number][] = [
+  [10, 1.8],
+  [11, 1.9],
+  [12, 2.05],
+  [13, 2.15],
+  [14, 2.25],
+  [15, 2.35],
+  [16, 2.45],
+  [17, 2.55],
+  [18, 2.65],
 ];
 
 type RateRow = {
@@ -122,6 +140,11 @@ export const seedPremiumRates853 = async (prisma: PrismaClient) => {
   });
   const modeByCode = new Map(modes.map((mode) => [mode.modeCode, mode.id]));
 
+  const abrRider = await prisma.riderMaster.findUnique({
+    where: { riderCode: "ABR" },
+    select: { id: true },
+  });
+
   await prisma.$transaction(
     async (tx) => {
       await tx.productPremiumRate.deleteMany({
@@ -148,16 +171,44 @@ export const seedPremiumRates853 = async (prisma: PrismaClient) => {
           create: { productId: product.id, premiumModeId, factor },
         });
       }
+
+      if (abrRider) {
+        const riderRows = ABR_RATES.map(([riderTerm, ratePerThousand]) => ({
+          riderId: abrRider.id,
+          productId: product.id,
+          // ABR is age-independent, so entryAge 0 is the fallback row the
+          // rider-preview lookup uses for every eligible age.
+          entryAge: 0,
+          ageBand: null,
+          riderTerm,
+          premiumPayingTerm: null,
+          option: null,
+          gender: null,
+          ratePerThousand,
+        }));
+
+        await tx.riderPremiumRate.deleteMany({
+          where: { productId: product.id, riderId: abrRider.id },
+        });
+        await tx.productRider.deleteMany({
+          where: { productId: product.id, riderId: abrRider.id },
+        });
+        await tx.riderPremiumRate.createMany({ data: riderRows });
+        await tx.productRider.create({
+          data: { productId: product.id, riderId: abrRider.id },
+        });
+      }
     },
     { timeout: 120000 },
   );
 
-  const [rateCount, modeFactorCount] = await Promise.all([
+  const [rateCount, modeFactorCount, riderCount] = await Promise.all([
     prisma.productPremiumRate.count({ where: { productId: product.id } }),
     prisma.productPremiumModeFactor.count({ where: { productId: product.id } }),
+    prisma.riderPremiumRate.count({ where: { productId: product.id } }),
   ]);
 
   console.log(
-    `  ✓ Plan ${PLAN_NUMBER} (${product.productName}): ${rateCount} premium points, ${modeFactorCount} mode factors in ${Date.now() - startedAt}ms`,
+    `  ✓ Plan ${PLAN_NUMBER} (${product.productName}): ${rateCount} premium points, ${modeFactorCount} mode factors, ${riderCount} rider points in ${Date.now() - startedAt}ms`,
   );
 };

@@ -283,7 +283,10 @@ export const useLegacyPlanMetadata = () => {
         if (!m) return [] as number[];
         const positivePpts = m.ppts.filter((p) => p > 0);
         if (positivePpts.length) return positivePpts;
-        if (m.pptNotes && (m.pptNotes.toLowerCase().includes("equal to term") || m.pptNotes.toLowerCase().includes("policy term"))) {
+        // Only an explicit "equal to term" note means PPT = term. Notes such
+        // as "policy term minus 4" must fall through to pptFormula, otherwise
+        // plans 847/848/890 would autofill the full term instead of term-4/-5.
+        if (m.pptNotes && m.pptNotes.toLowerCase().includes("equal to term")) {
           if (term) return [term];
           if (m.terms.length) return m.terms;
         }

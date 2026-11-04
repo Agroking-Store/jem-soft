@@ -274,6 +274,25 @@ export const previewRiderPremium = catchAsync(
       select: { riderCode: true },
     });
 
+    // ABR is a flat per-1,000 benefit, but its cover cannot exceed the plan's
+    // maximum basic sum assured. On plan 851 that cap is Rs 2,00,000
+    // (i-Magic maxRiderSum), so a 10 lakh rider sum still costs only the
+    // premium on 2 lakh.
+    let effectiveSumAssured = Number(sumAssured);
+    if (rider?.riderCode === "ABR") {
+      const maxSaAttribute = await prisma.productAttributeValue.findFirst({
+        where: {
+          productId,
+          attribute: { attributeCode: "MAX_SUM_ASSURED" },
+        },
+        select: { value: true },
+      });
+      const maxSa = maxSaAttribute ? Number(maxSaAttribute.value) : null;
+      if (maxSa && Number.isFinite(maxSa) && effectiveSumAssured > maxSa) {
+        effectiveSumAssured = maxSa;
+      }
+    }
+
     // Plan 855's Double Accident Benefit is priced on the cover term LIC
     // actually grants (capped at age 69), not on the term the user typed.
     if (product.planNumber === "855" && rider?.riderCode === "DAB") {
@@ -403,8 +422,7 @@ export const previewRiderPremium = catchAsync(
     // =========================================================
 
     const tabularPremium =
-      (Number(riderRate.ratePerThousand) * Number(sumAssured)) /
-      1000;
+      (Number(riderRate.ratePerThousand) * effectiveSumAssured) / 1000;
 
     // DAB/ADDB/ABR are flat per-1000 benefits. LIC divides them by exactly
     // 2/4/12 for half-yearly/quarterly/monthly; only the mortality riders
@@ -433,11 +451,18 @@ export const previewRiderPremium = catchAsync(
         ? flatModeFactor
         : await getModeFactor(productId, premiumMode);
 
-    // The Critical Illness riders are the one exception: LIC prices them with
-    // the classic rider loading of 1% half-yearly and 2% quarterly/monthly, so
-    // plan 890 quotes a 6,380 yearly CIR as 3,222 / 1,627 / 542.
+    // The mortality riders (TRB/CIR) carry LIC's classic rider loading of 1%
+    // half-yearly and 2% quarterly/monthly. Plan 890 applies it to CIR, and
+    // plans 847/848 apply it to both TRB and CIR; the flat-benefit riders
+    // (DAB/ABR) stay on the exact 1/2, 1/4 and 1/12 divisors.
     const isCriticalIllness =
       rider != null && (rider.riderCode === "CIR" || rider.riderCode === "CIR2");
+    const isMortalityRider =
+      rider != null &&
+      (rider.riderCode === "TRB" ||
+        rider.riderCode === "CIR" ||
+        rider.riderCode === "CIR2");
+    const RIDER_LOADING_PLANS = new Set(["847", "848"]);
     const cirModeFactor = modeName.startsWith("half")
       ? 0.505
       : modeName.startsWith("quarter")
@@ -446,7 +471,9 @@ export const previewRiderPremium = catchAsync(
           ? 0.085
           : 1;
     const effectiveModeFactor =
-      isCriticalIllness && product.planNumber === "890"
+      (isCriticalIllness && product.planNumber === "890") ||
+      (isMortalityRider &&
+        RIDER_LOADING_PLANS.has(product.planNumber ?? ""))
         ? cirModeFactor
         : modeFactor;
 
@@ -463,6 +490,7 @@ export const previewRiderPremium = catchAsync(
       data: {
         premium: installmentPremium,
         rate: Number(riderRate.ratePerThousand),
+        sumAssured: effectiveSumAssured,
         gender: riderRate.gender,
         riderTerm: riderRate.riderTerm,
         premiumPayingTerm: riderRate.premiumPayingTerm,

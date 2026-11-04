@@ -2415,7 +2415,7 @@ function NewLICPolicyContent() {
             if (
               isValid &&
               hasValidPremium &&
-              (newPremium !== currentPremium || watchRiders[index]?.premium === null || watchRiders[index]?.premium === undefined || watchRiders[index]?.premium === "")
+              (newPremium !== currentPremium || watchRiders[index]?.premium === null || watchRiders[index]?.premium === undefined)
             ) {
               updateRider(index, {
                 ...watchRiders[index],
