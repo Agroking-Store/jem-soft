@@ -76,6 +76,8 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
   const { quotations, total, page, limit, totalPages, isLoading, error } = useSelector(
     (state: RootState) => state.quotations
   );
+  const { user } = useSelector((state: RootState) => state.auth);
+  const userRole = user?.role?.toUpperCase();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchField, setSearchField] = useState("quotationRefNo");
@@ -117,27 +119,42 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1877F2] via-[#1877F2]/40 to-transparent" />
 
-      {/* Search Bar */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
-        <div className="relative min-w-0 flex-1 sm:max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search by quote ref, proposer name, group code..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
-          />
+      {/* Top Header Section with Add Button (Hidden for VIEWER) */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Search Bar */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 flex-1">
+          <div className="relative min-w-0 flex-1 sm:max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search by quote ref, proposer name, group code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition-all focus:border-[#1877F2] focus:bg-white focus:ring-2 focus:ring-blue-500/15"
+            />
+          </div>
+          <select
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 outline-none transition-all focus:border-[#1877F2] cursor-pointer"
+          >
+            <option value="quotationRefNo">Quot. Ref No</option>
+            <option value="proposerName">Proposer Name</option>
+            <option value="groupCode">Group Code</option>
+          </select>
         </div>
-        <select
-          value={searchField}
-          onChange={(e) => setSearchField(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-600 outline-none transition-all focus:border-[#1877F2] cursor-pointer"
-        >
-          <option value="quotationRefNo">Quot. Ref No</option>
-          <option value="proposerName">Proposer Name</option>
-          <option value="groupCode">Group Code</option>
-        </select>
+
+        {/* Header Action Button - Hidden for Viewer */}
+        {userRole !== "VIEWER" && (
+          <button
+            type="button"
+            onClick={() => onOpenModal("create")}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 cursor-pointer shrink-0"
+          >
+            <Plus size={16} />
+            Add Quotation
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -164,10 +181,12 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
           description={
             searchTerm
               ? "No quotations match your search. Try a different keyword."
+              : userRole === "VIEWER"
+              ? "No quotations available."
               : "Create your first quotation to get started."
           }
           action={
-            !searchTerm ? (
+            !searchTerm && userRole !== "VIEWER" ? (
               <button
                 type="button"
                 onClick={() => onOpenModal("create")}
@@ -298,17 +317,6 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onOpenModal("edit", q.id);
-                        }}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
-                        title="Edit"
-                      >
-                        <SquarePen size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
                           onViewReport(q.id);
                         }}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
@@ -316,16 +324,33 @@ export default function QuotationListPage({ productType, onOpenModal, onViewRepo
                       >
                         <FileText size={14} />
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(q);
-                        }}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+
+                      {/* Edit and Delete buttons hidden for VIEWER */}
+                      {userRole !== "VIEWER" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenModal("edit", q.id);
+                            }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#1877F2] transition-all hover:border-blue-300 hover:bg-blue-50 hover:scale-105 cursor-pointer"
+                            title="Edit"
+                          >
+                            <SquarePen size={14} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget(q);
+                            }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-white text-rose-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:scale-105 cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
