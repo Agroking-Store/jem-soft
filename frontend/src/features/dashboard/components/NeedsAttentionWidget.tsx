@@ -78,10 +78,9 @@ export default function NeedsAttentionWidget({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Pending Claims */}
         <Link
-          href={isViewer ? "#" : "/dashboard/claims"}
-          onClick={(e) => isViewer && e.preventDefault()}
+          href="/dashboard/claims"
           className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 ${
-            isViewer ? "cursor-not-allowed opacity-80" : "hover:-translate-y-0.5 hover:shadow-md"
+          "hover:-translate-y-0.5 hover:shadow-md"
           } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
             pendingClaimsCount > 0
               ? "border-rose-200/90 hover:border-rose-400"
@@ -131,10 +130,9 @@ export default function NeedsAttentionWidget({
 
         {/* Card 2: Upcoming & Outstanding Premiums */}
         <Link
-          href={isViewer ? "#" : "/dashboard/policy-360/outstanding"}
-          onClick={(e) => isViewer && e.preventDefault()}
+          href="/dashboard/policy-360/outstanding"
           className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 ${
-            isViewer ? "cursor-not-allowed opacity-80" : "hover:-translate-y-0.5 hover:shadow-md"
+          "hover:-translate-y-0.5 hover:shadow-md"
           } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
             outstandingPremiumsCount > 0
               ? "border-amber-200/90 hover:border-amber-400"
