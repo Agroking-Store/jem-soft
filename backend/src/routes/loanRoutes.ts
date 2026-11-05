@@ -10,10 +10,10 @@ import {
   getRepayments,
   createRepayment,
 } from "../controllers/loanRepaymentController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
+router.use(protect, restrictTo("ADMIN"));
 router.route("/").get(protect, getLoans).post(protect, addLoan);
 
 router
