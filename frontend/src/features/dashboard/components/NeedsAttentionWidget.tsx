@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
 import {
   ArrowRight,
   Clock,
@@ -23,6 +25,10 @@ export default function NeedsAttentionWidget({
   activeLoansCount,
   isLoading = false,
 }: NeedsAttentionWidgetProps) {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const userRole = user?.role?.toUpperCase();
+  const isViewer = userRole === "VIEWER";
+
   const totalUrgent =
     pendingClaimsCount + (outstandingPremiumsCount > 0 ? 1 : 0) + (activeLoansCount > 0 ? 1 : 0);
 
@@ -73,7 +79,9 @@ export default function NeedsAttentionWidget({
         {/* Card 1: Pending Claims */}
         <Link
           href="/dashboard/claims"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 ${
+          "hover:-translate-y-0.5 hover:shadow-md"
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
             pendingClaimsCount > 0
               ? "border-rose-200/90 hover:border-rose-400"
               : "border-slate-200 hover:border-slate-300"
@@ -123,7 +131,9 @@ export default function NeedsAttentionWidget({
         {/* Card 2: Upcoming & Outstanding Premiums */}
         <Link
           href="/dashboard/policy-360/outstanding"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 ${
+          "hover:-translate-y-0.5 hover:shadow-md"
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
             outstandingPremiumsCount > 0
               ? "border-amber-200/90 hover:border-amber-400"
               : "border-slate-200 hover:border-slate-300"
@@ -172,8 +182,11 @@ export default function NeedsAttentionWidget({
 
         {/* Card 3: Overdue Loan Repayments */}
         <Link
-          href="/dashboard/loans/repay"
-          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+          href={isViewer ? "#" : "/dashboard/loans/repay"}
+          onClick={(e) => isViewer && e.preventDefault()}
+          className={`group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 ${
+            isViewer ? "cursor-not-allowed opacity-80" : "hover:-translate-y-0.5 hover:shadow-md"
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
             activeLoansCount > 0
               ? "border-blue-200/90 hover:border-blue-400"
               : "border-slate-200 hover:border-slate-300"

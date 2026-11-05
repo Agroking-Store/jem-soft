@@ -1,15 +1,16 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 import {
   fetchCampaigns,
   createNewCampaign,
   triggerCampaignSend,
   fetchAudienceEstimation,
 } from "../controllers/marketingController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+
 
 const router = Router();
 
-router.use(protect);
+router.use(protect, restrictTo("ADMIN"));
 
 router.get("/campaigns", fetchCampaigns);
 router.post("/campaigns", createNewCampaign);

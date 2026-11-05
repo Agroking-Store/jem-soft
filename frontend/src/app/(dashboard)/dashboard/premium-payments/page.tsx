@@ -19,6 +19,8 @@ const money = (v: number | undefined | null) => `
 const dt = (v?: string | null) =>
   v ? new Date(v).toLocaleDateString("en-IN") : "—";
 export default function PremiumPaymentsPage() {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const userRole = user?.role?.toUpperCase();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { fetchNotifications } = useNotificationStore();
@@ -146,6 +148,7 @@ export default function PremiumPaymentsPage() {
             </p>
           </div>
         </div>
+        {userRole !== "VIEWER" && (
         <button
           onClick={() => router.push("/dashboard/premium-payments/new")}
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5c67ff] to-[#3a47ff] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
@@ -153,8 +156,9 @@ export default function PremiumPaymentsPage() {
           <Plus size={18} />
           New Payment
         </button>
+        )}
       </div>
-      <div className="cursor-pointer grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total Payments", stats.total],
           ["Paid", stats.paid],
@@ -179,7 +183,7 @@ export default function PremiumPaymentsPage() {
           <div className="relative flex-1">
             <Search
               size={17}
-              className="absolute left-3 top-3 cursor-pointer text-slate-400"
+              className="absolute left-3 top-3 text-slate-400"
             />
             <input
               value={search}
@@ -286,6 +290,7 @@ export default function PremiumPaymentsPage() {
                       </span>
                     </td>
                     <td>
+                      {userRole !== "VIEWER" && (
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/new?policyId=${p.policyId}`)
@@ -295,6 +300,7 @@ export default function PremiumPaymentsPage() {
                       >
                         <CreditCard size={16} />
                       </button>
+                      )}
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/${p.id}`)
@@ -304,6 +310,8 @@ export default function PremiumPaymentsPage() {
                       >
                         <Eye size={16} />
                       </button>
+                      {userRole !== "VIEWER" && (
+                        <>
                       <button
                         onClick={() =>
                           router.push(`/dashboard/premium-payments/edit/${p.id}`)
@@ -312,6 +320,7 @@ export default function PremiumPaymentsPage() {
                         title="Edit"
                       >
                         <Edit size={16} />
+                        
                       </button>
                       <button
                         onClick={() => handleDeletePayment(p)}
@@ -321,8 +330,12 @@ export default function PremiumPaymentsPage() {
                       >
                         <Trash2 size={16} />
                       </button>
+                      </> 
+                      )}
                     </td>
+                      
                   </tr>
+                      
                 ))
               )}
             </tbody>
@@ -440,7 +453,7 @@ export default function PremiumPaymentsPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="h-9 rounded-lg border border-slate-200 cursor-pointer px-2 text-sm"
+            className="h-9 rounded-lg border border-slate-200 px-2 text-sm"
           >
             <option value={5}>5 / page</option>
             <option value={10}>10 / page</option>

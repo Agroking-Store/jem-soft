@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+
+
 export interface LapsedPolicyFilters {
   customerName: string;
   policyNumber: string;
@@ -46,6 +48,8 @@ export function FilterDrawer({
   onClear,
   statuses = [],
 }: FilterDrawerProps) {
+
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -154,13 +158,17 @@ export function FilterDrawer({
 
         {/* Footer */}
         <footer className="flex shrink-0 gap-3 border-t border-slate-200 px-5 py-4">
+        
           <button
             type="button"
             onClick={onClear}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Clear All
+          
           </button>
+          
+          
           <button
             type="button"
             onClick={onApply}
@@ -168,6 +176,7 @@ export function FilterDrawer({
           >
             Apply Filters
           </button>
+        
         </footer>
       </aside>
     </div>
