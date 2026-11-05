@@ -132,3 +132,79 @@ export const deleteCommissionBill = catchAsync(
     res.status(200).json({ success: true, data: result });
   }
 );
+
+
+/**
+ * Reconcile uploaded statement file and return preview without applying changes
+ */
+export const reconcileCommissionStatement = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.file) {
+      return next(new AppError("Please upload a PDF commission statement file.", 400));
+    }
+
+    const isPdf =
+      req.file.mimetype === "application/pdf" ||
+      req.file.originalname.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      return next(new AppError("Only PDF statement files are supported for reconciliation.", 400));
+    }
+
+    const fileName = req.file.originalname;
+    const fileUrl = `/api/commissions/file/${req.file.filename}`;
+
+    const result = await commissionService.reconcileLicStatement(req.file.path, {
+      agencyId: req.body.agencyId,
+      advisorId: req.body.advisorId,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Statement parsed and reconciled successfully.",
+      data: {
+        ...result,
+        file: {
+          fileName,
+          fileUrl,
+          storedFileName: req.file.filename,
+        },
+      },
+    });
+  }
+);
+
+/**
+ * Apply reconciled statement payments and archive commission bill
+ */
+export const applyCommissionStatement = catchAsync(
+  async (req: Request, res: Response, _next: NextFunction) => {
+    let rows = req.body.rows;
+    if (typeof rows === "string") {
+      try {
+        rows = JSON.parse(rows);
+      } catch {
+        rows = [];
+      }
+    }
+
+    const result = await commissionService.applyLicStatementPayments({
+      billNumber: req.body.billNumber,
+      billDate: req.body.billDate,
+      agencyId: req.body.agencyId,
+      advisorId: req.body.advisorId,
+      agencyCode: req.body.agencyCode,
+      fileName: req.body.fileName,
+      fileUrl: req.body.fileUrl,
+      batch: req.body.batch,
+      rows: Array.isArray(rows) ? rows : [],
+      skipAlreadyPaid: req.body.skipAlreadyPaid !== false,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  }
+);

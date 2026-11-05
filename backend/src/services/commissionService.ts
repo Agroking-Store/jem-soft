@@ -1,6 +1,11 @@
 import { prisma } from "../config/database.js";
 import { AppError } from "../utils/AppError.js";
 import { ParsedCommissionItem } from "./commissionParserService.js";
+import {
+  parseLicStatementPdf,
+  parseDateUtc,
+  LicStatementReconciledRow,
+} from "./licStatementParserService.js";
 
 export interface CreateBillPayload {
   billNumber: string;
@@ -413,4 +418,360 @@ export async function deleteCommissionBill(id: string) {
   await prisma.$queryRawUnsafe(`DELETE FROM "CommissionRecord" WHERE "billId" = $1;`, id);
   await prisma.$queryRawUnsafe(`DELETE FROM "CommissionBill" WHERE id = $1;`, id);
   return { success: true, message: "Commission bill deleted successfully" };
+}
+
+
+export interface ReconcileLicStatementOptions {
+  agencyId?: string;
+  advisorId?: string;
+}
+
+/**
+ * Reconcile an uploaded LIC statement PDF against policies & premium payments in database
+ */
+export async function reconcileLicStatement(
+  fileInput: string | Buffer | Uint8Array,
+  _options?: ReconcileLicStatementOptions
+) {
+  const summary = await parseLicStatementPdf(fileInput);
+
+  if (!summary.rows || summary.rows.length === 0) {
+    throw new AppError("No tabular data could be extracted from the uploaded PDF statement.", 400);
+  }
+
+  // Pre-fetch all policy numbers from PostgreSQL in one query
+  const policyNumbers = Array.from(new Set(summary.rows.map((r) => r.policyNumber.trim())));
+
+  const policies = await prisma.policy.findMany({
+    where: {
+      policyNumber: { in: policyNumbers },
+    },
+    include: {
+      customer: { select: { id: true, groupName: true, groupCode: true } },
+      CustomerMaster: { select: { id: true, firstName: true, middleName: true, lastName: true } },
+      advisor: { select: { id: true, advisorName: true, advisorCode: true } },
+      product: { select: { id: true, productName: true, planNumber: true } },
+      premiumPayments: {
+        include: { paymentStatus: true },
+      },
+    },
+  });
+
+  const policyMap = new Map<string, (typeof policies)[0]>();
+  policies.forEach((p) => policyMap.set(p.policyNumber.trim(), p));
+
+  const reconciledRows: LicStatementReconciledRow[] = [];
+  let readyToPayCount = 0;
+  let alreadyPaidCount = 0;
+  let unmatchedCount = 0;
+
+  for (const row of summary.rows) {
+    const policy = policyMap.get(row.policyNumber.trim());
+
+    if (!policy) {
+      unmatchedCount++;
+      reconciledRows.push({
+        ...row,
+        status: "POLICY_NOT_FOUND",
+        statusDescription: "Policy does not exist in Jem Soft database",
+      });
+      continue;
+    }
+
+    const cm = policy.CustomerMaster;
+    const customerName = cm
+      ? [cm.firstName, cm.middleName, cm.lastName].filter(Boolean).join(" ")
+      : policy.customer?.groupName || row.policyHolderName;
+
+    const rowDueDate = parseDateUtc(row.dueDate);
+
+    // Find payment matching dueDate (UTC day match)
+    const payment = policy.premiumPayments.find((p) => {
+      const d = new Date(p.dueDate);
+      return (
+        d.getUTCFullYear() === rowDueDate.getUTCFullYear() &&
+        d.getUTCMonth() === rowDueDate.getUTCMonth() &&
+        d.getUTCDate() === rowDueDate.getUTCDate()
+      );
+    });
+
+    if (payment) {
+      const isPaid = payment.paymentStatus.statusCode === "PAID";
+      if (isPaid) {
+        alreadyPaidCount++;
+        reconciledRows.push({
+          ...row,
+          status: "MATCHED_ALREADY_PAID",
+          policyId: policy.id,
+          customerName,
+          paymentId: payment.id,
+          existingPaymentStatus: "PAID",
+          statusDescription: `Already marked as PAID on ${
+            payment.paidDate ? new Date(payment.paidDate).toISOString().split("T")[0] : "earlier date"
+          }`,
+        });
+      } else {
+        readyToPayCount++;
+        reconciledRows.push({
+          ...row,
+          status: "MATCHED_UNPAID",
+          policyId: policy.id,
+          customerName,
+          paymentId: payment.id,
+          existingPaymentStatus: payment.paymentStatus.statusCode,
+          statusDescription: "Ready to apply payment (Policy and UNPAID schedule matched)",
+        });
+      }
+    } else {
+      // Policy exists, but no installment was scheduled for this specific due date
+      readyToPayCount++;
+      reconciledRows.push({
+        ...row,
+        status: "PAYMENT_NOT_FOUND",
+        policyId: policy.id,
+        customerName,
+        statusDescription: "Policy matched; new installment schedule will be created and marked PAID",
+      });
+    }
+  }
+
+  const matchedPoliciesSet = new Set(
+    reconciledRows.filter((r) => r.policyId).map((r) => r.policyNumber)
+  );
+  const unmatchedPoliciesSet = new Set(
+    reconciledRows.filter((r) => !r.policyId).map((r) => r.policyNumber)
+  );
+
+  return {
+    metadata: {
+      branchCode: summary.branchCode,
+      agentName: summary.agentName,
+      agentCode: summary.agentCode,
+      leaderCode: summary.leaderCode,
+      voucherDate: summary.voucherDate,
+      batch: summary.batch,
+    },
+    totals: {
+      grandTotalPremium: summary.grandTotalPremium,
+      grandTotalCommission: summary.grandTotalCommission,
+      calculatedTotalPremium: summary.calculatedTotalPremium,
+      calculatedTotalCommission: summary.calculatedTotalCommission,
+      isChecksumValid: summary.isChecksumValid,
+      checksumDiscrepancy: summary.checksumDiscrepancy,
+    },
+    statistics: {
+      totalRows: summary.rows.length,
+      matchedPoliciesCount: matchedPoliciesSet.size,
+      unmatchedPoliciesCount: unmatchedPoliciesSet.size,
+      readyToPayCount,
+      alreadyPaidCount,
+      unmatchedCount,
+    },
+    rows: reconciledRows,
+  };
+}
+
+export interface ApplyLicStatementPayload {
+  billNumber?: string;
+  billDate?: string;
+  agencyId?: string;
+  advisorId?: string;
+  agencyCode?: string;
+  fileName?: string;
+  fileUrl?: string;
+  batch?: string;
+  rows: LicStatementReconciledRow[];
+  skipAlreadyPaid?: boolean;
+}
+
+/**
+ * Apply reconciled statement rows to update PremiumPayment records to PAID
+ * and create the associated CommissionBill and CommissionRecord ledger entries.
+ */
+export async function applyLicStatementPayments(payload: ApplyLicStatementPayload) {
+  const {
+    rows,
+    agencyId,
+    advisorId,
+    agencyCode,
+    fileName,
+    fileUrl,
+    batch,
+    skipAlreadyPaid = true,
+  } = payload;
+
+  if (!rows || !Array.isArray(rows) || rows.length === 0) {
+    throw new AppError("No reconciled statement rows provided to apply.", 400);
+  }
+
+  const paidStatus = await prisma.paymentStatusMaster.findFirst({
+    where: { statusCode: "PAID" },
+  });
+  if (!paidStatus) {
+    throw new AppError("System configuration error: PAID payment status master not found.", 500);
+  }
+
+  // Find or resolve Advisor
+  let resolvedAdvisorId = advisorId;
+  if (!resolvedAdvisorId && agencyCode) {
+    const adv = await prisma.advisor.findFirst({
+      where: {
+        OR: [{ advisorCode: agencyCode }, { advisorCode: agencyCode.replace(/^LIC/, "") }],
+      },
+    });
+    if (adv) resolvedAdvisorId = adv.id;
+  }
+
+  const billNumber =
+    payload.billNumber ||
+    (batch ? `BILL-${batch.replace(/[^a-zA-Z0-9]/g, "-")}` : `BILL-${Date.now().toString().slice(-6)}`);
+  const billDate = payload.billDate ? new Date(payload.billDate) : new Date();
+
+  // Filter rows eligible for payment application
+  const rowsToApply = rows.filter((r) => {
+    if (r.status === "POLICY_NOT_FOUND") return false;
+    if (skipAlreadyPaid && r.status === "MATCHED_ALREADY_PAID") return false;
+    return true;
+  });
+
+  let appliedPaymentsCount = 0;
+  const CHUNK_SIZE = 50;
+
+  // Process payment updates in transactional chunks of 50
+  for (let i = 0; i < rowsToApply.length; i += CHUNK_SIZE) {
+    const chunk = rowsToApply.slice(i, i + CHUNK_SIZE);
+
+    await prisma.$transaction(async (tx) => {
+      for (const row of chunk) {
+        if (!row.policyId) continue;
+
+        const dueDateUtc = parseDateUtc(row.dueDate);
+        const adjDateUtc = parseDateUtc(row.adjDate);
+        const paymentModeStr = `CBO Adjustment (${row.cbo || "Branch"})`;
+        const paymentDetailsStr = `Settled via LIC Bill ${billNumber} [Batch: ${batch || "N/A"}] on ${row.adjDate}`;
+
+        let payment = row.paymentId
+          ? await tx.premiumPayment.findUnique({ where: { id: row.paymentId } })
+          : await tx.premiumPayment.findFirst({
+              where: {
+                policyId: row.policyId,
+                dueDate: dueDateUtc,
+              },
+            });
+
+        if (payment) {
+          await tx.premiumPayment.update({
+            where: { id: payment.id },
+            data: {
+              paidDate: adjDateUtc,
+              premiumAmount: row.premium,
+              paymentStatusId: paidStatus.id,
+              paymentMode: paymentModeStr,
+              paymentDetails: paymentDetailsStr,
+            },
+          });
+        } else {
+          payment = await tx.premiumPayment.create({
+            data: {
+              policyId: row.policyId,
+              dueDate: dueDateUtc,
+              paidDate: adjDateUtc,
+              premiumAmount: row.premium,
+              paymentStatusId: paidStatus.id,
+              paymentMode: paymentModeStr,
+              paymentDetails: paymentDetailsStr,
+            },
+          });
+        }
+
+        // Advance policy nextDueDate if this paid due date is >= current policy nextDueDate
+        const policy = await tx.policy.findUnique({
+          where: { id: row.policyId },
+          select: { id: true, nextPremiumDueDate: true },
+        });
+
+        if (policy) {
+          if (!policy.nextPremiumDueDate || dueDateUtc >= policy.nextPremiumDueDate) {
+            const nextYearDate = new Date(dueDateUtc);
+            nextYearDate.setUTCFullYear(nextYearDate.getUTCFullYear() + 1);
+            await tx.policy.update({
+              where: { id: policy.id },
+              data: { nextPremiumDueDate: nextYearDate },
+            });
+          }
+        }
+
+        appliedPaymentsCount++;
+      }
+    });
+  }
+
+  // Calculate bill totals across all statement rows
+  const totalStatementPremium =
+    Math.round(rows.reduce((acc, r) => acc + (Number(r.premium) || 0), 0) * 100) / 100;
+  const totalStatementCommission =
+    Math.round(rows.reduce((acc, r) => acc + (Number(r.commission) || 0), 0) * 100) / 100;
+  const taxDeduction = Math.round(totalStatementCommission * 0.05 * 100) / 100; // 5% TDS
+  const netPayable = Math.round((totalStatementCommission - taxDeduction) * 100) / 100;
+
+  // Create CommissionBill record
+  const commissionBill = await prisma.commissionBill.create({
+    data: {
+      billNumber,
+      billDate,
+      agencyId: agencyId || null,
+      advisorId: resolvedAdvisorId || null,
+      agencyCode: agencyCode || null,
+      billType: "statement-upload",
+      totalPremium: totalStatementPremium,
+      grossCommission: totalStatementCommission,
+      taxDeduction,
+      netPayable,
+      fileName: fileName || null,
+      fileUrl: fileUrl || null,
+    },
+  });
+
+  // Create CommissionRecord line items in chunks
+  let commissionRecordsCount = 0;
+  for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+    const chunk = rows.slice(i, i + CHUNK_SIZE);
+    await prisma.commissionRecord.createMany({
+      data: chunk.map((r) => ({
+        policyId: r.policyId || null,
+        policyNumber: r.policyNumber,
+        policyHolderName: r.policyHolderName,
+        advisorId: resolvedAdvisorId || null,
+        agentCode: agencyCode || null,
+        agencyId: agencyId || null,
+        billId: commissionBill.id,
+        dueDate: r.dueDate,
+        dateOfPayment: r.adjDate,
+        premiumAmount: Number(r.premium) || 0,
+        commissionAmount: Number(r.commission) || 0,
+        commissionCode: 3,
+        commissionDate: billDate.toISOString().slice(0, 7),
+        planTermPpt: `${r.plan}/${r.term}`,
+        category: "subsequent",
+        status: "RECEIVED",
+        expectedAmount: Number(r.commission) || 0,
+        differenceAmount: 0,
+      })),
+    });
+    commissionRecordsCount += chunk.length;
+  }
+
+  return {
+    success: true,
+    billId: commissionBill.id,
+    billNumber: commissionBill.billNumber,
+    billDate: commissionBill.billDate,
+    appliedPaymentsCount,
+    commissionRecordsCount,
+    totalRows: rows.length,
+    totalPremium: totalStatementPremium,
+    grossCommission: totalStatementCommission,
+    netPayable,
+    message: `Successfully processed ${appliedPaymentsCount} premium payments as PAID and created commission bill ${billNumber}.`,
+  };
 }

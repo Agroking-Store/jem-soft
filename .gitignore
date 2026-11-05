@@ -18,3 +18,10 @@ imagic_customers_rich_301.json
 backend/*.json
 !backend/package.json
 !backend/tsconfig.json
+
+# Test data & test scripts
+backend/test-statements/
+test-statements/
+backend/scripts/
+LIC_Test_Statements/
+*.pdf
