@@ -36,7 +36,14 @@ cd backend
 `VERIFY_API` overrides the API base (default `http://localhost:5000/api`). The
 script signs its own admin JWT, so no manual token is needed.
 
-## Inventory
+## Inventory (844-845 added)
+
+| Plan | Name | Stored rates | Riders | Modes | Verification |
+| --- | --- | --- | --- | --- | --- |
+| 844 | Aadhaar Shila | 1 sample rate (age 33, term 10) | DAB (1 point, 0.5/1000) | Yearly, Half-Yearly, Quarterly, Monthly | Live **PASS 8/0**; base ₹9,190.78 |
+| 845 | Jeevan Umang | 1 sample rate (age 33, term 67, ppt 15) | ABR (1.6), CIR (7.81), TRB (7.0756) per 1000 | Yearly, Half-Yearly, Quarterly, Monthly | Base **PASS** ₹80,406.48; riders at SA 10L only |
+
+## Inventory (847-856)
 
 | Plan | Name | Stored rates | Riders | Modes | Verification |
 | --- | --- | --- | --- | --- | --- |

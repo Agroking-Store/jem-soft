@@ -1,0 +1,32 @@
+{
+  "plan": "844",
+  "name": "AADHAR Shila",
+  "rows": [
+    { "entryAge": 10, "gender": null, "smoker": null, "policyTerm": 10, "premiumPayingTerm": 10, "option": null, "tabularRate": 89.10 },
+    { "entryAge": 10, "gender": null, "smoker": null, "policyTerm": 15, "premiumPayingTerm": 15, "option": null, "tabularRate": 53.55 },
+    { "entryAge": 10, "gender": null, "smoker": null, "policyTerm": 20, "premiumPayingTerm": 20, "option": null, "tabularRate": 36.35 },
+    { "entryAge": 20, "gender": null, "smoker": null, "policyTerm": 10, "premiumPayingTerm": 10, "option": null, "tabularRate": 89.40 },
+    { "entryAge": 20, "gender": null, "smoker": null, "policyTerm": 15, "premiumPayingTerm": 15, "option": null, "tabularRate": 53.90 },
+    { "entryAge": 20, "gender": null, "smoker": null, "policyTerm": 20, "premiumPayingTerm": 20, "option": null, "tabularRate": 36.70 },
+    { "entryAge": 30, "gender": null, "smoker": null, "policyTerm": 10, "premiumPayingTerm": 10, "option": null, "tabularRate": 89.60 },
+    { "entryAge": 30, "gender": null, "smoker": null, "policyTerm": 15, "premiumPayingTerm": 15, "option": null, "tabularRate": 54.20 },
+    { "entryAge": 30, "gender": null, "smoker": null, "policyTerm": 20, "premiumPayingTerm": 20, "option": null, "tabularRate": 37.15 },
+    { "entryAge": 40, "gender": null, "smoker": null, "policyTerm": 10, "premiumPayingTerm": 10, "option": null, "tabularRate": 90.55 },
+    { "entryAge": 40, "gender": null, "smoker": null, "policyTerm": 15, "premiumPayingTerm": 15, "option": null, "tabularRate": 55.55 },
+    { "entryAge": 40, "gender": null, "smoker": null, "policyTerm": 20, "premiumPayingTerm": 20, "option": null, "tabularRate": 38.95 },
+    { "entryAge": 50, "gender": null, "smoker": null, "policyTerm": 10, "premiumPayingTerm": 10, "option": null, "tabularRate": 93.85 },
+    { "entryAge": 50, "gender": null, "smoker": null, "policyTerm": 15, "premiumPayingTerm": 15, "option": null, "tabularRate": 59.60 },
+    { "entryAge": 50, "gender": null, "smoker": null, "policyTerm": 20, "premiumPayingTerm": 20, "option": null, "tabularRate": 43.70 }
+  ],
+  "saRebateBands": [
+    [75000, 190000, 0],
+    [200000, 290000, 1.5],
+    [300000, 9999999999, 2.0]
+  ],
+  "verificationCases": [
+    { "age": 30, "term": 10, "ppt": 10, "sa": 100000, "mode": "Yearly", "expectedBasic": 8960, "expectedTotal": 9363.2 }
+  ],
+  "riders": [
+    { "age": 30, "term": 10, "ppt": 10, "riders": { "Double Accident Benefit": { "rate": 0.5 } } }
+  ]
+}

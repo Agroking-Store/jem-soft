@@ -4790,9 +4790,9 @@
     "allowedRiders": [
       "DAB"
     ],
-    "minSumAssured": 100000,
-    "maxSumAssured": 100000,
-    "notes": "Min sum assured 100000"
+    "minSumAssured": 75000,
+    "maxSumAssured": 300000,
+    "notes": "Min sum assured 75000, max 300000. HSAR: 2L-2.9L: 1.50/1000, 3L: 2.00/1000."
   },
   {
     "planNumber": "845",

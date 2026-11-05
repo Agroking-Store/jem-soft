@@ -26,6 +26,8 @@ import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
 import { calculateLIC850, validateLIC850Eligibility } from "./premiumcalculators/lic850Calculator.js";
 import { calculateLIC849, validateLIC849Eligibility } from "./premiumcalculators/lic849Calculator.js";
+import { calculateLIC844, validateLIC844Eligibility } from "./premiumcalculators/lic844Calculator.js";
+import { calculateLIC845, validateLIC845Eligibility } from "./premiumcalculators/lic845Calculator.js";
 import { calculateLIC847, validateLIC847Eligibility } from "./premiumcalculators/lic847Calculator.js";
 import { calculateLIC848, validateLIC848Eligibility } from "./premiumcalculators/lic848Calculator.js";
 
@@ -554,6 +556,64 @@ export async function calculatePremium(data: PremiumInput) {
       throw new AppError(
         `Premium rate not found for LIC Plan 850: Age ${age}, Term ${policyTerm}`,
         404,
+      );
+    }
+  } else if (product.planNumber === "845") {
+    const eligibility = validateLIC845Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+        option: null,
+        gender: data.gender ?? null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `LIC Plan 845's published rate table is a sample: no ` +
+          `authentic rate is available for age ${age}, term ${policyTerm}.`,
+        400,
+      );
+    }
+  } else if (product.planNumber === "844") {
+    const eligibility = validateLIC844Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: age,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: eligibility.ppt,
+        option: null,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `LIC Plan 844's published rate table is a sample: no ` +
+          `authentic rate is available for age ${age}, term ${policyTerm}.`,
+        400,
       );
     }
   } else if (product.planNumber === "847" || product.planNumber === "848") {
@@ -1124,6 +1184,30 @@ export async function calculatePremium(data: PremiumInput) {
       });
       break;
 
+    case "845":
+      premiumResult = await calculateLIC845({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+    case "844":
+      premiumResult = await calculateLIC844({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
     case "847":
       premiumResult = await calculateLIC847({
         productId: data.productId,

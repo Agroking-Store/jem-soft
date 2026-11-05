@@ -86,6 +86,18 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "the term-20, male non-smoker, Rs 1 crore sample at ages 20/30/40; the " +
       "seeded rates are exactly that sample, with no interpolation.",
   },
+  "845": {
+    url: DEFAULT_URL,
+    note:
+      "Jeevan Umang - sample rate table only (age 33, term 67, ppt 15). " +
+      "Term = 100 - age; PPT 15/20/25/30; GST 4.5%.",
+  },
+  "844": {
+    url: DEFAULT_URL,
+    note:
+      "Aadhaar Shila - sample rate table only (age 33, term 10). PPT = term; " +
+      "GST 4.5%. Min/max SA Rs 1,00,000.",
+  },
   "847": {
     url: DEFAULT_URL,
     note:

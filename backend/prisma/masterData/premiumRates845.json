@@ -1,0 +1,50 @@
+{
+  "plan": "845",
+  "name": "Jeevan Umang",
+  "rows": [
+    {
+      "entryAge": 33,
+      "gender": "F",
+      "smoker": null,
+      "policyTerm": 67,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 80.3
+    }
+  ],
+  "saRebateBands": [
+    [200000, 499999.99, 1.606],
+    [500000, 2499999.99, 1.606],
+    [2500000, 9999999999, 1.606]
+  ],
+  "saRebateBaseRate": 2,
+  "modeRebateBySA": [
+    [200000, 0],
+    [500000, 1.25],
+    [1000000, 1.75],
+    [2500000, 2]
+  ],
+  "verificationCases": [
+    {
+      "age": 33,
+      "term": 67,
+      "ppt": 15,
+      "sa": 1000000,
+      "mode": "Yearly",
+      "expectedBasic": 76944,
+      "expectedTotal": 80406.48
+    }
+  ],
+  "riders": [
+    {
+      "age": 33,
+      "term": 67,
+      "ppt": 15,
+      "riders": {
+        "Accident Benefit Rider": { "rate": 1.6 },
+        "Critical Illness Rider": { "rate": 7.81 },
+        "Term Rider Benefit": { "rate": 7.0756 }
+      }
+    }
+  ]
+}
