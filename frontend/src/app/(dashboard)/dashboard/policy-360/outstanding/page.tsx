@@ -3,8 +3,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   Download,
   Eye,
   Filter,
@@ -33,8 +31,9 @@ import {
   CustomerEmptyState,
 } from "@/features/customers/components/CustomerUi";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { usePagination } from "@/shared/hooks/usePagination";
 
-const PAGE_SIZES = [10, 20, 50];
 
 const formatCurrency = (value?: number | null) =>
   value == null || isNaN(Number(value))
@@ -67,8 +66,6 @@ export default function OutstandingPremiumPage() {
   const [filters, setFilters] = useState<LapsedPolicyFilters>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] =
     useState<LapsedPolicyFilters>(EMPTY_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     dispatch(fetchOutstandingPremiums());
@@ -140,20 +137,22 @@ export default function OutstandingPremiumPage() {
     });
   }, [outstandingPremiums, searchTerm, appliedFilters]);
 
-  /* ── Pagination ── */
-  const totalItems = filteredPolicies.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedPolicies = useMemo(
-    () =>
-      filteredPolicies.slice(
-        (safePage - 1) * itemsPerPage,
-        safePage * itemsPerPage,
-      ),
-    [filteredPolicies, safePage, itemsPerPage],
-  );
-  const startItem = totalItems === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
-  const endItem = startItem === 0 ? 0 : startItem + paginatedPolicies.length - 1;
+ const {
+  currentPage,
+  setCurrentPage,
+  rowsPerPage,
+  handleRowsPerPageChange,
+  totalItems,
+  totalPages,
+  startIndex,
+  endIndex,
+  pageItems,
+  paginatedItems: paginatedPolicies,
+} = usePagination(filteredPolicies);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm, appliedFilters]);
 
   /* ── Handlers ── */
   const handleApplyFilters = () => {
@@ -172,11 +171,6 @@ export default function OutstandingPremiumPage() {
     setSearchTerm("");
     setFilters(EMPTY_FILTERS);
     setAppliedFilters(EMPTY_FILTERS);
-    setCurrentPage(1);
-  };
-
-  const handleItemsPerPageChange = (value: number) => {
-    setItemsPerPage(value);
     setCurrentPage(1);
   };
 
@@ -440,53 +434,23 @@ export default function OutstandingPremiumPage() {
               description="No outstanding premium policies match your search. Try a different keyword."
             />
           )}
+                  {filteredPolicies.length > 0 && (
+          <SharedTablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            rowsPerPage={rowsPerPage}
+            pageItems={pageItems}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={handleRowsPerPageChange}
+          />
+        )}
+      
       </section>
 
-      {/* Pagination */}
-      {filteredPolicies.length > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.05)] md:flex-row">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <span>Items per page:</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600">
-              {startItem} – {endItem} of {totalItems}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={safePage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                disabled={safePage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Next page"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    
 
       {/* Filter Drawer */}
       <FilterDrawer

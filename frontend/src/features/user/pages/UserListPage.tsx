@@ -18,7 +18,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 import type { AppDispatch, RootState } from "@/store/store";
 import { fetchAllUsers, deleteUser } from "@/features/user/userSlice";
 import type { ManagedUser, UserRole } from "@/features/user/types";
@@ -126,7 +127,6 @@ function TableHeadCell({
 }
 
 type DeleteTarget = { id: string; name: string } | null;
-
 export default function UserListPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();

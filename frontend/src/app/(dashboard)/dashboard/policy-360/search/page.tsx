@@ -3,8 +3,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Filter,
   RotateCcw,
@@ -27,6 +25,8 @@ import {
   CustomerEmptyState,
 } from "@/features/customers/components/CustomerUi";
 import { Seal } from "@/features/customers/pages/CustomerListPage";
+import SharedTablePagination from "@/shared/components/TablePagination";
+import { buildPageItems } from "@/shared/hooks/usePagination";
 
 const statusClasses: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-700",
@@ -51,8 +51,6 @@ const fmtDate = (value?: string | null) => {
     year: "numeric",
   });
 };
-
-const PAGE_SIZES = [10, 20, 50];
 
 export default function SearchPoliciesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -367,57 +365,20 @@ export default function SearchPoliciesPage() {
             description="No policies match your search. Try a different keyword or reset the filters."
           />
         )}
+                {policies.length > 0 && (
+          <SharedTablePagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            totalItems={endItem}
+            startIndex={startItem - 1}
+            endIndex={endItem}
+            rowsPerPage={itemsPerPage}
+            pageItems={buildPageItems(safePage, totalPages)}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={handleItemsPerPageChange}
+          />
+        )}
       </section>
-
-      {/* Pagination */}
-      {policies.length > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.05)] md:flex-row">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <span>Items per page:</span>
-            <select
-              value={itemsPerPage}
-              onChange={(event) =>
-                handleItemsPerPageChange(Number(event.target.value))
-              }
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-[#1877F2] focus:ring-2 focus:ring-blue-500/15"
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600">
-              {startItem} – {endItem} of {endItem}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={safePage <= 1}
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                disabled={safePage >= totalPages}
-                onClick={() =>
-                  setCurrentPage((page) => Math.min(totalPages, page + 1))
-                }
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Next page"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <FilterDrawer
         open={isFilterOpen}
