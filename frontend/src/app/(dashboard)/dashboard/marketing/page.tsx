@@ -324,6 +324,16 @@ export default function MarketingPage() {
     if (templateFilter === "MARKETING") return t.category === "MARKETING" || t.category === "CUSTOM";
     return true;
   });
+  if (userRole !== "ADMIN") {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p>You do not have permission to access the Marketing Module.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12">
@@ -334,7 +344,7 @@ export default function MarketingPage() {
         icon={Megaphone}
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
-            {userRole !== "VIEWER" && (
+            
             <button
               onClick={handleRunScan}
               disabled={isScanning}
@@ -343,7 +353,7 @@ export default function MarketingPage() {
               <Play size={14} className={isScanning ? "animate-spin" : ""} />
               {isScanning ? "Scanning System..." : "Run Daily Scan Now"}
             </button>
-            )}
+            
             <button
               onClick={loadAllData}
               disabled={isLoading}
@@ -436,7 +446,7 @@ export default function MarketingPage() {
                 </p>
               )}
             </div>
-             {userRole !== "VIEWER" && (
+             
             <button
               onClick={handleRunScan}
               disabled={isScanning}
@@ -445,7 +455,7 @@ export default function MarketingPage() {
               <Play size={14} className={isScanning ? "animate-spin" : ""} />
               {isScanning ? "Scanning..." : "Execute Scan Now"}
             </button>
-             )}
+             
           </div>
 
           {/* UPCOMING CELEBRATIONS PREVIEW WIDGET */}
