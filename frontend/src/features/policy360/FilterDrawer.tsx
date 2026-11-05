@@ -1,8 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
+
 
 export interface LapsedPolicyFilters {
   customerName: string;
@@ -49,8 +48,8 @@ export function FilterDrawer({
   onClear,
   statuses = [],
 }: FilterDrawerProps) {
-  const { user } = useSelector((state: RootState) => state.auth);
- const userRole = user?.role?.toUpperCase();
+
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -159,7 +158,7 @@ export function FilterDrawer({
 
         {/* Footer */}
         <footer className="flex shrink-0 gap-3 border-t border-slate-200 px-5 py-4">
-          {userRole !== "VIEWER" && (
+        
           <button
             type="button"
             onClick={onClear}
@@ -168,8 +167,8 @@ export function FilterDrawer({
             Clear All
           
           </button>
-          )}
-          {userRole !== "VIEWER" && (
+          
+          
           <button
             type="button"
             onClick={onApply}
@@ -177,7 +176,7 @@ export function FilterDrawer({
           >
             Apply Filters
           </button>
-          )}
+        
         </footer>
       </aside>
     </div>
