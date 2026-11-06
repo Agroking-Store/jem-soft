@@ -151,6 +151,36 @@ export const uploadCommissionBill = createAsyncThunk(
   }
 );
 
+export const reconcileCommissionStatement = createAsyncThunk(
+  "commissions/reconcileStatement",
+  async (formData: FormData, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/commissions/reconcile-statement", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to reconcile commission statement"
+      );
+    }
+  }
+);
+
+export const applyCommissionStatementPayments = createAsyncThunk(
+  "commissions/applyStatementPayments",
+  async (payload: any, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/commissions/apply-statement-payments", payload);
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to apply statement payments"
+      );
+    }
+  }
+);
+
 export const fetchCommissionLedger = createAsyncThunk(
   "commissions/fetchLedger",
   async (
@@ -276,6 +306,12 @@ const commissionSlice = createSlice({
     });
 
     // Delete
+    builder.addCase(applyCommissionStatementPayments.fulfilled, (state, action) => {
+      if (action.payload?.bill) {
+        state.bills.unshift(action.payload.bill);
+      }
+    });
+
     builder.addCase(deleteCommissionBill.fulfilled, (state, action) => {
       state.bills = state.bills.filter((b) => b.id !== action.payload);
       if (state.currentBill?.id === action.payload) {

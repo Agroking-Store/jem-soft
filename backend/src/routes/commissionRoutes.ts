@@ -13,6 +13,8 @@ import {
   getCommissionForecast,
   getCommissionDiscrepancies,
   deleteCommissionBill,
+  reconcileCommissionStatement,
+  applyCommissionStatement,
 } from "../controllers/commissionController.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +49,8 @@ router.get("/file/:fileName", serveCommissionFile);
 router.use(protect);
 
 router.post("/upload", upload.single("statementFile"), uploadCommissionBill);
+router.post("/reconcile-statement", upload.single("statementFile"), reconcileCommissionStatement);
+router.post("/apply-statement-payments", applyCommissionStatement);
 router.get("/bills", getCommissionBills);
 router.get("/bills/:id", getCommissionBillById);
 router.delete("/bills/:id", deleteCommissionBill);
