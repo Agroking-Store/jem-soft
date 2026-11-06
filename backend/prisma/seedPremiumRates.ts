@@ -112,6 +112,7 @@ import {
   seedRiderPremium850,
   seedModeFactors850,
 } from "./seedPremiumRates850";
+import { seedPremiumRates843 } from "./seedPremiumRates843";
 import { seedPremiumRates844 } from "./seedPremiumRates844";
 import { seedPremiumRates845 } from "./seedPremiumRates845";
 import {
@@ -278,6 +279,7 @@ export const seedPremiumRates = async (prisma: PrismaClient) => {
   // Plan 844 (Aadhaar Shila): limited premium, terms 10-20, PPT = term.
   // Plan 845 (Jeevan Umang): whole life, term = 100 - age, PPT 15/20/25/30.
   await seedPremiumRates845(prisma);
+  await seedPremiumRates843(prisma);
   await seedPremiumRates844(prisma);
   await seedPremiumRates847(prisma);
   await seedPremiumRates848(prisma);

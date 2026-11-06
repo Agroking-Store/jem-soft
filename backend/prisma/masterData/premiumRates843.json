@@ -1,0 +1,181 @@
+{
+  "plan": "843",
+  "name": "AADHAR Stambh",
+  "rows": [
+    {
+      "entryAge": 10,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 89.1
+    },
+    {
+      "entryAge": 10,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 53.6
+    },
+    {
+      "entryAge": 10,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": null,
+      "tabularRate": 36.4
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 89.45
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 53.95
+    },
+    {
+      "entryAge": 20,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": null,
+      "tabularRate": 36.75
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 89.65
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 54.25
+    },
+    {
+      "entryAge": 30,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": null,
+      "tabularRate": 37.2
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 90.6
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 55.65
+    },
+    {
+      "entryAge": 40,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": null,
+      "tabularRate": 39.1
+    },
+    {
+      "entryAge": 50,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 10,
+      "option": null,
+      "tabularRate": 94.1
+    },
+    {
+      "entryAge": 50,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 15,
+      "premiumPayingTerm": 15,
+      "option": null,
+      "tabularRate": 60
+    },
+    {
+      "entryAge": 50,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 20,
+      "premiumPayingTerm": 20,
+      "option": null,
+      "tabularRate": 44.2
+    }
+  ],
+  "saRebateBands": [
+    [
+      75000,
+      190000,
+      0
+    ],
+    [
+      200000,
+      290000,
+      1.5
+    ],
+    [
+      300000,
+      9999999999,
+      2
+    ]
+  ],
+  "verificationCases": [
+    {
+      "age": 30,
+      "term": 10,
+      "ppt": 10,
+      "sa": 100000,
+      "mode": "Yearly",
+      "expectedBasic": 8960,
+      "expectedTotal": 9363.2
+    }
+  ],
+  "riders": [
+    {
+      "age": 30,
+      "term": 10,
+      "ppt": 10,
+      "riders": {
+        "Double Accident Benefit": {
+          "rate": 0.5
+        }
+      }
+    }
+  ]
+}

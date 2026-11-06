@@ -92,6 +92,12 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "Jeevan Umang - sample rate table only (age 33, term 67, ppt 15). " +
       "Term = 100 - age; PPT 15/20/25/30; GST 4.5%.",
   },
+  "843": {
+    url: DEFAULT_URL,
+    note:
+      "Aadhaar Stambh (male) - sample rate table only (ages 10/20/30/40/50, " +
+      "terms 10/15/20). PPT = term; HSAR 1.50/2.00 per 1000; GST 4.5%.",
+  },
   "844": {
     url: DEFAULT_URL,
     note:
