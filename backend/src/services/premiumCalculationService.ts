@@ -607,6 +607,34 @@ export async function calculatePremium(data: PremiumInput) {
       });
       break;
 
+    case "880": {
+      const numSA = Number(data.sumAssured);
+      const numTerm = Number(policyTerm);
+      const addb880Rates: Record<number, number> = {
+        12: 1.55,
+        13: 1.45,
+        14: 1.4,
+        15: 1.35,
+        16: 1.3,
+        17: 1.3,
+        18: 1.25,
+        19: 1.25,
+        20: 1.2,
+      };
+      const addbRatePer1000 = addb880Rates[numTerm] ?? 1.55;
+      const addbRiderYearly = Math.round((numSA / 1000) * addbRatePer1000);
+      const basicYearlyPremium = tabularPremium + addbRiderYearly;
+
+      premiumResult = {
+        saRebateRate: 0,
+        saRebateAmount: 0,
+        modeRebateRate: 0,
+        modeRebateAmount: 0,
+        basicYearlyPremium,
+      };
+      break;
+    }
+
     default: {
       const saRebate = await rebateService.calculateSumAssuredRebate(
         data.productId,
