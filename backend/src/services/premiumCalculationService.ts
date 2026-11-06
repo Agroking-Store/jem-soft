@@ -26,6 +26,7 @@ import { calculateLIC855, validateLIC855Eligibility } from "./premiumcalculators
 import { calculateLIC856, validateLIC856Eligibility } from "./premiumcalculators/lic856Calculator.js";
 import { calculateLIC850, validateLIC850Eligibility } from "./premiumcalculators/lic850Calculator.js";
 import { calculateLIC849, validateLIC849Eligibility } from "./premiumcalculators/lic849Calculator.js";
+import { calculateLIC842, validateLIC842Eligibility } from "./premiumcalculators/lic842Calculator.js";
 import { calculateLIC843, validateLIC843Eligibility } from "./premiumcalculators/lic843Calculator.js";
 import { calculateLIC844, validateLIC844Eligibility } from "./premiumcalculators/lic844Calculator.js";
 import { calculateLIC845, validateLIC845Eligibility } from "./premiumcalculators/lic845Calculator.js";
@@ -586,6 +587,34 @@ export async function calculatePremium(data: PremiumInput) {
         `LIC Plan 845's published rate table is a sample: no ` +
           `authentic rate is available for age ${age}, term ${policyTerm}.`,
         400,
+      );
+    }
+  } else if (product.planNumber === "842") {
+    validateLIC842Eligibility({
+      premiumMode: data.premiumMode,
+      age,
+      policyTerm,
+      premiumPayingTerm,
+      sumAssured,
+    });
+
+    premiumRate = await prisma.productPremiumRate.findFirst({
+      where: {
+        productId: data.productId,
+        entryAge: 0,
+        ageBand: null,
+        policyTerm,
+        premiumPayingTerm: 1,
+        option: null,
+        gender: null,
+        smoker: null,
+      },
+    });
+
+    if (!premiumRate) {
+      throw new AppError(
+        `Premium rate not found for LIC Plan 842: Age ${age}, Term ${policyTerm}`,
+        404,
       );
     }
   } else if (product.planNumber === "843") {
@@ -1216,6 +1245,18 @@ export async function calculatePremium(data: PremiumInput) {
 
     case "845":
       premiumResult = await calculateLIC845({
+        productId: data.productId,
+        premiumMode: data.premiumMode,
+        age: data.age,
+        policyTerm,
+        premiumPayingTerm,
+        sumAssured: data.sumAssured,
+        tabularPremium,
+        rate,
+      });
+      break;
+    case "842":
+      premiumResult = await calculateLIC842({
         productId: data.productId,
         premiumMode: data.premiumMode,
         age: data.age,

@@ -92,6 +92,10 @@ export const LIC_ENDPOINTS: Record<string, EndpointCfg> = {
       "Jeevan Umang - sample rate table only (age 33, term 67, ppt 15). " +
       "Term = 100 - age; PPT 15/20/25/30; GST 4.5%.",
   },
+  "842": {
+    url: DEFAULT_URL,
+    note: "PMVVY original - single premium, purchase price = sum assured, GST 0, no riders.",
+  },
   "843": {
     url: DEFAULT_URL,
     note:
