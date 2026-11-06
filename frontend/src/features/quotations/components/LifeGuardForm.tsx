@@ -12,6 +12,7 @@ import {
   updateQuotation,
 } from "../quotationSlice";
 import { ExistingClientModal } from "./ExistingClientModal";
+import { QuotationSearchableSelect } from "./QuotationUi";
 
 interface LifeGuardFormProps {
   onCancel: () => void;
@@ -69,35 +70,125 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
   const [ppt, setPpt] = useState<number>(15);
 
   const planOptions = [
-    { value: "714", label: "714 - New Endowment Plan" },
-    { value: "715", label: "715 - New Jeevan Anand" },
-    { value: "733", label: "733 - Jeevan Lakshya" },
-    { value: "736", label: "736 - Jeevan Labh" },
-    { value: "760", label: "760 - Bima Jyoti" },
-    { value: "748", label: "748 - Bima Shree" },
-    { value: "720", label: "720 - Money Back 20 Yrs" },
-    { value: "721", label: "721 - Money Back 25 Yrs" },
+    // Endowment
+    { value: "714", label: "714 - New Endowment", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "715", label: "715 - Jeevan Anand", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "717", label: "717 - Single Premium Endowment", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "733", label: "733 - Jeevan Lakshya", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "736", label: "736 - Jeevan Labh", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "770", label: "770 - Bima Platinum", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "890", label: "890 - New Bima Jyoti", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "912", label: "912 - Nav Jeevan Shree (Limited)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "888", label: "888 - New Jeevan Sathi (Single)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "889", label: "889 - New Jeevan Sathi (Limited)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Moneyback
+    { value: "720", label: "720 - Money Back (20 Year)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "721", label: "721 - Money Back (25 Year)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "748", label: "748 - Bima Shree", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "881", label: "881 - Bima Lakshmi", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Whole Life
+    { value: "745", label: "745 - Jeevan Umang", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "771", label: "771 - Jeevan Utsav", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "883", label: "883 - Jeevan Utsav (Single)", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Child
+    { value: "732", label: "732 - New Children's Money Back", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "734", label: "734 - Jeevan Tarun", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "774", label: "774 - Amrit Baal", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Term
+    { value: "875", label: "875 - YUVA TERM", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "877", label: "877 - Yuva Credit Life", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "887", label: "887 - Bima Kavach", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "859", label: "859 - Saral Jeevan Bima", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "894", label: "894 - Jeevan Raksha", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Annuity
+    { value: "857", label: "857 - Jeevan Akshay-VII", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "758", label: "758 - New Jeevan Shanti", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "879", label: "879 - Smart Pension", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "862", label: "862 - Saral Pension", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "892", label: "892 - New Jeevan Dhara-II", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Ulip
+    { value: "749", label: "749 - Nivesh Plus", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "873", label: "873 - Index Plus", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "752", label: "752 - SIIP", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "867", label: "867 - New Pension Plus", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "886", label: "886 - Protection Plus", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Micro
+    { value: "751", label: "751 - Micro Bachat", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "880", label: "880 - Jan Suraksha", sublabel: "Life Insurance Corporation of India (LIC)" },
+    // Health
+    { value: "908", label: "908 - New Cancer Cover", sublabel: "Life Insurance Corporation of India (LIC)" },
+    { value: "907", label: "907 - Health Shield", sublabel: "Life Insurance Corporation of India (LIC)" },
   ];
 
   const getTermsForPlan = (plan: string) => {
     switch (plan) {
       case "714":
-      case "715":
         return Array.from({ length: 24 }, (_, i) => 12 + i);
+      case "715":
+        return Array.from({ length: 21 }, (_, i) => 15 + i);
+      case "717":
+      case "749":
+      case "873":
+      case "752":
+      case "886":
+        return Array.from({ length: 16 }, (_, i) => 10 + i);
+      case "867":
+        return Array.from({ length: 33 }, (_, i) => 10 + i);
+      case "751":
+        return [10, 11, 12, 13, 14, 15];
+      case "880":
+        return Array.from({ length: 9 }, (_, i) => 12 + i);
       case "733":
         return Array.from({ length: 13 }, (_, i) => 13 + i);
       case "736":
         return [16, 21, 25];
+      case "770":
+        return plan === "770" ? [17, 20, 22, 25] : [15, 20, 25];
       case "760":
+      case "890":
         return [15, 16, 17, 18, 19, 20];
+      case "912":
+        return Array.from({ length: 11 }, (_, i) => 10 + i);
+      case "888":
+      case "889":
+        return [10, 15, 20, 25];
       case "748":
         return [14, 16, 18, 20];
       case "720":
         return [20];
       case "721":
+      case "881":
         return [25];
+      case "745":
+      case "771":
+      case "883":
+        return [Math.max(15, 100 - age)];
+      case "732":
+      case "734":
+        return [Math.max(5, 25 - age)];
+      case "774":
+        return Array.from({ length: 21 }, (_, i) => 5 + i);
+      case "875":
+        return Array.from({ length: 26 }, (_, i) => 15 + i);
+      case "877":
+      case "892":
+        return Array.from({ length: 26 }, (_, i) => 5 + i);
+      case "887":
+        return Array.from({ length: 31 }, (_, i) => 10 + i);
+      case "859":
+        return Array.from({ length: 36 }, (_, i) => 5 + i);
+      case "894":
+      case "908":
+      case "907":
+        return Array.from({ length: 21 }, (_, i) => 10 + i);
+      case "857":
+      case "879":
+      case "862":
+        return [1];
+      case "758":
+        return Array.from({ length: 12 }, (_, i) => 1 + i);
       default:
-        return [15, 20, 25];
+        return plan === "770" ? [17, 20, 22, 25] : [15, 20, 25];
     }
   };
 
@@ -105,7 +196,22 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
     switch (plan) {
       case "714":
       case "715":
+      case "732":
+      case "894":
+      case "873":
+      case "752":
+      case "751":
+      case "908":
+      case "907":
         return [term];
+      case "717":
+      case "888":
+      case "857":
+      case "758":
+      case "879":
+      case "862":
+      case "749":
+        return [1];
       case "733":
         return [term - 3];
       case "736":
@@ -113,8 +219,18 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
         if (term === 21) return [15];
         if (term === 25) return [16];
         return [10];
+      case "770":
+        return [Math.max(7, term - 10)];
       case "760":
-        return [term - 5];
+      case "890":
+      case "889":
+      case "880":
+        return [Math.max(5, term - 5)];
+      case "912":
+        if (term <= 14) return [6];
+        if (term === 15) return [6, 8, 10];
+        if (term <= 17) return [6, 8, 10, 12];
+        return [6, 8, 10, 12, 15];
       case "748":
         if (term === 14) return [10];
         if (term === 16) return [12];
@@ -125,6 +241,31 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
         return [15];
       case "721":
         return [20];
+      case "881":
+        return Array.from({ length: 9 }, (_, i) => 7 + i);
+      case "745":
+        return [15, 20, 25, 30];
+      case "771":
+        return Array.from({ length: 12 }, (_, i) => 5 + i);
+      case "883":
+        return Array.from({ length: 11 }, (_, i) => 7 + i);
+      case "734":
+        return [Math.max(5, term - 5)];
+      case "774":
+        return [1, 5, 6, 7];
+      case "875":
+      case "887":
+        return Array.from(new Set([1, 5, 10, 15, term]));
+      case "886":
+        return Array.from(new Set([5, 7, 10, 15, term]));
+      case "877":
+        return [1, 5, 10, 15];
+      case "859":
+        return Array.from(new Set([1, 5, 10, term]));
+      case "892":
+        return [10, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 1];
+      case "867":
+        return Array.from(new Set([1, term]));
       default:
         return [term];
     }
@@ -145,6 +286,12 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
       setPpt(validPpts[0] || policyTerm);
     }
   }, [selectedPlan, policyTerm, ppt]);
+
+  useEffect(() => {
+    if (selectedPlan === "880" && budget > 200000) {
+      setBudget(200000);
+    }
+  }, [selectedPlan, budget]);
 
   // Autofill Ref No on Mount
   useEffect(() => {
@@ -701,21 +848,17 @@ export const LifeGuardForm: React.FC<LifeGuardFormProps> = ({
                 </div>
               </div>
 
-              <div>
+              <div className="[&_button]:py-2 [&_button]:px-2 [&_button]:text-xs [&_button]:rounded-lg [&_button]:font-bold [&_button]:text-blue-900">
                 <label className="text-xs font-medium text-slate-600 block mb-1">
                   Plans
                 </label>
-                <select
+                <QuotationSearchableSelect
+                  placeholder="Search plan..."
+                  searchPlaceholder="Search by name or plan number"
+                  options={planOptions}
                   value={selectedPlan}
-                  onChange={(e) => setSelectedPlan(e.target.value)}
-                  className="w-full px-2 py-2 text-xs border border-slate-300 rounded-lg bg-white text-blue-900 font-bold"
-                >
-                  {planOptions.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.value}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedPlan(val)}
+                />
               </div>
             </div>
 

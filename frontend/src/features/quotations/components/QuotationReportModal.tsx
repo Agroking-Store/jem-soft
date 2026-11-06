@@ -392,9 +392,13 @@ export const QuotationReportModal: React.FC<QuotationReportModalProps> = ({
                       <td style={{ padding: "6px", textAlign: "right", fontWeight: "bold" }}>
                         {r.policyYear === quotation.policyTerm
                           ? formatCurrency(r.cashFlowReturns || 0)
-                          : r.surrenderValue > 0
-                            ? formatCurrency(r.surrenderValue)
-                            : "—"}
+                          : ["714", "715", "717", "720", "721", "732", "733", "734", "736", "745", "748", "749", "751", "752", "758", "770", "771", "774", "857", "859", "862", "867", "873", "875", "877", "879", "880", "881", "883", "886", "887", "890", "894", "912", "888", "889", "892"].includes(quotation.planNumber || "714")
+                            ? r.cashFlowReturns > 0
+                              ? formatCurrency(r.cashFlowReturns)
+                              : "—"
+                            : r.surrenderValue > 0
+                              ? formatCurrency(r.surrenderValue)
+                              : "—"}
                       </td>
                     </tr>
                   ))

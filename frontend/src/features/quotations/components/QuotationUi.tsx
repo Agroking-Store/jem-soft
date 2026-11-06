@@ -320,6 +320,15 @@ function DropdownPanel({
           ref={searchInputRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const firstMatch = allOptions.find(filterOption);
+              if (firstMatch) {
+                onSelect(firstMatch.value);
+              }
+            }
+          }}
           placeholder={searchPlaceholder}
           className="w-full text-sm text-slate-900 outline-none placeholder:text-slate-400"
         />
@@ -354,6 +363,7 @@ function DropdownPanel({
                       <button
                         key={opt.value}
                         type="button"
+                        onMouseDown={(e) => { e.preventDefault(); onSelect(opt.value); }}
                         onClick={() => onSelect(opt.value)}
                         className={`flex w-full items-center justify-between gap-2 py-2.5 pl-6 pr-3 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
                           opt.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"
@@ -374,6 +384,7 @@ function DropdownPanel({
                 <button
                   key={item.value}
                   type="button"
+                  onMouseDown={(e) => { e.preventDefault(); onSelect(item.value); }}
                   onClick={() => onSelect(item.value)}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-blue-50/80 cursor-pointer ${
                     item.value === value ? "bg-blue-50 font-bold text-[#1877F2]" : "text-slate-700"
