@@ -1,0 +1,292 @@
+{
+  "planNumber": "856",
+  "planName": "Pradhan Mantri Vaya Vandana Yojana (Modified-2020)",
+  "sources": [
+    "LIC PMVVY Modified-2020 sales brochure: entry 60-99, term 10, single premium, purchase price = sum assured, GST 0, pension rates by mode",
+    "i-magic CalcPremium engine: premiumRate 0, basicPremium = sum assured, GST 0"
+  ],
+  "verification": {
+    "planName": "Pradhan Mantri Vaya Vandana Yojana (Modified-2020)",
+    "sources": [
+      "LIC PMVVY Modified-2020 brochure",
+      "i-magic CalcPremium engine"
+    ],
+    "cases": [
+      {
+        "description": "age 60, term 10, single premium 10,00,000, yearly pension",
+        "official": "brochure pension rate 76.60 per 1000",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly"
+        },
+        "expect": {
+          "rate": 0,
+          "tabularPremium": 1000000,
+          "basicYearlyPremium": 1000000,
+          "installmentPremium": 1000000,
+          "gstRate": 0,
+          "gst": 0,
+          "totalInstallmentPremium": 1000000
+        }
+      },
+      {
+        "description": "age 75, term 10, 15,00,000, half-yearly pension",
+        "input": {
+          "age": 75,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1476064,
+          "premiumMode": "Half-Yearly"
+        },
+        "expect": {
+          "rate": 0,
+          "tabularPremium": 1476064,
+          "basicYearlyPremium": 1476064,
+          "installmentPremium": 1476064,
+          "gst": 0,
+          "totalInstallmentPremium": 1476064
+        }
+      },
+      {
+        "description": "age 99, term 10, 1,62,162, monthly pension (minimum)",
+        "input": {
+          "age": 99,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 162162,
+          "premiumMode": "Monthly"
+        },
+        "expect": {
+          "rate": 0,
+          "tabularPremium": 162162,
+          "basicYearlyPremium": 162162,
+          "installmentPremium": 162162,
+          "gst": 0,
+          "totalInstallmentPremium": 162162
+        }
+      },
+      {
+        "description": "yearly minimum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 156658,
+          "premiumMode": "Yearly"
+        },
+        "expect": {
+          "tabularPremium": 156658,
+          "installmentPremium": 156658,
+          "totalInstallmentPremium": 156658
+        }
+      },
+      {
+        "description": "yearly maximum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1449086,
+          "premiumMode": "Yearly"
+        },
+        "expect": {
+          "tabularPremium": 1449086,
+          "installmentPremium": 1449086,
+          "totalInstallmentPremium": 1449086
+        }
+      },
+      {
+        "description": "half-yearly minimum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 159574,
+          "premiumMode": "Half-Yearly"
+        },
+        "expect": {
+          "tabularPremium": 159574,
+          "installmentPremium": 159574,
+          "totalInstallmentPremium": 159574
+        }
+      },
+      {
+        "description": "half-yearly maximum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1476064,
+          "premiumMode": "Half-Yearly"
+        },
+        "expect": {
+          "tabularPremium": 1476064,
+          "installmentPremium": 1476064,
+          "totalInstallmentPremium": 1476064
+        }
+      },
+      {
+        "description": "quarterly minimum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 161074,
+          "premiumMode": "Quarterly"
+        },
+        "expect": {
+          "tabularPremium": 161074,
+          "installmentPremium": 161074,
+          "totalInstallmentPremium": 161074
+        }
+      },
+      {
+        "description": "quarterly maximum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1489933,
+          "premiumMode": "Quarterly"
+        },
+        "expect": {
+          "tabularPremium": 1489933,
+          "installmentPremium": 1489933,
+          "totalInstallmentPremium": 1489933
+        }
+      },
+      {
+        "description": "monthly minimum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 162162,
+          "premiumMode": "Monthly"
+        },
+        "expect": {
+          "tabularPremium": 162162,
+          "installmentPremium": 162162,
+          "totalInstallmentPremium": 162162
+        }
+      },
+      {
+        "description": "monthly maximum purchase price",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1500000,
+          "premiumMode": "Monthly"
+        },
+        "expect": {
+          "tabularPremium": 1500000,
+          "installmentPremium": 1500000,
+          "totalInstallmentPremium": 1500000
+        }
+      },
+      {
+        "description": "age 59 below entry age",
+        "input": {
+          "age": 59,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "between 60 and 99"
+      },
+      {
+        "description": "age 100 above entry age",
+        "input": {
+          "age": 100,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "between 60 and 99"
+      },
+      {
+        "description": "term 9 invalid",
+        "input": {
+          "age": 60,
+          "policyTerm": 9,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "10 years"
+      },
+      {
+        "description": "PPT 2 invalid",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 2,
+          "sumAssured": 1000000,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "single premium"
+      },
+      {
+        "description": "mode invalid",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1000000,
+          "premiumMode": "Weekly"
+        },
+        "expectError": "Yearly, Half-Yearly, Quarterly or Monthly"
+      },
+      {
+        "description": "yearly below minimum",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 156657,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "minimum purchase price"
+      },
+      {
+        "description": "yearly above maximum",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1449087,
+          "premiumMode": "Yearly"
+        },
+        "expectError": "maximum purchase price"
+      },
+      {
+        "description": "half-yearly below minimum",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 159573,
+          "premiumMode": "Half-Yearly"
+        },
+        "expectError": "minimum purchase price"
+      },
+      {
+        "description": "monthly above maximum",
+        "input": {
+          "age": 60,
+          "policyTerm": 10,
+          "premiumPayingTerm": 1,
+          "sumAssured": 1500001,
+          "premiumMode": "Monthly"
+        },
+        "expectError": "maximum purchase price"
+      }
+    ]
+  }
+}

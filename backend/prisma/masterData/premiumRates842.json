@@ -1,0 +1,27 @@
+{
+  "plan": "842",
+  "name": "Pradhan Mantri Vaya Vandana Yojana",
+  "rows": [
+    {
+      "entryAge": 0,
+      "gender": null,
+      "smoker": null,
+      "policyTerm": 10,
+      "premiumPayingTerm": 1,
+      "option": null,
+      "tabularRate": 0
+    }
+  ],
+  "saRebateBands": [],
+  "verificationCases": [
+    {
+      "age": 70,
+      "term": 10,
+      "ppt": 1,
+      "sa": 150000,
+      "mode": "Single",
+      "expectedBasic": 150000,
+      "expectedTotal": 150000
+    }
+  ]
+}

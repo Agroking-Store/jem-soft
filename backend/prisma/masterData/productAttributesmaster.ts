@@ -151,4 +151,58 @@ export const productAttributes = [
     attributeCode: "FREE_LOOK_PERIOD",
     dataType: "Number",
   },
+
+  // ---------------------------------------------------------------------------
+  // Legacy LIC plan catalogue (seeded from masterData/legacyPlans.json)
+  // ---------------------------------------------------------------------------
+  {
+    attributeName: "Date of Introduction",
+    attributeCode: "INTRO_DATE",
+    dataType: "String",
+  },
+  {
+    attributeName: "Date of Withdrawal",
+    attributeCode: "WITHDRAWAL_DATE",
+    dataType: "String",
+  },
+  {
+    attributeName: "Allowed Policy Terms (comma separated)",
+    attributeCode: "TERMS",
+    dataType: "String",
+  },
+  {
+    attributeName: "Allowed Premium Paying Terms (comma separated)",
+    attributeCode: "PPTS",
+    dataType: "String",
+  },
+  {
+    attributeName: "Policy Term Formula",
+    attributeCode: "TERM_FORMULA",
+    dataType: "String",
+  },
+  {
+    attributeName: "PPT Formula",
+    attributeCode: "PPT_FORMULA",
+    dataType: "String",
+  },
+  {
+    attributeName: "Allowed Riders (comma separated)",
+    attributeCode: "ALLOWED_RIDERS",
+    dataType: "String",
+  },
+  {
+    attributeName: "Default Sum Assured",
+    attributeCode: "DEFAULT_SUM_ASSURED",
+    dataType: "String",
+  },
+  {
+    attributeName: "PPT Notes",
+    attributeCode: "PPT_NOTES",
+    dataType: "String",
+  },
+  {
+    attributeName: "Plan Notes",
+    attributeCode: "PLAN_NOTES",
+    dataType: "String",
+  },
 ];

@@ -11,6 +11,10 @@ interface Props {
   onChange: (date?: Date) => void;
   placeholder?: string;
   readOnly?: boolean;
+  /** Inclusive lower bound, "YYYY-MM-DD". Days before it are greyed out. */
+  minDate?: string;
+  /** Inclusive upper bound, "YYYY-MM-DD". Days after it are greyed out. */
+  maxDate?: string;
 }
 
 const POPPER_Z_INDEX_STYLE_ID = "datepicker-popper-zindex-override";
@@ -53,8 +57,23 @@ export default function DatePicker({
   onChange,
   placeholder = "YYYY-MM-DD",
   readOnly = false,
+  minDate,
+  maxDate,
 }: Props) {
   const [mounted, setMounted] = useState(false);
+
+  // Parse "YYYY-MM-DD" as a *local* midnight date. `new Date("2016-01-04")`
+  // is UTC and lands on the previous day in negative-offset timezones.
+  const minDay = useMemo(() => {
+    if (!minDate) return undefined;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(minDate.trim());
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : undefined;
+  }, [minDate]);
+  const maxDay = useMemo(() => {
+    if (!maxDate) return undefined;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(maxDate.trim());
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : undefined;
+  }, [maxDate]);
 
   useEffect(() => {
     setMounted(true);
@@ -114,6 +133,8 @@ export default function DatePicker({
       <ReactDatePicker
         selected={selectedDate}
         onChange={handleDateChange}
+        minDate={minDay}
+        maxDate={maxDay}
         dateFormat="yyyy-MM-dd"
         placeholderText={placeholder}
         showMonthDropdown

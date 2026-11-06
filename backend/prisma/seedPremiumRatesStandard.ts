@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import Database from "better-sqlite3";
+// Dynamic import to avoid crash when better-sqlite3 native binary is not installed
 
 export const seedPremiumRatesStandard = async (prisma: PrismaClient) => {
   const sqlite = new Database("./prisma/Creations.db", {
