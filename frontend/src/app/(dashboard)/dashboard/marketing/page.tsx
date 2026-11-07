@@ -40,6 +40,7 @@ import {
   getCampaignsApi,
   createCampaignApi,
   sendCampaignApi,
+  sendCampaignTestEmailApi,
   getAudienceEstimationApi,
   getUpcomingCelebrationsApi,
   sendDirectMessageApi,
@@ -82,6 +83,16 @@ export default function MarketingPage() {
   const [newCampaignTemplateId, setNewCampaignTemplateId] = useState<string>("");
   const [newCampaignCustomMessage, setNewCampaignCustomMessage] = useState<string>("");
   const [isBroadcasting, setIsBroadcasting] = useState<string | null>(null);
+  const [showTestEmailModal, setShowTestEmailModal] = useState<boolean>(false);
+  const [testEmail, setTestEmail] = useState<string>("");
+  const [testEmailCampaign, setTestEmailCampaign] = useState<{
+    campaignId?: string;
+    title?: string;
+    templateId?: string;
+    customSubject?: string;
+    customMessage?: string;
+  } | null>(null);
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState<boolean>(false);
 
   // Celebrations State
   const [celebrations, setCelebrations] = useState<CelebrationItem[]>([]);
@@ -234,6 +245,51 @@ export default function MarketingPage() {
       toast.error("Failed to broadcast campaign.");
     } finally {
       setIsBroadcasting(null);
+    }
+  };
+
+  const openTestEmailModal = (campaign?: MarketingCampaign) => {
+    if (!campaign && !newCampaignTitle.trim()) {
+      toast.error("Enter a campaign title before sending a test email.");
+      return;
+    }
+
+    setTestEmailCampaign(
+      campaign
+        ? { campaignId: campaign.id }
+        : {
+            title: newCampaignTitle,
+            templateId: newCampaignTemplateId || undefined,
+            customMessage: newCampaignCustomMessage || undefined,
+          },
+    );
+    setTestEmail("");
+    setShowTestEmailModal(true);
+  };
+
+  const handleSendCampaignTestEmail = async () => {
+    if (!testEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.trim())) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    if (!testEmailCampaign) return;
+
+    setIsSendingTestEmail(true);
+    try {
+      const res = await sendCampaignTestEmailApi({
+        ...testEmailCampaign,
+        to: testEmail.trim(),
+      });
+      if (res.success) {
+        toast.success("Test email sent successfully.");
+        setShowTestEmailModal(false);
+      } else {
+        toast.error(res.message || "Failed to send test email.");
+      }
+    } catch {
+      toast.error("Failed to send test email.");
+    } finally {
+      setIsSendingTestEmail(false);
     }
   };
 
@@ -678,6 +734,13 @@ export default function MarketingPage() {
                     <span className="text-emerald-600 font-semibold">Delivered: {camp.successfulCount || 0}</span>
                   </div>
 
+                  <button
+                    onClick={() => openTestEmailModal(camp)}
+                    className="w-full py-2.5 border border-blue-200 text-[#1877F2] hover:bg-blue-50 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Mail size={14} /> Send Test Email
+                  </button>
+
                   {camp.status !== "COMPLETED" && (
                     <button
                       onClick={() => handleSendCampaign(camp.id, camp.title)}
@@ -760,10 +823,61 @@ export default function MarketingPage() {
                     Cancel
                   </button>
                   <button
+                    onClick={() => openTestEmailModal()}
+                    className="px-4 py-2.5 border border-blue-200 text-[#1877F2] rounded-xl text-xs font-semibold hover:bg-blue-50 cursor-pointer inline-flex items-center gap-2"
+                  >
+                    <Mail size={14} /> Send Test Email
+                  </button>
+                  <button
                     onClick={handleCreateCampaign}
                     className="px-5 py-2.5 bg-[#1877F2] text-white rounded-xl text-xs font-semibold hover:brightness-110 cursor-pointer"
                   >
                     Save Campaign
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showTestEmailModal && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-200">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Send Test Email</h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    A preview using sample customer details will be sent only to this address.
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="campaign-test-email" className="block font-semibold text-slate-700 mb-1 text-xs">
+                    Your email address
+                  </label>
+                  <input
+                    id="campaign-test-email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    placeholder="you@example.com"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    className="w-full p-2.5 border rounded-xl text-xs"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-1">
+                  <button
+                    onClick={() => setShowTestEmailModal(false)}
+                    disabled={isSendingTestEmail}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendCampaignTestEmail}
+                    disabled={isSendingTestEmail}
+                    className="px-4 py-2.5 bg-[#1877F2] text-white rounded-xl text-xs font-semibold hover:brightness-110 cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+                  >
+                    <Send size={14} />
+                    {isSendingTestEmail ? "Sending..." : "Send Test Email"}
                   </button>
                 </div>
               </div>

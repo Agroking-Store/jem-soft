@@ -92,6 +92,18 @@ export const sendCampaignApi = async (id: string) => {
   return res.data;
 };
 
+export const sendCampaignTestEmailApi = async (payload: {
+  to: string;
+  campaignId?: string;
+  title?: string;
+  templateId?: string;
+  customSubject?: string;
+  customMessage?: string;
+}) => {
+  const res = await axiosInstance.post("/marketing/campaigns/test-email", payload);
+  return res.data;
+};
+
 export const getAudienceEstimationApi = async (params?: any) => {
   const res = await axiosInstance.get<{
     success: boolean;
