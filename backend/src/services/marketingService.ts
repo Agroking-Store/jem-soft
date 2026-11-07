@@ -1,5 +1,10 @@
 import prisma from "../config/database.js";
-import { CommunicationChannel, DeliveryStatus, Prisma } from "@prisma/client";
+import {
+  CommunicationChannel,
+  DeliveryStatus,
+  NotificationTemplate,
+  Prisma,
+} from "@prisma/client";
 import { differenceInCalendarDays } from "date-fns";
 import { sendWhatsapp } from "./whatsappService.js";
 import { sendEmail } from "./emailService.js";
@@ -81,10 +86,12 @@ export const buildCampaignTemplateVariables = (
       `${customer.salutation ? `${customer.salutation} ` : ""}${customer.firstName} ${customer.lastName || ""}`.trim() ||
       "Customer",
     policy_number: selectedPolicy?.policyNumber || "Not available",
-    plan_name: selectedPolicy?.product.productName || "Not available",
-    provider_name: selectedPolicy?.provider.name || "Not available",
-    premium_amount: premiumAmount?.toString() || "Not available",
-    premium_mode: selectedPolicy?.premiumMode.modeName || "Not available",
+    plan_name: selectedPolicy?.product?.productName || "Not available",
+    provider_name: selectedPolicy?.provider?.name || "Not available",
+    premium_amount: premiumAmount != null
+      ? `₹${Number(premiumAmount).toLocaleString("en-IN")}`
+      : "Not available",
+    premium_mode: selectedPolicy?.premiumMode?.modeName || "Not available",
     due_date: selectedPolicy?.nextPremiumDueDate
       ? selectedPolicy.nextPremiumDueDate.toLocaleDateString("en-IN", {
           day: "2-digit",
@@ -110,8 +117,10 @@ export const buildCampaignTemplateVariables = (
 export const renderCampaignTemplate = (
   template: string,
   variables: ReturnType<typeof buildCampaignTemplateVariables>,
-) =>
-  template.replace(/\{\{\s*(\w+)\s*\}\}|\{\s*(\w+)\s*\}/g, (_match, doubleKey, singleKey) => {
+) => {
+  if (!template) return "";
+
+  return template.replace(/\{\{\s*(\w+)\s*\}\}|\{\s*(\w+)\s*\}/g, (_match, doubleKey, singleKey) => {
     const key = (doubleKey || singleKey).toLowerCase();
     const variable = Object.entries(variables).find(
       ([name]) => name.toLowerCase() === key,
@@ -119,6 +128,118 @@ export const renderCampaignTemplate = (
 
     return variable ? String(variable[1]) : "Not available";
   });
+};
+
+type CampaignEmailSource = {
+  title: string;
+  customSubject?: string | null;
+  customMessage?: string | null;
+  template?: Pick<NotificationTemplate, "subject" | "smsBody" | "emailBody"> | null;
+};
+
+const buildCampaignEmailContent = (
+  campaign: CampaignEmailSource,
+  variables: ReturnType<typeof buildCampaignTemplateVariables>,
+) => {
+  const messageText = renderCampaignTemplate(
+    campaign.customMessage ||
+      (campaign.template?.smsBody
+        ? campaign.template.smsBody
+        : "Exclusive insurance plans available from your advisor."),
+    variables,
+  );
+  const emailSubject = renderCampaignTemplate(
+    campaign.customSubject ||
+      (campaign.template?.subject ? campaign.template.subject : campaign.title),
+    variables,
+  );
+  const emailHtml = renderCampaignTemplate(
+    campaign.template?.emailBody ||
+      `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`,
+    variables,
+  );
+
+  return { messageText, emailSubject, emailHtml };
+};
+
+const campaignPreviewVariables: ReturnType<typeof buildCampaignTemplateVariables> = {
+  customer_name: "Rahul Sharma",
+  policy_number: "POL123456",
+  plan_name: "Health Insurance Plan",
+  provider_name: "ABC Insurance",
+  premium_amount: "₹15,000",
+  premium_mode: "Monthly",
+  due_date: "15 Nov 2026",
+  due_days: 5,
+  due_days_text: "5 days remaining",
+  advisor_name: "Amit Patel",
+  advisor_phone: "9876543210",
+  agency_name: "Jem Soft",
+};
+
+export interface SendCampaignTestEmailDTO {
+  to: string;
+  campaignId?: string;
+  title?: string;
+  templateId?: string;
+  customSubject?: string;
+  customMessage?: string;
+}
+
+export const sendCampaignTestEmail = async ({
+  to,
+  campaignId,
+  title,
+  templateId,
+  customSubject,
+  customMessage,
+}: SendCampaignTestEmailDTO) => {
+  let emailSource: CampaignEmailSource;
+
+  if (campaignId) {
+    const campaign = await prisma.marketingCampaign.findUnique({
+      where: { id: campaignId },
+      include: { template: true },
+    });
+
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    emailSource = campaign;
+  } else {
+    if (!title?.trim()) {
+      throw new Error("Campaign title is required to send a test email.");
+    }
+
+    const template = templateId
+      ? await prisma.notificationTemplate.findUnique({ where: { id: templateId } })
+      : null;
+
+    if (templateId && !template) {
+      throw new Error(`Campaign template not found: ${templateId}`);
+    }
+
+    emailSource = {
+      title,
+      customSubject,
+      customMessage,
+      template,
+    };
+  }
+
+  const { messageText, emailSubject, emailHtml } = buildCampaignEmailContent(
+    emailSource,
+    campaignPreviewVariables,
+  );
+
+  return sendEmail({
+    to,
+    subject: emailSubject,
+    html: emailHtml,
+    text: messageText,
+  });
+};
 
 export interface CreateCampaignDTO {
   title: string;
@@ -236,7 +357,7 @@ export const executeCampaign = async (campaignId: string) => {
     await Promise.allSettled(
       currentChunk.map(async (customer) => {
         try {
-          const customerName = `${customer.salutation ? customer.salutation + " " : ""}${customer.firstName} ${customer.lastName}`.trim();
+          const customerName = `${customer.salutation ? customer.salutation + " " : ""}${customer.firstName} ${customer.lastName || ""}`.trim();
           const phone = customer.contactInfo?.mobile1 || customer.contactInfo?.mobile2;
           const email = customer.contactInfo?.emailPersonal || customer.contactInfo?.emailBusiness;
 
@@ -245,25 +366,8 @@ export const executeCampaign = async (campaignId: string) => {
 
           const templateVars = buildCampaignTemplateVariables(customer, criteria);
 
-          const messageText = renderCampaignTemplate(
-            campaign.customMessage ||
-            (campaign.template?.smsBody
-              ? campaign.template.smsBody
-              : "Exclusive insurance plans available from your advisor."),
-            templateVars,
-          );
-
-          const emailSubject = renderCampaignTemplate(
-            campaign.customSubject ||
-            (campaign.template?.subject
-              ? campaign.template.subject
-              : campaign.title),
-            templateVars,
-          );
-
-          const emailHtml = renderCampaignTemplate(
-            campaign.template?.emailBody ||
-              `<div style="font-family: Arial, sans-serif; padding: 20px;"><h3>${emailSubject}</h3><p>${messageText}</p></div>`,
+          const { messageText, emailSubject, emailHtml } = buildCampaignEmailContent(
+            campaign,
             templateVars,
           );
 
